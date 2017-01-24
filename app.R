@@ -4,13 +4,16 @@ library(shinydashboard)
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    menuItem("Intro", tabName = "intro", icon = icon("book"), badgeLabel = "Read me first", badgeColor = "yellow"),
+    # match tabItem
+    menuItem("Intro", tabName = "intro", icon = icon("book"), 
+             badgeLabel = "Read me first", badgeColor = "yellow"),
     menuItem("Upload", tabName = "upload", icon = icon("upload"))
 
   )
 )
 
 body <- dashboardBody(
+  # match menuItem
   tabItems(
     tabItem(tabName = "intro",
             h2("Introduction to the app")
