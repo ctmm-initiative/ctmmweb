@@ -5,9 +5,11 @@ pacman::p_load(shiny, shinydashboard)
 sidebar <- dashboardSidebar(
   sidebarMenu(
     # match tabItem
-    menuItem("Intro", tabName = "intro", icon = icon("book"), 
-             badgeLabel = "Read me first", badgeColor = "yellow"),
-    menuItem("Upload", tabName = "upload", icon = icon("upload"))
+    menuItem("Intro", tabName = "intro", icon = icon("book")),
+    menuItem("Upload", tabName = "upload", icon = icon("upload")),
+    menuItem("Time-lag", tabName = "timelag", icon = icon("line-chart")),
+    menuItem("Model", tabName = "model", icon = icon("hourglass-start")),
+    menuItem("Home Range", tabName = "homerange", icon = icon("map-o"))
   )
 )
 body <- dashboardBody(
@@ -23,7 +25,7 @@ body <- dashboardBody(
   )
 )
 
-ui <- dashboardPage(dashboardHeader(title = "ctmm Shiny app"),
+ui <- dashboardPage(dashboardHeader(title = "Animal Movement"),
                     sidebar, body,
                     skin = "green")
 
