@@ -117,7 +117,7 @@ body <- dashboardBody(
 ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output) { 
-  # load data
+  # load data ----
   # TODO only taking first animal now. and as.telemetry return a list if multiple animal found.
   datasetInput <- reactive({
     if (input$load_option == "ctmm") {
@@ -165,7 +165,7 @@ server <- function(input, output) {
         theme(plot.title = element_text(hjust = 0.5)) +
         coord_fixed()
   })
-  # vario
+  # vario ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
     variogram(animal_1)
@@ -173,7 +173,8 @@ server <- function(input, output) {
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
   output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
   output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = input$zoom)})
-  # model selection, right now with all default parameter, no user selection
+  # model selection ----
+  # right now with all default parameter, no user selection
   selected_model <- reactive({
     animal_1 <- datasetInput()
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
@@ -188,7 +189,34 @@ server <- function(input, output) {
       summary(fitted.mod)
     }
   })
-  
+  output$model_plot_1 <- renderPlot({
+    ouf <- selected_model()
+    plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
+  })
+  output$model_plot_2 <- renderPlot({
+    ouf <- selected_model()
+    plot(vg.animal_1(),
+         CTMM = ouf,
+         col.CTMM = "#1b9e77",
+         fraction = 0.1)
+  })
+  # home range ----
+  akde.animal_1 <- reactive({
+    animal_1 <- datasetInput()
+    ouf <- selected_model()
+    akde(animal_1,CTMM = ouf)
+  })
+  output$range_summary <- renderPrint({
+    akde1 <- akde.animal_1()
+    if (is.null(akde1))
+      cat("No model selected yet")
+    else{
+      summary(akde1)
+    }
+  })
+  output$range_plot_basic <- renderPlot({
+    plot(datasetInput(), UD = akde.animal_1())
+  })
 }
 
 shinyApp(ui, server)
