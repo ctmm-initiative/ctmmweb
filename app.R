@@ -34,7 +34,7 @@ sidebar <- dashboardSidebar(
 )
 # boxes ----
 upload_box <- box(title = "Upload your MoveBank format data",
-                  status = "primary", solidHeader = TRUE,
+                  status = "info", solidHeader = TRUE,
                   radioButtons('load_option', 'Load Data From',
                                c("Upload File" = 'upload',
                                  "Use ctmm Bufflo Data" = 'ctmm'), selected = "upload"
@@ -43,24 +43,41 @@ upload_box <- box(title = "Upload your MoveBank format data",
                             accept = c('text/csv',
                                        'text/comma-separated-values,text/plain',
                                        '.csv')))
-data_summary_box <- box(title = "Data Summary", status = "info",
+data_summary_box <- box(title = "Data Summary", status = "primary",
                         solidHeader = TRUE, 
                         verbatimTextOutput("data_summary"))
 data_plot_box <- tabBox(title = "Data Plot",
                         id = "plottabs", height = "450px", width = 12,
                         tabPanel("Basic Plot", plotOutput("data_basic")),
                         tabPanel("ggplot2", plotOutput("data_gg")))
-vario_plot_box_1 <- box(title = "Variogram with up to 50% lag", id = "vario_box_1",
-                        status = "info", solidHeader = TRUE,
+vario_plot_box_1 <- box(title = "Variogram with up to 50% lag",
+                        status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
-vario_plot_box_2 <- box(title = "Variogram with minimal lag", id = "vario_box_2",
-                        status = "info", solidHeader = TRUE,
+vario_plot_box_2 <- box(title = "Variogram with minimal lag",
+                        status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_2"))
-vario_plot_box_3 <- box(title = "Variogram with Zoom", id = "vario_box_3",
-                        status = "primary", solidHeader = TRUE, width = 12,
+vario_plot_box_3 <- box(title = "Variogram with Zoom",
+                        status = "info", solidHeader = TRUE, width = 12,
                         plotOutput("vario_plot_3"))
-
-
+# TODO plot 3 also have a button to use user selected parameters for next step
+# TOO a button to auto guess parameters for next step
+# explain the result source, then print summary
+model_summary_box <- box(title = "Model Summary", status = "info",
+                         solidHeader = TRUE, width = 12,
+                         verbatimTextOutput("model_summary"))
+model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
+                        status = "primary", solidHeader = TRUE,
+                        plotOutput("model_plot_1"))
+model_plot_box_2 <- box(title = "Variogram with model for minimal lag",
+                        status = "primary", solidHeader = TRUE,
+                        plotOutput("model_plot_2"))
+range_summary_box <- box(title = "Home Range Estimation", status = "info",
+                       solidHeader = TRUE, width = 12,
+                       verbatimTextOutput("range_summary"))
+range_plot_box <- tabBox(title = "Home Range Estimation plot",
+                        id = "rangeplottabs", height = "450px", width = 12,
+                        tabPanel("Basic Plot", plotOutput("range_plot_basic")),
+                        tabPanel("ggplot2", plotOutput("range_plot_gg")))
 # body ----
 body <- dashboardBody(
   # match menuItem
@@ -72,9 +89,15 @@ body <- dashboardBody(
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
-    tabItem(tabName = "model"),
-    tabItem(tabName = "homerange"),
-    tabItem(tabName = "report")
+    tabItem(tabName = "model",
+            fluidRow(model_summary_box),
+            fluidRow(model_plot_box_1, model_plot_box_2)
+            ),
+    tabItem(tabName = "homerange",
+            fluidRow(range_summary_box),
+            fluidRow(range_plot_box)
+            ),
+    tabItem(tabName = "report", fluidPage(includeMarkdown("workflow1.md")))
   )
 )
 # assemble UI
