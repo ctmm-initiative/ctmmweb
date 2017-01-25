@@ -1,6 +1,17 @@
 # lib ----
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(shiny, shinydashboard, ctmm, ggplot2)
+pacman::p_load(shiny, shinydashboard, shinyjs, ctmm, ggplot2)
+# increase the uploading file size limit to 30M
+options(shiny.maxRequestSize = 30*1024^2)
+# util for pretty printing summary
+short_summary <- function(l) {
+  lines <- vector(mode = "character", length = length(l))
+  n <- names(l)
+  for (i in seq_along(l)) {
+    lines[i] <- paste0("- ", n[i], ": ", paste0(l[[i]], collapse = ", "), "\n")
+  }
+  return(paste0(lines, collapse = ""))
+}
 # header ----
 header <- dashboardHeader(title = "Animal Movement",
             dropdownMenu(type = "messages",
@@ -35,6 +46,7 @@ sidebar <- dashboardSidebar(
 # boxes ----
 upload_box <- box(title = "Upload your MoveBank format data",
                   status = "info", solidHeader = TRUE,
+                  useShinyjs(),
                   radioButtons('load_option', 'Load Data From',
                                c("Upload File" = 'upload',
                                  "Use ctmm Bufflo Data" = 'ctmm'), selected = "upload"
@@ -43,13 +55,13 @@ upload_box <- box(title = "Upload your MoveBank format data",
                             accept = c('text/csv',
                                        'text/comma-separated-values,text/plain',
                                        '.csv')))
-data_summary_box <- box(title = "Data Summary", status = "primary",
+data_summary_box <- box(title = "Data Summary - 1st animal", status = "primary",
                         solidHeader = TRUE, 
                         verbatimTextOutput("data_summary"))
 data_plot_box <- tabBox(title = "Data Plot",
                         id = "plottabs", height = "450px", width = 12,
-                        tabPanel("Basic Plot", plotOutput("data_basic")),
-                        tabPanel("ggplot2", plotOutput("data_gg")))
+                        tabPanel("Basic Plot", plotOutput("data_plot_basic")),
+                        tabPanel("ggplot2", plotOutput("data_plot_gg")))
 vario_plot_box_1 <- box(title = "Variogram with up to 50% lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -58,7 +70,10 @@ vario_plot_box_2 <- box(title = "Variogram with minimal lag",
                         plotOutput("vario_plot_2"))
 vario_plot_box_3 <- box(title = "Variogram with Zoom",
                         status = "info", solidHeader = TRUE, width = 12,
-                        plotOutput("vario_plot_3"))
+                        sidebarPanel(sliderInput("zoom", "Zoom", 
+                                                 min = 0.001, max = 1, 
+                                                 value = 0.01)),
+                        mainPanel(plotOutput("vario_plot_3")))
 # TODO plot 3 also have a button to use user selected parameters for next step
 # TOO a button to auto guess parameters for next step
 # explain the result source, then print summary
@@ -91,21 +106,66 @@ body <- dashboardBody(
             fluidRow(vario_plot_box_3)),
     tabItem(tabName = "model",
             fluidRow(model_summary_box),
-            fluidRow(model_plot_box_1, model_plot_box_2)
-            ),
+            fluidRow(model_plot_box_1, model_plot_box_2)),
     tabItem(tabName = "homerange",
             fluidRow(range_summary_box),
-            fluidRow(range_plot_box)
-            ),
+            fluidRow(range_plot_box)),
     tabItem(tabName = "report", fluidPage(includeMarkdown("workflow1.md")))
   )
 )
 # assemble UI
-ui <- dashboardPage(header, sidebar, body,
-                    skin = "green")
+ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output) { 
-  
+  # load data
+  # TODO only taking first animal now
+  datasetInput <- reactive({
+    if (input$load_option == "upload") {
+      inFile <- input$file1
+      if (!is.null(inFile))
+        as.telemetry(inFile$datapath)[[1]]
+    } else if (input$load_option == "ctmm") {
+      data("buffalo")
+      buffalo[[1]]
+    }
+  })
+  # toggle browse button if use ctmm data
+  observeEvent(input$load_option, {
+    toggleState(id = "file1", condition = (input$load_option == "upload"))
+  })
+  # data summary
+  output$data_summary <- renderPrint({
+    animal_1 <- datasetInput()
+    if (is.null(animal_1))
+      cat("No data loaded yet")
+    else{
+      cat(short_summary(summary(animal_1)))
+    }
+  })
+  # data plot
+  output$data_plot_basic <- renderPlot({
+    animal_1 <- datasetInput()
+    if (!is.null(animal_1))
+      plot(animal_1)
+  })
+  output$data_plot_gg <- renderPlot({
+    animal_1 <- datasetInput()
+    if (!is.null(animal_1))
+      ggplot(data = animal_1, aes(x, y)) + 
+        geom_point(color = "red", shape = 1, size = 0.8) +
+        labs(x = "x (meters)", y = "y (meters)") +
+        ggtitle(paste0("animal: ", animal_1@info$identity)) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        coord_fixed()
+  })
+  # vario
+  vg.animal_1 <- reactive({
+    animal_1 <- datasetInput()
+    variogram(animal_1)
+  })
+  output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
+  output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
+  output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = input$zoom)})
 }
 
 shinyApp(ui, server)
