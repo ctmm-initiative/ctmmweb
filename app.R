@@ -118,16 +118,23 @@ ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output) { 
   # load data
-  # TODO only taking first animal now
+  # TODO only taking first animal now. and as.telemetry return a list if multiple animal found.
   datasetInput <- reactive({
-    if (input$load_option == "upload") {
-      inFile <- input$file1
-      if (!is.null(inFile))
-        as.telemetry(inFile$datapath)[[1]]
-    } else if (input$load_option == "ctmm") {
+    if (input$load_option == "ctmm") {
       data("buffalo")
       buffalo[[1]]
-    }
+    } else if (input$load_option == "upload") {
+      inFile <- input$file1
+      if (!is.null(inFile)) {
+        tele <- as.telemetry(inFile$datapath)
+        # ifelse will have Error in NextMethod("[") : 'NextMethod' called from an anonymous function
+        if (class(tele) == "list") {
+          tele[[1]]
+        } else {
+          tele
+        }
+      }
+    } 
   })
   # toggle browse button if use ctmm data
   observeEvent(input$load_option, {
@@ -166,6 +173,22 @@ server <- function(input, output) {
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
   output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
   output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = input$zoom)})
+  # model selection, right now with all default parameter, no user selection
+  selected_model <- reactive({
+    animal_1 <- datasetInput()
+    guessed <- ctmm.guess(animal_1, interactive = FALSE)
+    withProgress(ctmm.select(animal_1, CTMM = guessed), 
+                 message = "Fitting models to find the best fit")
+  })
+  output$model_summary <- renderPrint({
+    fitted.mod <- selected_model()
+    if (is.null(fitted.mod))
+      cat("No model selected yet")
+    else{
+      summary(fitted.mod)
+    }
+  })
+  
 }
 
 shinyApp(ui, server)
