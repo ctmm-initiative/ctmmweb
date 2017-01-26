@@ -2,6 +2,11 @@
 # if (!require("pacman")) install.packages("pacman")
 # pacman::p_load(shiny, shinydashboard, shinyjs, ctmm, ggplot2, markdown)
 # pacman seemed not working with shinyapps.io
+# debug flag
+# debug <- TRUE
+# if (debug) {
+#   options(shiny.reactlog = TRUE) 
+# }
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
@@ -102,6 +107,7 @@ range_plot_box <- tabBox(title = "Home Range Estimation plot",
                         tabPanel("ggplot2", plotOutput("range_plot_gg")))
 # body ----
 body <- dashboardBody(
+  includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
@@ -127,6 +133,10 @@ server <- function(input, output) {
   # load data ----
   # TODO only taking first animal now. and as.telemetry return a list if multiple animal found.
   datasetInput <- reactive({
+    # debug
+    # if (debug) {
+    #   cat(file = stderr(), "input changed\n")
+    # }
     if (input$load_option == "ctmm") {
       data("buffalo")
       buffalo[[1]]
@@ -156,13 +166,19 @@ server <- function(input, output) {
       cat(short_summary(summary(animal_1)))
     }
   })
+  # outputOptions(output, "data_summary", priority = 10)
   # data plot
   output$data_plot_basic <- renderPlot({
     animal_1 <- datasetInput()
     if (!is.null(animal_1))
       plot(animal_1)
   })
+  # outputOptions(output, "data_plot_basic", priority = 10)
   output$data_plot_gg <- renderPlot({
+    # debug
+    # if (debug) {
+    #   cat(file = stderr(), "rendering ggplot2\n")
+    # }
     animal_1 <- datasetInput()
     if (!is.null(animal_1))
       ggplot(data = animal_1, aes(x, y)) + 
@@ -172,8 +188,14 @@ server <- function(input, output) {
         theme(plot.title = element_text(hjust = 0.5)) +
         coord_fixed()
   })
+  # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
+  # outputOptions(output, "data_plot_gg", suspendWhenHidden = FALSE)
   # vario ----
   vg.animal_1 <- reactive({
+    # debug
+    # if (debug) {
+    #   cat(file = stderr(), "variogram created\n")
+    # }
     animal_1 <- datasetInput()
     variogram(animal_1)
   })
@@ -183,11 +205,19 @@ server <- function(input, output) {
   # model selection ----
   # right now with all default parameter, no user selection
   selected_model <- reactive({
+    # debug
+    # if (debug) {
+    #   cat(file = stderr(), "fitting models\n")
+    # }
     animal_1 <- datasetInput()
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed), 
                  message = "Fitting models to find the best ...")
   })
+  # observe({
+  #   print("observing")
+  #   invisible(selected_model())
+  # })
   output$model_summary <- renderPrint({
     fitted.mod <- selected_model()
     if (is.null(fitted.mod))
@@ -196,6 +226,9 @@ server <- function(input, output) {
       summary(fitted.mod)
     }
   })
+  # try calculating model early
+  # outputOptions(output, "model_summary", 
+  #               suspendWhenHidden = FALSE, priority = 2)
   output$model_plot_1 <- renderPlot({
     ouf <- selected_model()
     plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
@@ -209,6 +242,10 @@ server <- function(input, output) {
   })
   # home range ----
   akde.animal_1 <- reactive({
+    # debug
+    # if (debug) {
+    #   cat(file = stderr(), "akde running\n")
+    # }
     animal_1 <- datasetInput()
     ouf <- selected_model()
     withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
