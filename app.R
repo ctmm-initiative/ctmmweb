@@ -74,18 +74,30 @@ data_plot_box <- tabBox(title = "Data Plot",
                         id = "plottabs", height = "450px", width = 12,
                         tabPanel("Basic Plot", plotOutput("data_plot_basic")),
                         tabPanel("ggplot2", plotOutput("data_plot_gg")))
-vario_plot_box_1 <- box(title = "Variogram with up to 50% lag",
-                        status = "primary", solidHeader = TRUE,
-                        plotOutput("vario_plot_1"))
-vario_plot_box_2 <- box(title = "Variogram with minimal lag",
-                        status = "primary", solidHeader = TRUE,
-                        plotOutput("vario_plot_2"))
-vario_plot_box_3 <- box(title = "Variogram with Zoom",
+# vario_plot_box_1 <- box(title = "Variogram with up to 50% lag",
+#                         status = "primary", solidHeader = TRUE,
+#                         plotOutput("vario_plot_1"))
+# vario_plot_box_2 <- box(title = "Variogram with minimal lag",
+#                         status = "primary", solidHeader = TRUE,
+#                         column(4, plotOutput("vario_plot_2"),
+#                                sliderInput("zoom2", "Log10(fraction)", 
+#                                            min = -3, max = 0, step = 0.1, 
+#                                            value = log10(0.5))
+#                                ))
+                        # sidebarPanel(sliderInput("zoom2", "Log10(fraction)", 
+                        #                          min = -3, max = 0, step = 0.1, 
+                        #                          value = log10(0.5))),
+                        # mainPanel(plotOutput("vario_plot_2")))
+vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                         status = "info", solidHeader = TRUE, width = 12,
-                        sidebarPanel(sliderInput("zoom", "Zoom", 
-                                                 min = 0.001, max = 1, 
-                                                 value = 0.01)),
-                        mainPanel(plotOutput("vario_plot_3")))
+                        sidebarPanel(sliderInput("zoom", "Log10(fraction)", 
+                                                 min = -3, max = 0, step = 0.1, 
+                                                 value = log10(0.5)),
+                                     actionButton('snapBtn', 'Snapshot')),
+                        mainPanel(plotOutput("vario_plot_1")))
+vario_plot_static_box <- box(title = "Variogram snapshots", status = "primary",
+                             solidHeader = TRUE, width = 12,
+                             tags$div(id = 'variosnapshots'))
 # TODO plot 3 also have a button to use user selected parameters for next step
 # TOO a button to auto guess parameters for next step
 # explain the result source, then print summary
@@ -115,8 +127,7 @@ body <- dashboardBody(
             fluidRow(upload_box, data_summary_box), 
             fluidRow(data_plot_box)), 
     tabItem(tabName = "timelag",
-            fluidRow(vario_plot_box_1, vario_plot_box_2),
-            fluidRow(vario_plot_box_3)),
+            fluidRow(vario_plot_zoom_box, vario_plot_static_box)),
     tabItem(tabName = "model",
             fluidRow(model_summary_box),
             fluidRow(model_plot_box_1, model_plot_box_2)),
@@ -201,7 +212,15 @@ server <- function(input, output) {
   })
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
   output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
-  output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = input$zoom)})
+  output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ** input$zoom, main = sprintf("%s %1.3f", "with fraction of", 10 ** input$zoom))})
+  # take snapshot of variogram
+  observeEvent(input$snapBtn, {
+    btn <- input$snapBtn
+    insertUI(
+      selector = '#varioholder',
+      ## wrap element in a div with id for ease of removal
+      ui = plotOutput(paste0("vario_plot_", btn))
+    )})
   # model selection ----
   # right now with all default parameter, no user selection
   selected_model <- reactive({
