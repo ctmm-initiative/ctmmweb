@@ -1,6 +1,13 @@
 # lib ----
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(shiny, shinydashboard, shinyjs, ctmm, ggplot2)
+# if (!require("pacman")) install.packages("pacman")
+# pacman::p_load(shiny, shinydashboard, shinyjs, ctmm, ggplot2, markdown)
+# pacman seemed not working with shinyapps.io
+library(shiny)
+library(shinydashboard)
+library(shinyjs)
+library(ctmm)
+library(ggplot2)
+library(markdown)
 # increase the uploading file size limit to 30M
 options(shiny.maxRequestSize = 30*1024^2)
 # util for pretty printing summary
@@ -179,7 +186,7 @@ server <- function(input, output) {
     animal_1 <- datasetInput()
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed), 
-                 message = "Fitting models to find the best fit")
+                 message = "Fitting models to find the best ...")
   })
   output$model_summary <- renderPrint({
     fitted.mod <- selected_model()
@@ -204,7 +211,7 @@ server <- function(input, output) {
   akde.animal_1 <- reactive({
     animal_1 <- datasetInput()
     ouf <- selected_model()
-    akde(animal_1,CTMM = ouf)
+    withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
   })
   output$range_summary <- renderPrint({
     akde1 <- akde.animal_1()
