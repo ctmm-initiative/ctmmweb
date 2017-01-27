@@ -3,6 +3,8 @@ title:
 account: ctmm
 server: shinyapps.io
 appId: 153344
-bundleId: 691751
+bundleId: 693287
 url: https://ctmm.shinyapps.io/dashboard1/
-when: 1485441512.70246
+when: 1485551280.29528
+asMultiple: FALSE
+asStatic: FALSE
