@@ -24,6 +24,37 @@ short_summary <- function(l) {
   }
   return(paste0(lines, collapse = ""))
 }
+# JS code ----
+# logifySlider javascript function
+JS.logify <-
+  "
+// function to logify a sliderInput
+function logifySlider (sliderId, sci = false) {
+if (sci) {
+// scientific style
+$('#'+sliderId).data('ionRangeSlider').update({
+'prettify': function (num) { return ('10<sup>'+num+'</sup>'); }
+})
+} else {
+// regular number style
+$('#'+sliderId).data('ionRangeSlider').update({
+'prettify': function (num) { return (Math.pow(10, num)); }
+})
+}
+}"
+
+# call logifySlider for each relevant sliderInput
+JS.onload <-
+  "
+// execute upon document loading
+$(document).ready(function() {
+// wait a few ms to allow other scripts to execute
+setTimeout(function() {
+// include call for each slider
+logifySlider('zoom', sci = false)
+//logifySlider('log_slider2', sci = true)
+}, 5)})
+"
 # header ----
 header <- dashboardHeader(title = "Animal Movement",
             dropdownMenu(type = "messages",
@@ -92,7 +123,7 @@ vario_plot_box_3 <- box(title = "Variogram with Zoom",
                            status = "info", solidHeader = TRUE, width = 12,
                            sidebarPanel(sliderInput("zoom", "Log10(fraction)", 
                                                     min = -3, max = 0, step = 0.1, 
-                                                    value = log10(0.5))),
+                                                    value = 0.5)),
                            mainPanel(plotOutput("vario_plot_3")))
 
 # vario_plot_zoom_box <- box(title = "Variogram with Zoom",
@@ -127,6 +158,8 @@ range_plot_box <- tabBox(title = "Home Range Estimation plot",
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
+  tags$head(tags$script(HTML(JS.logify))),
+  tags$head(tags$script(HTML(JS.onload))),
   # match menuItem
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
@@ -220,7 +253,7 @@ server <- function(input, output) {
   })
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
   output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
-  output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ** input$zoom, main = sprintf("%s %1.3f", "with fraction of", 10 ** input$zoom))})
+  output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ^ input$zoom, main = sprintf("%s %1.3f", "with fraction of", 10 ^ input$zoom))})
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
   #   btn <- input$snapBtn
