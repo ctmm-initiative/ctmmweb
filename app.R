@@ -9,10 +9,13 @@
 # }
 library(shiny)
 library(shinydashboard)
+# DT should be after shiny to override dataTable in shiny
+library(DT)
 library(shinyjs)
 library(ctmm)
 library(ggplot2)
 library(markdown)
+library(data.table)
 # increase the uploading file size limit to 30M
 options(shiny.maxRequestSize = 30*1024^2)
 # util for pretty printing summary
@@ -23,6 +26,49 @@ short_summary <- function(l) {
     lines[i] <- paste0("- ", n[i], ": ", paste0(l[[i]], collapse = ", "), "\n")
   }
   return(paste0(lines, collapse = ""))
+}
+# merge list of telemetry obj into a data frame with identity column
+# also merge each obj summary into a data frame
+# some numbers showing too many digits. options didn't work in DT. limit it here from source, they are summary anyway.
+merge_summaries <- function(tele_list) {
+  animal_count <- length(tele_list)
+  summaries <- vector("list", length = animal_count)
+  for (i in 1:animal_count) {
+    s_list <- summary(tele_list[[i]])
+    # the column name have space intially, it was changed by data frame function later
+    s_list$`sampling period (months)` <- round(s_list$`sampling period (months)`, 2)
+    s_list$lat_min <- s_list$`latitude range`[1]
+    s_list$lat_max <- s_list$`latitude range`[2]
+    s_list$lon_min <- s_list$`longitude range`[1]
+    s_list$lon_max <- s_list$`longitude range`[2]
+    s_list$`latitude range` <- NULL
+    s_list$`longitude range` <- NULL
+    # need to convert NULL to NA to avoid errors.
+    s_list$UERE <- ifelse(is.null(s_list$UERE), NA, s_list(s_list$UERE))
+    # was using data.frame here and it created factors. still need data.frame because data.table cannot convert list by itself
+    summaries[[i]] <- data.frame(s_list, stringsAsFactors = FALSE)
+  }
+  # each input is data frame but rbindlist returned data.table
+  return(rbindlist(summaries))
+}
+# works with single obj or obj list
+merge_animals <- function(tele_obj) {
+  if (class(tele_obj) != "list") {
+    animals_df <- data.frame(tele_obj)
+    summaries_df <- merge_summaries(list(tele_obj))
+    return(list("animals" = animals_df, "summaries" = summaries_df))
+  } else {
+    animal_count <- length(tele_obj)
+    animals <- vector(mode = "list", length = animal_count)
+    for (i in 1:animal_count) {
+      animals[[i]] <- data.table(data.frame(tele_obj[[i]]))
+      animals[[i]][, identity := tele_obj[[i]]@info$identity]
+    }
+    animals_df <- rbindlist(animals)
+    animals_df[, id_factor := factor(identity)]
+    summaries_df <- merge_summaries(tele_obj)
+    return(list("animals" = animals_df, "summaries" = summaries_df))
+  }
 }
 # header ----
 header <- dashboardHeader(title = "Animal Movement",
@@ -67,9 +113,10 @@ upload_box <- box(title = "Upload your MoveBank format data",
                             accept = c('text/csv',
                                        'text/comma-separated-values,text/plain',
                                        '.csv')))
-data_summary_box <- box(title = "Data Summary - 1st animal", status = "primary",
-                        solidHeader = TRUE, 
-                        verbatimTextOutput("data_summary"))
+data_summary_box <- box(title = "Data Summary", status = "primary",
+                        solidHeader = TRUE, width = 12,
+                        # verbatimTextOutput("data_summary")
+                        DT::dataTableOutput('data_summary'))
 data_plot_box <- tabBox(title = "Data Plot",
                         id = "plottabs", height = "450px", width = 12,
                         tabPanel("Basic Plot", plotOutput("data_plot_basic")),
@@ -132,7 +179,8 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
     tabItem(tabName = "upload",
-            fluidRow(upload_box, data_summary_box), 
+            fluidRow(upload_box), 
+            fluidRow(data_summary_box), 
             fluidRow(data_plot_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
@@ -151,25 +199,16 @@ ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output) { 
   # load data ----
-  # TODO only taking first animal now. and as.telemetry return a list if multiple animal found.
+  # return the telemetry obj which could be an obj or obj list
+  # every reference of this need to check null before it initialized, like in merged_data
   datasetInput <- reactive({
-    # debug
-    # if (debug) {
-    #   cat(file = stderr(), "input changed\n")
-    # }
     if (input$load_option == "ctmm") {
       data("buffalo")
-      buffalo[[1]]
+      buffalo
     } else if (input$load_option == "upload") {
       inFile <- input$file1
       if (!is.null(inFile)) {
-        tele <- as.telemetry(inFile$datapath)
-        # ifelse will have Error in NextMethod("[") : 'NextMethod' called from an anonymous function
-        if (class(tele) == "list") {
-          tele[[1]]
-        } else {
-          tele
-        }
+        as.telemetry(inFile$datapath)
       }
     } 
   })
@@ -177,21 +216,42 @@ server <- function(input, output) {
   observeEvent(input$load_option, {
     toggleState(id = "file1", condition = (input$load_option == "upload"))
   })
-  # data summary
-  output$data_summary <- renderPrint({
-    animal_1 <- datasetInput()
-    if (is.null(animal_1))
-      cat("No data loaded yet")
-    else{
-      cat(short_summary(summary(animal_1)))
+  # merge data list into data frame for ggplot
+  merged_data <- reactive({
+    # need to avoid call function in null input before it initialize
+    tele_objs <- datasetInput()
+    if (is.null(tele_objs)) {
+      return(NULL)
+    } else {
+      merge_animals(tele_objs)
     }
+  })
+  # data summary ----
+  output$data_summary <- DT::renderDataTable({
+    merged <- merged_data()
+    cols <- c("identity", "sampling.interval..minutes.", "sampling.period..months.")
+    merged$summaries[, cols, with = FALSE]
+    # if (is.null(merged))
+    #   cat("No data loaded yet")
+    # else{
+    #   print(merged$summaries)
+    # }
+    # with this header didn't align with content before resizing. limiting column instead of adding scroll bar
+    # , options = list(scrollX = TRUE) 
   })
   # outputOptions(output, "data_summary", priority = 10)
   # data plot
   output$data_plot_basic <- renderPlot({
-    animal_1 <- datasetInput()
-    if (!is.null(animal_1))
-      plot(animal_1)
+    tele_objs <- datasetInput()
+    if (is.null(tele_objs)) {
+      return(NULL)
+    } else {
+      summaries <- merge_animals(tele_objs)$summaries
+      if (!is.null(tele_objs))
+        plot(tele_objs, col = rainbow(length(tele_objs)))
+        legend("top", summaries$identity, horiz = TRUE,
+               fill = rainbow(length(tele_objs)))
+    }
   })
   # outputOptions(output, "data_plot_basic", priority = 10)
   output$data_plot_gg <- renderPlot({
