@@ -49,7 +49,11 @@ merge_summaries <- function(tele_list) {
     summaries[[i]] <- data.frame(s_list, stringsAsFactors = FALSE)
   }
   # each input is data frame but rbindlist returned data.table
-  return(rbindlist(summaries))
+  # more formating on summary to fit the table container
+  dt <- rbindlist(summaries)
+  dt[, sampling_interval := paste(sampling.interval..minutes., "mins")]
+  dt[, sampling_period := paste(sampling.period..months., "months")]
+  return(dt)
 }
 # works with single obj or obj list
 merge_animals <- function(tele_obj) {
@@ -65,7 +69,8 @@ merge_animals <- function(tele_obj) {
       animals[[i]][, identity := tele_obj[[i]]@info$identity]
     }
     animals_df <- rbindlist(animals)
-    animals_df[, id_factor := factor(identity)]
+    # need this column. if do factor(identity) in ggplot in place, the legend will show factor(identity)
+    animals_df[, id := factor(identity)]
     summaries_df <- merge_summaries(tele_obj)
     return(list("animals" = animals_df, "summaries" = summaries_df))
   }
@@ -103,7 +108,7 @@ sidebar <- dashboardSidebar(
 )
 # boxes ----
 upload_box <- box(title = "Upload your MoveBank format data",
-                  status = "info", solidHeader = TRUE,
+                  status = "info", solidHeader = TRUE, width = 4,
                   useShinyjs(),
                   radioButtons('load_option', 'Load Data From',
                                c("Upload File" = 'upload',
@@ -114,7 +119,7 @@ upload_box <- box(title = "Upload your MoveBank format data",
                                        'text/comma-separated-values,text/plain',
                                        '.csv')))
 data_summary_box <- box(title = "Data Summary", status = "primary",
-                        solidHeader = TRUE, width = 12,
+                        solidHeader = TRUE, width = 8,
                         # verbatimTextOutput("data_summary")
                         DT::dataTableOutput('data_summary'))
 data_plot_box <- tabBox(title = "Data Plot",
@@ -179,8 +184,7 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
     tabItem(tabName = "upload",
-            fluidRow(upload_box), 
-            fluidRow(data_summary_box), 
+            fluidRow(upload_box, data_summary_box), 
             fluidRow(data_plot_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
@@ -229,7 +233,7 @@ server <- function(input, output) {
   # data summary ----
   output$data_summary <- DT::renderDataTable({
     merged <- merged_data()
-    cols <- c("identity", "sampling.interval..minutes.", "sampling.period..months.")
+    cols <- c("identity", "sampling_interval", "sampling_period")
     merged$summaries[, cols, with = FALSE]
     # if (is.null(merged))
     #   cat("No data loaded yet")
@@ -237,8 +241,7 @@ server <- function(input, output) {
     #   print(merged$summaries)
     # }
     # with this header didn't align with content before resizing. limiting column instead of adding scroll bar
-    # , options = list(scrollX = TRUE) 
-  })
+  }, options = list(scrollX = TRUE))
   # outputOptions(output, "data_summary", priority = 10)
   # data plot
   output$data_plot_basic <- renderPlot({
@@ -253,20 +256,26 @@ server <- function(input, output) {
                fill = rainbow(length(tele_objs)))
     }
   })
-  # outputOptions(output, "data_plot_basic", priority = 10)
+  # ggplot locations ----
   output$data_plot_gg <- renderPlot({
-    # debug
-    # if (debug) {
-    #   cat(file = stderr(), "rendering ggplot2\n")
-    # }
-    animal_1 <- datasetInput()
-    if (!is.null(animal_1))
-      ggplot(data = animal_1, aes(x, y)) + 
-        geom_point(color = "red", shape = 1, size = 0.8) +
+    merged <- merged_data()
+    if (!is.null(merged))
+      animals <- merged$animals
+      ggplot(data = animals, aes(x, y, color = id)) + 
+        geom_point(size = 0.01, alpha = 0.8) +
         labs(x = "x (meters)", y = "y (meters)") +
-        ggtitle(paste0("animal: ", animal_1@info$identity)) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        coord_fixed()
+        coord_fixed() +
+        theme(legend.position = "top", 
+              legend.direction = "horizontal",
+              legend.key.size = unit(2.5, "mm")) +
+        guides(colour = guide_legend(nrow = 1,
+                                     override.aes = list(size = 2)))
+      # ggplot(data = animal_all, aes(x, y)) + 
+      #   geom_point(color = "red", shape = 1, size = 0.8) +
+      #   labs(x = "x (meters)", y = "y (meters)") +
+      #   ggtitle(paste0("animal: ", animal_all@info$identity)) +
+      #   theme(plot.title = element_text(hjust = 0.5)) +
+      #   coord_fixed()  
   })
   # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
   # outputOptions(output, "data_plot_gg", suspendWhenHidden = FALSE)
