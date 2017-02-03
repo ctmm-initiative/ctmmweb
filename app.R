@@ -18,63 +18,7 @@ library(markdown)
 library(data.table)
 # increase the uploading file size limit to 30M
 options(shiny.maxRequestSize = 30*1024^2)
-# util for pretty printing summary
-short_summary <- function(l) {
-  lines <- vector(mode = "character", length = length(l))
-  n <- names(l)
-  for (i in seq_along(l)) {
-    lines[i] <- paste0("- ", n[i], ": ", paste0(l[[i]], collapse = ", "), "\n")
-  }
-  return(paste0(lines, collapse = ""))
-}
-# merge list of telemetry obj into a data frame with identity column
-# also merge each obj summary into a data frame
-# some numbers showing too many digits. options didn't work in DT. limit it here from source, they are summary anyway.
-merge_summaries <- function(tele_list) {
-  animal_count <- length(tele_list)
-  summaries <- vector("list", length = animal_count)
-  for (i in 1:animal_count) {
-    s_list <- summary(tele_list[[i]])
-    # the column name have space intially, it was changed by data frame function later
-    s_list$`sampling period (months)` <- round(s_list$`sampling period (months)`, 2)
-    s_list$lat_min <- s_list$`latitude range`[1]
-    s_list$lat_max <- s_list$`latitude range`[2]
-    s_list$lon_min <- s_list$`longitude range`[1]
-    s_list$lon_max <- s_list$`longitude range`[2]
-    s_list$`latitude range` <- NULL
-    s_list$`longitude range` <- NULL
-    # need to convert NULL to NA to avoid errors.
-    s_list$UERE <- ifelse(is.null(s_list$UERE), NA, s_list(s_list$UERE))
-    # was using data.frame here and it created factors. still need data.frame because data.table cannot convert list by itself
-    summaries[[i]] <- data.frame(s_list, stringsAsFactors = FALSE)
-  }
-  # each input is data frame but rbindlist returned data.table
-  # more formating on summary to fit the table container
-  dt <- rbindlist(summaries)
-  dt[, sampling_interval := paste(sampling.interval..minutes., "mins")]
-  dt[, sampling_period := paste(sampling.period..months., "months")]
-  return(dt)
-}
-# works with single obj or obj list
-merge_animals <- function(tele_obj) {
-  if (class(tele_obj) != "list") {
-    animals_df <- data.frame(tele_obj)
-    summaries_df <- merge_summaries(list(tele_obj))
-    return(list("animals" = animals_df, "summaries" = summaries_df))
-  } else {
-    animal_count <- length(tele_obj)
-    animals <- vector(mode = "list", length = animal_count)
-    for (i in 1:animal_count) {
-      animals[[i]] <- data.table(data.frame(tele_obj[[i]]))
-      animals[[i]][, identity := tele_obj[[i]]@info$identity]
-    }
-    animals_df <- rbindlist(animals)
-    # need this column. if do factor(identity) in ggplot in place, the legend will show factor(identity)
-    animals_df[, id := factor(identity)]
-    summaries_df <- merge_summaries(tele_obj)
-    return(list("animals" = animals_df, "summaries" = summaries_df))
-  }
-}
+source("helpers.R")
 # header ----
 header <- dashboardHeader(title = "Animal Movement",
             dropdownMenu(type = "messages",
@@ -99,7 +43,7 @@ sidebar <- dashboardSidebar(
     # match tabItem
     menuItem("Intro", tabName = "intro", icon = icon("book")),
     menuItem("Upload", tabName = "upload", icon = icon("upload")),
-    menuItem("Time-lag", tabName = "timelag", icon = icon("line-chart")),
+    menuItem("Variogram", tabName = "timelag", icon = icon("line-chart")),
     menuItem("Model", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Report", tabName = "report", icon = icon("file-text-o"))
@@ -107,7 +51,7 @@ sidebar <- dashboardSidebar(
   )
 )
 # boxes ----
-upload_box <- box(title = "Upload your MoveBank format data",
+upload_box <- box(title = "Upload MoveBank format data",
                   status = "info", solidHeader = TRUE, width = 4,
                   useShinyjs(),
                   radioButtons('load_option', 'Load Data From',
@@ -130,10 +74,11 @@ data_summary_box <- box(title = "Data Summary", status = "primary",
                          
                           )
                         )
-data_plot_box <- tabBox(title = "Data Plot",
-                        id = "plottabs", height = "450px", width = 12,
-                        tabPanel("Basic Plot", plotOutput("data_plot_basic")),
-                        tabPanel("ggplot2", plotOutput("data_plot_gg")))
+data_plot_box <- tabBox(title = "Data Plot", id = "plottabs", 
+                  height = "450px", width = 12, 
+                  tabPanel("ggplot2", plotOutput("data_plot_gg")), 
+                  tabPanel("Basic Plot", plotOutput("data_plot_basic"))
+                 )
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -241,8 +186,9 @@ server <- function(input, output) {
   # data summary ----
   output$data_summary <- DT::renderDataTable({
     merged <- merged_data()
-    cols <- c("identity", "sampling_interval", "sampling_period")
-    merged$summaries[, cols, with = FALSE]
+    # cols <- c("identity", "sampling_interval", "sampling_start", )
+    # merged$summaries[, cols, with = FALSE]
+    merged$summaries
     # if (is.null(merged))
     #   cat("No data loaded yet")
     # else{
@@ -267,23 +213,19 @@ server <- function(input, output) {
   # ggplot locations ----
   output$data_plot_gg <- renderPlot({
     merged <- merged_data()
-    if (!is.null(merged))
+    if (!is.null(merged)) {
       animals <- merged$animals
       ggplot(data = animals, aes(x, y, color = id)) + 
         geom_point(size = 0.01, alpha = 0.8) +
         labs(x = "x (meters)", y = "y (meters)") +
         coord_fixed() +
+        # scale_colour_hue(c = 90, l = 60) +
         theme(legend.position = "top", 
               legend.direction = "horizontal",
               legend.key.size = unit(2.5, "mm")) +
         guides(colour = guide_legend(nrow = 1,
                                      override.aes = list(size = 2)))
-      # ggplot(data = animal_all, aes(x, y)) + 
-      #   geom_point(color = "red", shape = 1, size = 0.8) +
-      #   labs(x = "x (meters)", y = "y (meters)") +
-      #   ggtitle(paste0("animal: ", animal_all@info$identity)) +
-      #   theme(plot.title = element_text(hjust = 0.5)) +
-      #   coord_fixed()  
+    }
   })
   # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
   # outputOptions(output, "data_plot_gg", suspendWhenHidden = FALSE)
