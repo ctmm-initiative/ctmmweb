@@ -121,7 +121,15 @@ upload_box <- box(title = "Upload your MoveBank format data",
 data_summary_box <- box(title = "Data Summary", status = "primary",
                         solidHeader = TRUE, width = 8,
                         # verbatimTextOutput("data_summary")
-                        DT::dataTableOutput('data_summary'))
+                        fluidRow(column(12, DT::dataTableOutput('data_summary'))
+                          ),
+                        fluidRow(column(6,actionButton(
+                          "batch", 
+                          "Batch process all selected")),
+                          column(6,  actionButton("single", "Inspect single selected"))
+                         
+                          )
+                        )
 data_plot_box <- tabBox(title = "Data Plot",
                         id = "plottabs", height = "450px", width = 12,
                         tabPanel("Basic Plot", plotOutput("data_plot_basic")),
