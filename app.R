@@ -51,12 +51,12 @@ sidebar <- dashboardSidebar(
   )
 )
 # boxes ----
-upload_box <- box(title = "Upload MoveBank format data",
+upload_box <- box(title = "Load data",
                   status = "info", solidHeader = TRUE, width = 4,
                   useShinyjs(),
-                  radioButtons('load_option', 'Load Data From',
-                               c("Upload File" = 'upload',
-                                 "Use ctmm Bufflo Data" = 'ctmm'), selected = "upload"
+                  radioButtons('load_option', NULL,
+                               c("Use Bufflo Data in ctmm" = 'ctmm',
+                                 "Upload Movebank format file" = 'upload'), selected = "upload"
                   ),
                   fileInput('file1', label = "",
                             accept = c('text/csv',
@@ -154,9 +154,10 @@ body <- dashboardBody(
 # assemble UI
 ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
-server <- function(input, output) { 
+server <- function(input, output, session) { 
   # load data ----
   # return the telemetry obj which could be an obj or obj list
+  # only use this in basic plot or models expecting tele obj or tele obj list
   # every reference of this need to check null before it initialized, like in merged_data
   datasetInput <- reactive({
     if (input$load_option == "ctmm") {
@@ -169,11 +170,15 @@ server <- function(input, output) {
       }
     } 
   })
-  # toggle browse button if use ctmm data
-  observeEvent(input$load_option, {
-    toggleState(id = "file1", condition = (input$load_option == "upload"))
+  # instead of disable browse button, should let clicking browse button switch mode automatically
+  observeEvent(input$file1, {
+    updateRadioButtons(session, "load_option", selected = "upload")
   })
-  # merge data list into data frame for ggplot
+  # toggle browse button if use ctmm data
+  # observeEvent(input$load_option, {
+  #   toggleState(id = "file1", condition = (input$load_option == "upload"))
+  # })
+  # merge obj list into data frame with identity column, easier for ggplot and summary
   merged_data <- reactive({
     # need to avoid call function in null input before it initialize
     tele_objs <- datasetInput()
@@ -188,7 +193,7 @@ server <- function(input, output) {
     merged <- merged_data()
     # cols <- c("identity", "sampling_interval", "sampling_start", )
     # merged$summaries[, cols, with = FALSE]
-    merged$summaries
+    merged$info
     # if (is.null(merged))
     #   cat("No data loaded yet")
     # else{
@@ -206,25 +211,26 @@ server <- function(input, output) {
       summaries <- merge_animals(tele_objs)$summaries
       if (!is.null(tele_objs))
         plot(tele_objs, col = rainbow(length(tele_objs)))
-        legend("top", summaries$identity, horiz = TRUE,
-               fill = rainbow(length(tele_objs)))
+        # if added legend, the reactive value only return the plot, once switched to basic plot it will lost legend. no legend now, just use basic plot as a backup verification.
+        # legend("top", summaries$identity, horiz = TRUE,
+        #        fill = rainbow(length(tele_objs)))
+
     }
   })
   # ggplot locations ----
   output$data_plot_gg <- renderPlot({
     merged <- merged_data()
     if (!is.null(merged)) {
-      animals <- merged$animals
+      animals <- merged$data
       ggplot(data = animals, aes(x, y, color = id)) + 
         geom_point(size = 0.01, alpha = 0.8) +
         labs(x = "x (meters)", y = "y (meters)") +
         coord_fixed() +
-        # scale_colour_hue(c = 90, l = 60) +
+        scale_colour_hue(c = 90, l = 60) +
         theme(legend.position = "top", 
               legend.direction = "horizontal",
               legend.key.size = unit(2.5, "mm")) +
-        guides(colour = guide_legend(nrow = 1,
-                                     override.aes = list(size = 2)))
+        guides(colour = guide_legend(override.aes = list(size = 2)))
     }
   })
   # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
