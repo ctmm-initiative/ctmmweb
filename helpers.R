@@ -87,17 +87,21 @@ pretty_info <- function(info) {
 }
 # merge list of telemetry obj into data frame with identity column, works with single tele obj
 # now both merge data and merge summary need to go through each individual, combine into one function. put info_selected in return list too. otherwise need to check null for null input in app init
-merge_animals <- function(tele_obj) {
-  if (class(tele_obj) != "list") {
-    return(merge_animals(list(tele_obj)))
+merge_animals <- function(tele_objs) {
+  # if we check null input here, no need to check it in shiny.
+  if (is.null(tele_objs)) {
+    return(NULL)
+  }
+  if (class(tele_objs) != "list") {
+    return(merge_animals(list(tele_objs)))
   } else {
-    animal_count <- length(tele_obj)
+    animal_count <- length(tele_objs)
     animal_data_list <- vector(mode = "list", length = animal_count)
     animal_info_list <- vector(mode = "list", length = animal_count)
     for (i in 1:animal_count) {
-      animal_data_list[[i]] <- data.table(data.frame(tele_obj[[i]]))
-      animal_data_list[[i]][, identity := tele_obj[[i]]@info$identity]
-      animal_info_list[[i]] <- animal_info(tele_obj[[i]])
+      animal_data_list[[i]] <- data.table(data.frame(tele_objs[[i]]))
+      animal_data_list[[i]][, identity := tele_objs[[i]]@info$identity]
+      animal_info_list[[i]] <- animal_info(tele_objs[[i]])
     }
     animals_data_dt <- rbindlist(animal_data_list)
     # ggplot color need a factor column. if do factor in place, legend will have factor in name

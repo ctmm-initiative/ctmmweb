@@ -80,7 +80,7 @@ data_summary_box <- box(title = "Data Summary", status = "primary",
                         fluidRow(column(6,actionButton(
                           "batch", 
                           "Batch process all selected")),
-                          column(6,  actionButton("single", "Inspect single selected"))
+                          column(6,  actionButton("single", "Analyze single selected"))
                          
                           )
                         )
@@ -198,50 +198,41 @@ server <- function(input, output, session) {
   merged_data <- reactive({
     # need to avoid call function in null input before it initialize
     tele_objs <- datasetInput()
-    if (is.null(tele_objs)) {
-      return(NULL)
-    } else {
-      merge_animals(tele_objs)
-    }
-  })
-  all_rows <- reactive({
-    merged <- merged_data()
-    if (is.null(merged)) {
-      return(seq_len(0))
-    } else {
-      return(seq_len(nrow(merged$info)))
-    }
+    # if (is.null(tele_objs)) {
+    #   return(NULL)
+    # } else {
+    #   merge_animals(tele_objs)
+    # }
+    merge_animals(tele_objs)
   })
   # data summary ----
   output$data_summary <- DT::renderDataTable(
-    {
-      merged <- merged_data()
-      validate(need(!is.null(merged), "No data yet"))
-      merged$info_print
-    }, 
-    selection = list(mode = 'multiple', target = "row", 
-                     selected = seq_len(nrow(merged_data()$info_print)))
+    merged_data()$info_print
   )
   # outputOptions(output, "data_summary", priority = 10)
   # data plot
   output$data_plot_basic <- renderPlot({
     tele_objs <- datasetInput()
-    if (is.null(tele_objs)) {
-      return(NULL)
-    } else {
-      summaries <- merge_animals(tele_objs)$summaries
-      if (!is.null(tele_objs))
-        plot(tele_objs, col = rainbow(length(tele_objs)))
-        # if added legend, the reactive value only return the plot, once switched to basic plot it will lost legend. no legend now, just use basic plot as a backup verification.
-        # legend("top", summaries$identity, horiz = TRUE,
-        #        fill = rainbow(length(tele_objs)))
-
-    }
+    # if (is.null(tele_objs)) {
+    #   return(NULL)
+    # } else {
+    #   # summaries <- merge_animals(tele_objs)$summaries
+    #   # if (!is.null(tele_objs))
+    #     plot(tele_objs, col = rainbow(length(tele_objs)))
+    #     # if added legend, the reactive value only return the plot, once switched to basic plot it will lost legend. no legend now, just use basic plot as a backup verification.
+    #     # legend("top", summaries$identity, horiz = TRUE,
+    #     #        fill = rainbow(length(tele_objs)))
+    # }
+    validate(need(!is.null(tele_objs), ""))
+    plot(tele_objs, col = rainbow(length(tele_objs)))
+    
+    
   })
   # ggplot locations ----
   output$data_plot_gg <- renderPlot({
     merged <- merged_data()
-    if (!is.null(merged)) {
+    validate(need(!is.null(merged), ""))
+    # if (!is.null(merged)) {
       animals <- merged$data
       ggplot(data = animals, aes(x, y, color = id)) + 
         geom_point(size = 0.01, alpha = 0.8) +
@@ -252,16 +243,12 @@ server <- function(input, output, session) {
               legend.direction = "horizontal",
               legend.key.size = unit(2.5, "mm")) +
         guides(colour = guide_legend(override.aes = list(size = 2)))
-    }
+    # }
   })
   # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
   # outputOptions(output, "data_plot_gg", suspendWhenHidden = FALSE)
   # vario ----
   vg.animal_1 <- reactive({
-    # debug
-    # if (debug) {
-    #   cat(file = stderr(), "variogram created\n")
-    # }
     animal_1 <- datasetInput()
     variogram(animal_1)
   })
@@ -294,6 +281,7 @@ server <- function(input, output, session) {
   # })
   output$model_summary <- renderPrint({
     fitted.mod <- selected_model()
+    # TODO use validate
     if (is.null(fitted.mod))
       cat("No model selected yet")
     else{
@@ -326,6 +314,7 @@ server <- function(input, output, session) {
   })
   output$range_summary <- renderPrint({
     akde1 <- akde.animal_1()
+    # TODO use validate
     if (is.null(akde1))
       cat("No model selected yet")
     else{
