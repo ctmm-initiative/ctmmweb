@@ -11,7 +11,6 @@ library(shiny)
 library(shinydashboard)
 # DT should be after shiny to override dataTable in shiny
 library(DT)
-library(shinyjs)
 library(ctmm)
 library(ggplot2)
 library(markdown)
@@ -20,50 +19,60 @@ library(data.table)
 options(shiny.maxRequestSize = 30*1024^2)
 source("helpers.R")
 # header ----
-header <- dashboardHeader(title = "Animal Movement",
-            dropdownMenu(type = "messages",
-               messageItem(
-                 from = "ctmm team",
-                 message = "About ctmm",
-                 href = "https://cran.r-project.org/web/packages/ctmm/index.html"),
-               messageItem(
-                 from = "Documentation",
-                 message = "View Documentation and Source",
-                 icon = icon("question"),
-                 href = "https://github.com/xhdong-umd/ctmm-shiny-prototype"),
-               messageItem(
-                 from = "Issues",
-                 message = "Report Issues Here.",
-                 icon = icon("life-ring"),
-                 ## time = "2014-12-01",
-                 href = "https://github.com/xhdong-umd/ctmm-shiny-prototype/issues")))
+header <- dashboardHeader(title = "Animal Movement"
+            # dropdownMenu(type = "messages",
+            #    messageItem(
+            #      from = "ctmm team",
+            #      message = "About ctmm",
+            #      href = "https://cran.r-project.org/web/packages/ctmm/index.html"),
+            #    messageItem(
+            #      from = "Documentation",
+            #      message = "View Documentation and Source",
+            #      icon = icon("question"),
+            #      href = "https://github.com/xhdong-umd/ctmm-shiny-prototype"),
+            #    messageItem(
+            #      from = "Issues",
+            #      message = "Report Issues Here.",
+            #      icon = icon("life-ring"),
+            #      ## time = "2014-12-01",
+            #      href = "https://github.com/xhdong-umd/ctmm-shiny-prototype/issues"))
+            )
 # sidebar ----
 sidebar <- dashboardSidebar(
   sidebarMenu(
+    id = "tabs", 
     # match tabItem
-    menuItem("Intro", tabName = "intro", icon = icon("book")),
-    menuItem("Upload", tabName = "upload", icon = icon("upload")),
+    menuItem("Data", tabName = "data", icon = icon("table")),
     menuItem("Variogram", tabName = "timelag", icon = icon("line-chart")),
     menuItem("Model", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
-    menuItem("Report", tabName = "report", icon = icon("file-text-o"))
-    
-  )
+    menuItem("Report", tabName = "report", icon = icon("file-text-o")),
+    menuItem("Help", tabName = "intro", icon = icon("question"))
+  ), 
+  tags$br(), tags$br(), tags$br(), tags$br(), 
+  radioButtons('load_option', "Load Movebank format data",
+               c("Bufflo Data in ctmm" = 'ctmm',
+                 "Movebank format file" = 'upload'), selected = "upload"
+  ),
+  fileInput('file1', label = "",
+            accept = c('text/csv',
+                       'text/comma-separated-values,text/plain',
+                       '.csv'))
 )
 # boxes ----
-upload_box <- box(title = "Load data",
-                  status = "info", solidHeader = TRUE, width = 4,
-                  useShinyjs(),
-                  radioButtons('load_option', NULL,
-                               c("Use Bufflo Data in ctmm" = 'ctmm',
-                                 "Upload Movebank format file" = 'upload'), selected = "upload"
-                  ),
-                  fileInput('file1', label = "",
-                            accept = c('text/csv',
-                                       'text/comma-separated-values,text/plain',
-                                       '.csv')))
+# upload_box <- box(title = "Load data",
+#                   status = "info", solidHeader = TRUE, width = 4,
+#                   useShinyjs(),
+#                   radioButtons('load_option', NULL,
+#                                c("Use Bufflo Data in ctmm" = 'ctmm',
+#                                  "Upload Movebank format file" = 'upload'), selected = "upload"
+#                   ),
+#                   fileInput('file1', label = "",
+#                             accept = c('text/csv',
+#                                        'text/comma-separated-values,text/plain',
+#                                        '.csv')))
 data_summary_box <- box(title = "Data Summary", status = "primary",
-                        solidHeader = TRUE, width = 8,
+                        solidHeader = TRUE, width = 12,
                         # verbatimTextOutput("data_summary")
                         fluidRow(column(12, DT::dataTableOutput('data_summary'))
                           ),
@@ -136,8 +145,9 @@ body <- dashboardBody(
   # match menuItem
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
-    tabItem(tabName = "upload",
-            fluidRow(upload_box, data_summary_box), 
+    tabItem(tabName = "data",
+            fluidRow(data_summary_box), 
+            # fluidRow(upload_box, data_summary_box), 
             fluidRow(data_plot_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
@@ -154,7 +164,19 @@ body <- dashboardBody(
 # assemble UI
 ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
-server <- function(input, output, session) { 
+server <- function(input, output, session) {
+  # upload area behavior ----
+  # clicking browse button switch mode automatically
+  observeEvent(input$file1, {
+    updateRadioButtons(session, "load_option", selected = "upload")
+    updateTabItems(session, "tabs", "data")
+  })
+  # radio button and browse all should switch page to data
+  observeEvent(input$load_option, {
+    updateTabItems(session, "tabs", "data")
+  })
+  
+  
   # load data ----
   # return the telemetry obj which could be an obj or obj list
   # only use this in basic plot or models expecting tele obj or tele obj list
@@ -170,14 +192,7 @@ server <- function(input, output, session) {
       }
     } 
   })
-  # instead of disable browse button, should let clicking browse button switch mode automatically
-  observeEvent(input$file1, {
-    updateRadioButtons(session, "load_option", selected = "upload")
-  })
-  # toggle browse button if use ctmm data
-  # observeEvent(input$load_option, {
-  #   toggleState(id = "file1", condition = (input$load_option == "upload"))
-  # })
+
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merged_data <- reactive({
     # need to avoid call function in null input before it initialize
