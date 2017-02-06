@@ -59,17 +59,34 @@ animal_info <- function(object) {
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
-  df <- data.frame(identity = object@info$identity,
+  dt <- data.table(identity = object@info$identity,
                    sampling_interval_value = sampling_interval$value,
                    sampling_interval_unit = sampling_interval$unit,
                    sampling_range_value = sampling_range$value,
                    sampling_range_unit = sampling_range$unit,
                    sampling_start = t_start,
                    sampling_end = t_end)
-  return(df)
+  return(dt)
+}
+# pretty print summary table. to avoid duplicate computation, use info slot or animal summary table as input, and merge function will return this by default
+# shiny DT will print numbers with lots of digits. there is formating function but we need a number and unit combination which doesn't work with the formating function. Have to format the number here.
+time_2line <- function(date_time) {
+  return(paste0(date(date_time), "\n", 
+                format(date_time, "%H:%M")))
+}
+pretty_info <- function(info) {
+  dt <- info
+  dt[, Identity := identity]
+  dt[, Interval := paste(round(sampling_interval_value, 1),
+                                  sampling_interval_unit)]
+  dt[, Time_range := paste(round(sampling_range_value, 1), 
+                               sampling_range_unit)]
+  dt[, Start := time_2line(sampling_start)]
+  dt[, End := time_2line(sampling_end)]
+  return(dt[, .(Identity, Start, End, Interval, Time_range)])
 }
 # merge list of telemetry obj into data frame with identity column, works with single tele obj
-# now both merge data and merge summary need to go through each individual, combine into one function
+# now both merge data and merge summary need to go through each individual, combine into one function. put info_selected in return list too. otherwise need to check null for null input in app init
 merge_animals <- function(tele_obj) {
   if (class(tele_obj) != "list") {
     return(merge_animals(list(tele_obj)))
@@ -87,5 +104,7 @@ merge_animals <- function(tele_obj) {
     animals_data_dt[, id := factor(identity)]
     animals_info_dt <- rbindlist(animal_info_list)
   }
-  return(list(data = animals_data_dt, info = animals_info_dt))
+  return(list(data = animals_data_dt, info = animals_info_dt, 
+              info_print = pretty_info(animals_info_dt)))
 }
+

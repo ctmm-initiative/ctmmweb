@@ -1,7 +1,7 @@
 # lib ----
 # if (!require("pacman")) install.packages("pacman")
 # pacman::p_load(shiny, shinydashboard, shinyjs, ctmm, ggplot2, markdown)
-# pacman seemed not working with shinyapps.io
+# pacman seemed not working with shinyapps.io, good for local version though
 # debug flag
 # debug <- TRUE
 # if (debug) {
@@ -15,8 +15,10 @@ library(ctmm)
 library(ggplot2)
 library(markdown)
 library(data.table)
+library(lubridate)
 # increase the uploading file size limit to 30M
 options(shiny.maxRequestSize = 30*1024^2)
+# options(shiny.trace = TRUE)
 source("helpers.R")
 # header ----
 header <- dashboardHeader(title = "Animal Movement"
@@ -74,8 +76,7 @@ sidebar <- dashboardSidebar(
 data_summary_box <- box(title = "Data Summary", status = "primary",
                         solidHeader = TRUE, width = 12,
                         # verbatimTextOutput("data_summary")
-                        fluidRow(column(12, DT::dataTableOutput('data_summary'))
-                          ),
+                        fluidRow(column(12, DT::dataTableOutput('data_summary'))),
                         fluidRow(column(6,actionButton(
                           "batch", 
                           "Batch process all selected")),
@@ -203,19 +204,24 @@ server <- function(input, output, session) {
       merge_animals(tele_objs)
     }
   })
-  # data summary ----
-  output$data_summary <- DT::renderDataTable({
+  all_rows <- reactive({
     merged <- merged_data()
-    # cols <- c("identity", "sampling_interval", "sampling_start", )
-    # merged$summaries[, cols, with = FALSE]
-    merged$info
-    # if (is.null(merged))
-    #   cat("No data loaded yet")
-    # else{
-    #   print(merged$summaries)
-    # }
-    # with this header didn't align with content before resizing. limiting column instead of adding scroll bar
-  }, options = list(scrollX = TRUE))
+    if (is.null(merged)) {
+      return(seq_len(0))
+    } else {
+      return(seq_len(nrow(merged$info)))
+    }
+  })
+  # data summary ----
+  output$data_summary <- DT::renderDataTable(
+    {
+      merged <- merged_data()
+      validate(need(!is.null(merged), "No data yet"))
+      merged$info_print
+    }, 
+    selection = list(mode = 'multiple', target = "row", 
+                     selected = seq_len(nrow(merged_data()$info_print)))
+  )
   # outputOptions(output, "data_summary", priority = 10)
   # data plot
   output$data_plot_basic <- renderPlot({
