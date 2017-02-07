@@ -15,10 +15,11 @@ library(ctmm)
 library(ggplot2)
 library(markdown)
 library(data.table)
-library(lubridate)
+# library(lubridate)
 # increase the uploading file size limit to 30M
 options(shiny.maxRequestSize = 30*1024^2)
 # options(shiny.trace = TRUE)
+# options(shiny.trace = FALSE)
 source("helpers.R")
 # header ----
 header <- dashboardHeader(title = "Animal Movement"
@@ -50,45 +51,52 @@ sidebar <- dashboardSidebar(
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Report", tabName = "report", icon = icon("file-text-o")),
     menuItem("Help", tabName = "intro", icon = icon("question"))
-  ), 
-  tags$br(), tags$br(), tags$br(), tags$br(), 
-  radioButtons('load_option', "Load Movebank format data",
-               c("Bufflo Data in ctmm" = 'ctmm',
-                 "Movebank format file" = 'upload'), selected = "upload"
-  ),
-  fileInput('file1', label = "",
-            accept = c('text/csv',
-                       'text/comma-separated-values,text/plain',
-                       '.csv'))
+  )
+  # tags$br(), tags$br(), tags$br(), tags$br(), 
+  # radioButtons('load_option', "Load Movebank format data",
+  #              c("Bufflo Data in ctmm" = 'ctmm',
+  #                "Movebank format file" = 'upload'), selected = "upload"
+  # ),
+  # fileInput('file1', label = "",
+  #           accept = c('text/csv',
+  #                      'text/comma-separated-values,text/plain',
+  #                      '.csv'))
 )
 # boxes ----
-# upload_box <- box(title = "Load data",
-#                   status = "info", solidHeader = TRUE, width = 4,
-#                   useShinyjs(),
-#                   radioButtons('load_option', NULL,
-#                                c("Use Bufflo Data in ctmm" = 'ctmm',
-#                                  "Upload Movebank format file" = 'upload'), selected = "upload"
-#                   ),
-#                   fileInput('file1', label = "",
-#                             accept = c('text/csv',
-#                                        'text/comma-separated-values,text/plain',
-#                                        '.csv')))
+upload_box <- box(title = "Data Source",
+                  status = "info", solidHeader = TRUE, width = 6,
+                  radioButtons('load_option', NULL,
+                     c("Use Bufflo Data in ctmm" = 'ctmm',
+                       "Upload Movebank format file" = 'upload'), 
+                     selected = "upload"),
+                  fileInput('file1', label = "",
+                      accept = c('text/csv',
+                                 'text/comma-separated-values,text/plain',
+                                 '.csv')))
+action_data_box <- box(title = "Select and Analyze",
+                       status = "warning", solidHeader = TRUE, width = 6,
+                       tags$br(),
+                       fluidRow(column(5, offset = 1, actionButton("single", "Analyze single selected"))),  tags$br(), tags$br(), tags$br(),
+                       fluidRow(column(5, offset = 1, actionButton("batch", "Batch process all selected"))), tags$br())
 data_summary_box <- box(title = "Data Summary", status = "primary",
-                        solidHeader = TRUE, width = 12,
-                        # verbatimTextOutput("data_summary")
-                        fluidRow(column(12, DT::dataTableOutput('data_summary'))),
-                        fluidRow(column(6,actionButton(
-                          "batch", 
-                          "Batch process all selected")),
-                          column(6,  actionButton("single", "Analyze single selected"))
-                         
-                          )
-                        )
+    solidHeader = TRUE, width = 12,
+    # verbatimTextOutput("data_summary")
+    fluidRow(column(12, DT::dataTableOutput('data_summary'))),
+    # fluidRow(column(12, offset = 3,
+    #                 radioButtons('selection_mode', NULL,
+    #                       c("Multi select to compare" = 'multi',
+    #                         "Single select to inspect" = 'single'), 
+    #                       inline = TRUE,
+    #                       selected = "multi"))),
+    fluidRow(column(6,actionButton("batch", "Batch process all selected animals")),
+      column(6, actionButton("single", "Analyze single selected animal"))))
+time_density_box <- box(title = "Sampling Time", 
+                      status = "primary", solidHeader = TRUE, width = 12,
+                      plotOutput("time_density"))
 data_plot_box <- tabBox(title = "Data Plot", id = "plottabs", 
                   height = "450px", width = 12, 
                   tabPanel("ggplot2", plotOutput("data_plot_gg")), 
-                  tabPanel("Basic Plot", plotOutput("data_plot_basic"))
-                 )
+                  tabPanel("Basic Plot", plotOutput("data_plot_basic")))
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -147,8 +155,10 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
     tabItem(tabName = "data",
-            fluidRow(data_summary_box), 
-            # fluidRow(upload_box, data_summary_box), 
+            # fluidRow(data_summary_box), 
+            fluidRow(upload_box, action_data_box),
+            fluidRow(data_summary_box),
+            fluidRow(time_density_box),
             fluidRow(data_plot_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
@@ -209,41 +219,49 @@ server <- function(input, output, session) {
   output$data_summary <- DT::renderDataTable(
     merged_data()$info_print
   )
-  # outputOptions(output, "data_summary", priority = 10)
+
   # data plot
   output$data_plot_basic <- renderPlot({
     tele_objs <- datasetInput()
-    # if (is.null(tele_objs)) {
-    #   return(NULL)
-    # } else {
-    #   # summaries <- merge_animals(tele_objs)$summaries
-    #   # if (!is.null(tele_objs))
-    #     plot(tele_objs, col = rainbow(length(tele_objs)))
-    #     # if added legend, the reactive value only return the plot, once switched to basic plot it will lost legend. no legend now, just use basic plot as a backup verification.
-    #     # legend("top", summaries$identity, horiz = TRUE,
-    #     #        fill = rainbow(length(tele_objs)))
-    # }
     validate(need(!is.null(tele_objs), ""))
     plot(tele_objs, col = rainbow(length(tele_objs)))
-    
-    
   })
+  # get selected rows ----
+  selected_rows <- reactive({
+    identities <- merged_data()$info_print[, Identity]
+    # table can be sorted, but always return row number in column 1
+    rows <- input$data_summary_rows_selected
+    if (length(rows) == 0) {
+      # select all when there is no selection
+      return(identities)
+    } else {
+      return(identities[rows])
+    }
+  })
+  # time density plot ----
+  output$time_density <- renderPlot({
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    ggplot(data = animals[identity %in% selected_rows()], 
+           aes(x = timestamp, fill = id)) +
+      geom_density(alpha = 0.6)
+  })
+  # output$debug <- renderPrint(selected_rows())
   # ggplot locations ----
   output$data_plot_gg <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
-    # if (!is.null(merged)) {
-      animals <- merged$data
-      ggplot(data = animals, aes(x, y, color = id)) + 
-        geom_point(size = 0.01, alpha = 0.8) +
-        labs(x = "x (meters)", y = "y (meters)") +
-        coord_fixed() +
-        scale_colour_hue(c = 90, l = 60) +
-        theme(legend.position = "top", 
-              legend.direction = "horizontal",
-              legend.key.size = unit(2.5, "mm")) +
-        guides(colour = guide_legend(override.aes = list(size = 2)))
-    # }
+    animals <- merged$data
+    ggplot(data = animals, aes(x, y)) + 
+      geom_point(size = 0.01, alpha = 0.6, colour = "gray") +
+      geom_point(size = 0.01, alpha = 0.7, data = animals[identity %in% selected_rows()], aes(colour = id)) +
+      labs(x = "x (meters)", y = "y (meters)") +
+      coord_fixed() +
+      theme(legend.position = "top", 
+            legend.direction = "horizontal",
+            legend.key.size = unit(2.5, "mm")) +
+      guides(colour = guide_legend(override.aes = list(size = 2)))
   })
   # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
   # outputOptions(output, "data_plot_gg", suspendWhenHidden = FALSE)

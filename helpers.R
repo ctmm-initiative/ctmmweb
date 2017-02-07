@@ -70,10 +70,6 @@ animal_info <- function(object) {
 }
 # pretty print summary table. to avoid duplicate computation, use info slot or animal summary table as input, and merge function will return this by default
 # shiny DT will print numbers with lots of digits. there is formating function but we need a number and unit combination which doesn't work with the formating function. Have to format the number here.
-time_2line <- function(date_time) {
-  return(paste0(date(date_time), "\n", 
-                format(date_time, "%H:%M")))
-}
 pretty_info <- function(info) {
   dt <- info
   dt[, Identity := identity]
@@ -81,8 +77,8 @@ pretty_info <- function(info) {
                                   sampling_interval_unit)]
   dt[, Time_range := paste(round(sampling_range_value, 1), 
                                sampling_range_unit)]
-  dt[, Start := time_2line(sampling_start)]
-  dt[, End := time_2line(sampling_end)]
+  dt[, Start := format(sampling_start, "%Y-%m-%d %H:%M")]
+  dt[, End := format(sampling_end, "%Y-%m-%d %H:%M")]
   return(dt[, .(Identity, Start, End, Interval, Time_range)])
 }
 # merge list of telemetry obj into data frame with identity column, works with single tele obj
