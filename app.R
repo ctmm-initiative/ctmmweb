@@ -96,6 +96,7 @@ time_density_box <- box(title = "Sampling Time",
 data_plot_box <- tabBox(title = "Data Plot", id = "plottabs", 
                   height = "450px", width = 12, 
                   tabPanel("ggplot2", plotOutput("data_plot_gg")), 
+                  tabPanel("ggplot2 facet", plotOutput("data_plot_gg_facet")), 
                   tabPanel("Basic Plot", plotOutput("data_plot_basic")))
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
@@ -263,8 +264,19 @@ server <- function(input, output, session) {
             legend.key.size = unit(2.5, "mm")) +
       guides(colour = guide_legend(override.aes = list(size = 2)))
   })
-  # prerender ggplot plot if it didn't block too much and save some time. could turn this on if ggplot is slow.
-  # outputOptions(output, "data_plot_gg", suspendWhenHidden = FALSE)
+  # facet plot ----  
+  output$data_plot_gg_facet <- renderPlot({
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    ggplot(data = animals, aes(x, y)) + 
+      geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
+      labs(x = "x (meters)", y = "y (meters)") +
+      facet_wrap( ~ id, scales = "free", ncol = 2) + 
+      coord_fixed() +
+      theme(legend.key.size = unit(2.5, "mm")) +
+      guides(colour = guide_legend(override.aes = list(size = 2)))
+  })
   # vario ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
