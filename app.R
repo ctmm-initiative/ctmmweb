@@ -13,6 +13,7 @@ library(shinydashboard)
 library(DT)
 library(ctmm)
 library(ggplot2)
+library(scales)
 library(markdown)
 library(data.table)
 # library(lubridate)
@@ -213,11 +214,6 @@ server <- function(input, output, session) {
   merged_data <- reactive({
     # need to avoid call function in null input before it initialize
     tele_objs <- datasetInput()
-    # if (is.null(tele_objs)) {
-    #   return(NULL)
-    # } else {
-    #   merge_animals(tele_objs)
-    # }
     merge_animals(tele_objs)
   })
   # data summary ----
@@ -236,16 +232,18 @@ server <- function(input, output, session) {
     validate(need(!is.null(tele_objs), ""))
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
-  # get selected rows ----
-  selected_rows <- reactive({
-    identities <- merged_data()$info_print[, Identity]
+  # get selected id and color ----
+  selection <- reactive({
+    id_vec <- merged_data()$info_print[, Identity]
+    color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
-    rows <- input$data_summary_rows_selected
-    if (length(rows) == 0) {
+    selected_ids <- id_vec[input$data_summary_rows_selected]
+    selected_colors <- color_vec[id_vec %in% selected_ids]
+    if (length(selected_ids) == 0) {
       # select all when there is no selection
-      return(identities)
+      return(list(ids = id_vec, colors = color_vec))
     } else {
-      return(identities[rows])
+      return(list(ids = selected_ids, colors = selected_colors))
     }
   })
   # time density plot ----
@@ -253,9 +251,10 @@ server <- function(input, output, session) {
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
-    ggplot(data = animals[identity %in% selected_rows()], 
+    ggplot(data = animals[identity %in% selection()$ids], 
            aes(x = timestamp, fill = id)) +
-      geom_density(alpha = 0.6)
+      geom_density(alpha = 0.6) +
+      scale_fill_manual(values = selection()$colors)
   })
   # output$debug <- renderPrint(selected_rows())
   # ggplot locations ----
@@ -265,7 +264,8 @@ server <- function(input, output, session) {
     animals <- merged$data
     ggplot(data = animals, aes(x, y)) + 
       geom_point(size = 0.01, alpha = 0.6, colour = "gray") +
-      geom_point(size = 0.01, alpha = 0.7, data = animals[identity %in% selected_rows()], aes(colour = id)) +
+      geom_point(size = 0.01, alpha = 0.7, data = animals[identity %in% selection()$ids], aes(colour = id)) +
+      scale_color_manual(values = selection()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
       coord_fixed() +
       theme(legend.position = "top", 
