@@ -96,8 +96,11 @@ time_density_box <- box(title = "Sampling Time",
 data_plot_box <- tabBox(title = "Data Plot", id = "plottabs", 
                   height = "450px", width = 12, 
                   tabPanel("ggplot2", plotOutput("data_plot_gg")), 
-                  tabPanel("ggplot2 facet", plotOutput("data_plot_gg_facet")), 
                   tabPanel("Basic Plot", plotOutput("data_plot_basic")))
+data_plot_facet_box <- box(title = "Data Plot facet",
+                           status = "primary", solidHeader = TRUE, width = 12,
+                           plotOutput("data_plot_gg_facet"))
+
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -160,7 +163,8 @@ body <- dashboardBody(
             fluidRow(upload_box, action_data_box),
             fluidRow(data_summary_box),
             fluidRow(time_density_box),
-            fluidRow(data_plot_box)), 
+            fluidRow(data_plot_box),
+            fluidRow(data_plot_facet_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
@@ -218,7 +222,12 @@ server <- function(input, output, session) {
   })
   # data summary ----
   output$data_summary <- DT::renderDataTable(
-    merged_data()$info_print
+    datatable(merged_data()$info_print) %>% 
+      formatStyle('Identity', target = 'row', 
+                  color = 
+                    styleEqual(merged_data()$info_print$Identity, 
+                               hue_pal()(nrow(merged_data()$info_print)))
+    )
   )
 
   # data plot
