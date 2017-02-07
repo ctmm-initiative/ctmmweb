@@ -91,9 +91,9 @@ data_summary_box <- box(title = "Data Summary", status = "primary",
     #                       selected = "multi"))),
     fluidRow(column(6,actionButton("batch", "Batch process all selected animals")),
       column(6, actionButton("single", "Analyze single selected animal"))))
-time_density_box <- box(title = "Sampling Time", 
+histogram_all_box <- box(title = "Sampling Time", 
                       status = "primary", solidHeader = TRUE, width = 12,
-                      plotOutput("time_density"))
+                      plotOutput("histogram_all"))
 data_plot_box <- tabBox(title = "Data Plot", id = "plottabs", 
                   height = "450px", width = 12, 
                   tabPanel("ggplot2", plotOutput("data_plot_gg")), 
@@ -164,9 +164,10 @@ body <- dashboardBody(
             # fluidRow(data_summary_box), 
             fluidRow(upload_box, action_data_box),
             fluidRow(data_summary_box),
-            fluidRow(time_density_box),
             fluidRow(data_plot_box),
-            fluidRow(data_plot_facet_box)), 
+            fluidRow(data_plot_facet_box),
+            fluidRow(histogram_all_box)
+            ), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
@@ -250,15 +251,14 @@ server <- function(input, output, session) {
       return(list(ids = selected_ids, colors = selected_colors))
     }
   })
-  # time density plot ----
-  output$time_density <- renderPlot({
+  # histogram for all plot ----
+  output$histogram_all <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
-    ggplot(data = animals[identity %in% selection()$ids], 
-           aes(x = timestamp, fill = id)) +
-      geom_density(alpha = 0.6) +
-      scale_fill_manual(values = selection()$colors)
+    ggplot(data = animals, aes(x = timestamp, fill = id)) +
+      geom_histogram(bins = 60) +
+      facet_grid(id ~ .) 
   })
   # output$debug <- renderPrint(selected_rows())
   # ggplot locations ----
