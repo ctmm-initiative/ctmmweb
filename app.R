@@ -98,9 +98,10 @@ data_plot_box <- tabBox(title = "Data Plot", id = "plottabs",
                   height = "450px", width = 12, 
                   tabPanel("ggplot2", plotOutput("data_plot_gg")), 
                   tabPanel("Basic Plot", plotOutput("data_plot_basic")))
-data_plot_facet_box <- box(title = "Data Plot facet",
-                           status = "primary", solidHeader = TRUE, width = 12,
-                           plotOutput("data_plot_gg_facet"))
+data_plot_facet_box <- tabBox(title = "Data Plot facet", 
+                              id = "facet_tabs", width = 12,
+     tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
+     tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
 
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
@@ -217,13 +218,16 @@ server <- function(input, output, session) {
     merge_animals(tele_objs)
   })
   # data summary ----
+  # have this warning in beginning.
+  # Warning: Error in <-: replacement has length zero
   output$data_summary <- DT::renderDataTable(
-    datatable(merged_data()$info_print) %>% 
-      formatStyle('Identity', target = 'row', 
-                  color = 
-                    styleEqual(merged_data()$info_print$Identity, 
+    datatable(merged_data()$info_print) %>%
+      formatStyle('Identity', target = 'row',
+                  color =
+                    styleEqual(merged_data()$info_print$Identity,
                                hue_pal()(nrow(merged_data()$info_print)))
     )
+    # merged_data()$info_print
   )
 
   # data plot
@@ -274,7 +278,7 @@ server <- function(input, output, session) {
       guides(colour = guide_legend(override.aes = list(size = 2)))
   })
   # facet plot ----  
-  output$data_plot_gg_facet <- renderPlot({
+  output$data_plot_gg_facet_free <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
@@ -282,6 +286,18 @@ server <- function(input, output, session) {
       geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
       labs(x = "x (meters)", y = "y (meters)") +
       facet_wrap( ~ id, scales = "free", ncol = 2) + 
+      coord_fixed() +
+      theme(legend.key.size = unit(2.5, "mm")) +
+      guides(colour = guide_legend(override.aes = list(size = 2)))
+  })
+  output$data_plot_gg_facet_fixed <- renderPlot({
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    ggplot(data = animals, aes(x, y)) + 
+      geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
+      labs(x = "x (meters)", y = "y (meters)") +
+      facet_grid(id ~ .) + 
       coord_fixed() +
       theme(legend.key.size = unit(2.5, "mm")) +
       guides(colour = guide_legend(override.aes = list(size = 2)))
