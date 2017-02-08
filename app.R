@@ -63,7 +63,7 @@ sidebar <- dashboardSidebar(
   #                      'text/comma-separated-values,text/plain',
   #                      '.csv'))
 )
-# boxes ----
+# boxes in data ----
 upload_box <- box(title = "Data Source",
                   status = "info", solidHeader = TRUE, width = 6,
                   radioButtons('load_option', NULL,
@@ -81,28 +81,20 @@ action_data_box <- box(title = "Select and Analyze",
                        fluidRow(column(5, offset = 1, actionButton("batch", "Batch process all selected"))), tags$br())
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
-    # verbatimTextOutput("data_summary")
-    fluidRow(column(12, DT::dataTableOutput('data_summary'))),
-    # fluidRow(column(12, offset = 3,
-    #                 radioButtons('selection_mode', NULL,
-    #                       c("Multi select to compare" = 'multi',
-    #                         "Single select to inspect" = 'single'), 
-    #                       inline = TRUE,
-    #                       selected = "multi"))),
-    fluidRow(column(6,actionButton("batch", "Batch process all selected animals")),
-      column(6, actionButton("single", "Analyze single selected animal"))))
-histogram_all_box <- box(title = "Sampling Time", 
-                      status = "primary", solidHeader = TRUE, width = 12,
-                      plotOutput("histogram_all"))
-data_plot_box <- tabBox(title = "Data Plot", id = "plottabs", 
-                  height = "450px", width = 12, 
-                  tabPanel("ggplot2", plotOutput("data_plot_gg")), 
-                  tabPanel("Basic Plot", plotOutput("data_plot_basic")))
-data_plot_facet_box <- tabBox(title = "Data Plot facet", 
-                              id = "facet_tabs", width = 12,
-     tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
-     tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
-
+    fluidRow(column(12, DT::dataTableOutput('data_summary'))))
+location_plot_box <- tabBox(title = "Animal Locations", id = "location_plot_tabs", 
+                  height = "480px", width = 12, 
+                  tabPanel("1. Overview", plotOutput("location_plot_gg")), 
+                  tabPanel("2. Facet", plotOutput("location_plot_gg_facet")), 
+                  tabPanel("3. Basic Plot", plotOutput("location_plot_basic")))
+# data_plot_facet_box <- tabBox(title = "Data Plot facet", 
+#                               id = "facet_tabs", width = 12,
+#      tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
+#      tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
+histogram_facet_box <- box(title = "4. Sampling Time", 
+                         status = "primary", solidHeader = TRUE, width = 12,
+                         plotOutput("histogram_facet"))
+# boxes in variogram ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -164,9 +156,8 @@ body <- dashboardBody(
             # fluidRow(data_summary_box), 
             fluidRow(upload_box, action_data_box),
             fluidRow(data_summary_box),
-            fluidRow(data_plot_box),
-            fluidRow(data_plot_facet_box),
-            fluidRow(histogram_all_box)
+            fluidRow(location_plot_box),
+            fluidRow(histogram_facet_box)
             ), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
@@ -184,18 +175,15 @@ body <- dashboardBody(
 ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output, session) {
-  # upload area behavior ----
   # clicking browse button switch mode automatically
   observeEvent(input$file1, {
     updateRadioButtons(session, "load_option", selected = "upload")
-    updateTabItems(session, "tabs", "data")
+    # updateTabItems(session, "tabs", "data")
   })
   # radio button and browse all should switch page to data
-  observeEvent(input$load_option, {
-    updateTabItems(session, "tabs", "data")
-  })
-  
-  
+  # observeEvent(input$load_option, {
+  #   updateTabItems(session, "tabs", "data")
+  # })
   # load data ----
   # return the telemetry obj which could be an obj or obj list
   # only use this in basic plot or models expecting tele obj or tele obj list
@@ -211,7 +199,6 @@ server <- function(input, output, session) {
       }
     } 
   })
-
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merged_data <- reactive({
     # need to avoid call function in null input before it initialize
@@ -221,18 +208,20 @@ server <- function(input, output, session) {
   # data summary ----
   # have this warning in beginning.
   # Warning: Error in <-: replacement has length zero
-  output$data_summary <- DT::renderDataTable(
-    datatable(merged_data()$info_print) %>%
-      formatStyle('Identity', target = 'row',
-                  color =
-                    styleEqual(merged_data()$info_print$Identity,
-                               hue_pal()(nrow(merged_data()$info_print)))
-    )
+  output$data_summary <- DT::renderDataTable({
+    merged <- merged_data()
+    # cannot test the merged$info_print, have to test merged directly, because null value don't have the infor_print item
+    validate(need(!is.null(merged), ""))
+    datatable(merged$info_print) %>%
+    formatStyle('Identity', target = 'row',
+                color =
+                  styleEqual(merged$info_print$Identity,
+                             hue_pal()(nrow(merged$info_print)))
+    )}
     # merged_data()$info_print
   )
-
-  # data plot
-  output$data_plot_basic <- renderPlot({
+  # 3. location basic plot
+  output$location_plot_basic <- renderPlot({
     tele_objs <- datasetInput()
     validate(need(!is.null(tele_objs), ""))
     plot(tele_objs, col = rainbow(length(tele_objs)))
@@ -251,8 +240,8 @@ server <- function(input, output, session) {
       return(list(ids = selected_ids, colors = selected_colors))
     }
   })
-  # histogram for all plot ----
-  output$histogram_all <- renderPlot({
+  # 4. histogram facet plot ----
+  output$histogram_facet <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
@@ -261,8 +250,8 @@ server <- function(input, output, session) {
       facet_grid(id ~ .) 
   })
   # output$debug <- renderPrint(selected_rows())
-  # ggplot locations ----
-  output$data_plot_gg <- renderPlot({
+  # 1. location overview ----
+  output$location_plot_gg <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
@@ -277,20 +266,21 @@ server <- function(input, output, session) {
             legend.key.size = unit(2.5, "mm")) +
       guides(colour = guide_legend(override.aes = list(size = 2)))
   })
-  # facet plot ----  
-  output$data_plot_gg_facet_free <- renderPlot({
-    merged <- merged_data()
-    validate(need(!is.null(merged), ""))
-    animals <- merged$data
-    ggplot(data = animals, aes(x, y)) + 
-      geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
-      labs(x = "x (meters)", y = "y (meters)") +
-      facet_wrap( ~ id, scales = "free", ncol = 2) + 
-      coord_fixed() +
-      theme(legend.key.size = unit(2.5, "mm")) +
-      guides(colour = guide_legend(override.aes = list(size = 2)))
-  })
-  output$data_plot_gg_facet_fixed <- renderPlot({
+  # facet plot 
+  # output$data_plot_gg_facet_free <- renderPlot({
+  #   merged <- merged_data()
+  #   validate(need(!is.null(merged), ""))
+  #   animals <- merged$data
+  #   ggplot(data = animals, aes(x, y)) + 
+  #     geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
+  #     labs(x = "x (meters)", y = "y (meters)") +
+  #     facet_wrap( ~ id, scales = "free", ncol = 2) + 
+  #     coord_fixed() +
+  #     theme(legend.key.size = unit(2.5, "mm")) +
+  #     guides(colour = guide_legend(override.aes = list(size = 2)))
+  # })
+  # 2. location facet ----
+  output$location_plot_gg_facet <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
@@ -302,7 +292,7 @@ server <- function(input, output, session) {
       theme(legend.key.size = unit(2.5, "mm")) +
       guides(colour = guide_legend(override.aes = list(size = 2)))
   })
-  # vario ----
+  # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
     variogram(animal_1)
