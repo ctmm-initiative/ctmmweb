@@ -15,7 +15,6 @@ library(ctmm)
 library(ggplot2)
 library(scales)
 library(gridExtra)
-library(grid)
 library(markdown)
 library(data.table)
 # library(lubridate)
@@ -289,7 +288,7 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   })
-  # 3. location individual ----
+  # 3. location individuals ----
   output$location_plot_individual <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
@@ -302,17 +301,9 @@ server <- function(input, output, session) {
         geom_point(size = 0.01, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
-        coord_fixed() +
-        bigger_theme + bigger_key
+        coord_fixed() # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
-    grid.draw(grid.arrange(grobs = g_list, ncol = 2))
-    # ggplot(data = animals, aes(x, y)) + 
-    #   geom_point(size = 0.01, data = animals, aes(colour = id)) +
-    #   labs(x = "x (meters)", y = "y (meters)") +
-    #   facet_wrap(~ id, ncol = 2, scale = "free") +
-    #   coord_fixed() +
-    #   theme(strip.text = element_text(size = 12)) +
-    #   bigger_theme + bigger_key
+    grid.arrange(grobs = g_list, ncol = 2)
   })
   # 5. histogram facet plot ----
   output$histogram_facet <- renderPlot({
