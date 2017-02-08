@@ -252,14 +252,9 @@ server <- function(input, output, session) {
       scale_color_manual(values = selection()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
       coord_fixed() +
-      theme(legend.position = "top", 
-            legend.direction = "horizontal",
-            legend.key.size = unit(10, "mm"),
-            legend.key.height = unit(10, "mm"),
-            legend.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            axis.text = element_text(size = 14)) +
-      guides(colour = guide_legend(override.aes = list(size = 4)))
+      theme(legend.position = "top",
+            legend.direction = "horizontal") +
+      bigger_theme + bigger_key
   })
   # 2. location facet ----
   output$location_plot_gg_facet <- renderPlot({
@@ -271,13 +266,8 @@ server <- function(input, output, session) {
       labs(x = "x (meters)", y = "y (meters)") +
       facet_grid(id ~ .) + 
       coord_fixed() +
-      theme(strip.text.y = element_text(size = 14),
-            legend.key.size = unit(10, "mm"),
-            legend.key.height = unit(10, "mm"),
-            legend.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            axis.text = element_text(size = 14)) +
-      guides(colour = guide_legend(override.aes = list(size = 4)))
+      theme(strip.text.y = element_text(size = 12)) +
+      bigger_theme + bigger_key
   })
   # 4. histogram facet plot ----
   output$histogram_facet <- renderPlot({
@@ -287,12 +277,8 @@ server <- function(input, output, session) {
     ggplot(data = animals, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
       facet_grid(id ~ .) +
-      theme(strip.text.y = element_text(size = 14),
-            legend.key.size = unit(10, "mm"),
-            legend.key.height = unit(10, "mm"),
-            legend.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            axis.text = element_text(size = 14)) 
+      theme(strip.text.y = element_text(size = 12)) +
+      bigger_theme + bigger_key 
   })  
   # variogram ----
   vg.animal_1 <- reactive({
