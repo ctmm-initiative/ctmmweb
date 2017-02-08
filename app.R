@@ -1,23 +1,17 @@
-# lib ----
-# if (!require("pacman")) install.packages("pacman")
-# pacman::p_load(shiny, shinydashboard, shinyjs, ctmm, ggplot2, markdown)
-# pacman seemed not working with shinyapps.io, good for local version though
-# debug flag
-# debug <- TRUE
-# if (debug) {
-#   options(shiny.reactlog = TRUE) 
-# }
-library(shiny)
-library(shinydashboard)
-# DT should be after shiny to override dataTable in shiny
-library(DT)
-library(ctmm)
-library(ggplot2)
-library(scales)
-library(gridExtra)
-library(markdown)
-library(data.table)
-# library(lubridate)
+# local deployment ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, markdown)
+# shinyapps.io deployment vvvvvv
+# library(shiny)
+# library(shinydashboard)
+# library(DT) # DT should be after shiny to override dataTable in shiny
+# library(ctmm)
+# library(ggplot2)
+# library(scales)
+# library(gridExtra)
+# library(data.table)
+# library(markdown)
+# shinyapps.io deployment  ^^^^^^^
 # increase the uploading file size limit to 30M
 options(shiny.maxRequestSize = 30*1024^2)
 # options(shiny.trace = TRUE)
