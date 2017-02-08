@@ -17,25 +17,7 @@ options(shiny.maxRequestSize = 30*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
 source("helpers.R")
-# header ----
-header <- dashboardHeader(title = "Animal Movement"
-            # dropdownMenu(type = "messages",
-            #    messageItem(
-            #      from = "ctmm team",
-            #      message = "About ctmm",
-            #      href = "https://cran.r-project.org/web/packages/ctmm/index.html"),
-            #    messageItem(
-            #      from = "Documentation",
-            #      message = "View Documentation and Source",
-            #      icon = icon("question"),
-            #      href = "https://github.com/xhdong-umd/ctmm-shiny-prototype"),
-            #    messageItem(
-            #      from = "Issues",
-            #      message = "Report Issues Here.",
-            #      icon = icon("life-ring"),
-            #      ## time = "2014-12-01",
-            #      href = "https://github.com/xhdong-umd/ctmm-shiny-prototype/issues"))
-            )
+header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
 sidebar <- dashboardSidebar(
   sidebarMenu(
@@ -48,15 +30,6 @@ sidebar <- dashboardSidebar(
     menuItem("Report", tabName = "report", icon = icon("file-text-o")),
     menuItem("Help", tabName = "intro", icon = icon("question"))
   )
-  # tags$br(), tags$br(), tags$br(), tags$br(), 
-  # radioButtons('load_option', "Load Movebank format data",
-  #              c("Bufflo Data in ctmm" = 'ctmm',
-  #                "Movebank format file" = 'upload'), selected = "upload"
-  # ),
-  # fileInput('file1', label = "",
-  #           accept = c('text/csv',
-  #                      'text/comma-separated-values,text/plain',
-  #                      '.csv'))
 )
 # boxes in data ----
 upload_box <- box(title = "Data Source",
