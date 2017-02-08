@@ -226,7 +226,7 @@ server <- function(input, output, session) {
     validate(need(!is.null(tele_objs), ""))
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
-  # get selected id and color ----
+  # selected id and color ----
   selection <- reactive({
     id_vec <- merged_data()$info_print[, Identity]
     color_vec <- hue_pal()(length(id_vec))
@@ -239,15 +239,6 @@ server <- function(input, output, session) {
     } else {
       return(list(ids = selected_ids, colors = selected_colors))
     }
-  })
-  # 4. histogram facet plot ----
-  output$histogram_facet <- renderPlot({
-    merged <- merged_data()
-    validate(need(!is.null(merged), ""))
-    animals <- merged$data
-    ggplot(data = animals, aes(x = timestamp, fill = id)) +
-      geom_histogram(bins = 60) +
-      facet_grid(id ~ .) 
   })
   # output$debug <- renderPrint(selected_rows())
   # 1. location overview ----
@@ -263,22 +254,13 @@ server <- function(input, output, session) {
       coord_fixed() +
       theme(legend.position = "top", 
             legend.direction = "horizontal",
-            legend.key.size = unit(2.5, "mm")) +
-      guides(colour = guide_legend(override.aes = list(size = 2)))
+            legend.key.size = unit(10, "mm"),
+            legend.key.height = unit(10, "mm"),
+            legend.text = element_text(size = 14),
+            axis.title = element_text(size = 14),
+            axis.text = element_text(size = 14)) +
+      guides(colour = guide_legend(override.aes = list(size = 4)))
   })
-  # facet plot 
-  # output$data_plot_gg_facet_free <- renderPlot({
-  #   merged <- merged_data()
-  #   validate(need(!is.null(merged), ""))
-  #   animals <- merged$data
-  #   ggplot(data = animals, aes(x, y)) + 
-  #     geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
-  #     labs(x = "x (meters)", y = "y (meters)") +
-  #     facet_wrap( ~ id, scales = "free", ncol = 2) + 
-  #     coord_fixed() +
-  #     theme(legend.key.size = unit(2.5, "mm")) +
-  #     guides(colour = guide_legend(override.aes = list(size = 2)))
-  # })
   # 2. location facet ----
   output$location_plot_gg_facet <- renderPlot({
     merged <- merged_data()
@@ -289,9 +271,29 @@ server <- function(input, output, session) {
       labs(x = "x (meters)", y = "y (meters)") +
       facet_grid(id ~ .) + 
       coord_fixed() +
-      theme(legend.key.size = unit(2.5, "mm")) +
-      guides(colour = guide_legend(override.aes = list(size = 2)))
+      theme(strip.text.y = element_text(size = 14),
+            legend.key.size = unit(10, "mm"),
+            legend.key.height = unit(10, "mm"),
+            legend.text = element_text(size = 14),
+            axis.title = element_text(size = 14),
+            axis.text = element_text(size = 14)) +
+      guides(colour = guide_legend(override.aes = list(size = 4)))
   })
+  # 4. histogram facet plot ----
+  output$histogram_facet <- renderPlot({
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    ggplot(data = animals, aes(x = timestamp, fill = id)) +
+      geom_histogram(bins = 60) +
+      facet_grid(id ~ .) +
+      theme(strip.text.y = element_text(size = 14),
+            legend.key.size = unit(10, "mm"),
+            legend.key.height = unit(10, "mm"),
+            legend.text = element_text(size = 14),
+            axis.title = element_text(size = 14),
+            axis.text = element_text(size = 14)) 
+  })  
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
