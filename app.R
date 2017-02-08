@@ -232,10 +232,11 @@ server <- function(input, output, session) {
     validate(need(!is.null(merged), ""))
     animals <- merged$data
     ggplot(data = animals, aes(x, y)) + 
-      geom_point(size = 0.01, alpha = 0.6, colour = "gray") +
-      geom_point(size = 0.01, alpha = 0.7, data = animals[identity %in% selection()$ids], aes(colour = id)) + 
+      geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
+      geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% selection()$ids], aes(colour = id)) + 
       # coord_cartesian(xlim = ranges$x, ylim = ranges$y) +
-      coord_fixed(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
+      coord_fixed(xlim = ranges$x, ylim = ranges$y) +
+      # coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
       scale_color_manual(values = selection()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
       theme(legend.position = "top",
@@ -248,7 +249,7 @@ server <- function(input, output, session) {
     validate(need(!is.null(merged), ""))
     animals <- merged$data
     ggplot(data = animals, aes(x, y)) + 
-      geom_point(size = 0.01, data = animals, aes(colour = id)) +
+      geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
       labs(x = "x (meters)", y = "y (meters)") +
       facet_grid(id ~ .) + 
       coord_fixed() +
@@ -265,7 +266,7 @@ server <- function(input, output, session) {
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
       g_list[[i]] <- ggplot(data = animals[identity == id_vector[i]], aes(x, y)) +
-        geom_point(size = 0.01, color = color_vec[i]) +
+        geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
         coord_fixed() # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
