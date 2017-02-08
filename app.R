@@ -83,15 +83,16 @@ data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
     fluidRow(column(12, DT::dataTableOutput('data_summary'))))
 location_plot_box <- tabBox(title = "Animal Locations", id = "location_plot_tabs", 
-                  height = "480px", width = 12, 
-                  tabPanel("1. Overview", plotOutput("location_plot_gg")), 
-                  tabPanel("2. Facet", plotOutput("location_plot_gg_facet")), 
-                  tabPanel("3. Basic Plot", plotOutput("location_plot_basic")))
+      height = "480px", width = 12, 
+      tabPanel("1. Overview", plotOutput("location_plot_gg")), 
+      tabPanel("2. Facet fixed scale", plotOutput("location_plot_facet_fixed")), 
+      tabPanel("3. Facet free scale", plotOutput("location_plot_facet_free")),
+      tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
 # data_plot_facet_box <- tabBox(title = "Data Plot facet", 
 #                               id = "facet_tabs", width = 12,
 #      tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
 #      tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
-histogram_facet_box <- box(title = "4. Sampling Time", 
+histogram_facet_box <- box(title = "5. Sampling Time", 
                          status = "primary", solidHeader = TRUE, width = 12,
                          plotOutput("histogram_facet"))
 # boxes in variogram ----
@@ -256,20 +257,33 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   })
-  # 2. location facet ----
-  output$location_plot_gg_facet <- renderPlot({
+  # 2. location facet fixed scale ----
+  output$location_plot_facet_fixed <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
     ggplot(data = animals, aes(x, y)) + 
-      geom_point(size = 0.01, alpha = 0.7, data = animals, aes(colour = id)) +
+      geom_point(size = 0.01, data = animals, aes(colour = id)) +
       labs(x = "x (meters)", y = "y (meters)") +
       facet_grid(id ~ .) + 
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   })
-  # 4. histogram facet plot ----
+  # 3. location facet free scale ----
+  output$location_plot_facet_free <- renderPlot({
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    ggplot(data = animals, aes(x, y)) + 
+      geom_point(size = 0.01, data = animals, aes(colour = id)) +
+      labs(x = "x (meters)", y = "y (meters)") +
+      facet_wrap(~ id, ncol = 2, scale = "free") +
+      coord_fixed() +
+      theme(strip.text = element_text(size = 12)) +
+      bigger_theme + bigger_key
+  })
+  # 5. histogram facet plot ----
   output$histogram_facet <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))

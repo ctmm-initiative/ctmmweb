@@ -3,8 +3,8 @@ title: dashboardAlpha
 account: ctmm
 server: shinyapps.io
 appId: 154758
-bundleId: 704051
+bundleId: 704919
 url: https://ctmm.shinyapps.io/dashboardalpha/
-when: 1486503349.03828
+when: 1486569544.15198
 asMultiple: FALSE
 asStatic: FALSE
