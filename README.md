@@ -28,6 +28,8 @@ devtools::install_github("rstudio/shiny")
 	
 ## Usage
 
+**Note: every plot in plot 3 itself have x y axes in same scale, but scales across plots need to be fixed in next version.**
+
 The web page have a side bar at left for each stage of analysis. The top right corner have some links for project background and help (the "messages" format is not perfect for this purpose, I will polist it later).
 
 Intro page serve as help for the analysis. (Current page is just a placeholder)
