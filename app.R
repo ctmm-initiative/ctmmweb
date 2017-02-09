@@ -16,6 +16,11 @@ pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data
 options(shiny.maxRequestSize = 30*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
+# plot heights ----
+height_location_box <- "800px"
+height_plot_loc <- 730
+height_histogram_box <- "350px"
+height_plot_his <- 280
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
@@ -50,8 +55,9 @@ action_data_box <- box(title = "Select and Analyze",
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
     fluidRow(column(12, DT::dataTableOutput('data_summary'))))
-location_plot_box <- tabBox(title = "Animal Locations", id = "location_plot_tabs", 
-      height = "480px", width = 12, 
+location_plot_box <- tabBox(title = "Animal Locations", 
+      id = "location_plot_tabs", 
+      height = height_location_box, width = 12, 
       tabPanel("1. Overview", plotOutput("location_plot_gg",
                                          dblclick = "plot1_dblclick",
                                          brush = brushOpts(
@@ -66,7 +72,8 @@ location_plot_box <- tabBox(title = "Animal Locations", id = "location_plot_tabs
 #      tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
 #      tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
 histogram_facet_box <- box(title = "5. Sampling Time", 
-                         status = "primary", solidHeader = TRUE, width = 12,
+                         status = "primary", solidHeader = TRUE, 
+                         width = 12, height = height_histogram_box, 
                          plotOutput("histogram_facet"))
 # boxes in variogram ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
@@ -242,7 +249,7 @@ server <- function(input, output, session) {
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
-  })
+  }, height = height_plot_loc, width = "auto")
   # 2. location facet fixed scale ----
   output$location_plot_facet_fixed <- renderPlot({
     merged <- merged_data()
@@ -255,7 +262,7 @@ server <- function(input, output, session) {
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
-  })
+  }, height = height_plot_loc, width = "auto")
   # 3. location individuals ----
   output$location_plot_individual <- renderPlot({
     merged <- merged_data()
@@ -265,14 +272,16 @@ server <- function(input, output, session) {
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
-      g_list[[i]] <- ggplot(data = animals[identity == id_vector[i]], aes(x, y)) +
+      data_i <- animals[identity == id_vector[i]]
+      new_lim <- expand_2D_center(data_i$x, data_i$y)
+      g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
-        coord_fixed() # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
+        coord_fixed(xlim = new_lim$xlim, ylim = new_lim$ylim) # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     grid.arrange(grobs = g_list, ncol = 2)
-  })
+  }, height = height_plot_loc, width = "auto")
   # 5. histogram facet plot ----
   output$histogram_facet <- renderPlot({
     merged <- merged_data()
@@ -283,7 +292,7 @@ server <- function(input, output, session) {
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key 
-  })  
+  }, height = height_plot_his, width = "auto")  
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()

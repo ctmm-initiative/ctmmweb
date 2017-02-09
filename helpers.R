@@ -114,3 +114,18 @@ bigger_theme <- theme(legend.key.size = unit(8, "mm"),
                       axis.title = element_text(size = 14),
                       axis.text = element_text(size = 12))
 bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
+# given a vector, get new limit to make centroid at center
+expand_1D_center <- function(vec){
+  center <- mean(vec)
+  new_diff <- max(center - min(vec), 
+                  max(vec) - center)
+  return(c(new_min = center - new_diff, 
+              new_max = center + new_diff))
+}
+# given x y vectors, get new x y lim to make centroid center
+# using x y to make it flexible for different data framing column names
+expand_2D_center <- function(x_vec, y_vec){
+  return(list(xlim = expand_1D_center(x_vec),
+              ylim = expand_1D_center(y_vec)))
+}
+
