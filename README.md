@@ -13,11 +13,12 @@ This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages
 You can also run it locally:
 
 1. Install [the latest R](https://www.r-project.org/), currently 3.3.2. Lower version may not work with ctmm.
-2. Install dependency packages in R:
+2. Install dependency packages in R. To use the plot zoom function with fixed axes scales correctly, you will need the development version of Shiny.
 	
 ```r
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(shiny)
+if (!require("devtools"))
+  install.packages("devtools")
+devtools::install_github("rstudio/shiny")
 ```
 
 3. Run the Shiny app with
