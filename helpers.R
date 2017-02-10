@@ -114,18 +114,37 @@ bigger_theme <- theme(legend.key.size = unit(8, "mm"),
                       axis.title = element_text(size = 14),
                       axis.text = element_text(size = 12))
 bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
-# given a vector, get new limit to make centroid at center
-expand_1D_center <- function(vec){
-  center <- mean(vec)
-  new_diff <- max(center - min(vec), 
-                  max(vec) - center)
-  return(c(new_min = center - new_diff, 
-              new_max = center + new_diff))
+# # given a vector, get new limit to make centroid at center
+# expand_1D_center <- function(vec){
+#   center <- median(vec)
+#   new_diff <- max(center - min(vec), 
+#                   max(vec) - center)
+#   return(c(new_min = center - new_diff, 
+#               new_max = center + new_diff))
+# }
+# # given x y vectors, get new x y lim to make centroid center
+# # using x y to make it flexible for different data framing column names
+# expand_2D_center <- function(x_vec, y_vec){
+#   return(list(xlim = expand_1D_center(x_vec),
+#               ylim = expand_1D_center(y_vec)))
+# }
+# get new expand ranges for all individual plots. all should have same range but different start and end
+get_ranges <- function(animals) {
+  dt <- animals[, .(max_x = max(x), 
+                    min_x = min(x), 
+                    max_y = max(y), 
+                    min_y = min(y), 
+                    median_x = median(x), 
+                    median_y = median(y)),
+                    by = identity]
+  dt[, range_x := max_x - min_x]
+  dt[, range_y := max_y - min_y]
+  # note the max here is across all range_x since no by clause. added 1.01 for padding to use expand = FALSE without overlap and keep axes size
+  dt[, new_diff_x := max(median_x - min_x, max_x - median_x) * 1.01]
+  dt[, new_diff_y := max(median_y - min_y, max_y - median_y) * 1.01]
+  dt[, x_start := median_x - new_diff_x]
+  dt[, x_end := median_x + new_diff_x]
+  dt[, y_start := median_y - new_diff_y]
+  dt[, y_end := median_y + new_diff_y]
+  return(dt)
 }
-# given x y vectors, get new x y lim to make centroid center
-# using x y to make it flexible for different data framing column names
-expand_2D_center <- function(x_vec, y_vec){
-  return(list(xlim = expand_1D_center(x_vec),
-              ylim = expand_1D_center(y_vec)))
-}
-

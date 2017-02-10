@@ -6,11 +6,11 @@ This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages
 
 ## Installation
 
-[The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser.
+[The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser. This version is simple in every step but complete from start to end.
 
-[The current alpha version is here](https://ctmm.shinyapps.io/dashboardalpha/).
+The current repo is the alpha version with much more features in data page, but the latter pages are not connected with data page yeet.
 
-You can also run it locally:
+You can run current repo locally:
 
 1. Install [the latest R](https://www.r-project.org/), currently 3.3.2. Lower version may not work with ctmm.
 2. Install dependency packages in R. To use the plot zoom function with fixed axes scales correctly, you will need the development version of Shiny.
@@ -27,8 +27,6 @@ devtools::install_github("rstudio/shiny")
 	
 	
 ## Usage
-
-**Note: every plot in plot 3 itself have x y axes in same scale, but scales across plots need to be fixed in next version.**
 
 The web page have a side bar at left for each stage of analysis. The top right corner have some links for project background and help (the "messages" format is not perfect for this purpose, I will polist it later).
 

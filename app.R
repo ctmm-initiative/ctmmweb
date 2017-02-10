@@ -268,19 +268,24 @@ server <- function(input, output, session) {
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
+    new_ranges <- get_ranges(animals)
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
       data_i <- animals[identity == id_vector[i]]
-      new_lim <- expand_2D_center(data_i$x, data_i$y)
+      new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
-        coord_fixed(xlim = new_lim$xlim, ylim = new_lim$ylim) # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
+        coord_fixed(xlim = c(new_ranges_i$x_start, 
+                             new_ranges_i$x_end), 
+                    ylim = c(new_ranges_i$y_start, 
+                             new_ranges_i$y_end)) 
+      # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
-    grid.arrange(grobs = g_list, ncol = 2)
+    grid.arrange(grobs = g_list)
   }, height = height_plot_loc, width = "auto")
   # 5. histogram facet plot ----
   output$histogram_facet <- renderPlot({
