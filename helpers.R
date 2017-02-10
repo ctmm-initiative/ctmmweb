@@ -149,8 +149,16 @@ get_ranges <- function(animals) {
   return(dt)
 }
 # given a zooming mutipliers in (1, 100), scale one axis range
-zoom_in_range <- function(left, right, times) {
-  new_range <- (right - left) / times
+# zoom_in_range <- function(left, right, times) {
+#   new_range <- (right - left) / times
+#   # note mean take a vector, not list of items in parameters
+#   center <- (right + left) / 2 
+#   return(c(new_left = center - new_range / 2,
+#            new_right = center + new_range / 2))
+# }
+# given a zooming ratio in (0.01, 1), scale portion of one axis range
+zoom_in_range <- function(left, right, ratio) {
+  new_range <- (right - left) * ratio
   # note mean take a vector, not list of items in parameters
   center <- (right + left) / 2 
   return(c(new_left = center - new_range / 2,

@@ -73,8 +73,8 @@ location_plot_box <- tabBox(title = "Animal Locations",
       tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")), 
       tabPanel("3. Individuals", 
         fluidRow(column(6, offset = 3,
-                        sliderInput("zoom_times", "Zoom Into Center", 
-                    min = 1, max = 100, value = 1))
+                        sliderInput("zoom_ratio", "Zoom Into Portion of Plots", 
+                    min = 0.01, max = 1, value = 1))
                  # column(2, br(), br(), actionButton("zoom_in", "Zoom In")),
                  # column(2, br(), br(), actionButton("zoom_out", "Zoom Out"))
                  ),
@@ -319,10 +319,10 @@ server <- function(input, output, session) {
         theme(plot.title = element_text(hjust = 0.5)) +
         coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start, 
                                          new_ranges_i$x_end,
-                                         input$zoom_times), 
+                                         input$zoom_ratio), 
                     ylim = zoom_in_range(new_ranges_i$y_start, 
                                          new_ranges_i$y_end,
-                                         input$zoom_times)) 
+                                         input$zoom_ratio)) 
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     grid.arrange(grobs = g_list)
