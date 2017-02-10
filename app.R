@@ -358,7 +358,7 @@ server <- function(input, output, session) {
     dt <- merged$info_print[values$selected_animal_no]
     color_vec <- hue_pal()(nrow(merged$info_print))
     selected_color <- color_vec[values$selected_animal_no]
-    datatable(dt) %>%
+    datatable(dt, options = list(dom = 't', ordering = FALSE)) %>%
     formatStyle('Identity', target = 'row',
                 color =
                   styleEqual(dt$Identity,
