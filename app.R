@@ -351,20 +351,20 @@ server <- function(input, output, session) {
       bigger_theme + bigger_key 
   }, height = height_hist, width = "auto")  
   # p2. subset ----
-    output$selected_summary <- DT::renderDataTable({
+  # actually should not color by page 1 color because we will rainbow color by time
+  output$selected_summary <- DT::renderDataTable({
     merged <- merged_data()
     # cannot test the merged$info_print, have to test merged directly, because null value don't have the infor_print item
     validate(need(!is.null(merged), ""))
     dt <- merged$info_print[values$selected_animal_no]
-    color_vec <- hue_pal()(nrow(merged$info_print))
-    selected_color <- color_vec[values$selected_animal_no]
-    datatable(dt, options = list(dom = 't', ordering = FALSE)) %>%
-    formatStyle('Identity', target = 'row',
-                color =
-                  styleEqual(dt$Identity,
-                             selected_color)
-    )}
-    # merged_data()$info_print
+    # color_vec <- hue_pal()(nrow(merged$info_print))
+    # selected_color <- color_vec[values$selected_animal_no]
+    datatable(dt, options = list(dom = 't', ordering = FALSE)) 
+    # %>% formatStyle('Identity', target = 'row',
+    #             color =
+    #               styleEqual(dt$Identity,
+    #                          selected_color)
+    }
   )
   # variogram ----
   vg.animal_1 <- reactive({
