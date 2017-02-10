@@ -26,6 +26,8 @@ height_hist_subset_box <- "200px"
 height_hist_subset <- 150
 height_selected_loc_box <- "400px"
 height_selected_loc <- 380
+# global variables across pages
+# selected_animal_no <- 1
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
@@ -56,7 +58,7 @@ upload_box <- box(title = "Data Source",
 action_data_box <- box(title = "Select and Analyze",
                        status = "warning", solidHeader = TRUE, width = 6,
                        tags$br(),
-                       fluidRow(column(5, offset = 1, actionButton("single", "Analyze single selected"))),  tags$br(), tags$br(), tags$br(),
+                       fluidRow(column(5, offset = 1, actionButton("selected", "Analyze single selected"))),  tags$br(), tags$br(), tags$br(),
                        fluidRow(column(5, offset = 1, actionButton("batch", "Batch process all selected"))), tags$br())
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
@@ -74,11 +76,8 @@ location_plot_box <- tabBox(title = "Animal Locations",
       tabPanel("3. Individuals", 
         fluidRow(column(6, offset = 3,
                         sliderInput("zoom_ratio", "Zoom Into Portion of Plots", 
-                    min = 0.01, max = 1, value = 1))
-                 # column(2, br(), br(), actionButton("zoom_in", "Zoom In")),
-                 # column(2, br(), br(), actionButton("zoom_out", "Zoom Out"))
-                 ),
-               plotOutput("location_plot_individual")),
+                    min = 0.01, max = 1, value = 1))),
+        plotOutput("location_plot_individual")),
       tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
 # data_plot_facet_box <- tabBox(title = "Data Plot facet", 
 #                               id = "facet_tabs", width = 12,
@@ -203,7 +202,7 @@ server <- function(input, output, session) {
   # observeEvent(input$load_option, {
   #   updateTabItems(session, "tabs", "data")
   # })
-  # load data ----
+  # p1. data ----
   # return the telemetry obj which could be an obj or obj list
   # only use this in basic plot or models expecting tele obj or tele obj list
   # every reference of this need to check null before it initialized, like in merged_data
@@ -260,16 +259,28 @@ server <- function(input, output, session) {
     }
   })
   # output$debug <- renderPrint(selected_rows())
+  # single selected ----
+  values <- reactiveValues()
+  values$selected_animal_no <- 1
+  observeEvent(input$selected, {
+    if (length(input$data_summary_rows_selected) != 1) {
+      showNotification("Please select single Animal.", type = "error")
+    } else {
+      values$selected_animal_no <- input$data_summary_rows_selected
+      updateTabItems(session, "tabs", "subset")
+    }
+  })
   # plot 1. overview ----
-  ranges <- reactiveValues(x = NULL, y = NULL)
+  values$ranges <- c(x = NULL, y = NULL)
+  # ranges <- reactiveValues(x = NULL, y = NULL)
   observeEvent(input$plot1_dblclick, {
     brush <- input$plot1_brush
     if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
+      values$ranges$x <- c(brush$xmin, brush$xmax)
+      values$ranges$y <- c(brush$ymin, brush$ymax)
     } else {
-      ranges$x <- NULL
-      ranges$y <- NULL
+      values$ranges$x <- NULL
+      values$ranges$y <- NULL
     }
   })
   output$location_plot_gg <- renderPlot({
@@ -279,8 +290,8 @@ server <- function(input, output, session) {
     ggplot(data = animals, aes(x, y)) + 
       geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% selection()$ids], aes(colour = id)) + 
-      # coord_cartesian(xlim = ranges$x, ylim = ranges$y) +
-      coord_fixed(xlim = ranges$x, ylim = ranges$y) +
+      # coord_cartesian(xlim = values$ranges$x, ylim = values$ranges$y) +
+      coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
       # coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
       scale_color_manual(values = selection()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
@@ -322,7 +333,8 @@ server <- function(input, output, session) {
                                          input$zoom_ratio), 
                     ylim = zoom_in_range(new_ranges_i$y_start, 
                                          new_ranges_i$y_end,
-                                         input$zoom_ratio)) 
+                                         input$zoom_ratio),
+                    expand = FALSE) 
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     grid.arrange(grobs = g_list)
@@ -338,6 +350,22 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key 
   }, height = height_hist, width = "auto")  
+  # p2. subset ----
+    output$selected_summary <- DT::renderDataTable({
+    merged <- merged_data()
+    # cannot test the merged$info_print, have to test merged directly, because null value don't have the infor_print item
+    validate(need(!is.null(merged), ""))
+    dt <- merged$info_print[values$selected_animal_no]
+    color_vec <- hue_pal()(nrow(merged$info_print))
+    selected_color <- color_vec[values$selected_animal_no]
+    datatable(dt) %>%
+    formatStyle('Identity', target = 'row',
+                color =
+                  styleEqual(dt$Identity,
+                             selected_color)
+    )}
+    # merged_data()$info_print
+  )
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
