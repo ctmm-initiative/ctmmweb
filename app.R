@@ -20,8 +20,12 @@ options(shiny.maxRequestSize = 30*1024^2)
 height_location_box <- "800px"
 height_plot_loc <- 730
 height_plot_3 <- 640
-height_histogram_box <- "350px"
-height_plot_his <- 280
+height_hist_box <- "350px"
+height_hist <- 280
+height_hist_subset_box <- "200px"
+height_hist_subset <- 150
+height_selected_loc_box <- "400px"
+height_selected_loc <- 380
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
@@ -30,6 +34,7 @@ sidebar <- dashboardSidebar(
     id = "tabs", 
     # match tabItem
     menuItem("Data", tabName = "data", icon = icon("table")),
+    menuItem("Subset", tabName = "subset", icon = icon("pie-chart")),
     menuItem("Variogram", tabName = "timelag", icon = icon("line-chart")),
     menuItem("Model", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
@@ -37,7 +42,7 @@ sidebar <- dashboardSidebar(
     menuItem("Help", tabName = "intro", icon = icon("question"))
   )
 )
-# boxes in data ----
+# p1. data boxes ----
 upload_box <- box(title = "Data Source",
                   status = "info", solidHeader = TRUE, width = 6,
                   radioButtons('load_option', NULL,
@@ -81,9 +86,29 @@ location_plot_box <- tabBox(title = "Animal Locations",
 #      tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
 histogram_facet_box <- box(title = "5. Sampling Time", 
                          status = "primary", solidHeader = TRUE, 
-                         width = 12, height = height_histogram_box, 
+                         width = 12, height = height_hist_box, 
                          plotOutput("histogram_facet"))
-# boxes in variogram ----
+# p2. subset boxes ----
+selected_summary_box <- box(title = "Selected Animal",
+              status = "info", solidHeader = TRUE, 
+              width = 12,
+              fluidRow(column(12, DT::dataTableOutput('selected_summary'))))
+histogram_subsetting_box <- box(title = "6. Select Time Range", 
+                         status = "primary", solidHeader = TRUE, 
+                         width = 12, height = height_hist_subset_box, 
+                         fluidRow(column(2, offset = 9, actionButton("add_time",
+                              "Add to Selections"))),
+                         plotOutput("histogram_subsetting")
+                         )
+selected_plot_box <- box(title = "7. Selected Locations", 
+                         status = "primary", solidHeader = TRUE, 
+                         width = 12, height = height_selected_loc_box, 
+                         plotOutput("selected_loc"))
+selected_ranges_box <- box(title = "Selected Time Ranges",
+                status = "primary", solidHeader = TRUE, width = 12,
+                fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
+                         column(12, DT::dataTableOutput('selected_ranges'))))
+# p3. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -148,6 +173,11 @@ body <- dashboardBody(
             fluidRow(location_plot_box),
             fluidRow(histogram_facet_box)
             ), 
+    tabItem(tabName = "subset",
+            fluidRow(selected_summary_box,
+                     histogram_subsetting_box,
+                     selected_plot_box,
+                     selected_ranges_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
@@ -230,7 +260,7 @@ server <- function(input, output, session) {
     }
   })
   # output$debug <- renderPrint(selected_rows())
-  # 1. location overview ----
+  # plot 1. overview ----
   ranges <- reactiveValues(x = NULL, y = NULL)
   observeEvent(input$plot1_dblclick, {
     brush <- input$plot1_brush
@@ -258,7 +288,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
-  # 2. location facet fixed scale ----
+  # plot 2. facet ----
   output$location_plot_facet_fixed <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
@@ -271,7 +301,7 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
-  # 3. location individuals ----
+  # plot 3. individuals ----
   output$location_plot_individual <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
@@ -297,7 +327,7 @@ server <- function(input, output, session) {
     }
     grid.arrange(grobs = g_list)
   }, height = height_plot_3, width = "auto")
-  # 5. histogram facet plot ----
+  # plot 5. histogram facet ----
   output$histogram_facet <- renderPlot({
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
@@ -307,7 +337,7 @@ server <- function(input, output, session) {
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key 
-  }, height = height_plot_his, width = "auto")  
+  }, height = height_hist, width = "auto")  
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
