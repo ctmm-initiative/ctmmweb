@@ -148,3 +148,11 @@ get_ranges <- function(animals) {
   dt[, y_end := median_y + new_diff_y]
   return(dt)
 }
+# given a zooming mutipliers in (1, 100), scale one axis range
+zoom_in_range <- function(left, right, times) {
+  new_range <- (right - left) / times
+  # note mean take a vector, not list of items in parameters
+  center <- (right + left) / 2 
+  return(c(new_left = center - new_range / 2,
+           new_right = center + new_range / 2))
+}

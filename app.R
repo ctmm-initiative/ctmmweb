@@ -19,6 +19,7 @@ options(shiny.maxRequestSize = 30*1024^2)
 # plot heights ----
 height_location_box <- "800px"
 height_plot_loc <- 730
+height_plot_3 <- 640
 height_histogram_box <- "350px"
 height_plot_his <- 280
 source("helpers.R")
@@ -65,7 +66,14 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                            resetOnNew = TRUE
                                          ))), 
       tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")), 
-      tabPanel("3. Individuals", plotOutput("location_plot_individual")),
+      tabPanel("3. Individuals", 
+        fluidRow(column(6, offset = 3,
+                        sliderInput("zoom_times", "Zoom Into Center", 
+                    min = 1, max = 100, value = 1))
+                 # column(2, br(), br(), actionButton("zoom_in", "Zoom In")),
+                 # column(2, br(), br(), actionButton("zoom_out", "Zoom Out"))
+                 ),
+               plotOutput("location_plot_individual")),
       tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
 # data_plot_facet_box <- tabBox(title = "Data Plot facet", 
 #                               id = "facet_tabs", width = 12,
@@ -279,14 +287,16 @@ server <- function(input, output, session) {
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
-        coord_fixed(xlim = c(new_ranges_i$x_start, 
-                             new_ranges_i$x_end), 
-                    ylim = c(new_ranges_i$y_start, 
-                             new_ranges_i$y_end)) 
+        coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start, 
+                                         new_ranges_i$x_end,
+                                         input$zoom_times), 
+                    ylim = zoom_in_range(new_ranges_i$y_start, 
+                                         new_ranges_i$y_end,
+                                         input$zoom_times)) 
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     grid.arrange(grobs = g_list)
-  }, height = height_plot_loc, width = "auto")
+  }, height = height_plot_3, width = "auto")
   # 5. histogram facet plot ----
   output$histogram_facet <- renderPlot({
     merged <- merged_data()
