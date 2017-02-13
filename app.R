@@ -16,7 +16,7 @@ pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data
 options(shiny.maxRequestSize = 30*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
-# plot heights ----
+# UI style constants ----
 height_location_box <- "800px"
 height_plot_loc <- 730
 height_plot_3 <- 640
@@ -26,6 +26,7 @@ height_hist_subset_box <- "200px"
 height_hist_subset <- 150
 height_selected_loc_box <- "400px"
 height_selected_loc <- 380
+page_action_style <- "background-color: #FFEB3B;"
 # global variables across pages
 # selected_animal_no <- 1
 source("helpers.R")
@@ -46,7 +47,7 @@ sidebar <- dashboardSidebar(
 )
 # p1. data boxes ----
 upload_box <- box(title = "Data Source",
-                  status = "info", solidHeader = TRUE, width = 6,
+                  status = "info", solidHeader = TRUE, width = 8,
                   radioButtons('load_option', NULL,
                      c("Use Bufflo Data in ctmm" = 'ctmm',
                        "Upload Movebank format file" = 'upload'), 
@@ -56,10 +57,20 @@ upload_box <- box(title = "Data Source",
                                  'text/comma-separated-values,text/plain',
                                  '.csv')))
 action_data_box <- box(title = "Select and Analyze",
-                       status = "warning", solidHeader = TRUE, width = 6,
+                       status = "warning", solidHeader = TRUE, width = 4,
                        tags$br(),
-                       fluidRow(column(5, offset = 1, actionButton("selected", "Analyze single selected"))),  tags$br(), tags$br(), tags$br(),
-                       fluidRow(column(5, offset = 1, actionButton("batch", "Batch process all selected"))), tags$br())
+                       fluidRow(column(11, offset = 0, 
+                                       actionButton("selected", 
+                                                    "Analyze single selected", 
+                                                    width = "100%", 
+                                                    style = page_action_style))), 
+                       tags$br(), tags$br(), tags$br(),
+                       fluidRow(column(11, offset = 0, 
+                                       actionButton("batch", 
+                                                    "Batch process all selected",
+                                                    width = "100%", 
+                                                    style = page_action_style))),
+                       tags$br())
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
     fluidRow(column(12, DT::dataTableOutput('data_summary'))))
@@ -91,22 +102,33 @@ histogram_facet_box <- box(title = "5. Sampling Time",
 selected_summary_box <- box(title = "Selected Animal",
               status = "info", solidHeader = TRUE, 
               width = 12,
-              fluidRow(column(12, DT::dataTableOutput('selected_summary'))))
+              fluidRow(column(8, DT::dataTableOutput('selected_summary')), 
+                       column(4, br(), actionButton("all_time", 
+                                                    "Analyze all time range", 
+                                                    width = "100%", 
+                                                    style = page_action_style), 
+                              br(), br(),
+                              actionButton("selected_time", 
+                                           "Analyze selected time ranges", 
+                                           width = "100%", 
+                                           style = page_action_style))))
 histogram_subsetting_box <- box(title = "6. Select Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_subset_box, 
-                         fluidRow(column(2, offset = 9, actionButton("add_time",
+                         fluidRow(column(2, offset = 9, br(), br(), actionButton("add_time",
                               "Add to Selections"))),
                          plotOutput("histogram_subsetting")
                          )
+selected_ranges_box <- box(title = "Selected Time Ranges",
+                status = "primary", solidHeader = TRUE, width = 12,
+                # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
+                #          column(12, DT::dataTableOutput('selected_ranges'))))
+                DT::dataTableOutput('selected_ranges'))
 selected_plot_box <- box(title = "7. Selected Locations", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_selected_loc_box, 
                          plotOutput("selected_loc"))
-selected_ranges_box <- box(title = "Selected Time Ranges",
-                status = "primary", solidHeader = TRUE, width = 12,
-                fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
-                         column(12, DT::dataTableOutput('selected_ranges'))))
+
 # p3. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
@@ -175,8 +197,8 @@ body <- dashboardBody(
     tabItem(tabName = "subset",
             fluidRow(selected_summary_box,
                      histogram_subsetting_box,
-                     selected_plot_box,
-                     selected_ranges_box)), 
+                     selected_ranges_box,
+                     selected_plot_box)), 
     tabItem(tabName = "timelag",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
