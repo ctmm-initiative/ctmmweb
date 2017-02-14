@@ -139,9 +139,9 @@ get_ranges <- function(animals) {
                     by = identity]
   dt[, range_x := max_x - min_x]
   dt[, range_y := max_y - min_y]
-  # note the max here is across all range_x since no by clause. added 1.01 for padding to use expand = FALSE without overlap and keep axes size
-  dt[, new_diff_x := max(median_x - min_x, max_x - median_x) * 1.01]
-  dt[, new_diff_y := max(median_y - min_y, max_y - median_y) * 1.01]
+  # note the max here is across all range_x since no by clause. added 1.05 for padding to use expand = FALSE without overlap and keep axes size
+  dt[, new_diff_x := max(median_x - min_x, max_x - median_x) * 1.05]
+  dt[, new_diff_y := max(median_y - min_y, max_y - median_y) * 1.05]
   dt[, x_start := median_x - new_diff_x]
   dt[, x_end := median_x + new_diff_x]
   dt[, y_start := median_y - new_diff_y]
