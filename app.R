@@ -38,7 +38,7 @@ sidebar <- dashboardSidebar(
     # match tabItem
     menuItem("Data", tabName = "data", icon = icon("table")),
     menuItem("Subset", tabName = "subset", icon = icon("pie-chart")),
-    menuItem("Variogram", tabName = "timelag", icon = icon("line-chart")),
+    menuItem("Visual Diagnostics", tabName = "visual", icon = icon("line-chart")),
     menuItem("Model", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Report", tabName = "report", icon = icon("file-text-o")),
@@ -202,7 +202,7 @@ body <- dashboardBody(
                      histogram_subsetting_box,
                      selected_ranges_box,
                      selected_plot_box)), 
-    tabItem(tabName = "timelag",
+    tabItem(tabName = "visual",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
     tabItem(tabName = "model",
