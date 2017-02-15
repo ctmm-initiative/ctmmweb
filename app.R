@@ -121,19 +121,18 @@ selected_summary_box <- box(title = "Selected Animal",
 histogram_subsetting_box <- box(title = "6. Select Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_subset_box, 
-                         fluidRow(column(6, offset = 2, sliderInput("bin_count", "Color Bins", min = 2, max = 20, value = 7, step = 1)), 
-                                  column(2, offset = 2, br(), actionButton("add_time","Add"))
-                                  ,
-                           column(12, plotOutput("histogram_subsetting",
+                         fluidRow(column(6, offset = 2, 
+                                         sliderInput("bin_count", "Color Bins", 
+                                                     min = 2, max = 20, value = 7, step = 1)),
+                                  column(2, offset = 2, br(), actionButton("add_time","Add")),
+                                  column(12, plotOutput("histogram_subsetting",
                                                         brush = brushOpts(
                                                           id = "histo_sub_brush",
                                                           direction = "x",
                                                           stroke = "purple",
                                                           fill = "blue", 
                                                           resetOnNew = TRUE
-                                                        ))))
-                         
-                         )
+                                                        )))))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                 status = "primary", solidHeader = TRUE, width = 12,
                 # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
@@ -404,32 +403,49 @@ server <- function(input, output, session) {
     datatable(dt, options = list(dom = 't', ordering = FALSE)) 
     }
   )
-  # selected animal data and brush selections, colors
-  
-  # plot 6. histogram subsetting ----
-  output$histogram_subsetting <- renderPlot({
+  # selected animal data and color bins
+  # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
+  selected_animal_binned <- reactive({
     bin_count <- input$bin_count
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
-    
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(bin_count)
     data_i <- animals[identity == id_vector[values$selected_animal_no]]
-    
     data_i[, color_bin_factor := cut(timestamp, bin_count)]
-    # convert the factor levels into datetime. note as.POSIXct will convert with system current timezone while as_datetime use UTC, which match the original movebank data timezone (some may show GMT which is approximately equal)
     color_bin_start_vec_time <- as_datetime(levels(data_i$color_bin_factor))
-    # however when provided to histogram for breaks, it need numeric and as.numeric ignore timezone setting using system timezone. when ggplot drawing labels, it convert numeric to datetime with UTC. we have to set label timezone as system timezone to correct this.
-    # need n+1 breaks for n groups. the vec before is good for interval check and labeling
     color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])
-    select_start_bin <- findInterval(select_start, color_bin_start_vec_time)
-    select_end_bin <- findInterval(select_end, color_bin_start_vec_time)
-    selected_color <- color_vec[select_start_bin:select_end_bin]
-    
-    histo <- ggplot(data = data_i, aes(x = timestamp)) +
-      geom_histogram(breaks = as.numeric(color_bin_breaks), fill = color_vec) +
-      scale_x_datetime(breaks = color_bin_breaks, 
+    return(list(data = data_i, 
+                color_vec = color_vec, 
+                color_bin_start_vec_time = color_bin_start_vec_time,
+                color_bin_breaks = color_bin_breaks))
+  })
+  # brush selection and matching color bins
+  selected_animal_range <- reactive({
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    animal_binned <- selected_animal_binned()
+    if (is.null(input$histo_sub_brush)) {
+      select_start <- animals[t == min(t), timestamp]
+      select_end <- animals[t == max(t), timestamp]
+    } else {
+      select_start <- as_datetime(input$histo_sub_brush$xmin)
+      select_end <- as_datetime(input$histo_sub_brush$xmax)
+    }
+    select_start_bin <- findInterval(select_start, animal_binned$color_bin_start_vec_time)
+    select_end_bin <- findInterval(select_end, animal_binned$color_bin_start_vec_time)
+    selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
+    return(list(select_start = select_start, select_end = select_end,
+                selected_color = selected_color))
+  })
+  # plot 6. histogram subsetting ----
+  output$histogram_subsetting <- renderPlot({
+    animal_colored <- selected_animal_colored()
+    histo <- ggplot(data = animal_colored$data, aes(x = timestamp)) +
+      geom_histogram(breaks = as.numeric(animal_colored$color_bin_breaks), fill = animal_colored$color_vec) +
+      scale_x_datetime(breaks = animal_colored$color_bin_breaks, 
                        labels = date_format("%Y-%m-%d %H:%M:%S", tz = Sys.timezone())) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
     histo
@@ -437,8 +453,8 @@ server <- function(input, output, session) {
   
   output$x_brushes <- renderPrint({
     # str(input$histo_sub_brush)
-    as_datetime(input$histo_sub_brush$xmin)
-    as_datetime(input$histo_sub_brush$xmax)
+    # as_datetime(input$histo_sub_brush$xmin)
+    # as_datetime(input$histo_sub_brush$xmax)
   })
   # plot 7. selected locations ----
   output$selected_loc <- renderPlot({
