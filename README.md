@@ -8,7 +8,7 @@ This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages
 
 [The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser. This version is simple in every step but complete from start to end.
 
-The current repo is the alpha version with much more features in data page, but the latter pages are not connected with data page yeet.
+The current repo is the alpha version with much more features in data page, but the latter pages are not connected with data page yet.
 
 You can run current repo locally:
 
@@ -23,7 +23,7 @@ devtools::install_github("rstudio/shiny")
 
 3. Run the Shiny app with
 
-	`shiny::runGitHub('ctmm-shiny-prototype', 'xhdong-umd')`
+	`shiny::runGitHub('ctmm-shiny-prototype', 'ctmm-initiative')`
 	
 	
 ## Usage
