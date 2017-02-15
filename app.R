@@ -86,8 +86,8 @@ location_plot_box <- tabBox(title = "Animal Locations",
       tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")), 
       tabPanel("3. Individuals", 
         fluidRow(column(6, offset = 3,
-                        sliderInput("zoom_ratio", "Zoom Into Portion of Plots", 
-                    min = 0.01, max = 1, value = 1))),
+                        sliderInput("include_level", "Zoom Into Portion of Plots", 
+                    min = 0.80, max = 1, value = 1))),
         plotOutput("location_plot_individual")),
       tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
 # data_plot_facet_box <- tabBox(title = "Data Plot facet", 
@@ -339,10 +339,12 @@ server <- function(input, output, session) {
   }, height = height_plot_loc, width = "auto")
   # plot 3. individuals ----
   output$location_plot_individual <- renderPlot({
+    validate(need(!is.null(datasetInput()), ""))
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
-    new_ranges <- get_ranges(animals)
+    # new_ranges <- get_ranges(animals)
+    new_ranges <- get_ranges_quantile(datasetInput(), animals, input$include_level)
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
@@ -353,13 +355,18 @@ server <- function(input, output, session) {
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
-        coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start, 
-                                         new_ranges_i$x_end,
-                                         input$zoom_ratio), 
-                    ylim = zoom_in_range(new_ranges_i$y_start, 
-                                         new_ranges_i$y_end,
-                                         input$zoom_ratio),
-                    expand = FALSE) 
+        # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start, 
+        #                                  new_ranges_i$x_end,
+        #                                  input$zoom_ratio), 
+        #             ylim = zoom_in_range(new_ranges_i$y_start, 
+        #                                  new_ranges_i$y_end,
+        #                                  input$zoom_ratio),
+        #             expand = FALSE) 
+        coord_fixed(xlim = c(new_ranges_i$x_start,
+                                         new_ranges_i$x_end),
+                    ylim = c(new_ranges_i$y_start,
+                                         new_ranges_i$y_end),
+                    expand = FALSE)
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     grid.arrange(grobs = g_list)

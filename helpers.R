@@ -164,3 +164,41 @@ zoom_in_range <- function(left, right, ratio) {
   return(c(new_left = center - new_range / 2,
            new_right = center + new_range / 2))
 }
+# need the obj format, merged data frame format, level value
+get_ranges_quantile <- function(tele_objs, animals, level) {
+  if (is.null(tele_objs)) {
+    return(NULL)
+  }
+  if (class(tele_objs) != "list") {
+    # return(merge_animals(list(tele_objs)))
+  } else {
+    # ext_list <- vector("list", length = length(tele_obj))
+    # for (i in seq_along(tele_obj)) {
+    #   ext_list[[i]] <- extent(tele_obj[[i]], level = level)
+    # }
+    ext_list <- lapply(tele_objs, extent, level = level)
+    # add padding
+    x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) * 
+      1.10 / 2L
+    y_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$y) }))) * 
+      1.10 / 2L
+    # need to filter data frame too otherwise the middle point is off
+    animal_list <- vector("list", length = length(tele_objs))
+    for (i in seq_along(tele_objs)) {
+      animal_list[[i]] <- animals[identity == names(ext_list)[i] &
+                                    x >= ext_list[[i]]["min", "x"] &
+                                    x <= ext_list[[i]]["max", "x"] &
+                                    y >= ext_list[[i]]["min", "y"] &
+                                    y <= ext_list[[i]]["max", "y"]]
+    }
+    animals_updated <- rbindlist(animal_list)
+    dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2, 
+                              middle_y = (max(y) + min(y)) / 2),
+                          by = identity]
+    dt[, x_start := middle_x - x_diff_half]
+    dt[, x_end := middle_x + x_diff_half]
+    dt[, y_start := middle_y - y_diff_half]
+    dt[, y_end := middle_y + y_diff_half]
+    return(dt)
+  }
+}
