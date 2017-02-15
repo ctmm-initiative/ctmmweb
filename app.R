@@ -21,9 +21,11 @@ options(shiny.maxRequestSize = 30*1024^2)
 height_location_box <- "800px"
 height_plot_loc <- 730
 height_plot_3 <- 640
+# plot 5 sampling time
 height_hist_box <- "350px"
 height_hist <- 280
-height_hist_subset_box <- "210px"
+# time subsetting
+height_hist_subset_box <- "310px"
 height_hist_subset <- 150
 height_selected_loc_box <- "600px"
 height_selected_loc <- 480
@@ -119,14 +121,17 @@ selected_summary_box <- box(title = "Selected Animal",
 histogram_subsetting_box <- box(title = "6. Select Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_subset_box, 
-                         fluidRow(column(10, plotOutput("histogram_subsetting",
+                         fluidRow(column(6, offset = 2, sliderInput("bin_count", "Color Bins", min = 2, max = 20, value = 7, step = 1)), 
+                                  column(2, offset = 2, br(), actionButton("add_time","Add"))
+                                  ,
+                           column(12, plotOutput("histogram_subsetting",
                                                         brush = brushOpts(
                                                           id = "histo_sub_brush",
                                                           direction = "x",
+                                                          stroke = "purple",
+                                                          fill = "blue", 
                                                           resetOnNew = TRUE
-                                                        ))),
-                           column(1, br(), br(), actionButton("add_time",
-                              "Add")))
+                                                        ))))
                          
                          )
 selected_ranges_box <- box(title = "Selected Time Ranges",
@@ -399,9 +404,11 @@ server <- function(input, output, session) {
     datatable(dt, options = list(dom = 't', ordering = FALSE)) 
     }
   )
+  # selected animal data and brush selections, colors
+  
   # plot 6. histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
-    bin_count <- 20
+    bin_count <- input$bin_count
     merged <- merged_data()
     validate(need(!is.null(merged), ""))
     animals <- merged$data
@@ -432,8 +439,12 @@ server <- function(input, output, session) {
     # str(input$histo_sub_brush)
     as_datetime(input$histo_sub_brush$xmin)
     as_datetime(input$histo_sub_brush$xmax)
+  })
+  # plot 7. selected locations ----
+  output$selected_loc <- renderPlot({
     
   })
+  
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
