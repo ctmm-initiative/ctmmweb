@@ -1,6 +1,6 @@
 # local deployment ----
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, markdown)
+pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
 # shinyapps.io deployment vvvvvv
 # library(shiny)
 # library(shinydashboard)
@@ -10,6 +10,7 @@ pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data
 # library(scales)
 # library(gridExtra)
 # library(data.table)
+# library(lubridate)
 # library(markdown)
 # shinyapps.io deployment  ^^^^^^^
 # increase the uploading file size limit to 30M
@@ -22,10 +23,10 @@ height_plot_loc <- 730
 height_plot_3 <- 640
 height_hist_box <- "350px"
 height_hist <- 280
-height_hist_subset_box <- "200px"
+height_hist_subset_box <- "210px"
 height_hist_subset <- 150
-height_selected_loc_box <- "400px"
-height_selected_loc <- 380
+height_selected_loc_box <- "600px"
+height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;"
 # global variables across pages
 # selected_animal_no <- 1
@@ -78,9 +79,9 @@ location_plot_box <- tabBox(title = "Animal Locations",
       id = "location_plot_tabs", 
       height = height_location_box, width = 12, 
       tabPanel("1. Overview", plotOutput("location_plot_gg",
-                                         dblclick = "plot1_dblclick",
+                                         dblclick = "overview_dblclick",
                                          brush = brushOpts(
-                                           id = "plot1_brush",
+                                           id = "overview_brush",
                                            resetOnNew = TRUE
                                          ))), 
       tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")), 
@@ -118,15 +119,22 @@ selected_summary_box <- box(title = "Selected Animal",
 histogram_subsetting_box <- box(title = "6. Select Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_subset_box, 
-                         fluidRow(column(2, offset = 9, br(), br(), actionButton("add_time",
-                              "Add to Selections"))),
-                         plotOutput("histogram_subsetting")
+                         fluidRow(column(10, plotOutput("histogram_subsetting",
+                                                        brush = brushOpts(
+                                                          id = "histo_sub_brush",
+                                                          direction = "x",
+                                                          resetOnNew = TRUE
+                                                        ))),
+                           column(1, br(), br(), actionButton("add_time",
+                              "Add")))
+                         
                          )
 selected_ranges_box <- box(title = "Selected Time Ranges",
                 status = "primary", solidHeader = TRUE, width = 12,
                 # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
                 #          column(12, DT::dataTableOutput('selected_ranges'))))
-                DT::dataTableOutput('selected_ranges'))
+                DT::dataTableOutput('selected_ranges'),
+                verbatimTextOutput("x_brushes"))
 selected_plot_box <- box(title = "7. Selected Locations", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_selected_loc_box, 
@@ -298,8 +306,8 @@ server <- function(input, output, session) {
   # plot 1. overview ----
   values$ranges <- c(x = NULL, y = NULL)
   # ranges <- reactiveValues(x = NULL, y = NULL)
-  observeEvent(input$plot1_dblclick, {
-    brush <- input$plot1_brush
+  observeEvent(input$overview_dblclick, {
+    brush <- input$overview_brush
     if (!is.null(brush)) {
       values$ranges$x <- c(brush$xmin, brush$xmax)
       values$ranges$y <- c(brush$ymin, brush$ymax)
@@ -386,18 +394,46 @@ server <- function(input, output, session) {
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     merged <- merged_data()
-    # cannot test the merged$info_print, have to test merged directly, because null value don't have the infor_print item
     validate(need(!is.null(merged), ""))
     dt <- merged$info_print[values$selected_animal_no]
-    # color_vec <- hue_pal()(nrow(merged$info_print))
-    # selected_color <- color_vec[values$selected_animal_no]
     datatable(dt, options = list(dom = 't', ordering = FALSE)) 
-    # %>% formatStyle('Identity', target = 'row',
-    #             color =
-    #               styleEqual(dt$Identity,
-    #                          selected_color)
     }
   )
+  # plot 6. histogram subsetting ----
+  output$histogram_subsetting <- renderPlot({
+    bin_count <- 20
+    merged <- merged_data()
+    validate(need(!is.null(merged), ""))
+    animals <- merged$data
+    
+    id_vector <- merged$info_print$Identity
+    color_vec <- hue_pal()(bin_count)
+    data_i <- animals[identity == id_vector[values$selected_animal_no]]
+    
+    data_i[, color_bin_factor := cut(timestamp, bin_count)]
+    # convert the factor levels into datetime. note as.POSIXct will convert with system current timezone while as_datetime use UTC, which match the original movebank data timezone (some may show GMT which is approximately equal)
+    color_bin_start_vec_time <- as_datetime(levels(data_i$color_bin_factor))
+    # however when provided to histogram for breaks, it need numeric and as.numeric ignore timezone setting using system timezone. when ggplot drawing labels, it convert numeric to datetime with UTC. we have to set label timezone as system timezone to correct this.
+    # need n+1 breaks for n groups. the vec before is good for interval check and labeling
+    color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])
+    select_start_bin <- findInterval(select_start, color_bin_start_vec_time)
+    select_end_bin <- findInterval(select_end, color_bin_start_vec_time)
+    selected_color <- color_vec[select_start_bin:select_end_bin]
+    
+    histo <- ggplot(data = data_i, aes(x = timestamp)) +
+      geom_histogram(breaks = as.numeric(color_bin_breaks), fill = color_vec) +
+      scale_x_datetime(breaks = color_bin_breaks, 
+                       labels = date_format("%Y-%m-%d %H:%M:%S", tz = Sys.timezone())) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+    histo
+  }, height = height_hist_subset)
+  
+  output$x_brushes <- renderPrint({
+    # str(input$histo_sub_brush)
+    as_datetime(input$histo_sub_brush$xmin)
+    as_datetime(input$histo_sub_brush$xmax)
+    
+  })
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
