@@ -212,8 +212,8 @@ body <- dashboardBody(
     tabItem(tabName = "subset",
             fluidRow(selected_summary_box,
                      histogram_subsetting_box,
-                     selected_ranges_box,
-                     selected_plot_box)), 
+                     selected_plot_box,
+                     selected_ranges_box)), 
     tabItem(tabName = "visual",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
@@ -379,10 +379,9 @@ server <- function(input, output, session) {
   # p2. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
-    merged <- merged_data()
-    validate(need(!is.null(merged), ""))
-    dt <- merged$info_print[values$selected_animal_no]
-    datatable(dt, options = list(dom = 't', ordering = FALSE)) 
+    info <- merged_data()$info_print
+    dt <- info[values$selected_animal_no]
+    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
     }
   )
   # selected animal data and color bins
@@ -390,7 +389,7 @@ server <- function(input, output, session) {
   selected_animal_binned <- reactive({
     bin_count <- input$bin_count
     merged <- merged_data()
-    validate(need(!is.null(merged), ""))
+    # validate(need(!is.null(merged), ""))
     animals <- merged$data
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(bin_count)
@@ -415,7 +414,7 @@ server <- function(input, output, session) {
   # brush selection and matching color bins
   selected_animal_range <- reactive({
     merged <- merged_data()
-    validate(need(!is.null(merged), ""))
+    # validate(need(!is.null(merged), ""))
     animals <- merged$data
     animal_binned <- selected_animal_binned()
     if (is.null(input$histo_sub_brush)) {
@@ -440,12 +439,13 @@ server <- function(input, output, session) {
   output$selected_loc <- renderPlot({
     animal_binned <- selected_animal_binned()
     animal_range <- selected_animal_range()
-    ggplot(data = data_i, aes(x, y)) + 
+    ggplot(data = animal_binned$data, aes(x, y)) + 
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       geom_point(size = 0.01, alpha = 0.9, 
-                 data = data_i[timestamp >= select_start & timestamp <= select_end],
+                 data = animal_binned$data[timestamp >= animal_range$select_start & 
+                                             timestamp <= animal_range$select_end],
                  aes(colour = color_bin_factor)) +
-      scale_colour_manual(values = selected_color) +
+      scale_colour_manual(values = animal_range$selected_color) +
       labs(x = "x (meters)", y = "y (meters)") +
       coord_fixed() +
       theme(legend.position = "top",
