@@ -133,17 +133,16 @@ histogram_subsetting_box <- box(title = "6. Select Time Range",
                                                           fill = "blue", 
                                                           resetOnNew = TRUE
                                                         )))))
-selected_ranges_box <- box(title = "Selected Time Ranges",
-                status = "primary", solidHeader = TRUE, width = 12,
-                # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
-                #          column(12, DT::dataTableOutput('selected_ranges'))))
-                DT::dataTableOutput('selected_ranges'),
-                verbatimTextOutput("x_brushes"))
 selected_plot_box <- box(title = "7. Selected Locations", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_selected_loc_box, 
                          plotOutput("selected_loc"))
-
+selected_ranges_box <- box(title = "Selected Time Ranges",
+                           status = "primary", solidHeader = TRUE, width = 12,
+                           # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
+                           #          column(12, DT::dataTableOutput('selected_ranges'))))
+                           DT::dataTableOutput('selected_ranges'),
+                           verbatimTextOutput("x_brushes"))
 # p3. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
@@ -452,7 +451,10 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + 
       bigger_key
   })
-  
+  # time range table ----
+  output$selected_ranges <- DT::renderDataTable({
+    
+  })
   # variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- datasetInput()
