@@ -133,19 +133,28 @@ histogram_subsetting_box <- box(title = "Select Time Range",
                          height = height_hist_subset_box,
                          fluidRow(column(6, offset = 2, 
                                          sliderInput("bin_count", "Color Bins", 
-                                                     min = 2, max = 20, value = 7, step = 1)),
-                                  column(11, plotOutput("histogram_subsetting",
-                                                        brush = brushOpts(
-                                                          id = "histo_sub_brush",
-                                                          direction = "x",
-                                                          stroke = "purple",
-                                                          fill = "blue", 
-                                                          resetOnNew = TRUE
-                                                        ))))
+                                                     min = 2, max = 20, value = 7, step = 1))),
+                         fluidRow(column(12, plotOutput("histogram_subsetting",
+                                             brush = brushOpts(
+                                               id = "histo_sub_brush",
+                                               direction = "x",
+                                               stroke = "purple",
+                                               fill = "blue", 
+                                               resetOnNew = TRUE
+                                             ))))
+                                  # column(11, plotOutput("histogram_subsetting",
+                                  #                       brush = brushOpts(
+                                  #                         id = "histo_sub_brush",
+                                  #                         direction = "x",
+                                  #                         stroke = "purple",
+                                  #                         fill = "blue", 
+                                  #                         resetOnNew = TRUE
+                                  #                       ))))
                           )
 selected_plot_box <- box(title = "Locations in Selected Time Range", 
                          status = "primary", solidHeader = TRUE, 
-                         width = 12, height = height_selected_loc_box, 
+                         width = 12, 
+                         # height = height_selected_loc_box, 
                          plotOutput("selected_loc"))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
