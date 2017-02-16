@@ -28,7 +28,7 @@ height_hist <- 280
 # not setting the box height make arrange multiple items easier.
 height_hist_subset_box <- "310px"
 height_hist_subset <- 150
-height_selected_loc_box <- "600px"
+height_selected_loc_box <- "480px"
 height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;"
 # global variables across pages
@@ -111,7 +111,9 @@ selected_summary_box <- box(title = "Selected Animal and Time Range",
               fluidRow(column(5, h4("Current time range selected", 
                                     style = "color: #00c0ef;"))),
               fluidRow(column(10, DT::dataTableOutput("current_range")), 
-                       column(1, br(), br(), actionButton("add_time","Add")))
+                       column(2, br(), br(), actionButton("add_time", "Add",
+                                                          icon = icon("plus")
+                                                          )))
               ) 
                        # , column(4, br(), actionButton("all_time", 
                        #                              "Analyze all time range", 
@@ -149,6 +151,8 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
                            # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
                            #          column(12, DT::dataTableOutput('selected_ranges'))))
+                           column(2, offset = 10, actionButton("reset", "Reset",
+                                                               icon = icon("times"))),
                            DT::dataTableOutput('selected_ranges')
                            # , verbatimTextOutput("x_brushes")
                            )
@@ -471,10 +475,18 @@ server <- function(input, output, session) {
       bigger_key
   })
   # time range table ----
-  values$selected_time_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
-    # reactive({data.frame(start = select_time_range()$select_start, end = select_time_range()$select_end,
-    #                                                   length = select_time_range()$select_length)})
-  
+  empty_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
+  values$selected_time_ranges <- empty_ranges
+  observeEvent(input$add_time, {
+    l <- list(values$selected_time_ranges,
+              data.frame(start = select_time_range()$select_start, 
+                         end = select_time_range()$select_end,
+                         length = select_time_range()$select_length))
+    values$selected_time_ranges <- rbindlist(l)
+  })
+  observeEvent(input$reset, {
+    values$selected_time_ranges <- empty_ranges
+  })
   # selected_times
   output$selected_ranges <- DT::renderDataTable({
     time_range <- select_time_range()
