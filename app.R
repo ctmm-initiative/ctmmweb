@@ -394,7 +394,7 @@ server <- function(input, output, session) {
     color_vec <- hue_pal()(bin_count)
     data_i <- animals[identity == id_vector[values$selected_animal_no]]
     data_i[, color_bin_factor := cut(timestamp, bin_count)]
-    color_bin_start_vec_time <- as_datetime(levels(data_i$color_bin_factor))
+    color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_factor))
     color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])
     return(list(data = data_i, 
                 color_vec = color_vec, 
@@ -407,44 +407,46 @@ server <- function(input, output, session) {
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
       geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks), fill = animal_binned$color_vec) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks, 
-                       labels = date_format("%Y-%m-%d %H:%M:%S", tz = Sys.timezone())) +
+                       labels = date_format("%Y-%m-%d %H:%M:%S")) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
   }, height = height_hist_subset)
   # brush selection and matching color bins
-  selected_animal_range <- reactive({
-    merged <- merged_data()
+  selected_time_range <- reactive({
+    # merged <- merged_data()
     # validate(need(!is.null(merged), ""))
-    animals <- merged$data
+    # animals <- merged_data()$data
     animal_binned <- selected_animal_binned()
     if (is.null(input$histo_sub_brush)) {
-      select_start <- animals[t == min(t), timestamp]
-      select_end <- animals[t == max(t), timestamp]
+      select_start <- animal_binned$data[t == min(t), timestamp]
+      select_end <- animal_binned$data[t == max(t), timestamp]
     } else {
+      # brush value in seconds, cannot use ymd_hms
       select_start <- as_datetime(input$histo_sub_brush$xmin)
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
+    select_length <- select_end - select_start
     select_start_bin <- findInterval(select_start, animal_binned$color_bin_start_vec_time)
     select_end_bin <- findInterval(select_end, animal_binned$color_bin_start_vec_time)
     selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
     return(list(select_start = select_start, select_end = select_end,
+                select_length = select_length,
                 selected_color = selected_color))
   })
   output$x_brushes <- renderPrint({
-    # str(input$histo_sub_brush)
-    # as_datetime(input$histo_sub_brush$xmin)
-    # as_datetime(input$histo_sub_brush$xmax)
+    cat(input$histo_sub_brush$xmin)
+    as_datetime(input$histo_sub_brush$xmin)
   })
   # plot 7. selected locations ----
   output$selected_loc <- renderPlot({
     animal_binned <- selected_animal_binned()
-    animal_range <- selected_animal_range()
+    time_range <- selected_time_range()
     ggplot(data = animal_binned$data, aes(x, y)) + 
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       geom_point(size = 0.01, alpha = 0.9, 
-                 data = animal_binned$data[timestamp >= animal_range$select_start & 
-                                             timestamp <= animal_range$select_end],
+                 data = animal_binned$data[timestamp >= time_range$select_start & 
+                                             timestamp <= time_range$select_end],
                  aes(colour = color_bin_factor)) +
-      scale_colour_manual(values = animal_range$selected_color) +
+      scale_colour_manual(values = time_range$selected_color) +
       labs(x = "x (meters)", y = "y (meters)") +
       coord_fixed() +
       theme(legend.position = "top",
@@ -453,7 +455,9 @@ server <- function(input, output, session) {
   })
   # time range table ----
   output$selected_ranges <- DT::renderDataTable({
-    
+    time_range <- selected_time_range()
+    data.frame(start = time_range$select_start, end = time_range$select_end,
+               length = time_range$select_length)
   })
   # variogram ----
   vg.animal_1 <- reactive({
