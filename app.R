@@ -21,18 +21,16 @@ options(shiny.maxRequestSize = 30*1024^2)
 height_location_box <- "800px"
 height_plot_loc <- 730
 height_plot_3 <- 640
-# plot 5 sampling time
+# sampling time
 height_hist_box <- "350px"
 height_hist <- 280
 # time subsetting
 # not setting the box height make arrange multiple items easier.
 height_hist_subset_box <- "310px"
 height_hist_subset <- 150
-height_selected_loc_box <- "480px"
-height_selected_loc <- 480
+# height_selected_loc_box <- "480px"
+# height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;"
-# global variables across pages
-# selected_animal_no <- 1
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
@@ -94,10 +92,6 @@ location_plot_box <- tabBox(title = "Animal Locations",
                     min = 0.85, max = 1, value = 1, step = 0.005, width = "100%"))),
         plotOutput("location_plot_individual")),
       tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
-# data_plot_facet_box <- tabBox(title = "Data Plot facet", 
-#                               id = "facet_tabs", width = 12,
-#      tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
-#      tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
 histogram_facet_box <- box(title = "Sampling Time", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_box, 
@@ -113,8 +107,7 @@ selected_summary_box <- box(title = "Selected Animal and Time Range",
               fluidRow(column(10, DT::dataTableOutput("current_range")), 
                        column(2, br(), br(), actionButton("add_time", "Add",
                                                           icon = icon("plus")
-                                                          )))
-              ) 
+                                                          ))))
                        # , column(4, br(), actionButton("all_time", 
                        #                              "Analyze all time range", 
                        #                              icon = icon("circle"), 
@@ -128,29 +121,19 @@ selected_summary_box <- box(title = "Selected Animal and Time Range",
                        #                     width = "100%", 
                        #                     style = page_action_style))
 histogram_subsetting_box <- box(title = "Select Time Range", 
-                         status = "primary", solidHeader = TRUE, 
-                         width = 12, 
-                         height = height_hist_subset_box,
-                         fluidRow(column(6, offset = 2, 
-                                         sliderInput("bin_count", "Color Bins", 
-                                                     min = 2, max = 20, value = 7, step = 1))),
-                         fluidRow(column(12, plotOutput("histogram_subsetting",
-                                             brush = brushOpts(
-                                               id = "histo_sub_brush",
-                                               direction = "x",
-                                               stroke = "purple",
-                                               fill = "blue", 
-                                               resetOnNew = TRUE
-                                             ))))
-                                  # column(11, plotOutput("histogram_subsetting",
-                                  #                       brush = brushOpts(
-                                  #                         id = "histo_sub_brush",
-                                  #                         direction = "x",
-                                  #                         stroke = "purple",
-                                  #                         fill = "blue", 
-                                  #                         resetOnNew = TRUE
-                                  #                       ))))
-                          )
+         status = "primary", solidHeader = TRUE, width = 12, 
+         height = height_hist_subset_box,
+         column(6, offset = 2, 
+                         sliderInput("bin_count", "Color Bins", 
+                                     min = 2, max = 20, value = 7, step = 1)),
+         fluidRow(plotOutput("histogram_subsetting",
+                    brush = brushOpts(
+                      id = "histo_sub_brush",
+                      direction = "x",
+                      stroke = "purple",
+                      fill = "blue", 
+                      resetOnNew = TRUE
+                    ))))
 selected_plot_box <- box(title = "Locations in Selected Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, 
@@ -158,13 +141,9 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
                          plotOutput("selected_loc"))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
-                           # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
-                           #          column(12, DT::dataTableOutput('selected_ranges'))))
                            column(2, offset = 10, actionButton("reset", "Reset",
                                                                icon = icon("times"))),
-                           DT::dataTableOutput('selected_ranges')
-                           # , verbatimTextOutput("x_brushes")
-                           )
+                           DT::dataTableOutput('selected_ranges'))
 # p3. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
