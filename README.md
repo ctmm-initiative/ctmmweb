@@ -8,7 +8,7 @@ This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages
 
 [The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser. This version is simple in every step but complete from start to end.
 
-The current repo is the alpha version with much more features in data page, but the latter pages are not connected with data page yet.
+The current repo is the alpha version with much more features in data, subset page, but the latter pages are not connected yet.
 
 You can run current repo locally:
 
@@ -28,16 +28,25 @@ devtools::install_github("rstudio/shiny")
 	
 ## Usage
 
-The web page have a side bar at left for each stage of analysis. The top right corner have some links for project background and help (the "messages" format is not perfect for this purpose, I will polist it later).
+The web page have a side bar at left for each stage of analysis. 
 
-Intro page serve as help for the analysis. (Current page is just a placeholder)
+### Currently working
 
-Upload page can upload movebank format data or use ctmm package internal data. Right now the app always take the first animal if there are multiple animals in data. Once data is loaded, the summary and plots (basic plot and ggplot2) will be generated.
+Data page can accept uploaded movebank format data or use ctmm package internal data. 
+- You can click on data summary table to select specifica animals and see their locations highlighted in plot 1. The color of animals in table and plot are matched. 
+- You can drag a box in plot 1, double click to zoom in. Double click in plot to reset the zoom.
+- plot 2 facet provided individual plots in an aligned fashion, so it's easy to see individual patterns and compare their relative locations.
+- plot 3 have every individual plot fitted. The slider will zoom in the majority of data, effectively exclude the outlier points that stretched the plots.
+- plot 4 is the basic plot version instead of ggplot2, working as reference.
+- You can select one animal, click button to analyze it in next page. Clicking next page directly will pick the first animal by default. The batch process button is the placeholder for future feature.
 
-Time-lag page create variogram plots with different parameters and user selected zoom.
+In Subset page you can check different time ranges for selected animal, and select some time range to subset the data for next step analysis. 
+- The histogram is colorred by groups, and the location plot have same color for cooresponding groups. It's easier to see the time distribution in the location plot this way. The color group number can be adjusted.
+- Drag on histogram to select a time range (double click on plot to clear selection), the range detail will be updated in first box. The default range without mouse selection is the full range.
+- The location plot will also update to only show locations in selected time in color, and show other points in gray background.
+- Click Add button to add time range selection into the selection table in bottom.  Click Reset button to remove all selections in table.
 
-Model page select the best model according to guessed parameters. In next step user selected parameters will be added. Note the model fitting process could take 1.5 mins for ctmm internal data. There is a progress bar indicating the process but it didn't reflect the real progress yet.
+### Not updated yet
 
-Home range page estimate home range based on best model selected. More plot can be added to this page in nest stage.
+The other pages are from the first beta version and not updated yet. The currently updated pages didn't feed the data to these pages because there could be changes in design in future.
 
-Report page will generate a work report include all the information and result generated in the analysis. Right now this page is just a placeholder.
