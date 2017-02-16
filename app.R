@@ -88,9 +88,9 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                          ))), 
       tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")), 
       tabPanel("3. Individuals", 
-        fluidRow(column(6, offset = 3,
+        fluidRow(column(10, offset = 1,
                         sliderInput("include_level", "Zoom Into Portion of Plots", 
-                    min = 0.80, max = 1, value = 1))),
+                    min = 0.85, max = 1, value = 1, step = 0.005, width = "100%"))),
         plotOutput("location_plot_individual")),
       tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
 # data_plot_facet_box <- tabBox(title = "Data Plot facet", 
@@ -249,39 +249,31 @@ server <- function(input, output, session) {
       buffalo
     } else if (input$load_option == "upload") {
       inFile <- input$file1
-      if (!is.null(inFile)) {
-        as.telemetry(inFile$datapath)
-      }
+      # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
+      validate(need(!is.null(inFile), ""))
+      as.telemetry(inFile$datapath)
     } 
   })
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merged_data <- reactive({
-    # need to avoid call function in null input before it initialize
-    tele_objs <- datasetInput()
-    merge_animals(tele_objs)
+    merge_animals(datasetInput())
   })
   # data summary ----
-  # have this warning in beginning.
-  # Warning: Error in <-: replacement has length zero
   output$data_summary <- DT::renderDataTable({
-    merged <- merged_data()
-    # cannot test the merged$info_print, have to test merged directly, because null value don't have the infor_print item
-    validate(need(!is.null(merged), ""))
-    datatable(merged$info_print) %>%
+    info <- merged_data()$info_print
+    datatable(info) %>%
     formatStyle('Identity', target = 'row',
                 color =
-                  styleEqual(merged$info_print$Identity,
-                             hue_pal()(nrow(merged$info_print)))
+                  styleEqual(info$Identity,
+                             hue_pal()(nrow(info)))
     )}
-    # merged_data()$info_print
   )
   # 3. location basic plot
   output$location_plot_basic <- renderPlot({
     tele_objs <- datasetInput()
-    validate(need(!is.null(tele_objs), ""))
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
-  # selected id and color ----
+  # selected ids and color ----
   selection <- reactive({
     id_vec <- merged_data()$info_print[, Identity]
     color_vec <- hue_pal()(length(id_vec))
@@ -295,7 +287,6 @@ server <- function(input, output, session) {
       return(list(ids = selected_ids, colors = selected_colors))
     }
   })
-  # output$debug <- renderPrint(selected_rows())
   # single selected ----
   values <- reactiveValues()
   values$selected_animal_no <- 1
@@ -309,7 +300,6 @@ server <- function(input, output, session) {
   })
   # plot 1. overview ----
   values$ranges <- c(x = NULL, y = NULL)
-  # ranges <- reactiveValues(x = NULL, y = NULL)
   observeEvent(input$overview_dblclick, {
     brush <- input$overview_brush
     if (!is.null(brush)) {
@@ -321,15 +311,11 @@ server <- function(input, output, session) {
     }
   })
   output$location_plot_gg <- renderPlot({
-    merged <- merged_data()
-    validate(need(!is.null(merged), ""))
-    animals <- merged$data
+    animals <- merged_data()$data
     ggplot(data = animals, aes(x, y)) + 
       geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% selection()$ids], aes(colour = id)) + 
-      # coord_cartesian(xlim = values$ranges$x, ylim = values$ranges$y) +
       coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
-      # coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) + 
       scale_color_manual(values = selection()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
       theme(legend.position = "top",
@@ -338,9 +324,7 @@ server <- function(input, output, session) {
   }, height = height_plot_loc, width = "auto")
   # plot 2. facet ----
   output$location_plot_facet_fixed <- renderPlot({
-    merged <- merged_data()
-    validate(need(!is.null(merged), ""))
-    animals <- merged$data
+    animals <- merged_data()$data
     ggplot(data = animals, aes(x, y)) + 
       geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
       labs(x = "x (meters)", y = "y (meters)") +
@@ -351,9 +335,9 @@ server <- function(input, output, session) {
   }, height = height_plot_loc, width = "auto")
   # plot 3. individuals ----
   output$location_plot_individual <- renderPlot({
-    validate(need(!is.null(datasetInput()), ""))
+    # validate(need(!is.null(datasetInput()), ""))
     merged <- merged_data()
-    validate(need(!is.null(merged), ""))
+    # validate(need(!is.null(merged), ""))
     animals <- merged$data
     # new_ranges <- get_ranges(animals)
     new_ranges <- get_ranges_quantile(datasetInput(), animals, input$include_level)
@@ -374,10 +358,8 @@ server <- function(input, output, session) {
         #                                  new_ranges_i$y_end,
         #                                  input$zoom_ratio),
         #             expand = FALSE) 
-        coord_fixed(xlim = c(new_ranges_i$x_start,
-                                         new_ranges_i$x_end),
-                    ylim = c(new_ranges_i$y_start,
-                                         new_ranges_i$y_end),
+        coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
+                    ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
                     expand = FALSE)
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
@@ -385,9 +367,9 @@ server <- function(input, output, session) {
   }, height = height_plot_3, width = "auto")
   # plot 5. histogram facet ----
   output$histogram_facet <- renderPlot({
-    merged <- merged_data()
-    validate(need(!is.null(merged), ""))
-    animals <- merged$data
+    # merged <- merged_data()
+    # validate(need(!is.null(merged), ""))
+    animals <- merged_data()$data
     ggplot(data = animals, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
       facet_grid(id ~ .) +
@@ -421,6 +403,15 @@ server <- function(input, output, session) {
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
+  # plot 6. histogram subsetting ----
+  output$histogram_subsetting <- renderPlot({
+    animal_binned <- selected_animal_binned()
+    ggplot(data = animal_binned$data, aes(x = timestamp)) +
+      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks), fill = animal_binned$color_vec) +
+      scale_x_datetime(breaks = animal_binned$color_bin_breaks, 
+                       labels = date_format("%Y-%m-%d %H:%M:%S", tz = Sys.timezone())) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+  }, height = height_hist_subset)
   # brush selection and matching color bins
   selected_animal_range <- reactive({
     merged <- merged_data()
@@ -440,17 +431,6 @@ server <- function(input, output, session) {
     return(list(select_start = select_start, select_end = select_end,
                 selected_color = selected_color))
   })
-  # plot 6. histogram subsetting ----
-  output$histogram_subsetting <- renderPlot({
-    animal_colored <- selected_animal_colored()
-    histo <- ggplot(data = animal_colored$data, aes(x = timestamp)) +
-      geom_histogram(breaks = as.numeric(animal_colored$color_bin_breaks), fill = animal_colored$color_vec) +
-      scale_x_datetime(breaks = animal_colored$color_bin_breaks, 
-                       labels = date_format("%Y-%m-%d %H:%M:%S", tz = Sys.timezone())) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
-    histo
-  }, height = height_hist_subset)
-  
   output$x_brushes <- renderPrint({
     # str(input$histo_sub_brush)
     # as_datetime(input$histo_sub_brush$xmin)
@@ -458,7 +438,19 @@ server <- function(input, output, session) {
   })
   # plot 7. selected locations ----
   output$selected_loc <- renderPlot({
-    
+    animal_binned <- selected_animal_binned()
+    animal_range <- selected_animal_range()
+    ggplot(data = data_i, aes(x, y)) + 
+      geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
+      geom_point(size = 0.01, alpha = 0.9, 
+                 data = data_i[timestamp >= select_start & timestamp <= select_end],
+                 aes(colour = color_bin_factor)) +
+      scale_colour_manual(values = selected_color) +
+      labs(x = "x (meters)", y = "y (meters)") +
+      coord_fixed() +
+      theme(legend.position = "top",
+            legend.direction = "horizontal") + 
+      bigger_key
   })
   
   # variogram ----
