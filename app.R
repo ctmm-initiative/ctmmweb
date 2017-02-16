@@ -25,6 +25,7 @@ height_plot_3 <- 640
 height_hist_box <- "350px"
 height_hist <- 280
 # time subsetting
+# not setting the box height make arrange multiple items easier.
 height_hist_subset_box <- "310px"
 height_hist_subset <- 150
 height_selected_loc_box <- "600px"
@@ -97,15 +98,21 @@ location_plot_box <- tabBox(title = "Animal Locations",
 #                               id = "facet_tabs", width = 12,
 #      tabPanel("Fixed scale", plotOutput("data_plot_gg_facet_fixed")), 
 #      tabPanel("Free scale", plotOutput("data_plot_gg_facet_free")) )
-histogram_facet_box <- box(title = "5. Sampling Time", 
+histogram_facet_box <- box(title = "Sampling Time", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_box, 
                          plotOutput("histogram_facet"))
 # p2. subset boxes ----
-selected_summary_box <- box(title = "Selected Animal",
+selected_summary_box <- box(title = "Selected Animal and Time Range",
               status = "info", solidHeader = TRUE, 
               width = 12,
-              fluidRow(column(12, DT::dataTableOutput('selected_summary')) 
+              fluidRow(column(12, DT::dataTableOutput('selected_summary'))),
+              br(),
+              fluidRow(column(5, h4("Current time range selected", 
+                                    style = "color: #00c0ef;"))),
+              fluidRow(column(10, DT::dataTableOutput("current_range")), 
+                       column(1, br(), br(), actionButton("add_time","Add")))
+              ) 
                        # , column(4, br(), actionButton("all_time", 
                        #                              "Analyze all time range", 
                        #                              icon = icon("circle"), 
@@ -118,23 +125,23 @@ selected_summary_box <- box(title = "Selected Animal",
                        #                     icon = icon("pie-chart"), 
                        #                     width = "100%", 
                        #                     style = page_action_style))
-                       ))
-histogram_subsetting_box <- box(title = "6. Select Time Range", 
+histogram_subsetting_box <- box(title = "Select Time Range", 
                          status = "primary", solidHeader = TRUE, 
-                         width = 12, height = height_hist_subset_box, 
+                         width = 12, 
+                         height = height_hist_subset_box,
                          fluidRow(column(6, offset = 2, 
                                          sliderInput("bin_count", "Color Bins", 
                                                      min = 2, max = 20, value = 7, step = 1)),
-                                  column(2, offset = 2, br(), actionButton("add_time","Add")),
-                                  column(12, plotOutput("histogram_subsetting",
+                                  column(11, plotOutput("histogram_subsetting",
                                                         brush = brushOpts(
                                                           id = "histo_sub_brush",
                                                           direction = "x",
                                                           stroke = "purple",
                                                           fill = "blue", 
                                                           resetOnNew = TRUE
-                                                        )))))
-selected_plot_box <- box(title = "7. Selected Locations", 
+                                                        ))))
+                          )
+selected_plot_box <- box(title = "Locations in Selected Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_selected_loc_box, 
                          plotOutput("selected_loc"))
@@ -367,7 +374,7 @@ server <- function(input, output, session) {
     }
     grid.arrange(grobs = g_list)
   }, height = height_plot_3, width = "auto")
-  # plot 5. histogram facet ----
+  # histogram facet ----
   output$histogram_facet <- renderPlot({
     # merged <- merge_data()
     # validate(need(!is.null(merged), ""))
@@ -403,7 +410,7 @@ server <- function(input, output, session) {
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
-  # plot 6. histogram subsetting ----
+  # histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
@@ -435,7 +442,18 @@ server <- function(input, output, session) {
   #   cat(input$histo_sub_brush$xmin)
   #   as_datetime(input$histo_sub_brush$xmin)
   # })
-  # plot 7. selected locations ----
+  # output$current_range <- renderPrint({
+  #   data.frame(start = select_time_range()$select_start, 
+  #              end = select_time_range()$select_end,
+  #              length = select_time_range()$select_length)
+  # })
+  output$current_range <- DT::renderDataTable({
+    dt <- data.frame(start = select_time_range()$select_start, 
+               end = select_time_range()$select_end,
+               length = select_time_range()$select_length)
+    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
+  })
+  # selected locations ----
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- select_time_range()
@@ -453,12 +471,16 @@ server <- function(input, output, session) {
       bigger_key
   })
   # time range table ----
+  values$selected_time_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
+    # reactive({data.frame(start = select_time_range()$select_start, end = select_time_range()$select_end,
+    #                                                   length = select_time_range()$select_length)})
+  
   # selected_times
   output$selected_ranges <- DT::renderDataTable({
     time_range <- select_time_range()
-    dt <- data.frame(start = time_range$select_start, end = time_range$select_end,
-               length = time_range$select_length)
-    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
+    # dt <- data.frame(start = time_range$select_start, end = time_range$select_end,
+    #            length = time_range$select_length)
+    datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
   })
   # variogram ----
   vg.animal_1 <- reactive({
