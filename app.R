@@ -244,7 +244,7 @@ server <- function(input, output, session) {
   # return the telemetry obj which could be an obj or obj list
   # only use this in basic plot or models expecting tele obj or tele obj list
   # every reference of this need to check null before it initialized, like in merged_data
-  datasetInput <- reactive({
+  input_data <- reactive({
     if (input$load_option == "ctmm") {
       data("buffalo")
       buffalo
@@ -256,12 +256,12 @@ server <- function(input, output, session) {
     } 
   })
   # merge obj list into data frame with identity column, easier for ggplot and summary
-  merged_data <- reactive({
-    merge_animals(datasetInput())
+  merge_data <- reactive({
+    merge_animals(input_data())
   })
   # data summary ----
   output$data_summary <- DT::renderDataTable({
-    info <- merged_data()$info_print
+    info <- merge_data()$info_print
     datatable(info) %>%
     formatStyle('Identity', target = 'row',
                 color =
@@ -271,12 +271,12 @@ server <- function(input, output, session) {
   )
   # 3. location basic plot
   output$location_plot_basic <- renderPlot({
-    tele_objs <- datasetInput()
+    tele_objs <- input_data()
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
   # selected ids and color ----
-  selection <- reactive({
-    id_vec <- merged_data()$info_print[, Identity]
+  select_animal <- reactive({
+    id_vec <- merge_data()$info_print[, Identity]
     color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
     selected_ids <- id_vec[input$data_summary_rows_selected]
@@ -289,6 +289,7 @@ server <- function(input, output, session) {
     }
   })
   # single selected ----
+  # values got updated in observeEvent need this format.
   values <- reactiveValues()
   values$selected_animal_no <- 1
   observeEvent(input$selected, {
@@ -312,12 +313,12 @@ server <- function(input, output, session) {
     }
   })
   output$location_plot_gg <- renderPlot({
-    animals <- merged_data()$data
+    animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) + 
       geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
-      geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% selection()$ids], aes(colour = id)) + 
+      geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) + 
       coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
-      scale_color_manual(values = selection()$colors) +
+      scale_color_manual(values = select_animal()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
@@ -325,7 +326,7 @@ server <- function(input, output, session) {
   }, height = height_plot_loc, width = "auto")
   # plot 2. facet ----
   output$location_plot_facet_fixed <- renderPlot({
-    animals <- merged_data()$data
+    animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) + 
       geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
       labs(x = "x (meters)", y = "y (meters)") +
@@ -337,11 +338,11 @@ server <- function(input, output, session) {
   # plot 3. individuals ----
   output$location_plot_individual <- renderPlot({
     # validate(need(!is.null(datasetInput()), ""))
-    merged <- merged_data()
+    merged <- merge_data()
     # validate(need(!is.null(merged), ""))
     animals <- merged$data
     # new_ranges <- get_ranges(animals)
-    new_ranges <- get_ranges_quantile(datasetInput(), animals, input$include_level)
+    new_ranges <- get_ranges_quantile(input_data(), animals, input$include_level)
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
@@ -368,9 +369,9 @@ server <- function(input, output, session) {
   }, height = height_plot_3, width = "auto")
   # plot 5. histogram facet ----
   output$histogram_facet <- renderPlot({
-    # merged <- merged_data()
+    # merged <- merge_data()
     # validate(need(!is.null(merged), ""))
-    animals <- merged_data()$data
+    animals <- merge_data()$data
     ggplot(data = animals, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
       facet_grid(id ~ .) +
@@ -380,16 +381,16 @@ server <- function(input, output, session) {
   # p2. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
-    info <- merged_data()$info_print
+    info <- merge_data()$info_print
     dt <- info[values$selected_animal_no]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
     }
   )
   # selected animal data and color bins
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
-  selected_animal_binned <- reactive({
+  color_bin_animal <- reactive({
     bin_count <- input$bin_count
-    merged <- merged_data()
+    merged <- merge_data()
     animals <- merged$data
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(bin_count)
@@ -404,7 +405,7 @@ server <- function(input, output, session) {
   })
   # plot 6. histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
-    animal_binned <- selected_animal_binned()
+    animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
       geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks), fill = animal_binned$color_vec) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks, 
@@ -412,8 +413,8 @@ server <- function(input, output, session) {
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
   }, height = height_hist_subset)
   # brush selection and matching color bins
-  selected_time_range <- reactive({
-    animal_binned <- selected_animal_binned()
+  select_time_range <- reactive({
+    animal_binned <- color_bin_animal()
     if (is.null(input$histo_sub_brush)) {
       select_start <- animal_binned$data[t == min(t), timestamp]
       select_end <- animal_binned$data[t == max(t), timestamp]
@@ -436,8 +437,8 @@ server <- function(input, output, session) {
   # })
   # plot 7. selected locations ----
   output$selected_loc <- renderPlot({
-    animal_binned <- selected_animal_binned()
-    time_range <- selected_time_range()
+    animal_binned <- color_bin_animal()
+    time_range <- select_time_range()
     ggplot(data = animal_binned$data, aes(x, y)) + 
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       geom_point(size = 0.01, alpha = 0.9, 
@@ -452,15 +453,16 @@ server <- function(input, output, session) {
       bigger_key
   })
   # time range table ----
+  # selected_times
   output$selected_ranges <- DT::renderDataTable({
-    time_range <- selected_time_range()
+    time_range <- select_time_range()
     dt <- data.frame(start = time_range$select_start, end = time_range$select_end,
                length = time_range$select_length)
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
   })
   # variogram ----
   vg.animal_1 <- reactive({
-    animal_1 <- datasetInput()
+    animal_1 <- input_data()
     variogram(animal_1)
   })
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
@@ -481,7 +483,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "fitting models\n")
     # }
-    animal_1 <- datasetInput()
+    animal_1 <- input_data()
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed), 
                  message = "Fitting models to find the best ...")
@@ -519,7 +521,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "akde running\n")
     # }
-    animal_1 <- datasetInput()
+    animal_1 <- input_data()
     ouf <- selected_model()
     withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
   })
@@ -533,7 +535,7 @@ server <- function(input, output, session) {
     }
   })
   output$range_plot_basic <- renderPlot({
-    plot(datasetInput(), UD = akde.animal_1())
+    plot(input_data(), UD = akde.animal_1())
   })
 }
 
