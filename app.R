@@ -63,13 +63,13 @@ action_data_box <- box(title = "Select and Analyze",
                        status = "warning", solidHeader = TRUE, width = 4,
                        tags$br(),
                        fluidRow(column(12, actionButton("selected", 
-                                              "Analyze single selected", 
+                                              "Analyze single", 
                                               icon = icon("arrow-right"), 
                                               width = "100%", 
                                               style = page_action_style))), 
                        tags$br(), tags$br(), tags$br(),
                        fluidRow(column(12, actionButton("batch", 
-                                              "Batch process all selected",
+                                              "Batch process",
                                               icon = icon("tasks"),
                                               width = "100%", 
                                               style = page_action_style))),
@@ -105,19 +105,20 @@ histogram_facet_box <- box(title = "5. Sampling Time",
 selected_summary_box <- box(title = "Selected Animal",
               status = "info", solidHeader = TRUE, 
               width = 12,
-              fluidRow(column(8, DT::dataTableOutput('selected_summary')), 
-                       column(4, br(), actionButton("all_time", 
-                                                    "Analyze all time range", 
-                                                    icon = icon("circle"), 
-                                                    width = "100%", 
-                                                    style = page_action_style
-                                                    ), 
-                              br(), br(),
-                              actionButton("selected_time", 
-                                           "Analyze selected time ranges", 
-                                           icon = icon("pie-chart"), 
-                                           width = "100%", 
-                                           style = page_action_style))))
+              fluidRow(column(12, DT::dataTableOutput('selected_summary')) 
+                       # , column(4, br(), actionButton("all_time", 
+                       #                              "Analyze all time range", 
+                       #                              icon = icon("circle"), 
+                       #                              width = "100%", 
+                       #                              style = page_action_style
+                       #                              ), 
+                       #        br(), br(),
+                       #        actionButton("selected_time", 
+                       #                     "Analyze selected time ranges", 
+                       #                     icon = icon("pie-chart"), 
+                       #                     width = "100%", 
+                       #                     style = page_action_style))
+                       ))
 histogram_subsetting_box <- box(title = "6. Select Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, height = height_hist_subset_box, 
@@ -141,8 +142,9 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
                            # fluidRow(column(3, offset = 9, actionButton("analyze", "Analyze")), 
                            #          column(12, DT::dataTableOutput('selected_ranges'))))
-                           DT::dataTableOutput('selected_ranges'),
-                           verbatimTextOutput("x_brushes"))
+                           DT::dataTableOutput('selected_ranges')
+                           # , verbatimTextOutput("x_brushes")
+                           )
 # p3. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
@@ -388,7 +390,6 @@ server <- function(input, output, session) {
   selected_animal_binned <- reactive({
     bin_count <- input$bin_count
     merged <- merged_data()
-    # validate(need(!is.null(merged), ""))
     animals <- merged$data
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(bin_count)
@@ -412,15 +413,12 @@ server <- function(input, output, session) {
   }, height = height_hist_subset)
   # brush selection and matching color bins
   selected_time_range <- reactive({
-    # merged <- merged_data()
-    # validate(need(!is.null(merged), ""))
-    # animals <- merged_data()$data
     animal_binned <- selected_animal_binned()
     if (is.null(input$histo_sub_brush)) {
       select_start <- animal_binned$data[t == min(t), timestamp]
       select_end <- animal_binned$data[t == max(t), timestamp]
     } else {
-      # brush value in seconds, cannot use ymd_hms
+      # brush value in seconds
       select_start <- as_datetime(input$histo_sub_brush$xmin)
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
@@ -432,10 +430,10 @@ server <- function(input, output, session) {
                 select_length = select_length,
                 selected_color = selected_color))
   })
-  output$x_brushes <- renderPrint({
-    cat(input$histo_sub_brush$xmin)
-    as_datetime(input$histo_sub_brush$xmin)
-  })
+  # output$x_brushes <- renderPrint({
+  #   cat(input$histo_sub_brush$xmin)
+  #   as_datetime(input$histo_sub_brush$xmin)
+  # })
   # plot 7. selected locations ----
   output$selected_loc <- renderPlot({
     animal_binned <- selected_animal_binned()
@@ -456,8 +454,9 @@ server <- function(input, output, session) {
   # time range table ----
   output$selected_ranges <- DT::renderDataTable({
     time_range <- selected_time_range()
-    data.frame(start = time_range$select_start, end = time_range$select_end,
+    dt <- data.frame(start = time_range$select_start, end = time_range$select_end,
                length = time_range$select_length)
+    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
   })
   # variogram ----
   vg.animal_1 <- reactive({
