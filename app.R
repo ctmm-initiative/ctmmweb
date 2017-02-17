@@ -235,10 +235,10 @@ server <- function(input, output, session) {
       data("buffalo")
       buffalo
     } else if (input$load_option == "upload") {
-      inFile <- input$file1
       # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
-      validate(need(!is.null(inFile), ""))
-      as.telemetry(inFile$datapath)
+      # validate(need(!is.null(inFile), ""))
+      req(input$file1)
+      as.telemetry(input$file1$datapath)
     } 
   })
   # merge obj list into data frame with identity column, easier for ggplot and summary
@@ -323,11 +323,8 @@ server <- function(input, output, session) {
   }, height = height_plot_loc, width = "auto")
   # 1.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
-    # validate(need(!is.null(datasetInput()), ""))
     merged <- merge_data()
-    # validate(need(!is.null(merged), ""))
     animals <- merged$data
-    # new_ranges <- get_ranges(animals)
     new_ranges <- get_ranges_quantile(input_data(), animals, input$include_level)
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(length(id_vector))
@@ -355,8 +352,6 @@ server <- function(input, output, session) {
   }, height = height_plot_3, width = "auto")
   # 1.5 histogram facet ----
   output$histogram_facet <- renderPlot({
-    # merged <- merge_data()
-    # validate(need(!is.null(merged), ""))
     animals <- merge_data()$data
     ggplot(data = animals, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +

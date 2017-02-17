@@ -122,11 +122,9 @@ get_ranges_quantile <- function(tele_objs, animals, level) {
     #   ext_list[[i]] <- extent(tele_obj[[i]], level = level)
     # }
     ext_list <- lapply(tele_objs, extent, level = level)
-    # add padding
-    x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) * 
-      1.10 / 2L
-    y_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$y) }))) * 
-      1.10 / 2L
+    # no padding to avoid points filtered by quantile appear in plot
+    x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) / 2L
+    y_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$y) }))) / 2L
     # need to filter data frame too otherwise the middle point is off
     animal_list <- vector("list", length = length(tele_objs))
     for (i in seq_along(tele_objs)) {
