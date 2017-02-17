@@ -31,6 +31,7 @@ height_hist_subset <- 150
 # height_selected_loc_box <- "480px"
 # height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;"
+# info box blue #00c0ef
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
@@ -97,32 +98,9 @@ histogram_facet_box <- box(title = "Sampling Time",
                          width = 12, height = height_hist_box, 
                          plotOutput("histogram_facet"))
 # p2. subset boxes ----
-selected_summary_box <- box(title = "Selected Animal and Time Range",
-              status = "info", solidHeader = TRUE, 
-              width = 12,
-              fluidRow(column(12, DT::dataTableOutput('selected_summary'))),
-              br(),
-              fluidRow(column(5, h4("Current time range selected", 
-                                    style = "color: #00c0ef;"))),
-              fluidRow(column(10, DT::dataTableOutput("current_range")), 
-                       column(2, br(), br(), actionButton("add_time", "Add",
-                                                          icon = icon("plus")
-                                                          ))))
-                       # , column(4, br(), actionButton("all_time", 
-                       #                              "Analyze all time range", 
-                       #                              icon = icon("circle"), 
-                       #                              width = "100%", 
-                       #                              style = page_action_style
-                       #                              ), 
-                       #        br(), br(),
-                       #        actionButton("selected_time", 
-                       #                     "Analyze selected time ranges", 
-                       #                     icon = icon("pie-chart"), 
-                       #                     width = "100%", 
-                       #                     style = page_action_style))
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush 
 histogram_subsetting_box <- box(title = "Select Time Range", 
-         status = "primary", solidHeader = TRUE, width = 12, 
+         status = "info", solidHeader = TRUE, width = 12, 
          height = height_hist_subset_box,
          fluidRow(column(6, offset = 2, 
                          sliderInput("bin_count", "Color Bins", 
@@ -133,8 +111,14 @@ histogram_subsetting_box <- box(title = "Select Time Range",
                       direction = "x",
                       stroke = "purple",
                       fill = "blue", 
-                      resetOnNew = TRUE
-                    )))))
+                      resetOnNew = TRUE)))))
+current_range_box <- box(title = "Current Time Range",
+                         status = "primary", solidHeader = TRUE, 
+                         width = 12,
+                         fluidRow(column(10, DT::dataTableOutput("current_range")), 
+                                  column(2, br(), br(), 
+                                         actionButton("add_time", 
+                                                      "Add", icon = icon("plus")))))
 selected_plot_box <- box(title = "Locations in Selected Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, 
@@ -211,8 +195,8 @@ body <- dashboardBody(
             fluidRow(histogram_facet_box)
             ), 
     tabItem(tabName = "subset",
-            fluidRow(selected_summary_box,
-                     histogram_subsetting_box,
+            fluidRow(histogram_subsetting_box,
+                     current_range_box, 
                      selected_plot_box,
                      selected_ranges_box)), 
     tabItem(tabName = "visual",
@@ -410,6 +394,8 @@ server <- function(input, output, session) {
       geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks), fill = animal_binned$color_vec) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks, 
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
+      ggtitle(animal_binned$data[1, identity]) +
+      center_title +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
   }, height = height_hist_subset)
   # brush selection and matching color bins
@@ -436,7 +422,8 @@ server <- function(input, output, session) {
     dt <- data.frame(start = select_time_range()$select_start, 
                end = select_time_range()$select_end,
                length = select_time_range()$select_length)
-    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
+    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
+      formatStyle(1, target = 'row', color = "#00c0ef")
   })
   # 2.3 selected locations ----
   output$selected_loc <- renderPlot({

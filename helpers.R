@@ -107,13 +107,7 @@ merge_animals <- function(tele_objs) {
   return(list(data = animals_data_dt, info = animals_info_dt, 
               info_print = pretty_info(animals_info_dt)))
 }
-# ggplot theme
-bigger_theme <- theme(legend.key.size = unit(8, "mm"),
-                      legend.key.height = unit(8, "mm"),
-                      legend.text = element_text(size = 12),
-                      axis.title = element_text(size = 14),
-                      axis.text = element_text(size = 12))
-bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
+
 # # given a vector, get new limit to make centroid at center
 # expand_1D_center <- function(vec){
 #   center <- median(vec)
@@ -202,3 +196,12 @@ get_ranges_quantile <- function(tele_objs, animals, level) {
     return(dt)
   }
 }
+
+# ggplot theme ----
+bigger_theme <- theme(legend.key.size = unit(8, "mm"),
+                      legend.key.height = unit(8, "mm"),
+                      legend.text = element_text(size = 12),
+                      axis.title = element_text(size = 14),
+                      axis.text = element_text(size = 12))
+bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
+center_title <- theme(plot.title = element_text(hjust = 0.5, face = "bold"))
