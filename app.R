@@ -1,7 +1,6 @@
 # local deployment ----
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load_gh("rstudio/shiny", "ctmm-initiative/ctmm")
-# devtools::install_github("rstudio/shiny")
 pacman::p_load(shinydashboard, DT, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
 # shinyapps.io deployment vvvvvv
 # library(shiny)

@@ -102,62 +102,13 @@ merge_animals <- function(tele_objs) {
     animals_data_dt <- rbindlist(animal_data_list)
     # ggplot color need a factor column. if do factor in place, legend will have factor in name
     animals_data_dt[, id := factor(identity)]
+    animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
     animals_info_dt <- rbindlist(animal_info_list)
   }
   return(list(data = animals_data_dt, info = animals_info_dt, 
               info_print = pretty_info(animals_info_dt)))
 }
 
-# # given a vector, get new limit to make centroid at center
-# expand_1D_center <- function(vec){
-#   center <- median(vec)
-#   new_diff <- max(center - min(vec), 
-#                   max(vec) - center)
-#   return(c(new_min = center - new_diff, 
-#               new_max = center + new_diff))
-# }
-# # given x y vectors, get new x y lim to make centroid center
-# # using x y to make it flexible for different data framing column names
-# expand_2D_center <- function(x_vec, y_vec){
-#   return(list(xlim = expand_1D_center(x_vec),
-#               ylim = expand_1D_center(y_vec)))
-# }
-# get new expand ranges for all individual plots. all should have same range but different start and end
-get_ranges <- function(animals) {
-  dt <- animals[, .(max_x = max(x), 
-                    min_x = min(x), 
-                    max_y = max(y), 
-                    min_y = min(y), 
-                    median_x = median(x), 
-                    median_y = median(y)),
-                    by = identity]
-  dt[, range_x := max_x - min_x]
-  dt[, range_y := max_y - min_y]
-  # note the max here is across all range_x since no by clause. added 1.05 for padding to use expand = FALSE without overlap and keep axes size
-  dt[, new_diff_x := max(median_x - min_x, max_x - median_x) * 1.05]
-  dt[, new_diff_y := max(median_y - min_y, max_y - median_y) * 1.05]
-  dt[, x_start := median_x - new_diff_x]
-  dt[, x_end := median_x + new_diff_x]
-  dt[, y_start := median_y - new_diff_y]
-  dt[, y_end := median_y + new_diff_y]
-  return(dt)
-}
-# given a zooming mutipliers in (1, 100), scale one axis range
-# zoom_in_range <- function(left, right, times) {
-#   new_range <- (right - left) / times
-#   # note mean take a vector, not list of items in parameters
-#   center <- (right + left) / 2 
-#   return(c(new_left = center - new_range / 2,
-#            new_right = center + new_range / 2))
-# }
-# given a zooming ratio in (0.01, 1), scale portion of one axis range
-zoom_in_range <- function(left, right, ratio) {
-  new_range <- (right - left) * ratio
-  # note mean take a vector, not list of items in parameters
-  center <- (right + left) / 2 
-  return(c(new_left = center - new_range / 2,
-           new_right = center + new_range / 2))
-}
 # need the obj format, merged data frame format, level value
 get_ranges_quantile <- function(tele_objs, animals, level) {
   if (is.null(tele_objs)) {
