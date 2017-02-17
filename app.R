@@ -27,7 +27,7 @@ height_hist <- 280
 # time subsetting
 # not setting the box height make arrange multiple items easier.
 height_hist_subset_box <- "310px"
-height_hist_subset <- 150
+height_hist_subset_output <- "150px"
 # height_selected_loc_box <- "480px"
 # height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;"
@@ -106,6 +106,7 @@ histogram_subsetting_box <- box(title = "Select Time Range",
                          sliderInput("bin_count", "Color Bins", 
                                      min = 2, max = 20, value = 7, step = 1))),
          fluidRow(column(12, plotOutput("histogram_subsetting",
+                                        height = height_hist_subset_output,
                     brush = brushOpts(
                       id = "histo_sub_brush",
                       direction = "x",
@@ -387,7 +388,7 @@ server <- function(input, output, session) {
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
-  # 2.2 histogram subsetting ----
+  # 2.1 histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
@@ -397,7 +398,7 @@ server <- function(input, output, session) {
       ggtitle(animal_binned$data[1, identity]) +
       center_title +
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
-  }, height = height_hist_subset)
+  })
   # brush selection and matching color bins
   select_time_range <- reactive({
     animal_binned <- color_bin_animal()
@@ -417,7 +418,7 @@ server <- function(input, output, session) {
                 select_length = select_length,
                 selected_color = selected_color))
   })
-  # 2.1.2 current range ----
+  # 2.2 current range ----
   output$current_range <- DT::renderDataTable({
     dt <- data.frame(start = select_time_range()$select_start, 
                end = select_time_range()$select_end,
