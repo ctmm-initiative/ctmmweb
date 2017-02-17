@@ -120,20 +120,21 @@ selected_summary_box <- box(title = "Selected Animal and Time Range",
                        #                     icon = icon("pie-chart"), 
                        #                     width = "100%", 
                        #                     style = page_action_style))
+# histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush 
 histogram_subsetting_box <- box(title = "Select Time Range", 
          status = "primary", solidHeader = TRUE, width = 12, 
          height = height_hist_subset_box,
-         column(6, offset = 2, 
+         fluidRow(column(6, offset = 2, 
                          sliderInput("bin_count", "Color Bins", 
-                                     min = 2, max = 20, value = 7, step = 1)),
-         fluidRow(plotOutput("histogram_subsetting",
+                                     min = 2, max = 20, value = 7, step = 1))),
+         fluidRow(column(12, plotOutput("histogram_subsetting",
                     brush = brushOpts(
                       id = "histo_sub_brush",
                       direction = "x",
                       stroke = "purple",
                       fill = "blue", 
                       resetOnNew = TRUE
-                    ))))
+                    )))))
 selected_plot_box <- box(title = "Locations in Selected Time Range", 
                          status = "primary", solidHeader = TRUE, 
                          width = 12, 
@@ -258,7 +259,7 @@ server <- function(input, output, session) {
   merge_data <- reactive({
     merge_animals(input_data())
   })
-  # data summary ----
+  # 1.3 data summary ----
   output$data_summary <- DT::renderDataTable({
     info <- merge_data()$info_print
     datatable(info) %>%
@@ -268,7 +269,7 @@ server <- function(input, output, session) {
                              hue_pal()(nrow(info)))
     )}
   )
-  # 3. location basic plot
+  # 1.4.4 location basic plot
   output$location_plot_basic <- renderPlot({
     tele_objs <- input_data()
     plot(tele_objs, col = rainbow(length(tele_objs)))
@@ -299,7 +300,7 @@ server <- function(input, output, session) {
       updateTabItems(session, "tabs", "subset")
     }
   })
-  # plot 1. overview ----
+  # 1.4.1 overview plot ----
   values$ranges <- c(x = NULL, y = NULL)
   observeEvent(input$overview_dblclick, {
     brush <- input$overview_brush
@@ -323,7 +324,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
-  # plot 2. facet ----
+  # 1.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) + 
@@ -334,7 +335,7 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
-  # plot 3. individuals ----
+  # 1.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
     # validate(need(!is.null(datasetInput()), ""))
     merged <- merge_data()
@@ -366,7 +367,7 @@ server <- function(input, output, session) {
     }
     grid.arrange(grobs = g_list)
   }, height = height_plot_3, width = "auto")
-  # histogram facet ----
+  # 1.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     # merged <- merge_data()
     # validate(need(!is.null(merged), ""))
@@ -402,7 +403,7 @@ server <- function(input, output, session) {
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
-  # histogram subsetting ----
+  # 2.2 histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
@@ -430,22 +431,14 @@ server <- function(input, output, session) {
                 select_length = select_length,
                 selected_color = selected_color))
   })
-  # output$x_brushes <- renderPrint({
-  #   cat(input$histo_sub_brush$xmin)
-  #   as_datetime(input$histo_sub_brush$xmin)
-  # })
-  # output$current_range <- renderPrint({
-  #   data.frame(start = select_time_range()$select_start, 
-  #              end = select_time_range()$select_end,
-  #              length = select_time_range()$select_length)
-  # })
+  # 2.1.2 current range ----
   output$current_range <- DT::renderDataTable({
     dt <- data.frame(start = select_time_range()$select_start, 
                end = select_time_range()$select_end,
                length = select_time_range()$select_length)
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
-  # selected locations ----
+  # 2.3 selected locations ----
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- select_time_range()
@@ -462,7 +455,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + 
       bigger_key
   })
-  # time range table ----
+  # 2.4 time range table ----
   empty_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
   values$selected_time_ranges <- empty_ranges
   observeEvent(input$add_time, {
@@ -482,7 +475,7 @@ server <- function(input, output, session) {
     #            length = time_range$select_length)
     datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
   })
-  # variogram ----
+  # p3. variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- input_data()
     variogram(animal_1)
