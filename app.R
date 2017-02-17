@@ -1,6 +1,7 @@
 # local deployment ----
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
+pacman::p_load_current_gh(shiny, ctmm)
+pacman::p_load(shinydashboard, DT, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
 # shinyapps.io deployment vvvvvv
 # library(shiny)
 # library(shinydashboard)
