@@ -1,61 +1,61 @@
 # helper functions that useful to shiny app, only need to run once
 # to be placed in same directory of app.r/server.r
 # CHOOSE BEST UNITS FOR A LIST OF DATA. based on ctmm:unit, changed if else to switch
-natural_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
-  switch(
-    dimension,
-    length = {
-      name.list <- c("meters", "kilometers")
-      abrv.list <- c("m", "km")
-      scale.list <- c(1, 1000)
-    },
-    area = {
-      name.list <- c("square meters", "hectares", "square kilometers")
-      abrv.list <- c("m^2", "hm^2", "km^2")
-      scale.list <- c(1, 100 ^ 2, 1000 ^ 2)
-    },
-    time = {
-      name.list <- c("seconds", "minutes", "hours", "days", "months", "years")
-      abrv.list <- c("sec", "min", "hr", "day", "mon", "yr")
-      scale.list <- c(1, 60 * c(1, 60 * c(1, 24 * c(1, 29.53059, 365.24))))
-    },
-    speed = {
-      name.list <- c("meters/day", "kilometers/day")
-      abrv.list <- c("m/day", "km/day")
-      scale.list <- c(1, 1000) / (60 * 60 * 24)
-    },
-    diffusion = {
-      name.list <-
-        c("square meters/day", "hectares/day", "square kilometers/day")
-      abrv.list <- c("m^2/day", "hm^2/day", "km^2/day")
-      scale.list <- c(1, 100 ^ 2, 1000 ^ 2) / (60 * 60 * 24)
-    }
-  )
-  max.data <- max(abs(data))
-  if(concise) { name.list <- abrv.list }
-  # choose most parsimonious units
-  matches <- max.data > thresh * scale.list
-  if(any(matches)){
-    matches <- (1:length(matches))[matches]
-    matches <- last(matches)
-  } else { matches <- 1 }
-  name <- name.list[matches]
-  scale <- scale.list[matches]
-  return(list(scale=scale,name=name))
-}
+# natural_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
+#   switch(
+#     dimension,
+#     length = {
+#       name.list <- c("meters", "kilometers")
+#       abrv.list <- c("m", "km")
+#       scale.list <- c(1, 1000)
+#     },
+#     area = {
+#       name.list <- c("square meters", "hectares", "square kilometers")
+#       abrv.list <- c("m^2", "hm^2", "km^2")
+#       scale.list <- c(1, 100 ^ 2, 1000 ^ 2)
+#     },
+#     time = {
+#       name.list <- c("seconds", "minutes", "hours", "days", "months", "years")
+#       abrv.list <- c("sec", "min", "hr", "day", "mon", "yr")
+#       scale.list <- c(1, 60 * c(1, 60 * c(1, 24 * c(1, 29.53059, 365.24))))
+#     },
+#     speed = {
+#       name.list <- c("meters/day", "kilometers/day")
+#       abrv.list <- c("m/day", "km/day")
+#       scale.list <- c(1, 1000) / (60 * 60 * 24)
+#     },
+#     diffusion = {
+#       name.list <-
+#         c("square meters/day", "hectares/day", "square kilometers/day")
+#       abrv.list <- c("m^2/day", "hm^2/day", "km^2/day")
+#       scale.list <- c(1, 100 ^ 2, 1000 ^ 2) / (60 * 60 * 24)
+#     }
+#   )
+#   max.data <- max(abs(data))
+#   if(concise) { name.list <- abrv.list }
+#   # choose most parsimonious units
+#   matches <- max.data > thresh * scale.list
+#   if(any(matches)){
+#     matches <- (1:length(matches))[matches]
+#     matches <- last(matches)
+#   } else { matches <- 1 }
+#   name <- name.list[matches]
+#   scale <- scale.list[matches]
+#   return(list(scale=scale,name=name))
+# }
 # return a list with data value and natural unit
 # tried data frame but then data frame don't have data metadata in column names
-by_natural_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
-  test <- natural_unit(data, dimension, thresh = 1, concise = FALSE)
+by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
+  test <- ctmm:::unit(data, dimension, thresh = 1, concise = FALSE)
   return(list(value = data / test$scale, unit = test$name))
 }
 
 # get single animal info in one row data frame
 animal_info <- function(object) {
   t_diff <- stats::median(diff(object$t))
-  sampling_interval <- by_natural_unit(t_diff, "time")
+  sampling_interval <- by_best_unit(t_diff, "time")
   t_range <- max(object$t) - min(object$t)
-  sampling_range <- by_natural_unit(t_range, "time")
+  sampling_range <- by_best_unit(t_range, "time")
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
