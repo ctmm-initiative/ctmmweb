@@ -102,7 +102,7 @@ merge_animals <- function(tele_objs) {
     animals_data_dt <- rbindlist(animal_data_list)
     # ggplot color need a factor column. if do factor in place, legend will have factor in name
     animals_data_dt[, id := factor(identity)]
-    animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
+    # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
     animals_info_dt <- rbindlist(animal_info_list)
   }
   return(list(data = animals_data_dt, info = animals_info_dt, 
