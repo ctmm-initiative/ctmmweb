@@ -4,6 +4,11 @@
 
 This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages/ctmm/index.html) R package. This repo is used for beta testing of the development version. The app can be run from github directly so it will be easy to distribute the test.
 
+Demo of some features:
+
+[![demo vido](http://img.youtube.com/vi/7vRktLa76Ho/0.jpg)](http://www.youtube.com/watch?v=7vRktLa76Ho "shiny prototype demo")
+
+
 ## Installation
 
 [The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser. This version is simple in every step but complete from start to end.
