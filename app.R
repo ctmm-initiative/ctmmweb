@@ -15,7 +15,7 @@ pacman::p_load(shiny, shinydashboard, DT, ggplot2, scales, gridExtra, data.table
 # library(markdown)
 # shinyapps.io deployment  ^^^^^^^
 # increase the uploading file size limit to 30M
-options(shiny.maxRequestSize = 30*1024^2)
+options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
 # UI style constants ----
