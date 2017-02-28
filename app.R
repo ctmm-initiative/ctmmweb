@@ -1,8 +1,10 @@
 # local deployment ----
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load_gh("ctmm-initiative/ctmm")
-pacman::p_load(shiny, shinydashboard, DT, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
+# to make sure github packages was picked up, even we loaded ctmm in p_load_gh, still add ctmm in p_load.
+pacman::p_load_gh("ctmm-initiative/ctmm@a24eeab591c7b00a28406a9972a26878507a43a1")
+pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
 # shinyapps.io deployment vvvvvv
+# to make this work need to have github version ctmm installed and use library call, then deployment will try to find the github version? check this next time need deployment.
 # library(shiny)
 # library(shinydashboard)
 # library(DT) # DT should be after shiny to override dataTable in shiny

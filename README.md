@@ -8,7 +8,6 @@ Demo of some features:
 
 [![demo vido](http://img.youtube.com/vi/7vRktLa76Ho/0.jpg)](http://www.youtube.com/watch?v=7vRktLa76Ho "shiny prototype demo")
 
-
 ## Installation
 
 [The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser. This version is simple in every step but complete from start to end.
@@ -21,10 +20,13 @@ You can run current repo locally:
 2. Install dependency packages in R. To use the plot zoom function with fixed axes scales correctly, you will need the development version of Shiny. You also need the development version of ctmm before `extent` function is available from CRAN version. 
 	
 ```r
+remove.packages("ctmm")
 if (!require("devtools"))
   install.packages("devtools")
 devtools::install_github("rstudio/shiny")
-devtools::install_github("ctmm-initiative/ctmm")
+# stay on commit of 2017/02/23
+# our code supposedly will install the github version automatically. Don't need to run this.
+# devtools::install_github("ctmm-initiative/ctmm", ref = "a24eeab591c7b00a28406a9972a26878507a43a1")
 ```
 
 3. Run the Shiny app with

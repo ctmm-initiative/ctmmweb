@@ -1,4 +1,4 @@
-# workflow1
+# app version 0.0.2
 # simple single model workflow
 
 
