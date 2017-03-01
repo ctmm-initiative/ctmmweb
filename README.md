@@ -42,8 +42,6 @@ Other dependency packages will be automatically installed in the first run of ap
 
 The web page have a side bar at left for each stage of analysis. 
 
-[Here is a demo I recorded to show some features of the app](https://youtu.be/7vRktLa76Ho).
-
 ### Currently working
 
 Data page can accept uploaded movebank format data or use ctmm package internal data. 
