@@ -1,6 +1,7 @@
 # local deployment ----
 if (!require("pacman")) install.packages("pacman")
 # to make sure github packages was picked up, even we loaded ctmm in p_load_gh, still add ctmm in p_load.
+# and load gh directly may fail if there is CRAN version installed and didn't get uninstalled properly in one run.
 pacman::p_load_gh("ctmm-initiative/ctmm@a24eeab591c7b00a28406a9972a26878507a43a1")
 pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
 # shinyapps.io deployment vvvvvv
@@ -40,7 +41,7 @@ header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    id = "tabs", 
+    id = "tabs",
     # match tabItem
     menuItem("Data", tabName = "data", icon = icon("table")),
     menuItem("Subset", tabName = "subset", icon = icon("pie-chart")),
@@ -56,7 +57,7 @@ upload_box <- box(title = "Data Source",
                   status = "info", solidHeader = TRUE, width = 8,
                   radioButtons('load_option', NULL,
                      c("Use Bufflo Data in ctmm" = 'ctmm',
-                       "Upload Movebank format file" = 'upload'), 
+                       "Upload Movebank format file" = 'upload'),
                      selected = "upload"),
                   fileInput('file1', label = "",
                       accept = c('text/csv',
@@ -65,48 +66,48 @@ upload_box <- box(title = "Data Source",
 action_data_box <- box(title = "Select and Analyze",
                        status = "warning", solidHeader = TRUE, width = 4,
                        tags$br(),
-                       fluidRow(column(12, actionButton("selected", 
-                                              "Analyze single", 
-                                              icon = icon("arrow-right"), 
-                                              width = "100%", 
-                                              style = page_action_style))), 
+                       fluidRow(column(12, actionButton("selected",
+                                              "Analyze single",
+                                              icon = icon("arrow-right"),
+                                              width = "100%",
+                                              style = page_action_style))),
                        tags$br(), tags$br(), tags$br(),
-                       fluidRow(column(12, actionButton("batch", 
+                       fluidRow(column(12, actionButton("batch",
                                               "Batch process",
                                               icon = icon("tasks"),
-                                              width = "100%", 
+                                              width = "100%",
                                               style = page_action_style))),
                        tags$br())
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
     fluidRow(column(12, DT::dataTableOutput('data_summary'))))
-location_plot_box <- tabBox(title = "Animal Locations", 
-      id = "location_plot_tabs", 
-      height = height_location_box, width = 12, 
+location_plot_box <- tabBox(title = "Animal Locations",
+      id = "location_plot_tabs",
+      height = height_location_box, width = 12,
       tabPanel("1. Overview", plotOutput("location_plot_gg",
                                          dblclick = "overview_dblclick",
                                          brush = brushOpts(
                                            id = "overview_brush",
                                            resetOnNew = TRUE
-                                         ))), 
-      tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")), 
-      tabPanel("3. Individuals", 
+                                         ))),
+      tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")),
+      tabPanel("3. Individuals",
         fluidRow(column(10, offset = 1,
-                        sliderInput("include_level", "Zoom Into Portion of Plots", 
+                        sliderInput("include_level", "Zoom Into Portion of Plots",
                     min = 0.85, max = 1, value = 1, step = 0.005, width = "100%"))),
         plotOutput("location_plot_individual")),
       tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
-histogram_facet_box <- box(title = "Sampling Time", 
-                         status = "primary", solidHeader = TRUE, 
-                         width = 12, height = height_hist_box, 
+histogram_facet_box <- box(title = "Sampling Time",
+                         status = "primary", solidHeader = TRUE,
+                         width = 12, height = height_hist_box,
                          plotOutput("histogram_facet"))
 # p2. subset boxes ----
-# histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush 
-histogram_subsetting_box <- box(title = "Select Time Range", 
-         status = "info", solidHeader = TRUE, width = 12, 
+# histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
+histogram_subsetting_box <- box(title = "Select Time Range",
+         status = "info", solidHeader = TRUE, width = 12,
          height = height_hist_subset_box,
-         fluidRow(column(6, offset = 2, 
-                         sliderInput("bin_count", "Color Bins", 
+         fluidRow(column(6, offset = 2,
+                         sliderInput("bin_count", "Color Bins",
                                      min = 2, max = 20, value = 7, step = 1))),
          fluidRow(column(12, plotOutput("histogram_subsetting",
                                         height = height_hist_subset_output,
@@ -114,19 +115,19 @@ histogram_subsetting_box <- box(title = "Select Time Range",
                       id = "histo_sub_brush",
                       direction = "x",
                       stroke = "purple",
-                      fill = "blue", 
+                      fill = "blue",
                       resetOnNew = TRUE)))))
 current_range_box <- box(title = "Current Time Range",
-                         status = "primary", solidHeader = TRUE, 
+                         status = "primary", solidHeader = TRUE,
                          width = 12,
-                         fluidRow(column(10, DT::dataTableOutput("current_range")), 
-                                  column(2, br(), br(), 
-                                         actionButton("add_time", 
+                         fluidRow(column(10, DT::dataTableOutput("current_range")),
+                                  column(2, br(), br(),
+                                         actionButton("add_time",
                                                       "Add", icon = icon("plus")))))
-selected_plot_box <- box(title = "Locations in Selected Time Range", 
-                         status = "primary", solidHeader = TRUE, 
-                         width = 12, 
-                         # height = height_selected_loc_box, 
+selected_plot_box <- box(title = "Locations in Selected Time Range",
+                         status = "primary", solidHeader = TRUE,
+                         width = 12,
+                         # height = height_selected_loc_box,
                          plotOutput("selected_loc"))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
@@ -140,26 +141,26 @@ vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
 vario_plot_box_2 <- box(title = "Variogram zoomed in 10% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_2"))
-#                                sliderInput("zoom2", "Log10(fraction)", 
-#                                            min = -3, max = 0, step = 0.1, 
+#                                sliderInput("zoom2", "Log10(fraction)",
+#                                            min = -3, max = 0, step = 0.1,
 #                                            value = log10(0.5))
 #                                ))
-                        # sidebarPanel(sliderInput("zoom2", "Log10(fraction)", 
-                        #                          min = -3, max = 0, step = 0.1, 
+                        # sidebarPanel(sliderInput("zoom2", "Log10(fraction)",
+                        #                          min = -3, max = 0, step = 0.1,
                         #                          value = log10(0.5))),
                         # mainPanel(plotOutput("vario_plot_2")))
 vario_plot_box_3 <- box(title = "Variogram with Zoom selection",
                            status = "info", solidHeader = TRUE, width = 12,
                            sidebarPanel(h4("Zoom in: 0.1% - 100%"),
-                             sliderInput("zoom", "Log10(percentage)", 
-                                                    min = -3, max = 0, step = 0.1, 
+                             sliderInput("zoom", "Log10(percentage)",
+                                                    min = -3, max = 0, step = 0.1,
                                                     value = log10(0.5))),
                            mainPanel(plotOutput("vario_plot_3")))
 
 # vario_plot_zoom_box <- box(title = "Variogram with Zoom",
 #                         status = "info", solidHeader = TRUE, width = 12,
-#                         sidebarPanel(sliderInput("zoom", "Log10(fraction)", 
-#                                                  min = -3, max = 0, step = 0.1, 
+#                         sidebarPanel(sliderInput("zoom", "Log10(fraction)",
+#                                                  min = -3, max = 0, step = 0.1,
 #                                                  value = log10(0.5)),
 #                                      actionButton('snapBtn', 'Snapshot')),
 #                         mainPanel(plotOutput("vario_plot_1")))
@@ -192,17 +193,17 @@ body <- dashboardBody(
   tabItems(
     tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
     tabItem(tabName = "data",
-            # fluidRow(data_summary_box), 
+            # fluidRow(data_summary_box),
             fluidRow(upload_box, action_data_box),
             fluidRow(data_summary_box),
             fluidRow(location_plot_box),
             fluidRow(histogram_facet_box)
-            ), 
+            ),
     tabItem(tabName = "subset",
             fluidRow(histogram_subsetting_box,
-                     current_range_box, 
+                     current_range_box,
                      selected_plot_box,
-                     selected_ranges_box)), 
+                     selected_ranges_box)),
     tabItem(tabName = "visual",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),
@@ -241,7 +242,7 @@ server <- function(input, output, session) {
       # validate(need(!is.null(inFile), ""))
       req(input$file1)
       as.telemetry(input$file1$datapath)
-    } 
+    }
   })
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
@@ -302,9 +303,9 @@ server <- function(input, output, session) {
   })
   output$location_plot_gg <- renderPlot({
     animals <- merge_data()$data
-    ggplot(data = animals, aes(x, y)) + 
+    ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
-      geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) + 
+      geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
       coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
       scale_color_manual(values = select_animal()$colors) +
       labs(x = "x (meters)", y = "y (meters)") +
@@ -315,10 +316,10 @@ server <- function(input, output, session) {
   # 1.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     animals <- merge_data()$data
-    ggplot(data = animals, aes(x, y)) + 
+    ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
       labs(x = "x (meters)", y = "y (meters)") +
-      facet_grid(id ~ .) + 
+      facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
@@ -338,13 +339,13 @@ server <- function(input, output, session) {
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
         labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
         theme(plot.title = element_text(hjust = 0.5)) +
-        # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start, 
+        # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start,
         #                                  new_ranges_i$x_end,
-        #                                  input$zoom_ratio), 
-        #             ylim = zoom_in_range(new_ranges_i$y_start, 
+        #                                  input$zoom_ratio),
+        #             ylim = zoom_in_range(new_ranges_i$y_start,
         #                                  new_ranges_i$y_end,
         #                                  input$zoom_ratio),
-        #             expand = FALSE) 
+        #             expand = FALSE)
         coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
                     ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
                     expand = FALSE)
@@ -359,14 +360,14 @@ server <- function(input, output, session) {
       geom_histogram(bins = 60) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
-      bigger_theme + bigger_key 
-  }, height = height_hist, width = "auto")  
+      bigger_theme + bigger_key
+  }, height = height_hist, width = "auto")
   # p2. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     info <- merge_data()$info_print
     dt <- info[values$selected_animal_no]
-    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
+    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
     }
   )
   # selected animal data and color bins
@@ -381,8 +382,8 @@ server <- function(input, output, session) {
     data_i[, color_bin_factor := cut(timestamp, bin_count)]
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_factor))
     color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])
-    return(list(data = data_i, 
-                color_vec = color_vec, 
+    return(list(data = data_i,
+                color_vec = color_vec,
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
@@ -391,11 +392,11 @@ server <- function(input, output, session) {
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
       geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks), fill = animal_binned$color_vec) +
-      scale_x_datetime(breaks = animal_binned$color_bin_breaks, 
+      scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
       ggtitle(animal_binned$data[1, identity]) +
       center_title +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
   # brush selection and matching color bins
   select_time_range <- reactive({
@@ -418,7 +419,7 @@ server <- function(input, output, session) {
   })
   # 2.2 current range ----
   output$current_range <- DT::renderDataTable({
-    dt <- data.frame(start = select_time_range()$select_start, 
+    dt <- data.frame(start = select_time_range()$select_start,
                end = select_time_range()$select_end,
                length = select_time_range()$select_length)
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
@@ -428,17 +429,17 @@ server <- function(input, output, session) {
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- select_time_range()
-    ggplot(data = animal_binned$data, aes(x, y)) + 
+    ggplot(data = animal_binned$data, aes(x, y)) +
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
-      geom_point(size = 0.01, alpha = 0.9, 
-                 data = animal_binned$data[timestamp >= time_range$select_start & 
+      geom_point(size = 0.01, alpha = 0.9,
+                 data = animal_binned$data[timestamp >= time_range$select_start &
                                              timestamp <= time_range$select_end],
                  aes(colour = color_bin_factor)) +
       scale_colour_manual(values = time_range$selected_color) +
       labs(x = "x (meters)", y = "y (meters)") +
       coord_fixed() +
       theme(legend.position = "top",
-            legend.direction = "horizontal") + 
+            legend.direction = "horizontal") +
       bigger_key
   })
   # 2.4 time range table ----
@@ -446,7 +447,7 @@ server <- function(input, output, session) {
   values$selected_time_ranges <- empty_ranges
   observeEvent(input$add_time, {
     l <- list(values$selected_time_ranges,
-              data.frame(start = select_time_range()$select_start, 
+              data.frame(start = select_time_range()$select_start,
                          end = select_time_range()$select_end,
                          length = select_time_range()$select_length))
     values$selected_time_ranges <- rbindlist(l)
@@ -459,7 +460,7 @@ server <- function(input, output, session) {
     time_range <- select_time_range()
     # dt <- data.frame(start = time_range$select_start, end = time_range$select_end,
     #            length = time_range$select_length)
-    datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE) 
+    datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p3. variogram ----
   vg.animal_1 <- reactive({
@@ -486,7 +487,7 @@ server <- function(input, output, session) {
     # }
     animal_1 <- input_data()
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
-    withProgress(ctmm.select(animal_1, CTMM = guessed), 
+    withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
   })
   # observe({
@@ -503,7 +504,7 @@ server <- function(input, output, session) {
     }
   })
   # try calculating model early
-  # outputOptions(output, "model_summary", 
+  # outputOptions(output, "model_summary",
   #               suspendWhenHidden = FALSE, priority = 2)
   output$model_plot_1 <- renderPlot({
     ouf <- selected_model()

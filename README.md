@@ -17,17 +17,21 @@ The current repo is the alpha version with much more features in data, subset pa
 You can run current repo locally:
 
 1. Install [the latest R](https://www.r-project.org/), currently 3.3.2. Lower version may not work with ctmm.
-2. Install dependency packages in R. To use the plot zoom function with fixed axes scales correctly, you will need the development version of Shiny. You also need the development version of ctmm before `extent` function is available from CRAN version. 
-	
+2. Install dependency packages in R. You need to install `ctmm` and `shiny` development version separately here. 
+
+Better restart R session if you already have one running to make sure uninstall works.
+
 ```r
+# restart R session first
 remove.packages("ctmm")
 if (!require("devtools"))
   install.packages("devtools")
 devtools::install_github("rstudio/shiny")
-# stay on commit of 2017/02/23
-# our code supposedly will install the github version automatically. Don't need to run this.
-# devtools::install_github("ctmm-initiative/ctmm", ref = "a24eeab591c7b00a28406a9972a26878507a43a1")
+# stay on commit of 2017/02/23 
+devtools::install_github("ctmm-initiative/ctmm", ref = "a24eeab591c7b00a28406a9972a26878507a43a1")
 ```
+
+Other dependency packages will be automatically installed in the first run of app. Supposedly `ctmm` development version can also be installed automatically, but it may met problem in uninstalling older version if it was installed and loaded.
 
 3. Run the Shiny app with
 
