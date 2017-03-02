@@ -56,15 +56,24 @@ sidebar <- dashboardSidebar(
 # p1. data boxes ----
 upload_box <- box(title = "Local Data",
                   status = "info", solidHeader = TRUE, width = 12,
-                  fluidRow(column(7,
-                            fileInput('file1',
-                                      label = tags$h4(icon("upload"),
-                                                       "Upload Movebank format file"))),
-                          column(4, offset = 1, br(), br(),
-                             actionButton("ctmm_data", "Use Buffalo Data in ctmm",
-                                                       icon = icon("envelope-open"),
-                                                       width = "100%",
-                                                       style = page_action_style)))
+                  # fluidRow(column(7,
+                  #           fileInput('file1',
+                  #                     label = tags$h4(icon("upload"),
+                  #                                      "Upload Movebank format file"))),
+                  #         column(4, offset = 1, br(), br(),
+                  #            actionButton("ctmm_data", "Use Buffalo Data in ctmm",
+                  #                                      icon = icon("envelope-open"),
+                  #                                      width = "100%",
+                  #                                      style = page_action_style)))
+                  radioButtons('load_option', NULL,
+                               c("Use Bufflo Data in ctmm" = 'ctmm',
+                                 "Upload Movebank format file" = 'upload'),
+                               selected = "upload"),
+                  fileInput('file1', label = "",
+                            accept = c('text/csv',
+                                       'text/comma-separated-values,text/plain',
+                                       '.csv'))
+
                   )
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
@@ -227,31 +236,47 @@ server <- function(input, output, session) {
   # clicking browse button switch mode automatically
   observeEvent(input$file1, {
     updateRadioButtons(session, "load_option", selected = "upload")
-    # updateTabItems(session, "tabs", "data")
+    # updateTabItems(session, "tabs", "plots")
   })
-  # uploading file and internal data should switch to next page
-  observeEvent(input$file1, {
-    req(input$file1)
-    values$input_data <- as.telemetry(input$file1$datapath)
-    updateTabItems(session, "tabs", "plots")
-  })
-  observeEvent(input$ctmm_data, {
-    data("buffalo")
-    values$input_data <- buffalo
+  # # uploading file and internal data should switch to next page
+  # observeEvent(input$file1, {
+  #   req(input$file1)
+  #   values$input_data <- as.telemetry(input$file1$datapath)
+  #   updateTabItems(session, "tabs", "plots")
+  # })
+  # observeEvent(input$ctmm_data, {
+  #   data("buffalo")
+  #   values$input_data <- buffalo
+  #   updateTabItems(session, "tabs", "plots")
+  # })
+
+  observeEvent(input$load_option, {
+    if (input$load_option == "ctmm") {
+      updateTabItems(session, "tabs", "plots")
+      data("buffalo")
+      values$input_data <- buffalo
+    } else if (input$load_option == "upload") {
+      # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
+      # validate(need(!is.null(inFile), ""))
+      req(input$file1)
+      updateTabItems(session, "tabs", "plots")
+      values$input_data <- as.telemetry(input$file1$datapath)
+    }
     updateTabItems(session, "tabs", "plots")
   })
 
-  # return the telemetry obj which could be an obj or obj list
-  # only use this in basic plot or models expecting tele obj or tele obj list
-  # every reference of this need to check null before it initialized, like in merged_data
-  # input_data <- reactive({
+
+  # local data ----
+  # local_data <- reactive({
   #   if (input$load_option == "ctmm") {
+  #     updateTabItems(session, "tabs", "plots")
   #     data("buffalo")
   #     buffalo
   #   } else if (input$load_option == "upload") {
   #     # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
   #     # validate(need(!is.null(inFile), ""))
   #     req(input$file1)
+  #     updateTabItems(session, "tabs", "plots")
   #     as.telemetry(input$file1$datapath)
   #   }
   # })
