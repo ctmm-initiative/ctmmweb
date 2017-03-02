@@ -34,7 +34,7 @@ height_hist_subset_box <- "310px"
 height_hist_subset_output <- "150px"
 # height_selected_loc_box <- "480px"
 # height_selected_loc <- 480
-page_action_style <- "background-color: #FFEB3B;"
+page_action_style <- "background-color: #FFEB3B;font-weight: 600;"
 # info box blue #00c0ef
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
@@ -54,34 +54,34 @@ sidebar <- dashboardSidebar(
   )
 )
 # p1. data boxes ----
-upload_box <- box(title = "Data Source",
-                  status = "info", solidHeader = TRUE, width = 8,
-                  radioButtons('load_option', NULL,
-                     c("Use Bufflo Data in ctmm" = 'ctmm',
-                       "Upload Movebank format file" = 'upload'),
-                     selected = "upload"),
-                  fileInput('file1', label = "",
-                      accept = c('text/csv',
-                                 'text/comma-separated-values,text/plain',
-                                 '.csv')))
-action_data_box <- box(title = "Select and Analyze",
-                       status = "warning", solidHeader = TRUE, width = 4,
-                       tags$br(),
-                       fluidRow(column(12, actionButton("selected",
-                                              "Analyze single",
-                                              icon = icon("arrow-right"),
-                                              width = "100%",
-                                              style = page_action_style))),
-                       tags$br(), tags$br(), tags$br(),
-                       fluidRow(column(12, actionButton("batch",
-                                              "Batch process",
-                                              icon = icon("tasks"),
-                                              width = "100%",
-                                              style = page_action_style))),
-                       tags$br())
+upload_box <- box(title = "Local Data",
+                  status = "info", solidHeader = TRUE, width = 12,
+                  fluidRow(column(7,
+                            fileInput('file1',
+                                      label = tags$h4(icon("upload"),
+                                                       "Upload Movebank format file"))),
+                          column(4, offset = 1, br(), br(),
+                             actionButton("ctmm_data", "Use Bufflo Data in ctmm",
+                                                       icon = icon("envelope-open"),
+                                                       width = "100%",
+                                                       style = page_action_style)))
+                  )
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
-    fluidRow(column(12, DT::dataTableOutput('data_summary'))))
+    fluidRow(column(12, DT::dataTableOutput('data_summary'))),
+    br(),
+    fluidRow(column(3, actionButton("batch",
+                                    "Batch process",
+                                    icon = icon("tasks"),
+                                    width = "100%",
+                                    style = page_action_style)),
+            column(3, offset = 6, actionButton("selected",
+                          "Analyze single",
+                          icon = icon("arrow-right"),
+                          width = "100%",
+                          style = page_action_style))
+
+))
 location_plot_box <- tabBox(title = "Animal Locations",
       id = "location_plot_tabs",
       height = height_location_box, width = 12,
@@ -195,7 +195,7 @@ body <- dashboardBody(
     tabItem(tabName = "import", fluidRow(upload_box)),
     tabItem(tabName = "plots",
             fluidRow(data_summary_box),
-            fluidRow(action_data_box),
+            # fluidRow(action_data_box),
             fluidRow(location_plot_box),
             fluidRow(histogram_facet_box)
             ),
