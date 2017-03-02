@@ -43,12 +43,13 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem
-    menuItem("Data", tabName = "data", icon = icon("table")),
-    menuItem("Subset", tabName = "subset", icon = icon("pie-chart")),
-    menuItem("Visual Diagnostics", tabName = "visual", icon = icon("line-chart")),
-    menuItem("Model", tabName = "model", icon = icon("hourglass-start")),
+    menuItem("Import Data", tabName = "import", icon = icon("upload")),
+    menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
+    menuItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
+    menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
+    menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
-    menuItem("Report", tabName = "report", icon = icon("file-text-o")),
+    menuItem("Work Report", tabName = "report", icon = icon("file-text-o")),
     menuItem("Help", tabName = "intro", icon = icon("question"))
   )
 )
@@ -191,11 +192,10 @@ body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
-    tabItem(tabName = "intro", fluidPage(includeMarkdown("workflow1.md"))),
-    tabItem(tabName = "data",
-            # fluidRow(data_summary_box),
-            fluidRow(upload_box, action_data_box),
+    tabItem(tabName = "import", fluidRow(upload_box)),
+    tabItem(tabName = "plots",
             fluidRow(data_summary_box),
+            fluidRow(action_data_box),
             fluidRow(location_plot_box),
             fluidRow(histogram_facet_box)
             ),
