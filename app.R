@@ -61,7 +61,7 @@ upload_box <- box(title = "Local Data",
                                       label = tags$h4(icon("upload"),
                                                        "Upload Movebank format file"))),
                           column(4, offset = 1, br(), br(),
-                             actionButton("ctmm_data", "Use Bufflo Data in ctmm",
+                             actionButton("ctmm_data", "Use Buffalo Data in ctmm",
                                                        icon = icon("envelope-open"),
                                                        width = "100%",
                                                        style = page_action_style)))
@@ -220,33 +220,45 @@ body <- dashboardBody(
 ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output, session) {
+  # p1. data ----
+  # values got updated in observeEvent need this format.
+  values <- reactiveValues()
+  values$input_data <- NULL
   # clicking browse button switch mode automatically
   observeEvent(input$file1, {
     updateRadioButtons(session, "load_option", selected = "upload")
     # updateTabItems(session, "tabs", "data")
   })
-  # radio button and browse all should switch page to data
-  # observeEvent(input$load_option, {
-  #   updateTabItems(session, "tabs", "data")
-  # })
-  # p1. data ----
+  # uploading file and internal data should switch to next page
+  observeEvent(input$file1, {
+    req(input$file1)
+    values$input_data <- as.telemetry(input$file1$datapath)
+    updateTabItems(session, "tabs", "plots")
+  })
+  observeEvent(input$ctmm_data, {
+    data("buffalo")
+    values$input_data <- buffalo
+    updateTabItems(session, "tabs", "plots")
+  })
+
   # return the telemetry obj which could be an obj or obj list
   # only use this in basic plot or models expecting tele obj or tele obj list
   # every reference of this need to check null before it initialized, like in merged_data
-  input_data <- reactive({
-    if (input$load_option == "ctmm") {
-      data("buffalo")
-      buffalo
-    } else if (input$load_option == "upload") {
-      # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
-      # validate(need(!is.null(inFile), ""))
-      req(input$file1)
-      as.telemetry(input$file1$datapath)
-    }
-  })
+  # input_data <- reactive({
+  #   if (input$load_option == "ctmm") {
+  #     data("buffalo")
+  #     buffalo
+  #   } else if (input$load_option == "upload") {
+  #     # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
+  #     # validate(need(!is.null(inFile), ""))
+  #     req(input$file1)
+  #     as.telemetry(input$file1$datapath)
+  #   }
+  # })
+
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
-    merge_animals(input_data())
+    merge_animals(values$input_data)
   })
   # 1.3 data summary ----
   output$data_summary <- DT::renderDataTable({
@@ -260,7 +272,7 @@ server <- function(input, output, session) {
   )
   # 1.4.4 location basic plot
   output$location_plot_basic <- renderPlot({
-    tele_objs <- input_data()
+    tele_objs <- values$input_data
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
   # selected ids and color ----
@@ -278,8 +290,7 @@ server <- function(input, output, session) {
     }
   })
   # single selected ----
-  # values got updated in observeEvent need this format.
-  values <- reactiveValues()
+
   values$selected_animal_no <- 1
   observeEvent(input$selected, {
     if (length(input$data_summary_rows_selected) != 1) {
@@ -328,7 +339,7 @@ server <- function(input, output, session) {
   output$location_plot_individual <- renderPlot({
     merged <- merge_data()
     animals <- merged$data
-    new_ranges <- get_ranges_quantile(input_data(), animals, input$include_level)
+    new_ranges <- get_ranges_quantile(values$input_data, animals, input$include_level)
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
@@ -464,7 +475,7 @@ server <- function(input, output, session) {
   })
   # p3. variogram ----
   vg.animal_1 <- reactive({
-    animal_1 <- input_data()
+    animal_1 <- values$input_data
     variogram(animal_1)
   })
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
@@ -485,7 +496,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "fitting models\n")
     # }
-    animal_1 <- input_data()
+    animal_1 <- values$input_data
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
@@ -523,7 +534,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "akde running\n")
     # }
-    animal_1 <- input_data()
+    animal_1 <- values$input_data
     ouf <- selected_model()
     withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
   })
@@ -537,7 +548,7 @@ server <- function(input, output, session) {
     }
   })
   output$range_plot_basic <- renderPlot({
-    plot(input_data(), UD = akde.animal_1())
+    plot(values$input_data, UD = akde.animal_1())
   })
 }
 
