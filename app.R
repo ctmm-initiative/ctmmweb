@@ -22,6 +22,7 @@ height_hist_subset_output <- "150px"
 # height_selected_loc_box <- "480px"
 # height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;font-weight: 600;"
+help_button_style <- "background-color: #8bc34a;"
 # info box blue #00c0ef
 source("helpers.R")
 header <- dashboardHeader(title = "Animal Movement")
@@ -58,8 +59,15 @@ movebank_login_box <- box(title = "Movebank Login",
                           fluidRow(column(12,
                                           textInput("user", "User Name"),
                                           passwordInput("passwd", label = "Password")),
-                                   column(3, actionButton("login", "Login"))
-                                   # column(9, textOutput("login_message"))
+                                   column(3, actionButton("login", "Login",
+                                                          icon = icon("sign-in"),
+                                                          style = page_action_style)),
+                                   column(3, offset = 5,
+                                          actionButton("login_help",
+                                                       "Help",
+                                                      icon = icon("question"),
+                                                      style = help_button_style
+                                                      ))
                           )
                           )
 movebank_studies_box <- box(title = "Movebank Studies",
@@ -229,7 +237,7 @@ body <- dashboardBody(
     tabItem(tabName = "homerange",
             fluidRow(range_summary_box),
             fluidRow(range_plot_box)),
-    tabItem(tabName = "report", fluidPage(includeMarkdown("workflow1.md")))
+    tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
   )
 )
 # assemble UI
@@ -283,9 +291,15 @@ server <- function(input, output, session) {
     mb_pass <- unname(mb_env["movebank_pass"])
     updateTextInput(session, "user", value = mb_user)
     updateTextInput(session, "passwd", value = mb_pass)
-    showNotification("Movebank login info found", duration = 1, type = "warning")
-    # output$login_message <- renderText("Login info found")
+    showNotification("Movebank login info found", duration = 0.6, type = "warning")
   }
+  observeEvent(input$login_help, {
+    showModal(modalDialog(
+      title = "About Movebank user and password", size = "l",
+      fluidPage(includeMarkdown("help/movebank_login.md")),
+      easyClose = TRUE
+    ))
+  })
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
