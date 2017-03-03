@@ -69,10 +69,7 @@ upload_box <- box(title = "Local Data",
                                c("Use Bufflo Data in ctmm" = 'ctmm',
                                  "Upload Movebank format file" = 'upload'),
                                selected = "upload"),
-                  fileInput('file1', label = "",
-                            accept = c('text/csv',
-                                       'text/comma-separated-values,text/plain',
-                                       '.csv'))
+                  fileInput('file1', label = "")
 
                   )
 data_summary_box <- box(title = "Data Summary", status = "primary",
@@ -233,12 +230,7 @@ server <- function(input, output, session) {
   # values got updated in observeEvent need this format.
   values <- reactiveValues()
   values$input_data <- NULL
-  # clicking browse button switch mode automatically
-  observeEvent(input$file1, {
-    updateRadioButtons(session, "load_option", selected = "upload")
-    # updateTabItems(session, "tabs", "plots")
-  })
-  # # uploading file and internal data should switch to next page
+  # button UI events, not used now
   # observeEvent(input$file1, {
   #   req(input$file1)
   #   values$input_data <- as.telemetry(input$file1$datapath)
@@ -249,24 +241,31 @@ server <- function(input, output, session) {
   #   values$input_data <- buffalo
   #   updateTabItems(session, "tabs", "plots")
   # })
-
+  # local data ----
+  # clicking browse button without changing radio button should also update
+  file_uploaded <- function(){
+    values$input_data <- as.telemetry(input$file1$datapath)
+    updateRadioButtons(session, "load_option", selected = "upload")
+    updateTabItems(session, "tabs", "plots")
+  }
+  observeEvent(input$file1, {
+    req(input$file1)
+    file_uploaded()
+  })
+  # observe ratio button changes
   observeEvent(input$load_option, {
     if (input$load_option == "ctmm") {
-      updateTabItems(session, "tabs", "plots")
       data("buffalo")
       values$input_data <- buffalo
-    } else if (input$load_option == "upload") {
-      # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
-      # validate(need(!is.null(inFile), ""))
-      req(input$file1)
       updateTabItems(session, "tabs", "plots")
-      values$input_data <- as.telemetry(input$file1$datapath)
+    } else if (input$load_option == "upload") {
+      # need to check NULL input from source, stop error in downstream
+      req(input$file1)
+      file_uploaded()
     }
-    updateTabItems(session, "tabs", "plots")
   })
 
-
-  # local data ----
+  # previous version good for 2 options only.
   # local_data <- reactive({
   #   if (input$load_option == "ctmm") {
   #     updateTabItems(session, "tabs", "plots")
