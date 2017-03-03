@@ -284,7 +284,7 @@ server <- function(input, output, session) {
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
-    merge_animals(values$input_data)
+    merge_animals(req(values$input_data))
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
@@ -298,7 +298,7 @@ server <- function(input, output, session) {
   )
   # 2.4.4 location basic plot
   output$location_plot_basic <- renderPlot({
-    tele_objs <- values$input_data
+    tele_objs <- req(values$input_data)
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
   # selected ids and color ----
@@ -365,7 +365,7 @@ server <- function(input, output, session) {
   output$location_plot_individual <- renderPlot({
     merged <- merge_data()
     animals <- merged$data
-    new_ranges <- get_ranges_quantile(values$input_data, animals, input$include_level)
+    new_ranges <- get_ranges_quantile(req(values$input_data), animals, input$include_level)
     id_vector <- merged$info_print$Identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
@@ -501,7 +501,7 @@ server <- function(input, output, session) {
   })
   # p3. variogram ----
   vg.animal_1 <- reactive({
-    animal_1 <- values$input_data
+    animal_1 <- req(values$input_data)
     variogram(animal_1)
   })
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
@@ -522,7 +522,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "fitting models\n")
     # }
-    animal_1 <- values$input_data
+    animal_1 <- req(values$input_data)
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
@@ -560,7 +560,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "akde running\n")
     # }
-    animal_1 <- values$input_data
+    animal_1 <- req(values$input_data)
     ouf <- selected_model()
     withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
   })
@@ -574,7 +574,7 @@ server <- function(input, output, session) {
     }
   })
   output$range_plot_basic <- renderPlot({
-    plot(values$input_data, UD = akde.animal_1())
+    plot(req(values$input_data), UD = akde.animal_1())
   })
 }
 
