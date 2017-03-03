@@ -22,6 +22,7 @@ options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
 # UI style constants ----
+height_data_import_box <- "244px"
 height_location_box <- "800px"
 height_plot_loc <- 730
 height_plot_3 <- 640
@@ -55,7 +56,8 @@ sidebar <- dashboardSidebar(
 )
 # p1. import boxes ----
 upload_box <- box(title = "Local Data",
-                  status = "info", solidHeader = TRUE, width = 6,
+                  status = "info", solidHeader = TRUE,
+                  width = 6, height = height_data_import_box,
                   # fluidRow(column(7,
                   #           fileInput('file1',
                   #                     label = tags$h4(icon("upload"),
@@ -74,11 +76,14 @@ upload_box <- box(title = "Local Data",
                   fileInput('file1', label = "")
                   )
 movebank_login_box <- box(title = "Movebank Import",
-                          status = "warning", solidHeader = TRUE, width = 6,
-                          fluidRow(column(12, textInput("user", "User Name"),
+                          status = "warning", solidHeader = TRUE, width = 6
+                          ,
+                          fluidRow(column(12,
+                                          textInput("user", "User Name"),
                                           passwordInput("passwd",label = "Password"),
-                                          submitButton("Login"))
-                            )
+                                          actionButton("login", "Login")
+                                          )
+                          )
                           )
 # p2. plots boxes ----
 data_summary_box <- box(title = "Data Summary", status = "primary",
