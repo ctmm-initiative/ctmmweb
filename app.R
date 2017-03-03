@@ -74,6 +74,7 @@ movebank_login_box <- box(title = "Movebank Login",
 movebank_studies_box <- box(title = "Movebank Studies",
                             status = "primary",
                             solidHeader = TRUE, width = 12,
+                            fluidRow(column(12, htmlOutput("all_studies_response"))),
                             fluidRow(column(12, DT::dataTableOutput('studies')))
                             )
 movebank_study_detail_box <- box(title = "Study Details",
@@ -305,18 +306,28 @@ server <- function(input, output, session) {
     mb_user <- input$user
     mb_pass <- input$pass
     # check if downloading is successful
+    res_cont <- get_all_studies(mb_user, mb_pass)
+    # if not csv but html, show html response page
+    header <- str_sub(res_cont, end = 250)
+    if (str_detect(header, "<html>")) {
+      output$all_studies_response <- renderUI(HTML(res_cont))
+    } else if ("data.table" %in% class(fread(res_cont, nrows = 5))) {
+      studies <- fread(res_cont, select = downloaded_cols)
+
+    }
+
 
     # if downloaded, show some statistics
-    valid_studies <- get_valid_studies(mb_user, mb_pass)
-    selected_cols <- c("id", "name",
-                       "deployments", "events",
-                       "individuals"
-    )
-    output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
-                                                    rownames = FALSE,
-                                                    selection = 'single'
-                                                    )
-      )
+    # valid_studies <- get_valid_studies(mb_user, mb_pass)
+    # selected_cols <- c("id", "name",
+    #                    "deployments", "events",
+    #                    "individuals"
+    # )
+    # output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
+    #                                                 rownames = FALSE,
+    #                                                 selection = 'single'
+    #                                                 )
+    #   )
   })
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
