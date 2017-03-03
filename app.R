@@ -57,9 +57,9 @@ movebank_login_box <- box(title = "Movebank Login",
                           ,
                           fluidRow(column(12,
                                           textInput("user", "User Name"),
-                                          passwordInput("passwd",label = "Password"),
-                                          actionButton("login", "Login")
-                                          )
+                                          passwordInput("passwd", label = "Password")),
+                                   column(3, actionButton("login", "Login"))
+                                   # column(9, textOutput("login_message"))
                           )
                           )
 movebank_studies_box <- box(title = "Movebank Studies",
@@ -263,7 +263,7 @@ server <- function(input, output, session) {
     req(input$file1)
     file_uploaded()
   })
-  # observe ratio button changes
+  # observe radio button changes
   observeEvent(input$load_option, {
     if (input$load_option == "ctmm") {
       data("buffalo")
@@ -275,11 +275,23 @@ server <- function(input, output, session) {
       file_uploaded()
     }
   })
+  # look up user R environment for movebank login
+  mb_env <- Sys.getenv(c("movebank_user", "movebank_pass"))
+  if (identical(sort(names(mb_env)), c("movebank_pass", "movebank_user")) &&
+      all(nchar(mb_env) != 0)) {
+    mb_user <- unname(mb_env["movebank_user"])
+    mb_pass <- unname(mb_env["movebank_pass"])
+    updateTextInput(session, "user", value = mb_user)
+    updateTextInput(session, "passwd", value = mb_pass)
+    showNotification("Movebank login info found", duration = 1, type = "warning")
+    # output$login_message <- renderText("Login info found")
+  }
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
-    showNotification("Updating data...", type = "message", duration = 4)
-    merge_animals(req(values$input_data))
+    req(values$input_data)
+    showNotification(span(icon("spinner fa-spin"), "Updating data..."), type = "message", duration = 4)
+    merge_animals(values$input_data)
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({

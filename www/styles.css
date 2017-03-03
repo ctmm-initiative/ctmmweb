@@ -1,16 +1,17 @@
 /* Make sure the filename doesn't extend past the bounds of the container */
 .shiny-input-container input[type=file] {
-    overflow: hidden;
-    max-width: 100%;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 #shiny-notification-panel {
- /* top: 0px;
-  right: 4%; */
+  bottom: 50%;
+  right: 30%;
 }
 
 .shiny-notification {
-  background-color: #00BEED;
+  /*background-color: #00BEED;*/
+  background-color: #39CCCC;
   color: #ffffff;
   border: 1px solid #ccc;
   border-radius: 6px;
