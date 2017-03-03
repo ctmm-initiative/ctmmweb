@@ -53,7 +53,7 @@ sidebar <- dashboardSidebar(
     menuItem("Help", tabName = "intro", icon = icon("question"))
   )
 )
-# p1. data boxes ----
+# p1. import boxes ----
 upload_box <- box(title = "Local Data",
                   status = "info", solidHeader = TRUE, width = 12,
                   # fluidRow(column(7,
@@ -72,6 +72,7 @@ upload_box <- box(title = "Local Data",
                   fileInput('file1', label = "")
 
                   )
+# p2. plots boxes ----
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
     fluidRow(column(12, DT::dataTableOutput('data_summary'))),
@@ -108,7 +109,7 @@ histogram_facet_box <- box(title = "Sampling Time",
                          status = "primary", solidHeader = TRUE,
                          width = 12, height = height_hist_box,
                          plotOutput("histogram_facet"))
-# p2. subset boxes ----
+# p3. subset boxes ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range",
          status = "info", solidHeader = TRUE, width = 12,
@@ -141,7 +142,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                            column(2, offset = 10, actionButton("reset", "Reset",
                                                                icon = icon("times"))),
                            DT::dataTableOutput('selected_ranges'))
-# p3. variogram boxes ----
+# p4. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
@@ -226,9 +227,10 @@ body <- dashboardBody(
 ui <- dashboardPage(header, sidebar, body,skin = "green")
 # server ----
 server <- function(input, output, session) {
-  # p1. data ----
+  # p1. import ----
   # values got updated in observeEvent need this format.
   values <- reactiveValues()
+  # all reference of this value should wrap req around it: req(values$input_data)
   values$input_data <- NULL
   # button UI events, not used now
   # observeEvent(input$file1, {
@@ -279,12 +281,12 @@ server <- function(input, output, session) {
   #     as.telemetry(input$file1$datapath)
   #   }
   # })
-
+  # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
     merge_animals(values$input_data)
   })
-  # 1.3 data summary ----
+  # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
     info <- merge_data()$info_print
     datatable(info) %>%
@@ -294,7 +296,7 @@ server <- function(input, output, session) {
                              hue_pal()(nrow(info)))
     )}
   )
-  # 1.4.4 location basic plot
+  # 2.4.4 location basic plot
   output$location_plot_basic <- renderPlot({
     tele_objs <- values$input_data
     plot(tele_objs, col = rainbow(length(tele_objs)))
