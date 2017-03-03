@@ -55,7 +55,7 @@ sidebar <- dashboardSidebar(
 )
 # p1. import boxes ----
 upload_box <- box(title = "Local Data",
-                  status = "info", solidHeader = TRUE, width = 12,
+                  status = "info", solidHeader = TRUE, width = 6,
                   # fluidRow(column(7,
                   #           fileInput('file1',
                   #                     label = tags$h4(icon("upload"),
@@ -68,10 +68,18 @@ upload_box <- box(title = "Local Data",
                   radioButtons('load_option', NULL,
                                c("Use Bufflo Data in ctmm" = 'ctmm',
                                  "Upload Movebank format file" = 'upload'),
-                               selected = "upload"),
+                               selected = "upload"
+                               ),
+                  tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}"),
                   fileInput('file1', label = "")
-
                   )
+movebank_login_box <- box(title = "Movebank Import",
+                          status = "warning", solidHeader = TRUE, width = 6,
+                          fluidRow(column(12, textInput("user", "User Name"),
+                                          passwordInput("passwd",label = "Password"),
+                                          submitButton("Login"))
+                            )
+                          )
 # p2. plots boxes ----
 data_summary_box <- box(title = "Data Summary", status = "primary",
     solidHeader = TRUE, width = 12,
@@ -199,12 +207,14 @@ body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
-    tabItem(tabName = "import", fluidRow(upload_box)),
+    tabItem(tabName = "import", fluidRow(upload_box, movebank_login_box)),
     tabItem(tabName = "plots",
-            fluidRow(data_summary_box),
+            fluidRow(data_summary_box,
+                     location_plot_box,
+                     histogram_facet_box)
             # fluidRow(action_data_box),
-            fluidRow(location_plot_box),
-            fluidRow(histogram_facet_box)
+            # fluidRow(location_plot_box),
+            # fluidRow(histogram_facet_box)
             ),
     tabItem(tabName = "subset",
             fluidRow(histogram_subsetting_box,
