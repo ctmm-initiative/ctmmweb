@@ -59,7 +59,7 @@ movebank_login_box <- box(title = "Movebank Login",
                           ,
                           fluidRow(column(12,
                                           textInput("user", "User Name"),
-                                          passwordInput("passwd", label = "Password")),
+                                          passwordInput("pass", label = "Password")),
                                    column(3, actionButton("login", "Login",
                                                           icon = icon("sign-in"),
                                                           style = page_action_style)),
@@ -291,7 +291,7 @@ server <- function(input, output, session) {
     mb_user <- unname(mb_env["movebank_user"])
     mb_pass <- unname(mb_env["movebank_pass"])
     updateTextInput(session, "user", value = mb_user)
-    updateTextInput(session, "passwd", value = mb_pass)
+    updateTextInput(session, "pass", value = mb_pass)
     showNotification("Movebank login info found", duration = 0.6, type = "warning")
   }
   observeEvent(input$login_help, {
@@ -302,8 +302,17 @@ server <- function(input, output, session) {
     ))
   })
   observeEvent(input$login, {
+    mb_user <- input$user
+    mb_pass <- input$pass
+    # check if downloading is successful
+
+    # if downloaded, show some statistics
     valid_studies <- get_valid_studies(mb_user, mb_pass)
-    output$studies <- DT::renderDataTable(datatable(valid_studies,
+    selected_cols <- c("id", "name",
+                       "deployments", "events",
+                       "individuals"
+    )
+    output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
                                                     rownames = FALSE,
                                                     selection = 'single'
                                                     )
