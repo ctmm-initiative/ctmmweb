@@ -1,23 +1,9 @@
-# local deployment ----
 if (!require("pacman")) install.packages("pacman")
-# to make sure github packages was picked up, even we loaded ctmm in p_load_gh, still add ctmm in p_load.
-# and load gh directly may fail if there is CRAN version installed and didn't get uninstalled properly in one run.
+# load_gh may fail if existing ctmm didn't get uninstalled properly in one run.
 pacman::p_load_gh("ctmm-initiative/ctmm@a24eeab591c7b00a28406a9972a26878507a43a1")
+# packrat doesn't recognize p_load_gh so need to put ctmm in p_load again.
 pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, lubridate, markdown)
-# shinyapps.io deployment vvvvvv
-# to make this work need to have github version ctmm installed and use library call, then deployment will try to find the github version? check this next time need deployment.
-# library(shiny)
-# library(shinydashboard)
-# library(DT) # DT should be after shiny to override dataTable in shiny
-# library(ctmm)
-# library(ggplot2)
-# library(scales)
-# library(gridExtra)
-# library(data.table)
-# library(lubridate)
-# library(markdown)
-# shinyapps.io deployment  ^^^^^^^
-# increase the uploading file size limit to 30M
+# increase the uploading file size limit to 200M
 options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
@@ -58,15 +44,6 @@ sidebar <- dashboardSidebar(
 upload_box <- box(title = "Local Data",
                   status = "info", solidHeader = TRUE,
                   width = 6, height = height_data_import_box,
-                  # fluidRow(column(7,
-                  #           fileInput('file1',
-                  #                     label = tags$h4(icon("upload"),
-                  #                                      "Upload Movebank format file"))),
-                  #         column(4, offset = 1, br(), br(),
-                  #            actionButton("ctmm_data", "Use Buffalo Data in ctmm",
-                  #                                      icon = icon("envelope-open"),
-                  #                                      width = "100%",
-                  #                                      style = page_action_style)))
                   radioButtons('load_option', NULL,
                                c("Use Bufflo Data in ctmm" = 'ctmm',
                                  "Upload Movebank format file" = 'upload'),
@@ -75,7 +52,7 @@ upload_box <- box(title = "Local Data",
                   tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}"),
                   fileInput('file1', label = "")
                   )
-movebank_login_box <- box(title = "Movebank Import",
+movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6
                           ,
                           fluidRow(column(12,
@@ -85,8 +62,23 @@ movebank_login_box <- box(title = "Movebank Import",
                                           )
                           )
                           )
+movebank_studies_box <- box(title = "Movebank Studies",
+                            status = "primary",
+                            solidHeader = TRUE, width = 12,
+                            fluidRow(column(12, DT::dataTableOutput('studies')))
+                            )
+movebank_study_detail_box <- box(title = "Study Details",
+                                 status = "primary",
+                                 solidHeader = TRUE, width = 12,
+                                 fluidRow(column(12, verbatimTextOutput("study_detail")))
+                                 )
+movebank_study_preview_box <- box(title = "Study Data Preview",
+                                  status = "primary",
+                                  solidHeader = TRUE, width = 12,
+                                  fluidRow(column(12, DT::dataTableOutput('study_preview')))
+                                  )
 # p2. plots boxes ----
-data_summary_box <- box(title = "Data Summary", status = "primary",
+data_summary_box <- box(title = "Data Summary", status = "info",
     solidHeader = TRUE, width = 12,
     fluidRow(column(12, DT::dataTableOutput('data_summary'))),
     br(),
@@ -212,7 +204,9 @@ body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
-    tabItem(tabName = "import", fluidRow(upload_box, movebank_login_box)),
+    tabItem(tabName = "import", fluidRow(upload_box, movebank_login_box),
+            fluidRow(movebank_studies_box, movebank_study_detail_box,
+                     movebank_study_preview_box)),
     tabItem(tabName = "plots",
             fluidRow(data_summary_box,
                      location_plot_box,
@@ -281,24 +275,10 @@ server <- function(input, output, session) {
       file_uploaded()
     }
   })
-
-  # previous version good for 2 options only.
-  # local_data <- reactive({
-  #   if (input$load_option == "ctmm") {
-  #     updateTabItems(session, "tabs", "plots")
-  #     data("buffalo")
-  #     buffalo
-  #   } else if (input$load_option == "upload") {
-  #     # we can add message here for debugging. checking null in the source should remove the needs of all the null check later because the ractive value stop here
-  #     # validate(need(!is.null(inFile), ""))
-  #     req(input$file1)
-  #     updateTabItems(session, "tabs", "plots")
-  #     as.telemetry(input$file1$datapath)
-  #   }
-  # })
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
+    showNotification("Updating data...", type = "message", duration = 4)
     merge_animals(req(values$input_data))
   })
   # 2.3 data summary ----
@@ -555,9 +535,6 @@ server <- function(input, output, session) {
       summary(fitted.mod)
     }
   })
-  # try calculating model early
-  # outputOptions(output, "model_summary",
-  #               suspendWhenHidden = FALSE, priority = 2)
   output$model_plot_1 <- renderPlot({
     ouf <- selected_model()
     plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
