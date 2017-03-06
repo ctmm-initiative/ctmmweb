@@ -27,8 +27,7 @@ remove.packages("ctmm")
 if (!require("devtools"))
   install.packages("devtools")
 devtools::install_github("rstudio/shiny")
-# stay on commit of 2017/02/23 
-devtools::install_github("ctmm-initiative/ctmm", ref = "a24eeab591c7b00a28406a9972a26878507a43a1")
+devtools::install_github("ctmm-initiative/ctmm")
 ```
 
 Other dependency packages will be automatically installed in the first run of app. Supposedly `ctmm` development version can also be installed automatically, but it may met problem in uninstalling older version if it was installed and loaded.

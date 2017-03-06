@@ -82,64 +82,58 @@ pretty_info <- function(info) {
   return(dt[, .(Identity, Start, End, Interval, Time_range)])
 }
 # merge list of telemetry obj into data frame with identity column, works with single tele obj
+wrap_single_telemetry <- function(tele_obj){
+  if (class(tele_obj) != "list") {
+    tele_obj <- list(tele_obj)
+    names(tele_obj) <- attr(tele_obj[[1]],"info")$identity
+  }
+  return(tele_obj)
+}
 # now both merge data and merge summary need to go through each individual, combine into one function. put info_selected in return list too. otherwise need to check null for null input in app init
 merge_animals <- function(tele_objs) {
-  # if we check null input here, no need to check it in shiny.
-  if (is.null(tele_objs)) {
-    return(NULL)
+  tele_objs <- wrap_single_telemetry(tele_objs)
+  animal_count <- length(tele_objs)
+  animal_data_list <- vector(mode = "list", length = animal_count)
+  animal_info_list <- vector(mode = "list", length = animal_count)
+  for (i in 1:animal_count) {
+    animal_data_list[[i]] <- data.table(data.frame(tele_objs[[i]]))
+    animal_data_list[[i]][, identity := tele_objs[[i]]@info$identity]
+    animal_info_list[[i]] <- animal_info(tele_objs[[i]])
   }
-  if (class(tele_objs) != "list") {
-    return(merge_animals(list(tele_objs)))
-  } else {
-    animal_count <- length(tele_objs)
-    animal_data_list <- vector(mode = "list", length = animal_count)
-    animal_info_list <- vector(mode = "list", length = animal_count)
-    for (i in 1:animal_count) {
-      animal_data_list[[i]] <- data.table(data.frame(tele_objs[[i]]))
-      animal_data_list[[i]][, identity := tele_objs[[i]]@info$identity]
-      animal_info_list[[i]] <- animal_info(tele_objs[[i]])
-    }
-    animals_data_dt <- rbindlist(animal_data_list)
-    # ggplot color need a factor column. if do factor in place, legend will have factor in name
-    animals_data_dt[, id := factor(identity)]
-    # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
-    animals_info_dt <- rbindlist(animal_info_list)
-  }
+  animals_data_dt <- rbindlist(animal_data_list)
+  # ggplot color need a factor column. if do factor in place, legend will have factor in name
+  animals_data_dt[, id := factor(identity)]
+  # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
+  animals_info_dt <- rbindlist(animal_info_list)
   return(list(data = animals_data_dt, info = animals_info_dt,
               info_print = pretty_info(animals_info_dt)))
 }
 
 # need the obj format, merged data frame format, level value
 get_ranges_quantile <- function(tele_objs, animals, level) {
-  if (is.null(tele_objs)) {
-    return(NULL)
+  tele_objs <- wrap_single_telemetry(tele_objs)
+  ext_list <- lapply(tele_objs, extent, level = level)
+  # no padding to avoid points filtered by quantile appear in plot
+  x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) / 2L
+  y_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$y) }))) / 2L
+  # need to filter data frame too otherwise the middle point is off
+  animal_list <- vector("list", length = length(tele_objs))
+  for (i in seq_along(tele_objs)) {
+    animal_list[[i]] <- animals[identity == names(ext_list)[i] &
+                                  x >= ext_list[[i]]["min", "x"] &
+                                  x <= ext_list[[i]]["max", "x"] &
+                                  y >= ext_list[[i]]["min", "y"] &
+                                  y <= ext_list[[i]]["max", "y"]]
   }
-  if (class(tele_objs) != "list") {
-    return(get_ranges_quantile(list(tele_objs), animals, level))
-  } else {
-    ext_list <- lapply(tele_objs, extent, level = level)
-    # no padding to avoid points filtered by quantile appear in plot
-    x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) / 2L
-    y_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$y) }))) / 2L
-    # need to filter data frame too otherwise the middle point is off
-    animal_list <- vector("list", length = length(tele_objs))
-    for (i in seq_along(tele_objs)) {
-      animal_list[[i]] <- animals[identity == names(ext_list)[i] &
-                                    x >= ext_list[[i]]["min", "x"] &
-                                    x <= ext_list[[i]]["max", "x"] &
-                                    y >= ext_list[[i]]["min", "y"] &
-                                    y <= ext_list[[i]]["max", "y"]]
-    }
-    animals_updated <- rbindlist(animal_list)
-    dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2,
-                              middle_y = (max(y) + min(y)) / 2),
-                          by = identity]
-    dt[, x_start := middle_x - x_diff_half]
-    dt[, x_end := middle_x + x_diff_half]
-    dt[, y_start := middle_y - y_diff_half]
-    dt[, y_end := middle_y + y_diff_half]
-    return(dt)
-  }
+  animals_updated <- rbindlist(animal_list)
+  dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2,
+                            middle_y = (max(y) + min(y)) / 2),
+                        by = identity]
+  dt[, x_start := middle_x - x_diff_half]
+  dt[, x_end := middle_x + x_diff_half]
+  dt[, y_start := middle_y - y_diff_half]
+  dt[, y_end := middle_y + y_diff_half]
+  return(dt)
 }
 
 # ggplot theme ----
