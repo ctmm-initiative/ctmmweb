@@ -146,14 +146,19 @@ bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
 center_title <- theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
 # movebank download ----
+# [blog post](https://tonybreyal.wordpress.com/2011/11/18/htmltotext-extracting-text-from-html-via-xpath/), [code](https://github.com/tonybreyal/Blog-Reference-Functions/blob/master/R/htmlToText/htmlToText.R)
+convert_html_to_text <- function(html) {
+  doc <- htmlParse(html, asText = TRUE)
+  text <- xpathSApply(doc, "//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)][not(ancestor::form)]", xmlValue)
+  return(text)
+}
+# leave the parsing of response to other functions
 request <- function(entity_type, user, pass){
   base_url <- "https://www.movebank.org/movebank/service/direct-read?entity_type="
   url <- paste0(base_url, entity_type)
-  res <- httr::GET(url, config = add_headers(user = user, password = pass))
-  return(httr::content(res, as = 'text', encoding = "UTF-8"))
+  httr::GET(url, config = add_headers(user = user, password = pass))
 }
 
 get_all_studies <- function(user, pass) {
-  res_cont <- request("study", user, pass)
-  return(res_cont)
+  return(request("study", user, pass))
 }

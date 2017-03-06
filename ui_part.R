@@ -64,7 +64,7 @@ movebank_login_box <- box(title = "Movebank Login",
 movebank_studies_box <- box(title = "Movebank Studies",
                             status = "primary",
                             solidHeader = TRUE, width = 12,
-                            fluidRow(column(12, htmlOutput("all_studies_response"))),
+                            fluidRow(column(12, textOutput("all_studies_response"))),
                             fluidRow(column(12, DT::dataTableOutput('studies')))
 )
 movebank_study_detail_box <- box(title = "Study Details",

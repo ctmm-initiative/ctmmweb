@@ -1,3 +1,6 @@
+# all helper functions are for server side
+source("helpers.R", local = TRUE)
+
 server <- function(input, output, session) {
   # p1. import ----
   # values got updated in observeEvent need this format.
@@ -18,6 +21,8 @@ server <- function(input, output, session) {
   # local data ----
   # clicking browse button without changing radio button should also update
   file_uploaded <- function(){
+    note_import <- showNotification(span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
+    on.exit(removeNotification(note_import))
     values$input_data <- as.telemetry(input$file1$datapath)
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
@@ -59,12 +64,14 @@ server <- function(input, output, session) {
     mb_user <- input$user
     mb_pass <- input$pass
     # check if downloading is successful
-    res_cont <- get_all_studies(mb_user, mb_pass)
-    # if not csv but html, show html response page
-    header <- str_sub(res_cont, end = 250)
-    if (str_detect(header, "<html>")) {
-      output$all_studies_response <- renderUI(HTML(res_cont))
-    } else if ("data.table" %in% class(fread(res_cont, nrows = 5))) {
+    res <- get_all_studies(mb_user, mb_pass)
+    if (http_status(res)$category != "Success") {
+      res_html <- httr::content(res, as = 'parsed', encoding = "UTF-8")
+      output$all_studies_response <- renderText(convert_html_to_text(res_html))
+      showNotification(convert_html_to_text(res_html))
+    } else {
+      res_cont <- httr::content(res, as = 'text', encoding = "UTF-8")
+
       downloaded_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
                            "number_of_individuals",
@@ -104,7 +111,8 @@ server <- function(input, output, session) {
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
     req(values$input_data)
-    showNotification(span(icon("spinner fa-spin"), "Updating data..."), type = "message", duration = 4)
+    # note_updating <- showNotification(span(icon("spinner fa-spin"), "Updating data..."), type = "message", duration = NULL)
+    # on.exit(removeNotification(note_updating))
     merge_animals(values$input_data)
   })
   # 2.3 data summary ----
@@ -137,7 +145,6 @@ server <- function(input, output, session) {
     }
   })
   # single selected ----
-
   values$selected_animal_no <- 1
   observeEvent(input$selected, {
     if (length(input$data_summary_rows_selected) != 1) {
