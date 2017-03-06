@@ -65,6 +65,11 @@ server <- function(input, output, session) {
     if (str_detect(header, "<html>")) {
       output$all_studies_response <- renderUI(HTML(res_cont))
     } else if ("data.table" %in% class(fread(res_cont, nrows = 5))) {
+      downloaded_cols <- c("id", "name", "study_objective",
+                           "number_of_deployments", "number_of_events",
+                           "number_of_individuals",
+                           "i_am_owner", "i_can_see_data", "license_terms"
+      )
       studies <- fread(res_cont, select = downloaded_cols)
 
       studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
