@@ -9,9 +9,20 @@
   right: 30%;
 }
 
-.shiny-notification {
+.shiny-notification-message {
   /*background-color: #00BEED;*/
   background-color: #39CCCC;
+  color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  opacity: 0.98;
+  padding: 10px 8px 10px 10px;
+  margin: 2px;
+}
+
+.shiny-notification-error {
+  /*background-color: #00BEED;*/
+  background-color: #FF5722;
   color: #ffffff;
   border: 1px solid #ccc;
   border-radius: 6px;

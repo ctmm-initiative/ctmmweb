@@ -51,7 +51,7 @@ server <- function(input, output, session) {
     mb_pass <- unname(mb_env["movebank_pass"])
     updateTextInput(session, "user", value = mb_user)
     updateTextInput(session, "pass", value = mb_pass)
-    showNotification("Movebank login info found", duration = 0.6, type = "warning")
+    showNotification("Movebank login info found", duration = 1, type = "message")
   }
   observeEvent(input$login_help, {
     showModal(modalDialog(
@@ -66,9 +66,8 @@ server <- function(input, output, session) {
     # check if downloading is successful
     res <- get_all_studies(mb_user, mb_pass)
     if (http_status(res)$category != "Success") {
-      res_html <- httr::content(res, as = 'parsed', encoding = "UTF-8")
-      output$all_studies_response <- renderText(convert_html_to_text(res_html))
-      showNotification(convert_html_to_text(res_html))
+      showNotification(paste0(http_status(res)$message, "\nDouble check login information"),
+                       duration = 5, type = "error")
     } else {
       res_cont <- httr::content(res, as = 'text', encoding = "UTF-8")
 
