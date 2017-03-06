@@ -75,7 +75,7 @@ pretty_info <- function(info) {
   dt[, Identity := identity]
   dt[, Interval := paste(round(sampling_interval_value, 1),
                                   sampling_interval_unit)]
-  dt[, Time_range := paste(round(sampling_range_value, 1), 
+  dt[, Time_range := paste(round(sampling_range_value, 1),
                                sampling_range_unit)]
   dt[, Start := format(sampling_start, "%Y-%m-%d %H:%M")]
   dt[, End := format(sampling_end, "%Y-%m-%d %H:%M")]
@@ -105,7 +105,7 @@ merge_animals <- function(tele_objs) {
     # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
     animals_info_dt <- rbindlist(animal_info_list)
   }
-  return(list(data = animals_data_dt, info = animals_info_dt, 
+  return(list(data = animals_data_dt, info = animals_info_dt,
               info_print = pretty_info(animals_info_dt)))
 }
 
@@ -115,12 +115,8 @@ get_ranges_quantile <- function(tele_objs, animals, level) {
     return(NULL)
   }
   if (class(tele_objs) != "list") {
-    # return(merge_animals(list(tele_objs)))
+    return(get_ranges_quantile(list(tele_objs), animals, level))
   } else {
-    # ext_list <- vector("list", length = length(tele_obj))
-    # for (i in seq_along(tele_obj)) {
-    #   ext_list[[i]] <- extent(tele_obj[[i]], level = level)
-    # }
     ext_list <- lapply(tele_objs, extent, level = level)
     # no padding to avoid points filtered by quantile appear in plot
     x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) / 2L
@@ -135,7 +131,7 @@ get_ranges_quantile <- function(tele_objs, animals, level) {
                                     y <= ext_list[[i]]["max", "y"]]
     }
     animals_updated <- rbindlist(animal_list)
-    dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2, 
+    dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2,
                               middle_y = (max(y) + min(y)) / 2),
                           by = identity]
     dt[, x_start := middle_x - x_diff_half]
@@ -154,3 +150,16 @@ bigger_theme <- theme(legend.key.size = unit(8, "mm"),
                       axis.text = element_text(size = 12))
 bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
 center_title <- theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+# movebank download ----
+request <- function(entity_type, user, pass){
+  base_url <- "https://www.movebank.org/movebank/service/direct-read?entity_type="
+  url <- paste0(base_url, entity_type)
+  res <- httr::GET(url, config = add_headers(user = user, password = pass))
+  return(httr::content(res, as = 'text', encoding = "UTF-8"))
+}
+
+get_all_studies <- function(user, pass) {
+  res_cont <- request("study", user, pass)
+  return(res_cont)
+}

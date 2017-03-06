@@ -412,6 +412,7 @@ server <- function(input, output, session) {
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
   # 1.4.3 individuals ----
+  # TODO fix bug for single animal input.
   output$location_plot_individual <- renderPlot({
     merged <- merge_data()
     animals <- merged$data
