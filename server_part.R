@@ -63,11 +63,13 @@ server <- function(input, output, session) {
   observeEvent(input$login, {
     mb_user <- input$user
     mb_pass <- input$pass
-    # check if downloading is successful
+    note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
     res <- get_all_studies(mb_user, mb_pass)
+    removeNotification(note_studies)
+    # check if downloading is successful
     if (http_status(res)$category != "Success") {
       showNotification(paste0(http_status(res)$message, "\nDouble check login information"),
-                       duration = 5, type = "error")
+                       duration = 4, type = "error")
     } else {
       res_cont <- httr::content(res, as = 'text', encoding = "UTF-8")
 

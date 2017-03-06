@@ -9,24 +9,22 @@
   right: 30%;
 }
 
+.shiny-notification {
+  opacity: 0.99;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+
 .shiny-notification-message {
-  /*background-color: #00BEED;*/
   background-color: #39CCCC;
   color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  opacity: 0.98;
-  padding: 10px 8px 10px 10px;
-  margin: 2px;
+  border: 1px solid #51cfdf;
 }
 
 .shiny-notification-error {
-  /*background-color: #00BEED;*/
   background-color: #FF5722;
   color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  opacity: 0.98;
-  padding: 10px 8px 10px 10px;
-  margin: 2px;
+  border: 1px solid #FF5722;
 }
+
