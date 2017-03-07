@@ -59,45 +59,48 @@ server <- function(input, output, session) {
   })
   # 1.3 movebank studies ----
   observeEvent(input$login, {
-    # always take current form value
-    mb_user <- input$user
-    mb_pass <- input$pass
     note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
-    res <- get_all_studies(mb_user, mb_pass)
+    # always take current form value
+    res <- get_all_studies(input$user, input$pass)
     removeNotification(note_studies)
-    req(res$status == "Success")
-    downloaded_cols <- c("id", "name", "study_objective",
-                         "number_of_deployments", "number_of_events",
-                         "number_of_individuals",
-                         "i_am_owner", "i_can_see_data", "license_terms")
-    studies <- fread(res$res_cont, select = downloaded_cols)
-    # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
-    studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
-    # update the global variable with <<-
-    valid_studies <<- studies[(i_can_see_data)]
-    new_names <- sub(".*_", "", downloaded_cols)
-    setnames(valid_studies, downloaded_cols, new_names)
-    setkey(valid_studies, name)
-    selected_cols <- c("id", "name",
-                       "deployments", "events",
-                       "individuals")
-    output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
-                                                    rownames = FALSE,
-                                                    selection = 'single'
-                                                    ))
-    output$all_studies_stat <- renderPrint({
-      cat("Total Studies Found: ", studies[, .N],
-          "; Studies you can see data: ", valid_studies[, .N])
-    })
+    # if failed, should clear previous studies table to avoid click on rows, which will update study details while the response is the error message text, not csv. then fread will have error to crash app
+    if (res$status != "Success") {
+      output$all_studies_stat <- renderText("")
+      output$studies <- DT::renderDataTable(NULL)
+      output$study_detail <- DT::renderDataTable(NULL)
+    } else {
+      downloaded_cols <- c("id", "name", "study_objective",
+                           "number_of_deployments", "number_of_events",
+                           "number_of_individuals",
+                           "i_am_owner", "i_can_see_data", "license_terms")
+      studies <- try(fread(res$res_cont, select = downloaded_cols))
+      # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
+      studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
+      # update the global variable with <<-
+      valid_studies <<- studies[(i_can_see_data)]
+      new_names <- sub(".*_", "", downloaded_cols)
+      setnames(valid_studies, downloaded_cols, new_names)
+      setkey(valid_studies, name)
+      selected_cols <- c("id", "name",
+                         "deployments", "events",
+                         "individuals")
+      output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
+                                                      rownames = FALSE,
+                                                      selection = 'single'
+      ))
+      output$all_studies_stat <- renderPrint({
+        cat("Total Studies Found: ", studies[, .N],
+            "; Studies you can see data: ", valid_studies[, .N])
+      })
+    }
+
   })
   # 1.4 selected details ----
   observeEvent(input$studies_rows_selected, {
     mb_id <- valid_studies[input$studies_rows_selected, id]
-    # always take current form value
-    mb_user <- input$user
-    mb_pass <- input$pass
-    res <- get_study_detail(mb_id, mb_user, mb_pass)
-    detail_dt <- fread(res$res_cont)
+    res <- get_study_detail(mb_id, input$user, input$pass)
+    detail_dt <- try(fread(res$res_cont))
+    req(class(detail_dt) == "data.table")
     # need to check content in case something wrong and code below generate error on empty table
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
@@ -114,7 +117,15 @@ server <- function(input, output, session) {
     }
   })
   # 1.4 download data ----
-
+  observeEvent(input$download, {
+    mb_id <- valid_studies[input$studies_rows_selected, id]
+    res <- get_study_data(mb_id, input$user, input$pass)
+    # need to check response content to determine result type
+    # error message
+    msg <- html_to_text(res$res_cont)
+    browser()
+    output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
+  })
   # 1.5 selected data preview ----
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
