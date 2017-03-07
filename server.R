@@ -105,6 +105,9 @@ server <- function(input, output, session) {
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
     } else{
+      drop_cols <- c("has_quota", "i_am_owner", "number_of_deployments", "number_of_events",
+                     "number_of_individuals", "suspend_license_terms", "i_can_see_data")
+      detail_dt[, (drop_cols) := NULL]
       # exclude empty columns (value of NA), show table as rows
       valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
       # will have some warning of coercing different column types, ignored.8
@@ -119,12 +122,22 @@ server <- function(input, output, session) {
   # 1.4 download data ----
   observeEvent(input$download, {
     mb_id <- valid_studies[input$studies_rows_selected, id]
+    note_data_download <- showNotification(span(icon("spinner fa-spin"), "Downloading data..."), type = "message", duration = NULL)
+    # always take current form value
     res <- get_study_data(mb_id, input$user, input$pass)
-    # need to check response content to determine result type
-    # error message
-    msg <- html_to_text(res$res_cont)
-    browser()
-    output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
+    removeNotification(note_data_download)
+    # need to check response content to determine result type. the status is always success
+    # # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
+    cont_dt <- try(fread(res$res_cont, sep = ",", nrows = 10))
+    if (class(cont_dt) != "data.table") {
+      msg <- html_to_text(res$res_cont)
+      output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
+      output$study_preview <- DT::renderDataTable(NULL)
+    } else {
+      output$study_data_response <- renderText("Data downloaded. Showing preview:")
+      output$study_preview <- DT::renderDataTable(datatable(cont_dt))
+    }
+
   })
   # 1.5 selected data preview ----
   # p2. plots ----
