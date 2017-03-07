@@ -65,40 +65,30 @@ server <- function(input, output, session) {
     note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
     res <- get_all_studies(mb_user, mb_pass)
     removeNotification(note_studies)
-    # check if downloading is successful
-    if (http_status(res)$category != "Success") {
-      showNotification(paste0(http_status(res)$message, "\nDouble check login information"),
-                       duration = 4, type = "error")
-      res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
-      txt <- html_to_text(res_cont)
-      formated_txt <- gsub("^ $", ": ", txt)
-      warning(formated_txt)
-    } else {
-      res_cont <- httr::content(res, as = 'text', encoding = "UTF-8")
-      downloaded_cols <- c("id", "name", "study_objective",
-                           "number_of_deployments", "number_of_events",
-                           "number_of_individuals",
-                           "i_am_owner", "i_can_see_data", "license_terms")
-      studies <- fread(res_cont, select = downloaded_cols)
-      # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
-      studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
-      # update the global variable with <<-
-      valid_studies <<- studies[(i_can_see_data)]
-      new_names <- sub(".*_", "", downloaded_cols)
-      setnames(valid_studies, downloaded_cols, new_names)
-      setkey(valid_studies, name)
-      selected_cols <- c("id", "name",
-                         "deployments", "events",
-                         "individuals")
-      output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
-                                                      rownames = FALSE,
-                                                      selection = 'single'
-                                                      ))
-      output$all_studies_stat <- renderPrint({
-        cat("Total Studies Found: ", studies[, .N],
-            "; Studies you can see data: ", valid_studies[, .N])
-      })
-    }
+    req(res$status == "Success")
+    downloaded_cols <- c("id", "name", "study_objective",
+                         "number_of_deployments", "number_of_events",
+                         "number_of_individuals",
+                         "i_am_owner", "i_can_see_data", "license_terms")
+    studies <- fread(res$res_cont, select = downloaded_cols)
+    # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
+    studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
+    # update the global variable with <<-
+    valid_studies <<- studies[(i_can_see_data)]
+    new_names <- sub(".*_", "", downloaded_cols)
+    setnames(valid_studies, downloaded_cols, new_names)
+    setkey(valid_studies, name)
+    selected_cols <- c("id", "name",
+                       "deployments", "events",
+                       "individuals")
+    output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
+                                                    rownames = FALSE,
+                                                    selection = 'single'
+                                                    ))
+    output$all_studies_stat <- renderPrint({
+      cat("Total Studies Found: ", studies[, .N],
+          "; Studies you can see data: ", valid_studies[, .N])
+    })
   })
   # 1.4 selected details ----
   observeEvent(input$studies_rows_selected, {
@@ -106,8 +96,8 @@ server <- function(input, output, session) {
     # always take current form value
     mb_user <- input$user
     mb_pass <- input$pass
-    res_cont <- get_study_detail(mb_id, mb_user, mb_pass)
-    detail_dt <- fread(res_cont)
+    res <- get_study_detail(mb_id, mb_user, mb_pass)
+    detail_dt <- fread(res$res_cont)
     # need to check content in case something wrong and code below generate error on empty table
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
@@ -122,8 +112,9 @@ server <- function(input, output, session) {
                                                            options = list(pageLength = 25),
                                                            selection = 'none'))
     }
-
   })
+  # 1.4 download data ----
+
   # 1.5 selected data preview ----
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
