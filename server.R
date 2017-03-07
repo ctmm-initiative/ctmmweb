@@ -8,18 +8,7 @@ server <- function(input, output, session) {
   values <- reactiveValues()
   # all reference of this value should wrap req around it: req(values$input_data)
   values$input_data <- NULL
-  # button UI events, not used now
-  # observeEvent(input$file1, {
-  #   req(input$file1)
-  #   values$input_data <- as.telemetry(input$file1$datapath)
-  #   updateTabItems(session, "tabs", "plots")
-  # })
-  # observeEvent(input$ctmm_data, {
-  #   data("buffalo")
-  #   values$input_data <- buffalo
-  #   updateTabItems(session, "tabs", "plots")
-  # })
-  # local data ----
+  # 1.1 local data ----
   # clicking browse button without changing radio button should also update
   file_uploaded <- function(){
     note_import <- showNotification(span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
@@ -44,6 +33,7 @@ server <- function(input, output, session) {
       file_uploaded()
     }
   })
+  # 1.2 movebank login ----
   # look up user R environment for movebank login
   mb_env <- Sys.getenv(c("movebank_user", "movebank_pass"))
   if (identical(sort(names(mb_env)), c("movebank_pass", "movebank_user")) &&
@@ -61,6 +51,7 @@ server <- function(input, output, session) {
       easyClose = TRUE
     ))
   })
+  # 1.3 movebank studies ----
   observeEvent(input$login, {
     mb_user <- input$user
     mb_pass <- input$pass
@@ -71,6 +62,11 @@ server <- function(input, output, session) {
     if (http_status(res)$category != "Success") {
       showNotification(paste0(http_status(res)$message, "\nDouble check login information"),
                        duration = 4, type = "error")
+      res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
+      txt <- html_to_text(res_cont)
+      formated_txt <- gsub("^ $", ": ", txt)
+      # indented_txt <- gsub("^", "  ", formated_txt)
+      warning(formated_txt)
     } else {
       res_cont <- httr::content(res, as = 'text', encoding = "UTF-8")
 
