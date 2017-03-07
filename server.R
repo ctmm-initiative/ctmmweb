@@ -108,12 +108,21 @@ server <- function(input, output, session) {
     mb_pass <- input$pass
     res_cont <- get_study_detail(mb_id, mb_user, mb_pass)
     detail_dt <- fread(res_cont)
-    # no need for notification or different process for error, an empty table is enough.
-    # exclude empty columns (value of NA), show table as rows
-    valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
-    # will have some warning of coercing different column types, ignored.8
-    detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
-    output$study_detail <- DT::renderDataTable(datatable(detail_rows, selection = 'none'))
+    # need to check content in case something wrong and code below generate error on empty table
+    if (detail_dt[, .N] == 0) {
+      showNotification("No study information downloaded", duration = 2, type = "error")
+    } else{
+      # exclude empty columns (value of NA), show table as rows
+      valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
+      # will have some warning of coercing different column types, ignored.8
+      detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
+      detail_rows[, id := NULL]
+      output$study_detail <- DT::renderDataTable(datatable(detail_rows,
+                                                           rownames = FALSE,
+                                                           options = list(pageLength = 25),
+                                                           selection = 'none'))
+    }
+
   })
   # 1.5 selected data preview ----
   # p2. plots ----

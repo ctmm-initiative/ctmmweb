@@ -15,7 +15,7 @@ sidebar <- dashboardSidebar(
   )
 )
 # p1. import boxes ----
-upload_box <- box(title = "Local Data",
+upload_box <- box(title = "Local Data Import",
                   status = "info", solidHeader = TRUE,
                   width = 6, height = height_data_import_box,
                   radioButtons('load_option', NULL,
@@ -53,6 +53,19 @@ movebank_studies_box <- box(title = "Movebank Studies",
 movebank_study_detail_box <- box(title = "Selected Study Details",
                                  status = "primary",
                                  solidHeader = TRUE, width = 12,
+                                 fluidRow(column(3, offset = 1, actionButton("download", "Download",
+                                                                 icon = icon("cloud-download"),
+                                                                 width = "80%",
+                                                                 style = page_action_style)),
+                                          column(3, offset = 1, actionButton("save", "Save",
+                                                                 icon = icon("floppy-o"),
+                                                                 width = "80%",
+                                                                 style = page_action_style)),
+                                          column(3, offset = 1, actionButton("import", "Import",
+                                                                 icon = icon("arrow-right"),
+                                                                 width = "80%",
+                                                                 style = page_action_style))),
+                                 hr(),
                                  fluidRow(column(12, DT::dataTableOutput("study_detail"))
                                           )
 )
