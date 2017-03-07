@@ -1,6 +1,7 @@
+# options(shiny.trace = TRUE)
+# options(shiny.trace = FALSE)
 # all helper functions are for server side
 source("helpers.R", local = TRUE)
-
 server <- function(input, output, session) {
   # p1. import ----
   # values got updated in observeEvent need this format.

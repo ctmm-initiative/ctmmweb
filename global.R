@@ -6,3 +6,22 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(shiny, shinydashboard, DT, ctmm, ggplot2, scales, gridExtra, data.table, lubridate, markdown, httr, stringr, XML)
 # increase the uploading file size limit to 200M
 options(shiny.maxRequestSize = 200*1024^2)
+
+# UI style constants ----
+# some are used in server call, so put them all here instead of ui.R
+height_data_import_box <- "244px"
+height_location_box <- "800px"
+height_plot_loc <- 730
+height_plot_3 <- 640
+# sampling time
+height_hist_box <- "350px"
+height_hist <- 280
+# time subsetting
+# not setting the box height make arrange multiple items easier.
+height_hist_subset_box <- "310px"
+height_hist_subset_output <- "150px"
+# height_selected_loc_box <- "480px"
+# height_selected_loc <- 480
+page_action_style <- "background-color: #FFEB3B;font-weight: 600;"
+help_button_style <- "background-color: #8bc34a;"
+# info box blue #00c0ef
