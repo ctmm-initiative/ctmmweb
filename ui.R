@@ -46,15 +46,16 @@ movebank_login_box <- box(title = "Movebank Login",
 movebank_studies_box <- box(title = "Movebank Studies",
                             status = "primary",
                             solidHeader = TRUE, width = 12,
-                            fluidRow(column(12, textOutput("all_studies_response"))),
+                            fluidRow(column(12, verbatimTextOutput("all_studies_stat"))),
                             fluidRow(column(12, DT::dataTableOutput('studies')))
+
 )
-movebank_study_detail_box <- box(title = "Study Details",
+movebank_study_detail_box <- box(title = "Selected Study Details",
                                  status = "primary",
                                  solidHeader = TRUE, width = 12,
                                  fluidRow(column(12, verbatimTextOutput("study_detail")))
 )
-movebank_study_preview_box <- box(title = "Study Data Preview",
+movebank_study_preview_box <- box(title = "Selected Study Data Preview",
                                   status = "primary",
                                   solidHeader = TRUE, width = 12,
                                   fluidRow(column(12, DT::dataTableOutput('study_preview')))

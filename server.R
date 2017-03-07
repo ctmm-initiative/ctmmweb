@@ -13,7 +13,11 @@ server <- function(input, output, session) {
   file_uploaded <- function(){
     note_import <- showNotification(span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
-    values$input_data <- as.telemetry(input$file1$datapath)
+    values$input_data <- tryCatch(as.telemetry(input$file1$datapath),
+                                  error = function(e) {
+                                    showNotification("Import error, check data again",
+                                                     duration = 4, type = "error")
+                                  })
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
   }
@@ -65,46 +69,36 @@ server <- function(input, output, session) {
       res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
       txt <- html_to_text(res_cont)
       formated_txt <- gsub("^ $", ": ", txt)
-      # indented_txt <- gsub("^", "  ", formated_txt)
       warning(formated_txt)
     } else {
       res_cont <- httr::content(res, as = 'text', encoding = "UTF-8")
-
       downloaded_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
                            "number_of_individuals",
-                           "i_am_owner", "i_can_see_data", "license_terms"
-      )
+                           "i_am_owner", "i_can_see_data", "license_terms")
       studies <- fread(res_cont, select = downloaded_cols)
-
-      studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
+      # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
       studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
       valid_studies <- studies[(i_can_see_data)]
       new_names <- sub(".*_", "", downloaded_cols)
       setnames(valid_studies, downloaded_cols, new_names)
+      setkey(valid_studies, name)
       selected_cols <- c("id", "name",
                          "deployments", "events",
-                         "individuals"
-      )
+                         "individuals")
       output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
                                                       rownames = FALSE,
                                                       selection = 'single'
                                                       ))
+      output$all_studies_stat <- renderPrint({
+        cat("Total Studies Found: ", studies[, .N],
+            "; Studies you can see data: ", valid_studies[, .N])
+      })
     }
-
-
-    # if downloaded, show some statistics
-    # valid_studies <- get_valid_studies(mb_user, mb_pass)
-    # selected_cols <- c("id", "name",
-    #                    "deployments", "events",
-    #                    "individuals"
-    # )
-    # output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
-    #                                                 rownames = FALSE,
-    #                                                 selection = 'single'
-    #                                                 )
-    #   )
   })
+  # 1.4 selected details ----
+
+  # 1.5 selected data preview ----
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
