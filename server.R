@@ -2,6 +2,8 @@
 # options(shiny.trace = FALSE)
 # all helper functions are for server side
 source("helpers.R", local = TRUE)
+# need the studies table visible in different functions. modify it with <<-
+valid_studies <- NULL
 server <- function(input, output, session) {
   # p1. import ----
   # values got updated in observeEvent need this format.
@@ -42,10 +44,10 @@ server <- function(input, output, session) {
   mb_env <- Sys.getenv(c("movebank_user", "movebank_pass"))
   if (identical(sort(names(mb_env)), c("movebank_pass", "movebank_user")) &&
       all(nchar(mb_env) != 0)) {
-    mb_user <- unname(mb_env["movebank_user"])
-    mb_pass <- unname(mb_env["movebank_pass"])
-    updateTextInput(session, "user", value = mb_user)
-    updateTextInput(session, "pass", value = mb_pass)
+    mb_user_env <- unname(mb_env["movebank_user"])
+    mb_pass_env <- unname(mb_env["movebank_pass"])
+    updateTextInput(session, "user", value = mb_user_env)
+    updateTextInput(session, "pass", value = mb_pass_env)
     showNotification("Movebank login info found", duration = 1, type = "message")
   }
   observeEvent(input$login_help, {
@@ -57,6 +59,7 @@ server <- function(input, output, session) {
   })
   # 1.3 movebank studies ----
   observeEvent(input$login, {
+    # always take current form value
     mb_user <- input$user
     mb_pass <- input$pass
     note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
@@ -79,7 +82,8 @@ server <- function(input, output, session) {
       studies <- fread(res_cont, select = downloaded_cols)
       # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
       studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
-      valid_studies <- studies[(i_can_see_data)]
+      # update the global variable with <<-
+      valid_studies <<- studies[(i_can_see_data)]
       new_names <- sub(".*_", "", downloaded_cols)
       setnames(valid_studies, downloaded_cols, new_names)
       setkey(valid_studies, name)
@@ -97,7 +101,20 @@ server <- function(input, output, session) {
     }
   })
   # 1.4 selected details ----
-
+  observeEvent(input$studies_rows_selected, {
+    mb_id <- valid_studies[input$studies_rows_selected, id]
+    # always take current form value
+    mb_user <- input$user
+    mb_pass <- input$pass
+    res_cont <- get_study_detail(mb_id, mb_user, mb_pass)
+    detail_dt <- fread(res_cont)
+    # no need for notification or different process for error, an empty table is enough.
+    # exclude empty columns (value of NA), show table as rows
+    valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
+    # will have some warning of coercing different column types, ignored.8
+    detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
+    output$study_detail <- DT::renderDataTable(datatable(detail_rows, selection = 'none'))
+  })
   # 1.5 selected data preview ----
   # p2. plots ----
   # merge obj list into data frame with identity column, easier for ggplot and summary

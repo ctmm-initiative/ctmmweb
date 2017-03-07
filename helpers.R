@@ -163,3 +163,9 @@ html_to_text <- function(html) {
   text <- xpathSApply(doc, "//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)][not(ancestor::form)]", xmlValue)
   return(text)
 }
+
+get_study_detail <- function(mb_id, user, pass) {
+  res <- request(paste0("study&study_id=", mb_id), user, pass)
+  # the response is always success even the id is not exist, so only one way to parse it
+  httr::content(res, as = 'text', encoding = "UTF-8")
+}

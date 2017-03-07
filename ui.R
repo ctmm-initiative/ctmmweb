@@ -53,7 +53,8 @@ movebank_studies_box <- box(title = "Movebank Studies",
 movebank_study_detail_box <- box(title = "Selected Study Details",
                                  status = "primary",
                                  solidHeader = TRUE, width = 12,
-                                 fluidRow(column(12, verbatimTextOutput("study_detail")))
+                                 fluidRow(column(12, DT::dataTableOutput("study_detail"))
+                                          )
 )
 movebank_study_preview_box <- box(title = "Selected Study Data Preview",
                                   status = "primary",
