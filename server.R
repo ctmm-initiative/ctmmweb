@@ -52,7 +52,7 @@ server <- function(input, output, session) {
   }
   observeEvent(input$login_help, {
     showModal(modalDialog(
-      title = "About Movebank user and password", size = "l",
+      title = "Movebank Login", size = "l",
       fluidPage(includeMarkdown("help/movebank_login.md")),
       easyClose = TRUE
     ))
@@ -140,6 +140,13 @@ server <- function(input, output, session) {
       output$study_preview <- DT::renderDataTable(datatable(cont_dt))
     }
 
+  })
+  observeEvent(input$download_help, {
+    showModal(modalDialog(
+      title = "Downloading Movebank data", size = "l",
+      fluidPage(includeMarkdown("help/movebank_download.md")),
+      easyClose = TRUE
+    ))
   })
   # 1.5 selected data preview ----
   # p2. plots ----

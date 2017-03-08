@@ -1,7 +1,9 @@
 # Movebank data download
 
-1. In all Movebank studies, only a part of them have data visible to your account, which are labeled with `i_can_see_data`. Only these studies are listed in table `Movebank Studies`.
-2. Not all studies have a valid number in `deployments`, `events` or `individuals`, that doesn't mean there is no data for download, just these information are not reported in the studies table.
-3. There is no way to predict whether a study have data to download.
-
-The error page said you can download the data once agreed to the license terms, however there are several possible cases:\n1. You need to agree the license terms before downloading. Go to www.movebank.org and search by movebank ID, try downloading there. \n2. Some data are not in Movebank but in other database. \n3. Some study page simply report 'No data are available for download.' without explanations."
+1. In all Movebank studies, only a part of them have data visible to your account. Only these studies are listed.
+2. Some studies don't have a valid number in `deployments`, `events` or `individuals`, but still have data available. 
+3. After clicking `Download`: 
+	- Success download will have a notification and have the data previewed.
+	- Sometimes the response is a page saying once you agree the license term the data can be downloaded. You will need to go to www.movebank.org and search by Movebank ID, try downloading there. 
+		+ There could be a pop up window asking to agree the license terms. After one time agreement you can download from Movebank or from the app later.
+		+ It's also possible there is actually no data available for download. The Movebank api response was not accurate in this case.
