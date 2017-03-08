@@ -25,7 +25,7 @@
 .shiny-notification-warning {
   background-color: #FFEB3B;
   color: #000000;
-  border: 1px solid #FFEB3B;
+  border: 1px solid #ffe082;
 }
 
 .shiny-notification-error {

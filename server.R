@@ -86,6 +86,7 @@ server <- function(input, output, session) {
                          "individuals")
       output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_studies_cols],
                                                       rownames = FALSE,
+                                                      options = list(pageLength = 5),
                                                       selection = 'single'
       ))
       output$all_studies_stat <- renderPrint({

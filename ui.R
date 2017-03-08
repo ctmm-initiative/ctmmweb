@@ -50,28 +50,34 @@ movebank_studies_box <- box(title = "Movebank Studies",
                             fluidRow(column(12, DT::dataTableOutput('studies')))
 
 )
-movebank_study_detail_box <- box(title = "Selected Study Details",
+movebank_study_detail_box <- box(title = "Selected Study Detail",
                                  status = "primary",
                                  solidHeader = TRUE, width = 12,
                                  fluidRow(column(3, actionButton("download", "Download",
                                                                  icon = icon("cloud-download"),
                                                                  width = "100%",
                                                                  style = page_action_style)),
-                                          column(3, offset = 2, actionButton("save", "Save",
-                                                                 icon = icon("floppy-o"),
-                                                                 width = "100%",
-                                                                 style = page_action_style)),
-                                          column(3, offset = 1, actionButton("import", "Import",
-                                                                 icon = icon("arrow-right"),
-                                                                 width = "100%",
-                                                                 style = page_action_style))),
+                                          column(3, offset = 6,
+                                                 actionButton("download_help",
+                                                              "Help",
+                                                              icon = icon("question"),
+                                                              width = "100%",
+                                                              style = help_button_style
+                                                 ))),
                                  hr(),
-                                 fluidRow(column(12, DT::dataTableOutput("study_detail"))
-                                          )
-)
-movebank_study_preview_box <- box(title = "Selected Study Data Preview",
+                                 fluidRow(column(12, DT::dataTableOutput("study_detail"))))
+movebank_study_preview_box <- box(title = "Selected Study Data",
                                   status = "primary",
                                   solidHeader = TRUE, width = 12,
+                                  fluidRow(column(3, actionButton("save", "Save",
+                                                                     icon = icon("floppy-o"),
+                                                                     width = "100%",
+                                                                     style = page_action_style)),
+                                           column(3, offset = 6, actionButton("import", "Import",
+                                                                     icon = icon("arrow-right"),
+                                                                     width = "100%",
+                                                                     style = page_action_style))),
+                                  hr(),
                                   fluidRow(column(12, verbatimTextOutput("study_data_response"))),
                                   fluidRow(column(12, DT::dataTableOutput('study_preview')))
 )
