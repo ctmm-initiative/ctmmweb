@@ -12,14 +12,20 @@
 .shiny-notification {
   opacity: 0.99;
   border-radius: 6px;
-  font-weight: 600;
+  /*font-weight: 600;*/
+  font-size: medium;
 }
-
 
 .shiny-notification-message {
   background-color: #39CCCC;
-  color: #ffffff;
+  color: #000000;
   border: 1px solid #51cfdf;
+}
+
+.shiny-notification-warning {
+  background-color: #FFEB3B;
+  color: #000000;
+  border: 1px solid #FFEB3B;
 }
 
 .shiny-notification-error {
@@ -27,4 +33,5 @@
   color: #ffffff;
   border: 1px solid #FF5722;
 }
+
 

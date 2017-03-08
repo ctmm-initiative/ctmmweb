@@ -69,22 +69,22 @@ server <- function(input, output, session) {
       output$studies <- DT::renderDataTable(NULL)
       output$study_detail <- DT::renderDataTable(NULL)
     } else {
-      downloaded_cols <- c("id", "name", "study_objective",
+      studies_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
                            "number_of_individuals",
                            "i_am_owner", "i_can_see_data", "license_terms")
-      studies <- try(fread(res$res_cont, select = downloaded_cols))
+      studies <- try(fread(res$res_cont, select = studies_cols))
       # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
       studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
       # update the global variable with <<-
       valid_studies <<- studies[(i_can_see_data)]
-      new_names <- sub(".*_", "", downloaded_cols)
-      setnames(valid_studies, downloaded_cols, new_names)
+      new_names <- sub(".*_", "", studies_cols)
+      setnames(valid_studies, studies_cols, new_names)
       setkey(valid_studies, name)
-      selected_cols <- c("id", "name",
+      selected_studies_cols <- c("id", "name",
                          "deployments", "events",
                          "individuals")
-      output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_cols],
+      output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_studies_cols],
                                                       rownames = FALSE,
                                                       selection = 'single'
       ))
@@ -99,15 +99,14 @@ server <- function(input, output, session) {
   observeEvent(input$studies_rows_selected, {
     mb_id <- valid_studies[input$studies_rows_selected, id]
     res <- get_study_detail(mb_id, input$user, input$pass)
-    detail_dt <- try(fread(res$res_cont))
+    # although there are 25 columns, it's easier to specify cols here to archive two goals: 1. drop some cols, reorder cols
+    detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
+    detail_dt <- try(fread(res$res_cont, select = detail_cols))
     req(class(detail_dt) == "data.table")
     # need to check content in case something wrong and code below generate error on empty table
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
     } else{
-      drop_cols <- c("has_quota", "i_am_owner", "number_of_deployments", "number_of_events",
-                     "number_of_individuals", "suspend_license_terms", "i_can_see_data")
-      detail_dt[, (drop_cols) := NULL]
       # exclude empty columns (value of NA), show table as rows
       valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
       # will have some warning of coercing different column types, ignored.8
@@ -115,7 +114,7 @@ server <- function(input, output, session) {
       detail_rows[, id := NULL]
       output$study_detail <- DT::renderDataTable(datatable(detail_rows,
                                                            rownames = FALSE,
-                                                           options = list(pageLength = 25),
+                                                           options = list(pageLength = 5),
                                                            selection = 'none'))
     }
   })
@@ -130,10 +129,12 @@ server <- function(input, output, session) {
     # # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
     cont_dt <- try(fread(res$res_cont, sep = ",", nrows = 10))
     if (class(cont_dt) != "data.table") {
+      showNotification("No data available for download", type = "warning", duration = 1.5)
       msg <- html_to_text(res$res_cont)
       output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
       output$study_preview <- DT::renderDataTable(NULL)
     } else {
+      showNotification("Data downloaded", type = "message", duration = 1.5)
       output$study_data_response <- renderText("Data downloaded. Showing preview:")
       output$study_preview <- DT::renderDataTable(datatable(cont_dt))
     }
