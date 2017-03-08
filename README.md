@@ -6,7 +6,9 @@ This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages
 
 Demo of some features:
 
-[![demo vido](http://img.youtube.com/vi/7vRktLa76Ho/0.jpg)](http://www.youtube.com/watch?v=7vRktLa76Ho "shiny prototype demo")
+[![demo 1](http://img.youtube.com/vi/7vRktLa76Ho/0.jpg)](http://www.youtube.com/watch?v=7vRktLa76Ho "shiny prototype demo")
+
+[![demo 2](http://img.youtube.com/vi/eKTo2L63TIE/0.jpg)](http://www.youtube.com/watch?v=eKTo2L63TIE "Movebank import demo")
 
 ## Installation
 
