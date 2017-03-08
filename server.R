@@ -107,7 +107,7 @@ server <- function(input, output, session) {
     # although there are 25 columns, it's easier to specify cols here to archive two goals: 1. drop some cols, reorder cols
     detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
     detail_dt <- try(fread(res$res_cont, select = detail_cols))
-    req(class(detail_dt) == "data.table")
+    req("data.table" %in% class(cont_dt))
     # need to check content in case something wrong and code below generate error on empty table
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
@@ -132,9 +132,11 @@ server <- function(input, output, session) {
     res <- get_study_data(mb_id, input$user, input$pass)
     removeNotification(note_data_download)
     # need to check response content to determine result type. the status is always success
-    # # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
+    # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
+    # sometimes the result is one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters
     cont_dt <- try(fread(res$res_cont, sep = ",", nrows = 10))
-    if (class(cont_dt) != "data.table") {
+    # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
+    if (!("data.table" %in% class(cont_dt))) {
       showNotification("No data available for download", type = "warning", duration = 1.5)
       msg <- html_to_text(res$res_cont)
       output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
