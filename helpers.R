@@ -52,6 +52,7 @@ by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
 
 # get single animal info in one row data frame
 animal_info <- function(object) {
+  # some data have one record for some individual, then diff will return NULL here.
   t_diff <- stats::median(diff(object$t))
   sampling_interval <- by_best_unit(t_diff, "time")
   t_range <- max(object$t) - min(object$t)
@@ -98,6 +99,7 @@ merge_animals <- function(tele_objs) {
   for (i in 1:animal_count) {
     animal_data_list[[i]] <- data.table(data.frame(tele_objs[[i]]))
     animal_data_list[[i]][, identity := tele_objs[[i]]@info$identity]
+    # print(i)
     animal_info_list[[i]] <- animal_info(tele_objs[[i]])
   }
   animals_data_dt <- rbindlist(animal_data_list)

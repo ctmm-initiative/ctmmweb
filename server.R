@@ -107,7 +107,7 @@ server <- function(input, output, session) {
     # although there are 25 columns, it's easier to specify cols here to archive two goals: 1. drop some cols, reorder cols
     detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
     detail_dt <- try(fread(res$res_cont, select = detail_cols))
-    req("data.table" %in% class(cont_dt))
+    req("data.table" %in% class(detail_dt))
     # need to check content in case something wrong and code below generate error on empty table
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
@@ -134,7 +134,7 @@ server <- function(input, output, session) {
     # need to check response content to determine result type. the status is always success
     # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
     # sometimes the result is one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters
-    cont_dt <- try(fread(res$res_cont, sep = ",", nrows = 10))
+    cont_dt <- try(fread(res$res_cont, sep = ",", nrows = 5))
     # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
     if (!("data.table" %in% class(cont_dt))) {
       showNotification("No data available for download", type = "warning", duration = 1.5)
@@ -154,7 +154,7 @@ server <- function(input, output, session) {
       individual_count <- length(unique(move_bank_dt[, individual_id]))
       output$study_data_response <- renderText(paste0(
         "Data downloaded with ", row_count, " rows, ", individual_count, " individuals. ",
-        "Preview 10 rows:"))
+        "Preview:"))
       output$study_preview <- DT::renderDataTable(datatable(cont_dt, options = list(dom = 't')))
     }
   })
@@ -170,7 +170,7 @@ server <- function(input, output, session) {
     filename = function() {
                   mb_id <- valid_studies[input$studies_rows_selected, id]
                   # avoid special characters that invalid for file name
-                  study_name <- gsub('[^\\w?]', ' ',
+                  study_name <- gsub('[^\\w]', ' ',
                                      valid_studies[input$studies_rows_selected, name],
                                      perl = TRUE)
                   paste0("Movebank ", mb_id, " - ", study_name, ".csv") },
