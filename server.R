@@ -87,8 +87,8 @@ server <- function(input, output, session) {
                                                         options = list(dom = 't')))
   values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
   # the whole data preview box should be cleared with all actions other than download, otherwise it could be confusing when there is a previous download and user made other actions
-  clear_mb_download <- function(){
-    values$study_data_response <- NULL
+  clear_mb_download <- function(res_msg = NULL){
+    values$study_data_response <- res_msg
     values$study_preview <- NULL
     values$move_bank_dt <- NULL
   }
@@ -170,7 +170,7 @@ server <- function(input, output, session) {
   # 1.4 download data ----
   observeEvent(input$download, {
     req(input$studies_rows_selected)
-    mb_id <- valid_studies[input$studies_rows_selected, id]
+    mb_id <- values$studies[input$studies_rows_selected, id]
     note_data_download <- showNotification(span(icon("spinner fa-spin"), "Downloading data..."),
                                            type = "message", duration = NULL)
     # always take current form value
@@ -184,25 +184,32 @@ server <- function(input, output, session) {
     if (!("data.table" %in% class(movebank_dt_preview))) {
       showNotification("No data available for download", type = "warning", duration = 1.5)
       msg <- html_to_text(res$res_cont)
-      output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
+      clear_mb_download(paste0(msg, collapse = "\n"))
+      # values$study_data_response <- paste0(msg, collapse = "\n")
+      # output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
       # data downloaded can be csv or html reponse, movebank_dt_preview can be dt or `try-error`, so we cannot just render movebank_dt_preview and use reactive values, need to clear the preview table and data dt manually. The logic is simple so this is still acceptable.
-      output$study_preview <- DT::renderDataTable(NULL)
+      # output$study_preview <- DT::renderDataTable(NULL)
       # clear previous downloaded valid data
-      move_bank_dt <<- move_bank_dt[0]
+      # move_bank_dt <<- move_bank_dt[0]
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
       note_parse <- showNotification(span(icon("spinner fa-spin"),
                                                    "Parsing csv..."),
                                               type = "message", duration = NULL)
-      move_bank_dt <<- try(fread(res$res_cont, sep = ","))
+      move_bank_dt <- try(fread(res$res_cont, sep = ","))
       removeNotification(note_parse)
       row_count <- formatC(move_bank_dt[, .N], format = "d", big.mark = ",")
       individual_count <- length(unique(move_bank_dt[, individual_id]))
-      output$study_data_response <- renderText(paste0(
-        "Data downloaded with ", row_count, " rows, ", individual_count, " individuals. ",
-        "Preview:"))
-      output$study_preview <- DT::renderDataTable(datatable(movebank_dt_preview,
-                                                            options = list(dom = 't')))
+      values$study_data_response <- paste0(
+          "Data downloaded with ", row_count, " rows, ", individual_count, " individuals. ",
+          "Preview:")
+      values$study_preview <- movebank_dt_preview
+      values$move_bank_dt <- move_bank_dt
+      # output$study_data_response <- renderText(paste0(
+      #   "Data downloaded with ", row_count, " rows, ", individual_count, " individuals. ",
+      #   "Preview:"))
+      # output$study_preview <- DT::renderDataTable(datatable(movebank_dt_preview,
+      #                                                       options = list(dom = 't')))
     }
   })
   observeEvent(input$download_help, {
@@ -215,20 +222,20 @@ server <- function(input, output, session) {
   # 1.5 save, import data ----
   output$save <- downloadHandler(
     filename = function() {
-                  mb_id <- valid_studies[input$studies_rows_selected, id]
+                  mb_id <- values$studies[input$studies_rows_selected, id]
                   # avoid special characters that invalid for file name
                   study_name <- gsub('[^\\w]', ' ',
-                                     valid_studies[input$studies_rows_selected, name],
+                                     values$studies[input$studies_rows_selected, name],
                                      perl = TRUE)
                   paste0("Movebank ", mb_id, " - ", study_name, ".csv") },
     content = function(file) {
-      req(move_bank_dt[, .N] > 0)
-      fwrite(move_bank_dt, file)
+      req(values$move_bank_dt[, .N] > 0)
+      fwrite(values$move_bank_dt, file)
     }
   )
   observeEvent(input$import, {
-    req(move_bank_dt[, .N] > 0)
-    data_import(move_bank_dt)
+    req(values$move_bank_dt[, .N] > 0)
+    data_import(values$move_bank_dt)
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
