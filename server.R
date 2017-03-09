@@ -62,6 +62,7 @@ server <- function(input, output, session) {
     ))
   })
   # 1.3 movebank studies ----
+  # 1.3, 1.4, 1.5 are linked. The contents are not using reactive expression because it depend on download actions
   observeEvent(input$login, {
     note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
     # always take current form value
@@ -98,13 +99,12 @@ server <- function(input, output, session) {
             "; Studies you can see data: ", valid_studies[, .N])
       })
     }
-
   })
   # 1.4 selected details ----
   observeEvent(input$studies_rows_selected, {
     mb_id <- valid_studies[input$studies_rows_selected, id]
     res <- get_study_detail(mb_id, input$user, input$pass)
-    # although there are 25 columns, it's easier to specify cols here to archive two goals: 1. drop some cols, reorder cols
+    # It's easier to specify cols here to drop some cols and reorder cols at the same time
     detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
     detail_dt <- try(fread(res$res_cont, select = detail_cols))
     req("data.table" %in% class(detail_dt))
@@ -112,19 +112,24 @@ server <- function(input, output, session) {
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
     } else{
-      # exclude empty columns (value of NA), show table as rows
+      # exclude empty columns (value of NA)
       valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
-      # will have some warning of coercing different column types, ignored.8
+      #  show table as rows. will have some warning of coercing different column types, ignored.
       detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
       detail_rows[, id := NULL]
       output$study_detail <- DT::renderDataTable(datatable(detail_rows,
                                                            rownames = FALSE,
                                                            options = list(pageLength = 5),
                                                            selection = 'none'))
+      # any selection in studies table should clear downloaded data table
+      output$study_data_response <- renderText("")
+      output$study_preview <- DT::renderDataTable(NULL)
+      move_bank_dt <<- move_bank_dt[0]
     }
   })
   # 1.4 download data ----
   observeEvent(input$download, {
+    req(input$studies_rows_selected)
     mb_id <- valid_studies[input$studies_rows_selected, id]
     note_data_download <- showNotification(span(icon("spinner fa-spin"), "Downloading data..."),
                                            type = "message", duration = NULL)
@@ -133,15 +138,16 @@ server <- function(input, output, session) {
     removeNotification(note_data_download)
     # need to check response content to determine result type. the status is always success
     # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
-    # sometimes the result is one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters
-    cont_dt <- try(fread(res$res_cont, sep = ",", nrows = 5))
+    # sometimes the result is one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file, generate some warnings. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters.
+    movebank_dt_preview <- try(fread(res$res_cont, sep = ",", nrows = 5))
     # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
-    if (!("data.table" %in% class(cont_dt))) {
+    if (!("data.table" %in% class(movebank_dt_preview))) {
       showNotification("No data available for download", type = "warning", duration = 1.5)
       msg <- html_to_text(res$res_cont)
       output$study_data_response <- renderText(paste0(msg, collapse = "\n"))
-      # data downloaded can be csv or html reponse, cont_dt can be dt or `try-error`, so we cannot just render cont_dt and use reactive values, need to clear the preview table and data dt manually. The logic is simple so this is still acceptable.
+      # data downloaded can be csv or html reponse, movebank_dt_preview can be dt or `try-error`, so we cannot just render movebank_dt_preview and use reactive values, need to clear the preview table and data dt manually. The logic is simple so this is still acceptable.
       output$study_preview <- DT::renderDataTable(NULL)
+      # clear previous downloaded valid data
       move_bank_dt <<- move_bank_dt[0]
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
@@ -155,7 +161,8 @@ server <- function(input, output, session) {
       output$study_data_response <- renderText(paste0(
         "Data downloaded with ", row_count, " rows, ", individual_count, " individuals. ",
         "Preview:"))
-      output$study_preview <- DT::renderDataTable(datatable(cont_dt, options = list(dom = 't')))
+      output$study_preview <- DT::renderDataTable(datatable(movebank_dt_preview,
+                                                            options = list(dom = 't')))
     }
   })
   observeEvent(input$download_help, {
