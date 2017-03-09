@@ -3,8 +3,8 @@
 # all helper functions are for server side
 source("helpers.R", local = TRUE)
 # some variables need to be visible across different functions. modify with <<-
-valid_studies <- NULL
-move_bank_dt <- NULL
+# valid_studies <- NULL
+# move_bank_dt <- NULL
 server <- function(input, output, session) {
   # p1. import ----
   # values got updated in observeEvent need this format.
@@ -50,6 +50,7 @@ server <- function(input, output, session) {
       all(nchar(mb_env) != 0)) {
     mb_user_env <- unname(mb_env["movebank_user"])
     mb_pass_env <- unname(mb_env["movebank_pass"])
+    # the textinput value are always sync to date, so we can just use textinput everywhere which is reactive
     updateTextInput(session, "user", value = mb_user_env)
     updateTextInput(session, "pass", value = mb_pass_env)
     showNotification("Movebank login info found", duration = 1, type = "message")
@@ -62,53 +63,90 @@ server <- function(input, output, session) {
     ))
   })
   # 1.3 movebank studies ----
-  # 1.3, 1.4, 1.5 are linked. The contents are not using reactive expression because it depend on download actions
+  # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
+  # all studies box
+  values$all_studies_stat <- NULL
+  output$all_studies_stat <- renderText(req(values$all_studies_stat))
+  values$studies <- NULL
+  output$studies <- DT::renderDataTable(datatable(req(values$studies),
+                                                  rownames = FALSE,
+                                                  options = list(pageLength = 5),
+                                                  selection = 'single'
+  ))
+  # selected data box
+  values$study_detail <- NULL
+  output$study_detail <- DT::renderDataTable(datatable(req(values$study_detail),
+                                                       rownames = FALSE,
+                                                       options = list(pageLength = 5),
+                                                       selection = 'none'))
+  # data preview box
+  values$study_data_response <- NULL
+  output$study_data_response <- renderText(req(values$study_data_response))
+  values$study_preview <- NULL
+  output$study_preview <- DT::renderDataTable(datatable(req(values$study_preview),
+                                                        options = list(dom = 't')))
+  values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
+  # the whole data preview box should be cleared with all actions other than download, otherwise it could be confusing when there is a previous download and user made other actions
+  clear_mb_download <- function(){
+    values$study_data_response <- NULL
+    values$study_preview <- NULL
+    values$move_bank_dt <- NULL
+  }
   observeEvent(input$login, {
     note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
     # always take current form value
-    res <- get_all_studies(input$user, input$pass)
+    res <- get_all_studies(input$user, input$pass)  # may generate error notification if failed
     removeNotification(note_studies)
     # if failed, should clear previous studies table to avoid click on rows, which will update study details while the response is the error message text, not csv. then fread will have error to crash app
     if (res$status != "Success") {
-      output$all_studies_stat <- renderText("")
-      output$studies <- DT::renderDataTable(NULL)
-      output$study_detail <- DT::renderDataTable(NULL)
+      # `request` in helper will generate error notification and console msg
+      # every action should compare to this list, verify what changes should be done to each value
+      values$all_studies_stat <- ""
+      values$studies <- NULL
+      values$study_detail <- NULL
+      clear_mb_download()
     } else {
       studies_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
                            "number_of_individuals",
                            "i_am_owner", "i_can_see_data", "license_terms")
-      studies <- try(fread(res$res_cont, select = studies_cols))
-      # studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
-      studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
+      all_studies <- try(fread(res$res_cont, select = studies_cols))
+      # all_studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
+      all_studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
       # update the global variable with <<-
-      valid_studies <<- studies[(i_can_see_data)]
+      valid_studies <- all_studies[(i_can_see_data)]
       new_names <- sub(".*_", "", studies_cols)
       setnames(valid_studies, studies_cols, new_names)
       setkey(valid_studies, name)
       selected_studies_cols <- c("id", "name",
                          "deployments", "events",
                          "individuals")
-      output$studies <- DT::renderDataTable(datatable(valid_studies[, ..selected_studies_cols],
-                                                      rownames = FALSE,
-                                                      options = list(pageLength = 5),
-                                                      selection = 'single'
-      ))
-      output$all_studies_stat <- renderPrint({
-        cat("Total Studies Found: ", studies[, .N],
-            "; Studies you can see data: ", valid_studies[, .N])
-      })
+      values$studies <- valid_studies[, ..selected_studies_cols]
+      # output$studies <- DT::renderDataTable(datatable(,
+      #                                                 rownames = FALSE,
+      #                                                 options = list(pageLength = 5),
+      #                                                 selection = 'single'
+      # ))
+      values$all_studies_stat <- paste0("Total Studies Found: ", all_studies[, .N],
+                                        "; Studies you can see data: ", values$studies[, .N])
+      # output$all_studies_stat <- renderPrint({
+      #   cat("Total Studies Found: ", studies[, .N],
+      #       "; Studies you can see data: ", valid_studies[, .N])
+      # })
+      values$study_detail <- NULL
+      clear_mb_download()
     }
   })
   # 1.4 selected details ----
   observeEvent(input$studies_rows_selected, {
-    mb_id <- valid_studies[input$studies_rows_selected, id]
+    mb_id <- values$studies[input$studies_rows_selected, id]
     res <- get_study_detail(mb_id, input$user, input$pass)
     # It's easier to specify cols here to drop some cols and reorder cols at the same time
     detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
     detail_dt <- try(fread(res$res_cont, select = detail_cols))
     req("data.table" %in% class(detail_dt))
     # need to check content in case something wrong and code below generate error on empty table
+    # never had error here because the mb_id came from table itself. so no extra clear up boxes
     if (detail_dt[, .N] == 0) {
       showNotification("No study information downloaded", duration = 2, type = "error")
     } else{
@@ -117,14 +155,16 @@ server <- function(input, output, session) {
       #  show table as rows. will have some warning of coercing different column types, ignored.
       detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
       detail_rows[, id := NULL]
-      output$study_detail <- DT::renderDataTable(datatable(detail_rows,
-                                                           rownames = FALSE,
-                                                           options = list(pageLength = 5),
-                                                           selection = 'none'))
+      values$study_detail <- detail_rows
+      # output$study_detail <- DT::renderDataTable(datatable(detail_rows,
+      #                                                      rownames = FALSE,
+      #                                                      options = list(pageLength = 5),
+      #                                                      selection = 'none'))
       # any selection in studies table should clear downloaded data table
-      output$study_data_response <- renderText("")
-      output$study_preview <- DT::renderDataTable(NULL)
-      move_bank_dt <<- move_bank_dt[0]
+      # output$study_data_response <- renderText("")
+      # output$study_preview <- DT::renderDataTable(NULL)
+      # move_bank_dt <<- move_bank_dt[0]
+      clear_mb_download()
     }
   })
   # 1.4 download data ----
