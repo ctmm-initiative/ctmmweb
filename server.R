@@ -13,7 +13,8 @@ server <- function(input, output, session) {
   values$input_data <- NULL
   # 1.1 local data ----
   data_import <- function(data) {
-    note_import <- showNotification(span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
+    # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
+    note_import <- showNotification(tags$span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     values$input_data <- tryCatch(as.telemetry(data),
                                   error = function(e) {
@@ -239,6 +240,7 @@ server <- function(input, output, session) {
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
   # selected ids and color ----
+  # when there are lots of animals, the color gradient is subtle for neighbors.
   select_animal <- reactive({
     id_vec <- merge_data()$info_print[, Identity]
     color_vec <- hue_pal()(length(id_vec))

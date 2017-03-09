@@ -52,8 +52,11 @@ by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
 
 # get single animal info in one row data frame
 animal_info <- function(object) {
-  # some data have one record for some individual, then diff will return NULL here.
-  t_diff <- stats::median(diff(object$t))
+  # some data have one record for some individual, diff will return numeric(0), then median got NULL
+  diffs <- diff(object$t)
+  t_diff <- ifelse(length(diffs) == 0,
+                   0,
+                   stats::median(diffs))
   sampling_interval <- by_best_unit(t_diff, "time")
   t_range <- max(object$t) - min(object$t)
   sampling_range <- by_best_unit(t_range, "time")
