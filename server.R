@@ -68,10 +68,17 @@ server <- function(input, output, session) {
   values$all_studies_stat <- NULL
   output$all_studies_stat <- renderText(req(values$all_studies_stat))
   values$studies <- NULL
-  output$studies <- DT::renderDataTable(datatable(req(values$studies),
-                                                  rownames = FALSE,
-                                                  options = list(pageLength = 5),
-                                                  selection = 'single'
+  # values$studies hold complete data, only render part of it according to reactive input
+  # only show selected cols because we don't want to show owner col. want to keep it insivibly so we can switch it on and off.
+  output$studies <- DT::renderDataTable(
+    datatable({
+      req(values$studies)
+      selected_studies_cols <- c("id", "name", "deployments", "events", "individuals")
+      values$studies[owner == input$data_manager, ..selected_studies_cols]
+      },
+      rownames = FALSE,
+      options = list(pageLength = 5),
+      selection = 'single'
   ))
   # selected data box
   values$study_detail <- NULL
@@ -112,16 +119,15 @@ server <- function(input, output, session) {
                            "i_am_owner", "i_can_see_data", "license_terms")
       all_studies <- try(fread(res$res_cont, select = studies_cols))
       all_studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
+      all_studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
       valid_studies <- all_studies[(i_can_see_data)]
       new_names <- sub(".*_", "", studies_cols)
       setnames(valid_studies, studies_cols, new_names)
       setkey(valid_studies, name)
-      selected_studies_cols <- c("id", "name",
-                         "deployments", "events",
-                         "individuals")
-      values$studies <- valid_studies[, ..selected_studies_cols]
-      values$all_studies_stat <- paste0("Total Studies Found: ", all_studies[, .N],
-                                        "; Studies you can see data: ", values$studies[, .N])
+      values$studies <- valid_studies
+      values$all_studies_stat <- paste0("Total Studies ", all_studies[, .N],
+                                        "; You can see data of ", values$studies[, .N],
+                                        "; ", values$studies[(owner), .N], " Owned by you")
       values$study_detail <- NULL
       clear_mb_download()
     }

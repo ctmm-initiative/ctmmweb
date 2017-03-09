@@ -1,7 +1,12 @@
 /* Make sure the filename doesn't extend past the bounds of the container */
 .shiny-input-container input[type=file] {
-  overflow: hidden;
+  /*overflow: hidden;*/
   max-width: 100%;
+}
+
+.checkbox label {
+  font-weight: 600;
+  font-size: small;
 }
 
 #shiny-notification-panel {
