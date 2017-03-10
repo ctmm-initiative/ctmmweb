@@ -128,7 +128,7 @@ server <- function(input, output, session) {
       values$studies <- valid_studies
       values$all_studies_stat <- paste0("Total Studies ", all_studies[, .N],
                                         "; You can see data of ", values$studies[, .N],
-                                        "; ", values$studies[(owner), .N], " Owned by you")
+                                        ";\nYou are data manager of ", values$studies[(owner), .N])
       values$study_detail <- NULL
       clear_mb_download()
     }
