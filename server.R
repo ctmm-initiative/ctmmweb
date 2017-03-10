@@ -226,11 +226,11 @@ server <- function(input, output, session) {
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
-    info <- merge_data()$info_print
+    info <- merge_data()$info[, .(identity, start, end, interval, interval_f, time_range, time_range_f)]
     datatable(info) %>%
-      formatStyle('Identity', target = 'row',
+      formatStyle('identity', target = 'row',
                   color =
-                    styleEqual(info$Identity,
+                    styleEqual(info$identity,
                                hue_pal()(nrow(info)))
       )}
   )
@@ -242,7 +242,7 @@ server <- function(input, output, session) {
   # selected ids and color ----
   # when there are lots of animals, the color gradient is subtle for neighbors.
   select_animal <- reactive({
-    id_vec <- merge_data()$info_print[, Identity]
+    id_vec <- merge_data()$info[, identity]
     color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
     selected_ids <- id_vec[input$data_summary_rows_selected]
@@ -307,7 +307,7 @@ server <- function(input, output, session) {
     merged <- merge_data()
     animals <- merged$data
     new_ranges <- get_ranges_quantile(req(values$input_data), animals, input$include_level)
-    id_vector <- merged$info_print$Identity
+    id_vector <- merged$info$identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
@@ -345,7 +345,7 @@ server <- function(input, output, session) {
   # p3. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
-    info <- merge_data()$info_print
+    info <- merge_data()$info
     dt <- info[values$selected_animal_no]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   }
@@ -356,7 +356,7 @@ server <- function(input, output, session) {
     bin_count <- input$bin_count
     merged <- merge_data()
     animals <- merged$data
-    id_vector <- merged$info_print$Identity
+    id_vector <- merged$info$identity
     color_vec <- hue_pal()(bin_count)
     data_i <- animals[identity == id_vector[values$selected_animal_no]]
     data_i[, color_bin_factor := cut(timestamp, bin_count)]
@@ -416,7 +416,10 @@ server <- function(input, output, session) {
                                              timestamp <= time_range$select_end],
                  aes(colour = color_bin_factor)) +
       scale_colour_manual(values = time_range$selected_color) +
-      labs(x = "x (meters)", y = "y (meters)") +
+      scale_x_continuous(labels = format_best_unit(max(animal_binned$data$x),
+                                                   "length")) +
+      scale_y_continuous(labels = format_best_unit(max(animal_binned$data$y),
+                                                   "length")) +
       coord_fixed() +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
