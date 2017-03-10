@@ -46,10 +46,14 @@
 # return a list with data value and natural unit
 # tried data frame but then data frame don't have data metadata in column names
 by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
-  test <- ctmm:::unit(data, dimension, thresh = 1, concise = FALSE)
-  return(list(value = data / test$scale, unit = test$name))
+  test <- ctmm:::unit(data, dimension, thresh = thresh, concise = concise)
+  # scale to be used by `scales` package, which is reversed.
+  return(list(value = data / test$scale, unit = test$name, scale = 1 / test$scale))
 }
-
+format_best_unit <- function(v, dimension) {
+  best_unit <- by_best_unit(v, dimension, concise = TRUE)
+  unit_format(unit = best_unit$unit, scale = best_unit$scale, digits = 2)
+}
 # get single animal info in one row data frame
 animal_info <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL

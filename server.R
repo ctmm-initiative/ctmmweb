@@ -264,7 +264,7 @@ server <- function(input, output, session) {
       updateTabItems(session, "tabs", "subset")
     }
   })
-  # 1.4.1 overview plot ----
+  # 2.4.1 overview plot ----
   values$ranges <- c(x = NULL, y = NULL)
   observeEvent(input$overview_dblclick, {
     brush <- input$overview_brush
@@ -283,23 +283,25 @@ server <- function(input, output, session) {
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
       coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
       scale_color_manual(values = select_animal()$colors) +
-      labs(x = "x (meters)", y = "y (meters)") +
+      scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
+      scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
-  # 1.4.2 facet ----
+  # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
-      labs(x = "x (meters)", y = "y (meters)") +
+      scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
+      scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
-  # 1.4.3 individuals ----
+  # 2.4.3 individuals ----
   # TODO fix bug for single animal input.
   output$location_plot_individual <- renderPlot({
     merged <- merge_data()
@@ -313,7 +315,9 @@ server <- function(input, output, session) {
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
-        labs(title = id_vector[i], x = "x (meters)", y = "y (meters)") +
+        scale_x_continuous(labels = format_best_unit(max(data_i$x), "length")) +
+        scale_y_continuous(labels = format_best_unit(max(data_i$y), "length")) +
+        labs(title = id_vector[i]) +
         theme(plot.title = element_text(hjust = 0.5)) +
         # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start,
         #                                  new_ranges_i$x_end,
@@ -329,7 +333,7 @@ server <- function(input, output, session) {
     }
     grid.arrange(grobs = g_list)
   }, height = height_plot_3, width = "auto")
-  # 1.5 histogram facet ----
+  # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x = timestamp, fill = id)) +
@@ -338,7 +342,7 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   }, height = height_hist, width = "auto")
-  # p2. subset ----
+  # p3. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     info <- merge_data()$info_print
@@ -363,7 +367,7 @@ server <- function(input, output, session) {
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
-  # 2.1 histogram subsetting ----
+  # 3.1 histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
@@ -393,7 +397,7 @@ server <- function(input, output, session) {
                 select_length = select_length,
                 selected_color = selected_color))
   })
-  # 2.2 current range ----
+  # 3.2 current range ----
   output$current_range <- DT::renderDataTable({
     dt <- data.frame(start = select_time_range()$select_start,
                      end = select_time_range()$select_end,
@@ -401,7 +405,7 @@ server <- function(input, output, session) {
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
   })
-  # 2.3 selected locations ----
+  # 3.3 selected locations ----
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- select_time_range()
@@ -418,7 +422,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_key
   })
-  # 2.4 time range table ----
+  # 3.4 time range table ----
   empty_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
   values$selected_time_ranges <- empty_ranges
   observeEvent(input$add_time, {
@@ -438,7 +442,7 @@ server <- function(input, output, session) {
     #            length = time_range$select_length)
     datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
-  # p3. variogram ----
+  # p4. variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- req(values$input_data)
     variogram(animal_1)
