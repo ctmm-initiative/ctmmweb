@@ -1,48 +1,5 @@
 # helper functions that useful to shiny app, only need to run once
 # to be placed in same directory of app.r/server.r
-# CHOOSE BEST UNITS FOR A LIST OF DATA. based on ctmm:unit, changed if else to switch
-# natural_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
-#   switch(
-#     dimension,
-#     length = {
-#       name.list <- c("meters", "kilometers")
-#       abrv.list <- c("m", "km")
-#       scale.list <- c(1, 1000)
-#     },
-#     area = {
-#       name.list <- c("square meters", "hectares", "square kilometers")
-#       abrv.list <- c("m^2", "hm^2", "km^2")
-#       scale.list <- c(1, 100 ^ 2, 1000 ^ 2)
-#     },
-#     time = {
-#       name.list <- c("seconds", "minutes", "hours", "days", "months", "years")
-#       abrv.list <- c("sec", "min", "hr", "day", "mon", "yr")
-#       scale.list <- c(1, 60 * c(1, 60 * c(1, 24 * c(1, 29.53059, 365.24))))
-#     },
-#     speed = {
-#       name.list <- c("meters/day", "kilometers/day")
-#       abrv.list <- c("m/day", "km/day")
-#       scale.list <- c(1, 1000) / (60 * 60 * 24)
-#     },
-#     diffusion = {
-#       name.list <-
-#         c("square meters/day", "hectares/day", "square kilometers/day")
-#       abrv.list <- c("m^2/day", "hm^2/day", "km^2/day")
-#       scale.list <- c(1, 100 ^ 2, 1000 ^ 2) / (60 * 60 * 24)
-#     }
-#   )
-#   max.data <- max(abs(data))
-#   if(concise) { name.list <- abrv.list }
-#   # choose most parsimonious units
-#   matches <- max.data > thresh * scale.list
-#   if(any(matches)){
-#     matches <- (1:length(matches))[matches]
-#     matches <- last(matches)
-#   } else { matches <- 1 }
-#   name <- name.list[matches]
-#   scale <- scale.list[matches]
-#   return(list(scale=scale,name=name))
-# }
 # return a list with data value and natural unit
 # tried data frame but then data frame don't have data metadata in column names
 by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
@@ -57,6 +14,8 @@ format_best_unit <- function(test_value, dimension) {
   best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   unit_format(unit = best_unit$unit, scale = best_unit$scale, digits = 2)
 }
+# for difftime, need non-concise units label to convert
+
 # get single animal info in one row data frame
 animal_info <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL

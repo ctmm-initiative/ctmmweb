@@ -390,18 +390,22 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
     select_length <- select_end - select_start
+    select_start_f <- format(select_start, "%Y-%m-%d %H:%M")
+    select_end_f <- format(select_end, "%Y-%m-%d %H:%M")
+    select_length_f <- format_best_unit(select_length, "time")(select_length)
     select_start_bin <- findInterval(select_start, animal_binned$color_bin_start_vec_time)
     select_end_bin <- findInterval(select_end, animal_binned$color_bin_start_vec_time)
     selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
     return(list(select_start = select_start, select_end = select_end,
-                select_length = select_length,
+                select_start_f = select_start_f, select_end_f = select_end_f,
+                select_length = select_length, select_length_f = select_length_f,
                 selected_color = selected_color))
   })
   # 3.2 current range ----
   output$current_range <- DT::renderDataTable({
-    dt <- data.frame(start = select_time_range()$select_start,
-                     end = select_time_range()$select_end,
-                     length = select_time_range()$select_length)
+    dt <- data.frame(start = select_time_range()$select_start_f,
+                     end = select_time_range()$select_end_f,
+                     length = select_time_range()$select_length_f)
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
   })
@@ -430,9 +434,9 @@ server <- function(input, output, session) {
   values$selected_time_ranges <- empty_ranges
   observeEvent(input$add_time, {
     l <- list(values$selected_time_ranges,
-              data.frame(start = select_time_range()$select_start,
-                         end = select_time_range()$select_end,
-                         length = select_time_range()$select_length))
+              data.frame(start = select_time_range()$select_start_f,
+                         end = select_time_range()$select_end_f,
+                         length = select_time_range()$select_length_f))
     values$selected_time_ranges <- rbindlist(l)
   })
   observeEvent(input$reset, {
@@ -441,8 +445,6 @@ server <- function(input, output, session) {
   # selected_times
   output$selected_ranges <- DT::renderDataTable({
     time_range <- select_time_range()
-    # dt <- data.frame(start = time_range$select_start, end = time_range$select_end,
-    #            length = time_range$select_length)
     datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p4. variogram ----
