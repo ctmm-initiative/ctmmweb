@@ -226,8 +226,8 @@ server <- function(input, output, session) {
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
-    info <- merge_data()$info[, .(identity, start, end, interval, interval_f, time_range, time_range_f)]
-    datatable(info) %>%
+    info <- merge_data()$info[, .(identity, start, end, interval_secs, interval, duration_secs, duration)]
+    datatable(info, options = list(scrollX = TRUE)) %>%
       formatStyle('identity', target = 'row',
                   color =
                     styleEqual(info$identity,
@@ -285,8 +285,8 @@ server <- function(input, output, session) {
       scale_color_manual(values = select_animal()$colors) +
       # scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
       # scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
-      scale_x_continuous(labels = format_unit_distance(animals$x)) +
-      scale_y_continuous(labels = format_unit_distance(animals$y)) +
+      scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
@@ -296,8 +296,8 @@ server <- function(input, output, session) {
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
-      scale_x_continuous(labels = format_unit_distance(animals$x)) +
-      scale_y_continuous(labels = format_unit_distance(animals$y)) +
+      scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
@@ -317,8 +317,8 @@ server <- function(input, output, session) {
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
-        scale_x_continuous(labels = format_unit_distance(data_i$x)) +
-        scale_y_continuous(labels = format_unit_distance(data_i$y)) +
+        scale_x_continuous(labels = format_unit_distance_f(data_i$x)) +
+        scale_y_continuous(labels = format_unit_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
         theme(plot.title = element_text(hjust = 0.5)) +
         # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start,
@@ -392,22 +392,24 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
     select_length <- select_end - select_start
-    select_start_f <- format(select_start, "%Y-%m-%d %H:%M")
-    select_end_f <- format(select_end, "%Y-%m-%d %H:%M")
-    select_length_f <- format_best_unit(select_length, "time")(select_length)
+    # select_start_f <- format(select_start, "%Y-%m-%d %H:%M")
+    # select_end_f <- format(select_end, "%Y-%m-%d %H:%M")
+    # select_length_f <- format_best_unit(select_length, "time")(select_length)
     select_start_bin <- findInterval(select_start, animal_binned$color_bin_start_vec_time)
     select_end_bin <- findInterval(select_end, animal_binned$color_bin_start_vec_time)
     selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
     return(list(select_start = select_start, select_end = select_end,
-                select_start_f = select_start_f, select_end_f = select_end_f,
-                select_length = select_length, select_length_f = select_length_f,
+                select_start_p = format_datetime(select_start),
+                select_end_p = format_datetime(select_end),
+                select_length = select_length,
+                select_length_p = format_diff_time(select_length),
                 selected_color = selected_color))
   })
   # 3.2 current range ----
   output$current_range <- DT::renderDataTable({
-    dt <- data.frame(start = select_time_range()$select_start_f,
-                     end = select_time_range()$select_end_f,
-                     length = select_time_range()$select_length_f)
+    dt <- data.frame(start = select_time_range()$select_start_p,
+                     end = select_time_range()$select_end_p,
+                     length = select_time_range()$select_length_p)
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
   })
@@ -422,8 +424,8 @@ server <- function(input, output, session) {
                                              timestamp <= time_range$select_end],
                  aes(colour = color_bin_factor)) +
       scale_colour_manual(values = time_range$selected_color) +
-      scale_x_continuous(labels = format_unit_distance(animal_binned$data$x)) +
-      scale_y_continuous(labels = format_unit_distance(animal_binned$data$y)) +
+      scale_x_continuous(labels = format_unit_distance_f(animal_binned$data$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animal_binned$data$y)) +
       coord_fixed() +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
@@ -434,9 +436,9 @@ server <- function(input, output, session) {
   values$selected_time_ranges <- empty_ranges
   observeEvent(input$add_time, {
     l <- list(values$selected_time_ranges,
-              data.frame(start = select_time_range()$select_start_f,
-                         end = select_time_range()$select_end_f,
-                         length = select_time_range()$select_length_f))
+              data.frame(start = select_time_range()$select_start_p,
+                         end = select_time_range()$select_end_p,
+                         length = select_time_range()$select_length_p))
     values$selected_time_ranges <- rbindlist(l)
   })
   observeEvent(input$reset, {
