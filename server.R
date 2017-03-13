@@ -160,7 +160,7 @@ server <- function(input, output, session) {
   observeEvent(input$download, {
     req(input$studies_rows_selected)
     mb_id <- values$studies[input$studies_rows_selected, id]
-    note_data_download <- showNotification(span(icon("spinner fa-spin"), "Downloading data..."),
+    note_data_download <- showNotification(shiny::span(icon("spinner fa-spin"), "Downloading data..."),
                                            type = "message", duration = NULL)
     # always take current form value
     res <- get_study_data(mb_id, input$user, input$pass)
@@ -176,7 +176,7 @@ server <- function(input, output, session) {
       clear_mb_download(paste0(msg, collapse = "\n"))
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
-      note_parse <- showNotification(span(icon("spinner fa-spin"),
+      note_parse <- showNotification(shiny::span(icon("spinner fa-spin"),
                                                    "Parsing csv..."),
                                               type = "message", duration = NULL)
       move_bank_dt <- try(fread(res$res_cont, sep = ","))
@@ -226,8 +226,13 @@ server <- function(input, output, session) {
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
-    info <- merge_data()$info[, .(identity, start, end, interval_secs, interval, duration_secs, duration)]
-    datatable(info, options = list(scrollX = TRUE)) %>%
+    info <- merge_data()$info[, .(identity, start, end, interval, duration)]
+    info_p <- copy(info)
+    if (input$time_unit == "normal") {
+      info_p[, interval := format_seconds_f(interval)(interval)]
+      info_p[, duration := format_seconds_f(duration)(duration)]
+    }
+    datatable(info_p) %>%
       formatStyle('identity', target = 'row',
                   color =
                     styleEqual(info$identity,
