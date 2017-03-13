@@ -4,7 +4,10 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem
-    menuItem("Import Data", tabName = "import", icon = icon("upload")),
+    menuItem("Data", tabName = "data", icon = icon("database"),
+             menuSubItem("Import Data", tabName = "import", icon = icon("upload")),
+             menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter"))),
+    # menuItem("Import Data", tabName = "import", icon = icon("upload")),
     menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
     menuItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
     menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
