@@ -1,25 +1,12 @@
 # helper functions that useful to shiny app, only need to run once
 # to be placed in same directory of app.r/server.r
-# return a list with data value and natural unit
-# tried data frame but then data frame don't have data metadata in column names
-# by_best_unit <- function(data, dimension, thresh = 1, concise) {
-#   test <- ctmm:::unit(data, dimension, thresh = thresh, concise = concise)
-#   # scale to be used by `scales` package, which is reversed.
-#   return(list(value = data / test$scale, unit = test$name, scale = 1 / test$scale))
-# }
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
-
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
 pick_best_unit_f <- function(test_value, dimension, concise) {
   # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   best_unit <- ctmm:::unit(test_value, dimension, thresh = 1, concise = concise)
   unit_format(unit = best_unit$name, scale = 1 / best_unit$scale, digits = 2)
 }
-# format_best_unit <- function(test_value, dimension) {
-#   best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
-#   unit_format(unit = best_unit$unit, scale = best_unit$scale, digits = 2)
-# }
-
 # function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
 format_unit_distance_f <- function(v){
   pick_best_unit_f(max(abs(v))/2, dimension = "length", concise = TRUE)
@@ -45,22 +32,11 @@ animal_info <- function(object) {
   sampling_interval <- ifelse(length(diffs) == 0,
                    0,
                    stats::median(diffs))
-  # sampling_interval <- by_best_unit(t_diff, "time")
-  # keep the interval value column and the formated column so we can switch
-  # sampling_interval_formated <- format_best_unit(sampling_interval,
-                                                  # "time")(sampling_interval)
-  # sampling_interval_formated <- format_seconds_f(sampling_interval)(sampling_interval)
   sampling_range <- max(object$t) - min(object$t)
-  # sampling_range_formated <- format_best_unit(sampling_range,
-  #                                              "time")(sampling_range)
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
   dt <- data.table(identity = object@info$identity,
-                   # sampling_interval_value = sampling_interval$value,
-                   # sampling_interval_unit = sampling_interval$unit,
-                   # sampling_range_value = sampling_range$value,
-                   # sampling_range_unit = sampling_range$unit,
                    interval_secs = sampling_interval,
                    interval = format_seconds_f(sampling_interval)(sampling_interval),
                    duration_secs = sampling_range,
@@ -71,14 +47,6 @@ animal_info <- function(object) {
                    end = format_datetime(t_end))
   return(dt)
 }
-# pretty print summary table. to avoid duplicate computation, use info slot or animal summary table as input, and merge function will return this by default
-# shiny DT will print numbers with lots of digits. there is formating function but we need a number and unit combination which doesn't work with the formating function. Have to format the number here.
-# pretty_info <- function(info) {
-#   dt <- info
-#   dt[, start := format(sampling_start, "%Y-%m-%d %H:%M")]
-#   dt[, end := format(sampling_end, "%Y-%m-%d %H:%M")]
-#   return(dt[, .(identity, Start, End, Interval, Interval_f, Time_range, Time_range_f)])
-# }
 # merge list of telemetry obj into data frame with identity column, works with single tele obj
 wrap_single_telemetry <- function(tele_obj){
   if (class(tele_obj) != "list") {
@@ -104,8 +72,6 @@ merge_animals <- function(tele_objs) {
   animals_data_dt[, id := factor(identity)]
   # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
   animals_info_dt <- rbindlist(animal_info_list)
-  # animals_info_dt[, start := format(sampling_start, "%Y-%m-%d %H:%M")]
-  # animals_info_dt[, end := format(sampling_end, "%Y-%m-%d %H:%M")]
   return(list(data = animals_data_dt, info = animals_info_dt))
 }
 # need the obj format, merged data frame format, level value
