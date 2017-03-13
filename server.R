@@ -14,7 +14,7 @@ server <- function(input, output, session) {
   # 1.1 local data ----
   data_import <- function(data) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
-    note_import <- showNotification(tags$span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
+    note_import <- showNotification(shiny::span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     values$input_data <- tryCatch(as.telemetry(data),
                                   error = function(e) {
@@ -101,7 +101,7 @@ server <- function(input, output, session) {
     values$move_bank_dt <- NULL
   }
   observeEvent(input$login, {
-    note_studies <- showNotification(span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
+    note_studies <- showNotification(shiny::span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
     # always take current form value
     res <- get_all_studies(input$user, input$pass)  # may generate error notification if failed
     removeNotification(note_studies)
@@ -283,8 +283,10 @@ server <- function(input, output, session) {
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
       coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
       scale_color_manual(values = select_animal()$colors) +
-      scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
-      scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
+      # scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
+      # scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
+      scale_x_continuous(labels = format_unit_distance(animals$x)) +
+      scale_y_continuous(labels = format_unit_distance(animals$y)) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
@@ -294,8 +296,8 @@ server <- function(input, output, session) {
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 1/3, data = animals, aes(colour = id)) +
-      scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
-      scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
+      scale_x_continuous(labels = format_unit_distance(animals$x)) +
+      scale_y_continuous(labels = format_unit_distance(animals$y)) +
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
@@ -315,8 +317,8 @@ server <- function(input, output, session) {
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
         geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
-        scale_x_continuous(labels = format_best_unit(max(data_i$x), "length")) +
-        scale_y_continuous(labels = format_best_unit(max(data_i$y), "length")) +
+        scale_x_continuous(labels = format_unit_distance(data_i$x)) +
+        scale_y_continuous(labels = format_unit_distance(data_i$y)) +
         labs(title = id_vector[i]) +
         theme(plot.title = element_text(hjust = 0.5)) +
         # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start,
@@ -420,10 +422,8 @@ server <- function(input, output, session) {
                                              timestamp <= time_range$select_end],
                  aes(colour = color_bin_factor)) +
       scale_colour_manual(values = time_range$selected_color) +
-      scale_x_continuous(labels = format_best_unit(max(animal_binned$data$x),
-                                                   "length")) +
-      scale_y_continuous(labels = format_best_unit(max(animal_binned$data$y),
-                                                   "length")) +
+      scale_x_continuous(labels = format_unit_distance(animal_binned$data$x)) +
+      scale_y_continuous(labels = format_unit_distance(animal_binned$data$y)) +
       coord_fixed() +
       theme(legend.position = "top",
             legend.direction = "horizontal") +

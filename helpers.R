@@ -2,7 +2,7 @@
 # to be placed in same directory of app.r/server.r
 # return a list with data value and natural unit
 # tried data frame but then data frame don't have data metadata in column names
-by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
+by_best_unit <- function(data, dimension, thresh = 1, concise) {
   test <- ctmm:::unit(data, dimension, thresh = thresh, concise = concise)
   # scale to be used by `scales` package, which is reversed.
   return(list(value = data / test$scale, unit = test$name, scale = 1 / test$scale))
@@ -10,9 +10,19 @@ by_best_unit <- function(data, dimension, thresh = 1, concise = FALSE) {
 # return a function that will apply the transformation to parameters
 # in ggplot just use the function as label parameter
 # in other places apply the function to input
+# generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
+pick_best_unit <- function(test_value, dimension, concise) {
+  # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
+  best_unit <- ctmm:::unit(test_value, dimension, thresh = 1, concise = concise)
+  unit_format(unit = best_unit$name, scale = 1 / best_unit$scale, digits = 2)
+}
 format_best_unit <- function(test_value, dimension) {
   best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   unit_format(unit = best_unit$unit, scale = best_unit$scale, digits = 2)
+}
+# function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
+format_unit_distance <- function(v){
+  pick_best_unit(max(abs(v))/2, dimension = "length", concise = TRUE)
 }
 # for difftime, need non-concise units label to convert
 
