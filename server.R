@@ -134,26 +134,54 @@ server <- function(input, output, session) {
     }
   })
   # 1.4 selected details ----
-  observeEvent(input$studies_rows_selected, {
-    mb_id <- values$studies[input$studies_rows_selected, id]
-    res <- get_study_detail(mb_id, input$user, input$pass)
-    # It's easier to specify cols here to drop some cols and reorder cols at the same time
-    detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
-    detail_dt <- try(fread(res$res_cont, select = detail_cols))
-    req("data.table" %in% class(detail_dt))
-    # need to check content in case something wrong and code below generate error on empty table
-    # never had error here because the mb_id came from table itself. so no extra clear up boxes
-    if (detail_dt[, .N] == 0) {
-      showNotification("No study information downloaded", duration = 2, type = "error")
-    } else{
-      # exclude empty columns (value of NA)
-      valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
-      #  show table as rows. will have some warning of coercing different column types, ignored.
-      detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
-      detail_rows[, id := NULL]
-      values$study_detail <- detail_rows
-      # any selection in studies table should clear downloaded data table
+
+  # # add link to movebank
+  # output$open_study <- renderUI({
+  #   req(input$studies_rows_selected)
+  #   mb_id <- values$studies[input$studies_rows_selected, id]
+  #   shiny::a(h4("Open in Movebank"), target = "_blank", href = paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id))
+  # })
+  # deselect row should clear detail table, so added ignoreNULL
+  observeEvent(input$studies_rows_selected, ignoreNULL = FALSE, {
+    if (length(input$studies_rows_selected) == 0) {
+      values$study_detail <- NULL
       clear_mb_download()
+    } else {
+      mb_id <- values$studies[input$studies_rows_selected, id]
+      # link to movebank
+      output$open_study <- renderUI({
+        req(input$studies_rows_selected)
+        # mb_id <- values$studies[input$studies_rows_selected, id]
+        # shiny::a(h4("Open in Movebank"), target = "_blank",
+        #          href = paste0("https://www.movebank.org/movebank/#page=studies,path=study",
+        #                        mb_id))
+        shiny::a(span(span("Open in Movebank",
+                           icon = icon("external-link")),
+                    class = "btn btn-default action-button",
+                    style = external_link_style),
+                 target = "_blank",
+                 href = paste0("https://www.movebank.org/movebank/#page=studies,path=study",
+mb_id))
+      })
+      res <- get_study_detail(mb_id, input$user, input$pass)
+      # It's easier to specify cols here to drop some cols and reorder cols at the same time
+      detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
+      detail_dt <- try(fread(res$res_cont, select = detail_cols))
+      req("data.table" %in% class(detail_dt))
+      # need to check content in case something wrong and code below generate error on empty table
+      # never had error here because the mb_id came from table itself. so no extra clear up boxes
+      if (detail_dt[, .N] == 0) {
+        showNotification("No study information downloaded", duration = 2, type = "error")
+      } else{
+        # exclude empty columns (value of NA)
+        valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
+        #  show table as rows. will have some warning of coercing different column types, ignored.
+        detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
+        detail_rows[, id := NULL]
+        values$study_detail <- detail_rows
+        # any selection in studies table should clear downloaded data table
+        clear_mb_download()
+      }
     }
   })
   # 1.4 download data ----
