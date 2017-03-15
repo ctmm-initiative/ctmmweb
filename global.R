@@ -23,6 +23,6 @@ height_hist_subset_output <- "150px"
 # height_selected_loc_box <- "480px"
 # height_selected_loc <- 480
 page_action_style <- "background-color: #FFEB3B;font-weight: 600;"
-external_link_style <- "background-color: #4eebff;font-weight: 600;"
+external_link_style <- "background-color: #a7c1fc;font-weight: 600;"
 help_button_style <- "background-color: #8bc34a;"
 # info box blue #00c0ef

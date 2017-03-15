@@ -134,13 +134,6 @@ server <- function(input, output, session) {
     }
   })
   # 1.4 selected details ----
-
-  # # add link to movebank
-  # output$open_study <- renderUI({
-  #   req(input$studies_rows_selected)
-  #   mb_id <- values$studies[input$studies_rows_selected, id]
-  #   shiny::a(h4("Open in Movebank"), target = "_blank", href = paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id))
-  # })
   # deselect row should clear detail table, so added ignoreNULL
   observeEvent(input$studies_rows_selected, ignoreNULL = FALSE, {
     if (length(input$studies_rows_selected) == 0) {
@@ -151,17 +144,12 @@ server <- function(input, output, session) {
       # link to movebank
       output$open_study <- renderUI({
         req(input$studies_rows_selected)
-        # mb_id <- values$studies[input$studies_rows_selected, id]
-        # shiny::a(h4("Open in Movebank"), target = "_blank",
-        #          href = paste0("https://www.movebank.org/movebank/#page=studies,path=study",
-        #                        mb_id))
-        shiny::a(span(span("Open in Movebank",
-                           icon = icon("external-link")),
-                    class = "btn btn-default action-button",
-                    style = external_link_style),
+        shiny::a(tags$button(icon("external-link"), "Open in Movebank",
+                             class = "btn btn-default action-button",
+                             style = external_link_style),
                  target = "_blank",
                  href = paste0("https://www.movebank.org/movebank/#page=studies,path=study",
-mb_id))
+                               mb_id))
       })
       res <- get_study_detail(mb_id, input$user, input$pass)
       # It's easier to specify cols here to drop some cols and reorder cols at the same time
