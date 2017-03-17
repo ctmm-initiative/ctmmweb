@@ -75,7 +75,7 @@ server <- function(input, output, session) {
     datatable({
       req(values$studies)
       selected_studies_cols <- c("id", "name", "deployments", "events", "individuals")
-      values$studies[owner == input$data_manager, ..selected_studies_cols]
+      values$studies[owner == input$data_manager, selected_studies_cols, with = FALSE]
       },
       rownames = FALSE,
       options = list(pageLength = 5),
