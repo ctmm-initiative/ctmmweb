@@ -101,15 +101,16 @@ data_summary_box <- box(title = "Data Summary", status = "info",
                                                                     style = page_action_style))
 
                         ))
+# relying naming convention here. use plot id with postfix for event name.
 location_plot_box <- tabBox(title = "Animal Locations",
                             id = "location_plot_tabs",
                             height = height_location_box, width = 12,
                             tabPanel("1. Overview", plotOutput("location_plot_gg",
-                                                               dblclick = "overview_dblclick",
-                                                               brush = brushOpts(
-                                                                 id = "overview_brush",
-                                                                 resetOnNew = TRUE
-                                                               ))),
+                                                     dblclick = "location_plot_gg_dblclick",
+                                                     brush = brushOpts(
+                                                       id = "location_plot_gg_brush",
+                                                       resetOnNew = TRUE
+                                                     ))),
                             tabPanel("2. Facet", plotOutput("location_plot_facet_fixed")),
                             tabPanel("3. Individuals",
                                      fluidRow(column(10, offset = 1,

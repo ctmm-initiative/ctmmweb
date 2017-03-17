@@ -288,28 +288,56 @@ server <- function(input, output, session) {
   # 2.4.1 overview plot ----
   # to add zoom in for a non-arranged plot:
   # 1. declare lim value in reactive value ranges
-  # 2. observe doubleclick event, update ranges with brush value
+  # 2. observe doubleclick event, update ranges with brush value. the event name came from ui.R plotOutput parameters, check trace message to verify.
   # 3. use range in plot xlim/ylim
-  # the simplest way to do this with abstraction assume this convention
-  values$ranges <- c(x = NULL, y = NULL)
-  observeEvent(input$overview_dblclick, {
-    brush <- input$overview_brush
-    if (!is.null(brush)) {
-      values$ranges$x <- c(brush$xmin, brush$xmax)
-      values$ranges$y <- c(brush$ymin, brush$ymax)
-    } else {
-      values$ranges$x <- NULL
-      values$ranges$y <- NULL
-    }
-  })
+  # the simplest way to do this with abstraction assume naming convention
+  # values$location_plot_gg_ranges <- c(x = NULL, y = NULL)
+  # observeEvent(input$overview_dblclick, {
+  #   brush <- input$overview_brush
+  #   if (!is.null(brush)) {
+  #     values$ranges$x <- c(brush$xmin, brush$xmax)
+  #     values$ranges$y <- c(brush$ymin, brush$ymax)
+  #   } else {
+  #     values$ranges$x <- NULL
+  #     values$ranges$y <- NULL
+  #   }
+  # })
+  # panel_name <- "location_plot_gg"
+  # add_zoom <- function(plot_id, reactive_ranges) {
+  #   reactive_ranges <<- c(x = NULL, y = NULL)
+  #   observeEvent(input[[paste0("location_plot_gg", "_dblclick")]], {
+  #     brush <- input[[paste0("location_plot_gg", "_brush")]]
+  #     if (!is.null(brush)) {
+  #       reactive_ranges$x <<- c(brush$xmin, brush$xmax)
+  #       reactive_ranges$y <<- c(brush$ymin, brush$ymax)
+  #     } else {
+  #       reactive_ranges$x <<- NULL
+  #       reactive_ranges$y <<- NULL
+  #     }
+  #   })
+  # }
+  # add_zoom("location_plot_gg", values$location_plot_gg_ranges)
 
+  lapply(list("location_plot_gg"), FUN = function(plot_id, reactive_ranges) {
+    reactive_ranges <<- c(x = NULL, y = NULL)
+    observeEvent(input[[paste0("location_plot_gg", "_dblclick")]], {
+      brush <- input[[paste0("location_plot_gg", "_brush")]]
+      if (!is.null(brush)) {
+        reactive_ranges$x <<- c(brush$xmin, brush$xmax)
+        reactive_ranges$y <<- c(brush$ymin, brush$ymax)
+      } else {
+        reactive_ranges$x <<- NULL
+        reactive_ranges$y <<- NULL
+      }
+    })
+  }, values$location_plot_gg_ranges)
 
   output$location_plot_gg <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
-      coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
+      coord_fixed(xlim = values$location_plot_gg_ranges$x, ylim = values$location_plot_gg_ranges$y) +
       scale_color_manual(values = select_animal()$colors) +
       scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
