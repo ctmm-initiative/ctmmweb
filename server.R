@@ -187,7 +187,7 @@ server <- function(input, output, session) {
     movebank_dt_preview <- try(fread(res$res_cont, sep = ",", nrows = 5))
     # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
     if (!("data.table" %in% class(movebank_dt_preview))) {
-      showNotification("No data available for download", type = "warning", duration = 1.5)
+      showNotification(h4("No data available or you need to agree to license term first."), type = "warning", duration = 5)
       msg <- html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
     } else {
@@ -286,6 +286,11 @@ server <- function(input, output, session) {
     }
   })
   # 2.4.1 overview plot ----
+  # to add zoom in for a non-arranged plot:
+  # 1. declare lim value in reactive value ranges
+  # 2. observe doubleclick event, update ranges with brush value
+  # 3. use range in plot xlim/ylim
+  # the simplest way to do this with abstraction assume this convention
   values$ranges <- c(x = NULL, y = NULL)
   observeEvent(input$overview_dblclick, {
     brush <- input$overview_brush
@@ -297,6 +302,8 @@ server <- function(input, output, session) {
       values$ranges$y <- NULL
     }
   })
+
+
   output$location_plot_gg <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
@@ -304,8 +311,6 @@ server <- function(input, output, session) {
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
       coord_fixed(xlim = values$ranges$x, ylim = values$ranges$y) +
       scale_color_manual(values = select_animal()$colors) +
-      # scale_x_continuous(labels = format_best_unit(max(animals$x), "length")) +
-      # scale_y_continuous(labels = format_best_unit(max(animals$y), "length")) +
       scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
       theme(legend.position = "top",
@@ -325,7 +330,6 @@ server <- function(input, output, session) {
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
   # 2.4.3 individuals ----
-  # TODO fix bug for single animal input.
   output$location_plot_individual <- renderPlot({
     merged <- merge_data()
     animals <- merged$data
@@ -342,13 +346,6 @@ server <- function(input, output, session) {
         scale_y_continuous(labels = format_unit_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
         theme(plot.title = element_text(hjust = 0.5)) +
-        # coord_fixed(xlim = zoom_in_range(new_ranges_i$x_start,
-        #                                  new_ranges_i$x_end,
-        #                                  input$zoom_ratio),
-        #             ylim = zoom_in_range(new_ranges_i$y_start,
-        #                                  new_ranges_i$y_end,
-        #                                  input$zoom_ratio),
-        #             expand = FALSE)
         coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
                     ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
                     expand = FALSE)
