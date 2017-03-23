@@ -150,7 +150,12 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
                          status = "primary", solidHeader = TRUE,
                          width = 12,
                          # height = height_selected_loc_box,
-                         plotOutput("selected_loc"))
+                         plotOutput("selected_loc",
+                                    dblclick = "selected_loc_dblclick",
+                                    brush = brushOpts(
+                                      id = "selected_loc_brush",
+                                      resetOnNew = TRUE
+                                    )))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
                            column(2, offset = 10, actionButton("reset", "Reset",

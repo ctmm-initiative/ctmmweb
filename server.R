@@ -286,58 +286,31 @@ server <- function(input, output, session) {
     }
   })
   # 2.4.1 overview plot ----
-  # to add zoom in for a non-arranged plot:
-  # 1. declare lim value in reactive value ranges
-  # 2. observe doubleclick event, update ranges with brush value. the event name came from ui.R plotOutput parameters, check trace message to verify.
+  # to add zoom in for a non-arranged plot, seem more in add_zoom.R and google group discussion
+  # 1. add event id in ui, always use same naming pattern with plotid. we can use global variables to record the naming pattern, but that's extra complexity for simple things.
+  # 2. call function to create reactive value of range
   # 3. use range in plot xlim/ylim
-  # the simplest way to do this with abstraction assume naming convention
-  # values$location_plot_gg_ranges <- c(x = NULL, y = NULL)
-  # observeEvent(input$overview_dblclick, {
-  #   brush <- input$overview_brush
-  #   if (!is.null(brush)) {
-  #     values$ranges$x <- c(brush$xmin, brush$xmax)
-  #     values$ranges$y <- c(brush$ymin, brush$ymax)
-  #   } else {
-  #     values$ranges$x <- NULL
-  #     values$ranges$y <- NULL
-  #   }
-  # })
-  # panel_name <- "location_plot_gg"
-  # add_zoom <- function(plot_id, reactive_ranges) {
-  #   reactive_ranges <<- c(x = NULL, y = NULL)
-  #   observeEvent(input[[paste0("location_plot_gg", "_dblclick")]], {
-  #     brush <- input[[paste0("location_plot_gg", "_brush")]]
-  #     if (!is.null(brush)) {
-  #       reactive_ranges$x <<- c(brush$xmin, brush$xmax)
-  #       reactive_ranges$y <<- c(brush$ymin, brush$ymax)
-  #     } else {
-  #       reactive_ranges$x <<- NULL
-  #       reactive_ranges$y <<- NULL
-  #     }
-  #   })
-  # }
-  # add_zoom("location_plot_gg", values$location_plot_gg_ranges)
-
-  lapply(list("location_plot_gg"), FUN = function(plot_id, reactive_ranges) {
-    reactive_ranges <<- c(x = NULL, y = NULL)
-    observeEvent(input[[paste0("location_plot_gg", "_dblclick")]], {
-      brush <- input[[paste0("location_plot_gg", "_brush")]]
+  add_zoom <- function(plot_id) {
+    ranges <- reactiveValues(x = NULL, y = NULL)
+    observeEvent(input[[paste0(plot_id, "_dblclick")]], {
+      brush <- input[[paste0(plot_id, "_brush")]]
       if (!is.null(brush)) {
-        reactive_ranges$x <<- c(brush$xmin, brush$xmax)
-        reactive_ranges$y <<- c(brush$ymin, brush$ymax)
+        ranges$x <- c(brush$xmin, brush$xmax)
+        ranges$y <- c(brush$ymin, brush$ymax)
       } else {
-        reactive_ranges$x <<- NULL
-        reactive_ranges$y <<- NULL
+        ranges$x <- NULL
+        ranges$y <- NULL
       }
     })
-  }, values$location_plot_gg_ranges)
-
+    ranges
+  }
+  location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
       geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
       geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
-      coord_fixed(xlim = values$location_plot_gg_ranges$x, ylim = values$location_plot_gg_ranges$y) +
+      coord_fixed(xlim = location_plot_gg_range$x, ylim = location_plot_gg_range$y) +
       scale_color_manual(values = select_animal()$colors) +
       scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
@@ -460,6 +433,7 @@ server <- function(input, output, session) {
       formatStyle(1, target = 'row', color = "#00c0ef")
   })
   # 3.3 selected locations ----
+  selected_loc_ranges <- add_zoom("selected_loc")
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- select_time_range()
@@ -472,7 +446,7 @@ server <- function(input, output, session) {
       scale_colour_manual(values = time_range$selected_color) +
       scale_x_continuous(labels = format_unit_distance_f(animal_binned$data$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animal_binned$data$y)) +
-      coord_fixed() +
+      coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_key
