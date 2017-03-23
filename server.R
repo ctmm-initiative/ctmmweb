@@ -187,7 +187,7 @@ server <- function(input, output, session) {
     movebank_dt_preview <- try(fread(res$res_cont, sep = ",", nrows = 5))
     # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
     if (!("data.table" %in% class(movebank_dt_preview))) {
-      showNotification(h4("No data available or you need to agree to license term first."), type = "warning", duration = 5)
+      showNotification(h4("No data available -- or you need to agree to license term first."), type = "warning", duration = 5)
       msg <- html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
     } else {
