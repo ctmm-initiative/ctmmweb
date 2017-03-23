@@ -275,7 +275,7 @@ server <- function(input, output, session) {
       return(list(ids = selected_ids, colors = selected_colors))
     }
   })
-  # single selected ----
+  # select single for next analysis ----
   values$selected_animal_no <- 1
   observeEvent(input$selected, {
     if (length(input$data_summary_rows_selected) != 1) {
@@ -308,8 +308,8 @@ server <- function(input, output, session) {
   output$location_plot_gg <- renderPlot({
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
-      geom_point(size = 0.1, alpha = 0.6, colour = "gray") +
-      geom_point(size = 0.1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
+      geom_point(size = input$point_size_1, alpha = 0.6, colour = "gray") +
+      geom_point(size = input$point_size_1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
       coord_fixed(xlim = location_plot_gg_range$x, ylim = location_plot_gg_range$y) +
       scale_color_manual(values = select_animal()$colors) +
       scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
@@ -318,6 +318,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   }, height = height_plot_loc, width = "auto")
+  # })
   # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     animals <- merge_data()$data
@@ -342,7 +343,7 @@ server <- function(input, output, session) {
       data_i <- animals[identity == id_vector[i]]
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
-        geom_point(size = 0.1, alpha = 1/3, color = color_vec[i]) +
+        geom_point(size = input$point_size_3, alpha = 0.7, color = color_vec[i]) +
         scale_x_continuous(labels = format_unit_distance_f(data_i$x)) +
         scale_y_continuous(labels = format_unit_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +

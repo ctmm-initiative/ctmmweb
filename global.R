@@ -10,7 +10,7 @@ options(shiny.maxRequestSize = 200*1024^2)
 # UI style constants ----
 # some are used in server call, so put them all here instead of ui.R
 height_data_import_box <- "244px"
-height_location_box <- "800px"
+height_location_box <- "900px"
 height_plot_loc <- 730
 height_plot_3 <- 640
 # sampling time
