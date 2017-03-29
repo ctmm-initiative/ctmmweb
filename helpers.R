@@ -9,10 +9,14 @@ pick_best_unit_f <- function(test_value, dimension, concise) {
 }
 # function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
 format_unit_distance_f <- function(v){
+  # didn't use median because it could be near zero with positive and negative values
   pick_best_unit_f(max(abs(v))/2, dimension = "length", concise = TRUE)
 }
 format_seconds_f <- function(secs) {
-  pick_best_unit_f(max(secs)/2, dimension = "time", concise = FALSE)
+  pick_best_unit_f(median(secs), dimension = "time", concise = FALSE)
+}
+format_speed_f <- function(speed) {
+  pick_best_unit_f(median(speed), dimension = "speed", concise = TRUE)
 }
 # intended for single input
 format_diff_time <- function(diff_t) {
