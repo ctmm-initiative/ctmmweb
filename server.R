@@ -412,9 +412,6 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
     select_length <- select_end - select_start
-    # select_start_f <- format(select_start, "%Y-%m-%d %H:%M")
-    # select_end_f <- format(select_end, "%Y-%m-%d %H:%M")
-    # select_length_f <- format_best_unit(select_length, "time")(select_length)
     select_start_bin <- findInterval(select_start, animal_binned$color_bin_start_vec_time)
     select_end_bin <- findInterval(select_end, animal_binned$color_bin_start_vec_time)
     selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
