@@ -4,12 +4,14 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem
-    menuItem("Data", tabName = "data", icon = icon("database"),
-             menuSubItem("Import Data", tabName = "import", icon = icon("upload")),
-             menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter"))),
-    # menuItem("Import Data", tabName = "import", icon = icon("upload")),
+    # menuItem("Data", tabName = "data", icon = icon("database"),
+    #          menuSubItem("Import Data", tabName = "import", icon = icon("upload")),
+    #          ),
+    menuItem("Import Data", tabName = "import", icon = icon("upload")),
     menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
-    menuItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
+    menuItem("Subset and Filter", tabName = "subset_filter", icon = icon("database"),
+             menuSubItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
+             menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter"))),
     menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
     menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
@@ -17,7 +19,7 @@ sidebar <- dashboardSidebar(
     menuItem("Help", tabName = "intro", icon = icon("question"))
   )
 )
-# p1. import boxes ----
+# p1. import ----
 upload_box <- box(title = "Local Data Import",
                   status = "info", solidHeader = TRUE,
                   width = 6, height = height_data_import_box,
@@ -80,7 +82,7 @@ movebank_study_preview_box <- box(title = "Selected Study Data",
                                   fluidRow(column(12, verbatimTextOutput("study_data_response"))),
                                   fluidRow(column(12, DT::dataTableOutput('study_preview')))
 )
-# p2. plots boxes ----
+# p2. plots ----
 data_summary_box <- box(title = "Data Summary", status = "info",
                         solidHeader = TRUE, width = 12,
                         fluidRow(column(12, DT::dataTableOutput('data_summary'))),
@@ -132,7 +134,7 @@ histogram_facet_box <- box(title = "Sampling Time",
                            status = "primary", solidHeader = TRUE,
                            width = 12, height = height_hist_box,
                            plotOutput("histogram_facet"))
-# p3. subset boxes ----
+# p3. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range",
                                 status = "info", solidHeader = TRUE, width = 12,
@@ -170,7 +172,9 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                            column(2, offset = 10, actionButton("reset", "Reset",
                                                                icon = icon("times"))),
                            DT::dataTableOutput('selected_ranges'))
-# p4. variogram boxes ----
+# p4. outlier ----
+
+# p5. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("vario_plot_1"))
