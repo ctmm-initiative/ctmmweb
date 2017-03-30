@@ -244,6 +244,7 @@ server <- function(input, output, session) {
   output$data_summary <- DT::renderDataTable({
     info <- merge_data()$info[, .(identity, start, end, interval, duration)]
     info_p <- copy(info)
+    # when switched back, the reactiv expression will evaluate again and get original copy again.
     if (input$time_unit == "normal") {
       info_p[, interval := format_seconds_f(interval)(interval)]
       info_p[, duration := format_seconds_f(duration)(duration)]
