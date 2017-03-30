@@ -9,9 +9,10 @@ sidebar <- dashboardSidebar(
     #          ),
     menuItem("Import Data", tabName = "import", icon = icon("upload")),
     menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
-    menuItem("Subset and Filter", tabName = "subset_filter", icon = icon("database"),
-             menuSubItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
-             menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter"))),
+    menuItem("Filter and Subset", tabName = "subset_filter", icon = icon("database"),
+             menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter")),
+             menuSubItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart"))
+             ),
     menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
     menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
