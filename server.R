@@ -242,18 +242,22 @@ server <- function(input, output, session) {
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
-    info <- merge_data()$info[, .(identity, start, end, interval, duration)]
-    info_p <- copy(info)
-    # when switched back, the reactiv expression will evaluate again and get original copy again.
+    # info_p <- copy(info)
+    # # when switched back, the reactiv expression will evaluate again and get original copy again.
+    # if (input$time_unit == "normal") {
+    #   info_p[, interval := format_seconds_f(interval)(interval)]
+    #   info_p[, duration := format_seconds_f(duration)(duration)]
+    # }
     if (input$time_unit == "normal") {
-      info_p[, interval := format_seconds_f(interval)(interval)]
-      info_p[, duration := format_seconds_f(duration)(duration)]
+      info_p <- merge_data()$info[, .(identity, start, end, interval, duration)]
+    } else {
+      info_p <- merge_data()$info[, .(identity, start, end, interval_s, duration_s)]
     }
     datatable(info_p) %>%
       formatStyle('identity', target = 'row',
                   color =
-                    styleEqual(info$identity,
-                               hue_pal()(nrow(info)))
+                    styleEqual(info_p$identity,
+                               hue_pal()(nrow(info_p)))
       )}
   )
   # 2.4.4 location basic plot
@@ -376,13 +380,13 @@ server <- function(input, output, session) {
   # selected animal data and color bins
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
-    bin_count <- input$bin_count
+    color_bins <- input$time_color_bins
     merged <- merge_data()
     animals <- merged$data
     id_vector <- merged$info$identity
-    color_vec <- hue_pal()(bin_count)
+    color_vec <- hue_pal()(color_bins)
     data_i <- animals[identity == id_vector[values$selected_animal_no]]
-    data_i[, color_bin_factor := cut(timestamp, bin_count)]
+    data_i[, color_bin_factor := cut(timestamp, color_bins)]
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_factor))
     color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])
     return(list(data = data_i,

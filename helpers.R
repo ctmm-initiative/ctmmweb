@@ -41,10 +41,10 @@ animal_info <- function(object) {
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
   dt <- data.table(identity = object@info$identity,
-                   interval = sampling_interval,
-                   # interval = format_seconds_f(sampling_interval)(sampling_interval),
-                   duration = sampling_range,
-                   # duration = format_seconds_f(sampling_range)(sampling_range),
+                   interval_s = sampling_interval,
+                   interval = format_seconds_f(sampling_interval)(sampling_interval),
+                   duration_s = sampling_range,
+                   duration = format_seconds_f(sampling_range)(sampling_range),
                    sampling_start = t_start,
                    sampling_end = t_end,
                    start = format_datetime(t_start),
