@@ -242,12 +242,6 @@ server <- function(input, output, session) {
   })
   # 2.3 data summary ----
   output$data_summary <- DT::renderDataTable({
-    # info_p <- copy(info)
-    # # when switched back, the reactiv expression will evaluate again and get original copy again.
-    # if (input$time_unit == "normal") {
-    #   info_p[, interval := format_seconds_f(interval)(interval)]
-    #   info_p[, duration := format_seconds_f(duration)(duration)]
-    # }
     if (input$time_unit == "normal") {
       info_p <- merge_data()$info[, .(identity, start, end, interval, duration)]
     } else {
@@ -255,9 +249,8 @@ server <- function(input, output, session) {
     }
     datatable(info_p) %>%
       formatStyle('identity', target = 'row',
-                  color =
-                    styleEqual(info_p$identity,
-                               hue_pal()(nrow(info_p)))
+                  color = styleEqual(info_p$identity,
+                                     hue_pal()(nrow(info_p)))
       )}
   )
   # 2.4.4 location basic plot
