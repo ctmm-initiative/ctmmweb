@@ -27,3 +27,22 @@ page_action_style <- "background-color: #FFEB3B;font-weight: 600;width:100%;"
 external_link_style <- "background-color: #a7c1fc;font-weight: 600;width:100%;"
 help_button_style <- "background-color: #8bc34a;width:100%;"
 # info box blue #00c0ef
+
+# UI modules ----
+help_button <- function(module_id) {
+  prefix <- NS(module_id)
+  actionButton(prefix("help"),
+               "Help",
+               icon = icon("question"),
+               style = help_button_style
+  )
+}
+click_help <- function(input, output, session, title, file){
+  observeEvent(input$help, {
+    showModal(modalDialog(
+      title = title, size = "l",
+      fluidPage(includeMarkdown(file)),
+      easyClose = TRUE, fade = FALSE
+    ))
+  })
+}

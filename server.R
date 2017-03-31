@@ -56,13 +56,14 @@ server <- function(input, output, session) {
     updateTextInput(session, "pass", value = mb_pass_env)
     showNotification("Movebank login info found", duration = 1, type = "message")
   }
-  observeEvent(input$login_help, {
-    showModal(modalDialog(
-      title = "Movebank Login", size = "l",
-      fluidPage(includeMarkdown("help/movebank_login.md")),
-      easyClose = TRUE
-    ))
-  })
+  # observeEvent(input$login_help, {
+  #   showModal(modalDialog(
+  #     title = "Movebank Login", size = "l",
+  #     fluidPage(includeMarkdown("help/movebank_login.md")),
+  #     easyClose = TRUE
+  #   ))
+  # })
+  callModule(click_help, "login", title = "Movebank Login", file = "help/movebank_login.md")
   # 1.3 movebank studies ----
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
   # all studies box
@@ -206,13 +207,15 @@ server <- function(input, output, session) {
       values$move_bank_dt <- move_bank_dt
     }
   })
-  observeEvent(input$download_help, {
-    showModal(modalDialog(
-      title = "Downloading Movebank data", size = "l",
-      fluidPage(includeMarkdown("help/movebank_download.md")),
-      easyClose = TRUE
-    ))
-  })
+  # observeEvent(input$download_help, {
+  #   showModal(modalDialog(
+  #     title = "Downloading Movebank data", size = "l",
+  #     fluidPage(includeMarkdown("help/movebank_download.md")),
+  #     easyClose = TRUE
+  #   ))
+  # })
+  callModule(click_help, "download", title = "Downloading Movebank data",
+             file = "help/movebank_download.md")
   # 1.5 save, import data ----
   output$save <- downloadHandler(
     filename = function() {
@@ -362,7 +365,10 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
   }, height = height_hist, width = "auto")
-  # p3. subset ----
+  # p3. outlier ----
+  callModule(click_help, "outlier", title = "Outliers in Distance/Speed",
+             file = "help/outlier.md")
+  # p4. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     info <- merge_data()$info
@@ -387,7 +393,7 @@ server <- function(input, output, session) {
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 color_bin_breaks = color_bin_breaks))
   })
-  # 3.1 histogram subsetting ----
+  # 4.1 histogram subsetting ----
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
@@ -420,7 +426,7 @@ server <- function(input, output, session) {
                 select_length_p = format_diff_time(select_length),
                 selected_color = selected_color))
   })
-  # 3.2 current range ----
+  # 4.2 current range ----
   output$current_range <- DT::renderDataTable({
     dt <- data.frame(start = select_time_range()$select_start_p,
                      end = select_time_range()$select_end_p,
@@ -428,7 +434,7 @@ server <- function(input, output, session) {
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
   })
-  # 3.3 selected locations ----
+  # 4.3 selected locations ----
   selected_loc_ranges <- add_zoom("selected_loc")
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
@@ -447,7 +453,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_key
   })
-  # 3.4 time range table ----
+  # 4.4 time range table ----
   empty_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
   values$selected_time_ranges <- empty_ranges
   observeEvent(input$add_time, {
@@ -465,7 +471,7 @@ server <- function(input, output, session) {
     time_range <- select_time_range()
     datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
-  # p4. variogram ----
+  # p5. variogram ----
   vg.animal_1 <- reactive({
     animal_1 <- req(values$input_data)
     variogram(animal_1)

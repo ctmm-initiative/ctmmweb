@@ -40,11 +40,13 @@ movebank_login_box <- box(title = "Movebank Login",
                                                           icon = icon("sign-in"),
                                                           style = page_action_style)),
                                    column(5, offset = 2,
-                                          actionButton("login_help",
-                                                       "Help",
-                                                       icon = icon("question"),
-                                                       style = help_button_style
-                                          ))
+                                          # actionButton("login_help",
+                                          #              "Help",
+                                          #              icon = icon("question"),
+                                          #              style = help_button_style
+                                          # )
+                                          help_button("login")
+                                          )
                           )
 )
 movebank_studies_box <- box(title = "Movebank Studies",
@@ -55,23 +57,26 @@ movebank_studies_box <- box(title = "Movebank Studies",
 )
 movebank_study_detail_box <- box(title = "Selected Study Detail",
                                  status = "primary", solidHeader = TRUE, width = 12,
-                                 fluidRow(column(4, actionButton("download", "Download",
+                                 fluidRow(column(3, actionButton("download", "Download",
                                                                  icon = icon("cloud-download"),
                                                                  style = page_action_style)),
-                                          column(4, uiOutput("open_study")),
-                                          column(4, actionButton("download_help",
-                                                                "Help",
-                                                                icon = icon("question"),
-                                                                style = help_button_style
-                                                 ))),
+                                          column(4, offset = 1, uiOutput("open_study")),
+                                          column(3, offset = 1,
+                                                 # actionButton("download_help",
+                                                 #                "Help",
+                                                 #                icon = icon("question"),
+                                                 #                style = help_button_style
+                                                 # )
+                                                 help_button("download")
+                                                 )),
                                  hr(),
                                  fluidRow(column(12, DT::dataTableOutput("study_detail"))))
 movebank_study_preview_box <- box(title = "Selected Study Data",
                                   status = "primary", solidHeader = TRUE, width = 12,
-                                  fluidRow(column(4, downloadButton("save", "Save",
+                                  fluidRow(column(3, downloadButton("save", "Save",
                                                         icon = icon("floppy-o"),
                                                         style = page_action_style)),
-                                           column(4, offset = 4, actionButton("import", "Import",
+                                           column(3, offset = 6, actionButton("import", "Import",
                                                                    icon = icon("arrow-right"),
                                                                    style = page_action_style))),
                                   hr(),
@@ -83,17 +88,17 @@ data_summary_box <- box(title = "Data Summary", status = "info",
                         solidHeader = TRUE, width = 12,
                         fluidRow(column(12, DT::dataTableOutput('data_summary'))),
                         br(),
-                        fluidRow(column(4, actionButton("outlier",
+                        fluidRow(column(3, actionButton("outlier",
                                                         "Detect Outliers",
                                                         icon = icon("filter"),
                                                         style = page_action_style)),
-                                 column(4, radioButtons("time_unit",
+                                 column(4, offset = 1, radioButtons("time_unit",
                                                 "Time range in:",
                                                 c("Seconds" = "secs",
                                                   "Normal unit" = "normal"),
                                                 selected = "normal",
                                                 inline = TRUE)),
-                                 column(4, actionButton("selected",
+                                 column(3, offset = 1, actionButton("selected",
                                                                     "Analyze Single",
                                                                     icon = icon("arrow-right"),
                                                                     style = page_action_style))
@@ -128,7 +133,58 @@ location_plot_box <- tabBox(title = "Animal Locations",
 histogram_facet_box <- box(title = "Sampling Time", height = height_hist_box,
                            status = "primary", solidHeader = TRUE, width = 12,
                            plotOutput("histogram_facet"))
-# p3. time subsetting ----
+# p3. outlier ----
+outlier_his_box <- box(title = "Outliers in Distance/Speed",
+                       status = "info", solidHeader = TRUE, width = 12,
+                       fluidRow(column(4,sliderInput("speed_his_bins", "Histogram Bins",
+                                                     min = 20, max = 50, value = 30, step = 1)),
+                                column(4, sliderInput("speed_his_y_limit",
+                                                      "Limit y axis",
+                                                      min = 10, max = 50, value = 20, step = 1)),
+                                column(4, sliderInput("speed_color_bins",
+                                                      "Color Bins", min = 2, max = 20, value = 7, step = 1))
+                       ),
+                       fluidRow(column(12, plotOutput("speed_histogram",
+                                                      brush = brushOpts(
+                                                        id = "speed_his_brush",
+                                                        direction = "x",
+                                                        stroke = "purple",
+                                                        fill = "blue",
+                                                        resetOnNew = TRUE)))),
+                       fluidRow(column(2, offset = 10, help_button("outlier"))))
+selected_outliers_box <- box(title = "Selected Outliers",
+                             status = "primary", solidHeader = TRUE, width = 12,
+                             fluidRow(column(12,
+                                             DT::dataTableOutput("selected_outliers"))),
+                             fluidRow(column(3, offset = 9,
+                                             actionButton("mark_outliers",
+                                                          "Mark as Outlier",
+                                                          icon = icon("flag"),
+                                                          style = page_action_style)))
+)
+outlier_plot_box <- box(title = "Selected Outliers Plot",
+                        status = "primary", solidHeader = TRUE, width = 12,
+                        fluidRow(column(12, plotOutput("outlier_plot"))))
+remove_outliers_box <- box(title = "Remove Outliers",
+                           status = "primary", solidHeader = TRUE, width = 12,
+                           fluidRow(column(9, h4("Outliers to be removed")),
+                                    column(3,
+                                           actionButton("remove_outliers",
+                                                        "Remove",
+                                                        icon = icon("trash-o"),
+                                                        style = page_action_style))),
+                           fluidRow(column(12,
+                                           DT::dataTableOutput("marked_outliers"))),
+                           hr(),
+                           fluidRow(column(9, h4("Removed outliers")),
+                                    column(3,
+                                           actionButton("reset_outliers",
+                                                        "Reset",
+                                                        icon = icon("ban"),
+                                                        style = page_action_style))),
+                           fluidRow(column(12,
+                                           DT::dataTableOutput("removed_outliers"))))
+# p4. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range",
                                 status = "info", solidHeader = TRUE, width = 12,
@@ -165,56 +221,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                            column(2, offset = 10, actionButton("reset", "Reset",
                                     icon = icon("ban"),style = page_action_style)),
                            DT::dataTableOutput('selected_ranges'))
-# p4. outlier ----
-outlier_his_box <- box(title = "Outliers in Distance/Speed",
-                       status = "info", solidHeader = TRUE, width = 12,
-                       fluidRow(column(4,sliderInput("speed_his_bins", "Histogram Bins",
-                                  min = 20, max = 50, value = 30, step = 1)),
-                                column(4, sliderInput("speed_his_y_limit",
-                                  "Limit y axis",
-                                  min = 10, max = 50, value = 20, step = 1)),
-                                column(4, sliderInput("speed_color_bins",
-                                  "Color Bins", min = 2, max = 20, value = 7, step = 1))
-                                ),
-                       fluidRow(column(12, plotOutput("speed_histogram",
-                                                      brush = brushOpts(
-                                                        id = "speed_his_brush",
-                                                        direction = "x",
-                                                        stroke = "purple",
-                                                        fill = "blue",
-                                                        resetOnNew = TRUE)))))
-selected_outliers_box <- box(title = "Selected Outliers",
-                             status = "primary", solidHeader = TRUE, width = 12,
-                             fluidRow(column(12,
-                                             DT::dataTableOutput("selected_outliers"))),
-                             fluidRow(column(3, offset = 9,
-                                             actionButton("mark_outliers",
-                                                          "Mark as Outlier",
-                                                          icon = icon("flag"),
-                                                          style = page_action_style)))
-                            )
-outlier_plot_box <- box(title = "Selected Outliers Plot",
-                        status = "primary", solidHeader = TRUE, width = 12,
-                        fluidRow(column(12, plotOutput("outlier_plot"))))
-remove_outliers_box <- box(title = "Remove Outliers",
-                           status = "primary", solidHeader = TRUE, width = 12,
-                           fluidRow(column(9, h4("Outliers to be removed")),
-                             column(3,
-                                           actionButton("remove_outliers",
-                                                        "Remove",
-                                                        icon = icon("trash-o"),
-                                                        style = page_action_style))),
-                           fluidRow(column(12,
-                                           DT::dataTableOutput("marked_outliers"))),
-                           hr(),
-                           fluidRow(column(9, h4("Removed outliers")),
-                             column(3,
-                                           actionButton("reset_outliers",
-                                                        "Reset",
-                                                        icon = icon("ban"),
-                                                        style = page_action_style))),
-                           fluidRow(column(12,
-                                           DT::dataTableOutput("removed_outliers"))))
+
 # p5. variogram boxes ----
 vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
                         status = "primary", solidHeader = TRUE,
