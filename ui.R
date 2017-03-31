@@ -21,9 +21,8 @@ sidebar <- dashboardSidebar(
   )
 )
 # p1. import ----
-upload_box <- box(title = "Local Data Import",
-                  status = "info", solidHeader = TRUE,
-                  width = 6, height = height_data_import_box,
+upload_box <- box(title = "Local Data Import", height = height_data_import_box,
+                  status = "info", solidHeader = TRUE, width = 6,
                   radioButtons('load_option', NULL,
                                c("Use Bufflo Data in ctmm" = 'ctmm',
                                  "Upload Movebank format file" = 'upload'),
@@ -49,16 +48,13 @@ movebank_login_box <- box(title = "Movebank Login",
                           )
 )
 movebank_studies_box <- box(title = "Movebank Studies",
-                            status = "primary",
-                            solidHeader = TRUE, width = 12,
+                            status = "primary", solidHeader = TRUE, width = 12,
                             fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                                      column(3, checkboxInput("data_manager", "Only show I'm data manager"))),
                             fluidRow(column(12, DT::dataTableOutput('studies')))
-
 )
 movebank_study_detail_box <- box(title = "Selected Study Detail",
-                                 status = "primary",
-                                 solidHeader = TRUE, width = 12,
+                                 status = "primary", solidHeader = TRUE, width = 12,
                                  fluidRow(column(4, actionButton("download", "Download",
                                                                  icon = icon("cloud-download"),
                                                                  style = page_action_style)),
@@ -71,8 +67,7 @@ movebank_study_detail_box <- box(title = "Selected Study Detail",
                                  hr(),
                                  fluidRow(column(12, DT::dataTableOutput("study_detail"))))
 movebank_study_preview_box <- box(title = "Selected Study Data",
-                                  status = "primary",
-                                  solidHeader = TRUE, width = 12,
+                                  status = "primary", solidHeader = TRUE, width = 12,
                                   fluidRow(column(4, downloadButton("save", "Save",
                                                         icon = icon("floppy-o"),
                                                         style = page_action_style)),
@@ -102,7 +97,6 @@ data_summary_box <- box(title = "Data Summary", status = "info",
                                                                     "Analyze Single",
                                                                     icon = icon("arrow-right"),
                                                                     style = page_action_style))
-
                         ))
 # relying naming convention here. use plot id with postfix for event name.
 location_plot_box <- tabBox(title = "Animal Locations",
@@ -131,9 +125,8 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                                          width = "100%"))),
                                      plotOutput("location_plot_individual")),
                             tabPanel("4. Basic Plot", plotOutput("location_plot_basic")))
-histogram_facet_box <- box(title = "Sampling Time",
-                           status = "primary", solidHeader = TRUE,
-                           width = 12, height = height_hist_box,
+histogram_facet_box <- box(title = "Sampling Time", height = height_hist_box,
+                           status = "primary", solidHeader = TRUE, width = 12,
                            plotOutput("histogram_facet"))
 # p3. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
@@ -152,16 +145,14 @@ histogram_subsetting_box <- box(title = "Select Time Range",
                                                                  fill = "blue",
                                                                  resetOnNew = TRUE)))))
 current_range_box <- box(title = "Current Time Range",
-                         status = "primary", solidHeader = TRUE,
-                         width = 12,
+                         status = "primary", solidHeader = TRUE, width = 12,
                          fluidRow(column(10, DT::dataTableOutput("current_range")),
                                   column(2, br(), br(),
                                          actionButton("add_time",
                                                       "Add", icon = icon("plus"),
                                                       style = page_action_style))))
 selected_plot_box <- box(title = "Locations in Selected Time Range",
-                         status = "primary", solidHeader = TRUE,
-                         width = 12,
+                         status = "primary", solidHeader = TRUE, width = 12,
                          # height = height_selected_loc_box,
                          plotOutput("selected_loc",
                                     dblclick = "selected_loc_dblclick",
@@ -193,8 +184,7 @@ outlier_his_box <- box(title = "Outliers in Distance/Speed",
                                                         fill = "blue",
                                                         resetOnNew = TRUE)))))
 selected_outliers_box <- box(title = "Selected Outliers",
-                             status = "primary", solidHeader = TRUE,
-                             width = 12,
+                             status = "primary", solidHeader = TRUE, width = 12,
                              fluidRow(column(12,
                                              DT::dataTableOutput("selected_outliers"))),
                              fluidRow(column(3, offset = 9,
@@ -204,13 +194,10 @@ selected_outliers_box <- box(title = "Selected Outliers",
                                                           style = page_action_style)))
                             )
 outlier_plot_box <- box(title = "Selected Outliers Plot",
-                        status = "primary", solidHeader = TRUE,
-                        width = 12,
+                        status = "primary", solidHeader = TRUE, width = 12,
                         fluidRow(column(12, plotOutput("outlier_plot"))))
 remove_outliers_box <- box(title = "Remove Outliers",
-                           status = "primary", solidHeader = TRUE,
-                           width = 12,
-
+                           status = "primary", solidHeader = TRUE, width = 12,
                            fluidRow(column(9, h4("Outliers to be removed")),
                              column(3,
                                            actionButton("remove_outliers",
