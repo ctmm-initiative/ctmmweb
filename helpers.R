@@ -10,13 +10,13 @@ pick_best_unit_f <- function(test_value, dimension, concise) {
 # function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
 format_unit_distance_f <- function(v){
   # didn't use median because it could be near zero with positive and negative values
-  pick_best_unit_f(max(abs(v))/2, dimension = "length", concise = TRUE)
+  pick_best_unit_f(max(abs(v), na.rm = TRUE)/2, dimension = "length", concise = TRUE)
 }
 format_seconds_f <- function(secs) {
-  pick_best_unit_f(median(secs), dimension = "time", concise = FALSE)
+  pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time", concise = FALSE)
 }
 format_speed_f <- function(speed) {
-  pick_best_unit_f(median(speed), dimension = "speed", concise = TRUE)
+  pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed", concise = TRUE)
 }
 # intended for single input
 format_diff_time <- function(diff_t) {
@@ -79,6 +79,7 @@ merge_animals <- function(tele_objs) {
   return(list(data = animals_data_dt, info = animals_info_dt))
 }
 # need the obj format, merged data frame format, level value
+# here we are using the tele_obj format and merged data frame format at the same time because the extent function need tele_obj format. When using with subset, need subset of both.
 get_ranges_quantile <- function(tele_objs, animals, level) {
   tele_objs <- wrap_single_telemetry(tele_objs)
   ext_list <- lapply(tele_objs, extent, level = level)
