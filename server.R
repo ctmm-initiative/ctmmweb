@@ -56,13 +56,6 @@ server <- function(input, output, session) {
     updateTextInput(session, "pass", value = mb_pass_env)
     showNotification("Movebank login info found", duration = 1, type = "message")
   }
-  # observeEvent(input$login_help, {
-  #   showModal(modalDialog(
-  #     title = "Movebank Login", size = "l",
-  #     fluidPage(includeMarkdown("help/movebank_login.md")),
-  #     easyClose = TRUE
-  #   ))
-  # })
   callModule(click_help, "login", title = "Movebank Login", file = "help/movebank_login.md")
   # 1.3 movebank studies ----
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
@@ -207,13 +200,6 @@ server <- function(input, output, session) {
       values$move_bank_dt <- move_bank_dt
     }
   })
-  # observeEvent(input$download_help, {
-  #   showModal(modalDialog(
-  #     title = "Downloading Movebank data", size = "l",
-  #     fluidPage(includeMarkdown("help/movebank_download.md")),
-  #     easyClose = TRUE
-  #   ))
-  # })
   callModule(click_help, "download", title = "Downloading Movebank data",
              file = "help/movebank_download.md")
   # 1.5 save, import data ----
@@ -243,14 +229,27 @@ server <- function(input, output, session) {
     # on.exit(removeNotification(note_updating))
     merge_animals(values$input_data)
   })
+  # input data may have outliers removed then return to visualization page. The outlier removal step is optional and can be repeated
+  # this came from outliers added to quene. vector of row_no. Compare to the actual rows, it's easier to remove rows by row_no from original data.
+  values$outliers_to_remove <- NULL
+  # outliers removed will be added here. vector of row_no
+  values$outliers_removed <- NULL
+  # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
+  current_data <- reactive({
+    req(values$input_data)
+    if (!is.null(values$outliers_to_remove)) {
+
+    }
+  })
   # 2.3 data summary ----
-  output$data_summary <- DT::renderDataTable({
+  output$individuals <- DT::renderDataTable({
     if (input$time_unit == "normal") {
       info_p <- merge_data()$info[, .(identity, start, end, interval, duration)]
     } else {
       info_p <- merge_data()$info[, .(identity, start, end, interval_s, duration_s)]
     }
-    datatable(info_p) %>%
+    datatable(info_p, options = list(pageLength = 6,
+                                     lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
       formatStyle('identity', target = 'row',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
@@ -261,28 +260,29 @@ server <- function(input, output, session) {
     tele_objs <- req(values$input_data)
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
-  # selected ids and color ----
+  # ids and color to be plotted ----
   # when there are lots of animals, the color gradient is subtle for neighbors.
-  select_animal <- reactive({
+  chose_animal <- reactive({
+    # req(input$individuals_rows_current)
     id_vec <- merge_data()$info[, identity]
     color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
-    selected_ids <- id_vec[input$data_summary_rows_selected]
-    selected_colors <- color_vec[id_vec %in% selected_ids]
-    if (length(selected_ids) == 0) {
-      # select all when there is no selection
-      return(list(ids = id_vec, colors = color_vec))
+    if (length(input$individuals_rows_selected) == 0) {
+      # select all in current page when there is no selection
+      chosen_ids <- id_vec[input$individuals_rows_current]
     } else {
-      return(list(ids = selected_ids, colors = selected_colors))
+      chosen_ids <- id_vec[input$individuals_rows_selected]
     }
+    chosen_colors <- color_vec[id_vec %in% chosen_ids]
+    return(list(ids = chosen_ids, colors = chosen_colors))
   })
   # select single for next analysis ----
   values$selected_animal_no <- 1
   observeEvent(input$selected, {
-    if (length(input$data_summary_rows_selected) != 1) {
+    if (length(input$individuals_rows_selected) != 1) {
       showNotification("Please select single Animal.", type = "error")
     } else {
-      values$selected_animal_no <- input$data_summary_rows_selected
+      values$selected_animal_no <- input$individuals_rows_selected
       updateTabItems(session, "tabs", "subset")
     }
   })
@@ -310,9 +310,9 @@ server <- function(input, output, session) {
     animals <- merge_data()$data
     ggplot(data = animals, aes(x, y)) +
       geom_point(size = input$point_size_1, alpha = 0.6, colour = "gray") +
-      geom_point(size = input$point_size_1, alpha = 0.7, data = animals[identity %in% select_animal()$ids], aes(colour = id)) +
+      geom_point(size = input$point_size_1, alpha = 0.7, data = animals[identity %in% chose_animal()$ids], aes(colour = id)) +
       coord_fixed(xlim = location_plot_gg_range$x, ylim = location_plot_gg_range$y) +
-      scale_color_manual(values = select_animal()$colors) +
+      scale_color_manual(values = chose_animal()$colors) +
       scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
       theme(legend.position = "top",

@@ -84,9 +84,9 @@ movebank_study_preview_box <- box(title = "Selected Study Data",
                                   fluidRow(column(12, DT::dataTableOutput('study_preview')))
 )
 # p2. plots ----
-data_summary_box <- box(title = "Data Summary", status = "info",
+data_summary_box <- box(title = "Individuals", status = "info",
                         solidHeader = TRUE, width = 12,
-                        fluidRow(column(12, DT::dataTableOutput('data_summary'))),
+                        fluidRow(column(12, DT::dataTableOutput('individuals'))),
                         br(),
                         fluidRow(column(3, actionButton("outlier",
                                                         "Detect Outliers",
