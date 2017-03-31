@@ -315,8 +315,10 @@ server <- function(input, output, session) {
   output$location_plot_gg <- renderPlot({
     animals <- req(chose_animal()$data)
     ggplot() +
-      geom_point(data = merge_data()$data, aes(x, y),
-                 size = input$point_size_1, alpha = 0.6, colour = "gray") +
+      {if (input$overlay_all) {
+        geom_point(data = merge_data()$data, aes(x, y),
+                   size = input$point_size_1, alpha = 0.6, colour = "gray")
+      }} +
       geom_point(data = animals, aes(x, y, colour = id),
                  size = input$point_size_1, alpha = 0.7) +
       coord_fixed(xlim = location_plot_gg_range$x, ylim = location_plot_gg_range$y) +
