@@ -276,10 +276,10 @@ server <- function(input, output, session) {
     }
     chosen_ids <- id_vec[chosen_row_nos]
     chosen_colors <- color_vec[id_vec %in% chosen_ids]
-    # we always use id this way so return data directly. range_quantile need tele obj, here we have the id row number so easy to subset tele obj. always returning these two obj may use more memory, but no need to optmize now.
+    # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. since it was only used once, return id row number to subset in usage.
     return(list(data = merge_data()$data[identity %in% chosen_ids],
                 info = merge_data()$info[identity %in% chosen_ids],
-                tele_objs = values$input_data[chosen_row_nos],
+                row_nos = chosen_row_nos,
                 colors = chosen_colors))
   })
   # select single for next analysis ----
@@ -347,7 +347,8 @@ server <- function(input, output, session) {
   # 2.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
     animals <- req(chose_animal()$data)
-    new_ranges <- get_ranges_quantile(chose_animal()$tele_objs, animals, input$include_level)
+    tele_objs <- values$input_data[chose_animal()$row_nos]
+    new_ranges <- get_ranges_quantile(tele_objs, animals, input$include_level)
     id_vector <- chose_animal()$info$identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
