@@ -282,7 +282,7 @@ server <- function(input, output, session) {
     # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. include it here because the data may actually have subset, outlier removal applied, we cannot take from input directly anymore.
     return(list(data = current_animals()$data[identity %in% chosen_ids],
                 info = current_animals()$info[identity %in% chosen_ids],
-                tele_objs = values$input_data[chosen_row_nos],
+                # tele_objs = values$input_data[chosen_row_nos],
                 # row_nos = chosen_row_nos,
                 colors = chosen_colors))
   })
@@ -339,7 +339,7 @@ server <- function(input, output, session) {
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
     animals_dt <- req(chose_animal()$data)
     ggplot(data = animals_dt, aes(x, y)) +
-      geom_point(size = 0.1, alpha = 1/3, aes(colour = id)) +
+      geom_point(size = 0.1, aes(colour = id)) +
       scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
       scale_color_manual(values = chose_animal()$colors) +
@@ -351,9 +351,10 @@ server <- function(input, output, session) {
   # 2.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(chose_animal()$data)
-    new_ranges <- get_ranges_quantile(chose_animal()$tele_objs, animals_dt, input$include_level)
+    # new_ranges <- get_ranges_quantile(chose_animal()$tele_objs, animals_dt, input$include_level)
+    new_ranges <- get_ranges_quantile_dt(animals_dt, input$include_level)
     id_vector <- chose_animal()$info$identity
-    color_vec <- hue_pal()(length(id_vector))
+    color_vec <- chose_animal()$colors
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
       data_i <- animals_dt[identity == id_vector[i]]

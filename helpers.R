@@ -81,10 +81,37 @@ merge_animals <- function(tele_objs) {
 }
 # need the obj format, merged data frame format, level value
 # here we are using the tele_obj format and merged data frame format at the same time because the extent function need tele_obj format. When using with subset, need subset of both.
-# ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame.
-extent_df <- function(animals_dt, level) {
-
+# ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm:::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22
+extent_dt <- function(animals_dt, level = 1, ...) {
+  alpha <- (1-level)/2
+  ranges <- animals_dt[, as.list(c(
+    stats::quantile(x,probs=c(alpha,1-alpha)),
+    stats::quantile(y,probs=c(alpha,1-alpha)))),
+    by = "identity"]
+  setnames(ranges, c("identity", "min_x", "max_x", "min_y", "max_y"))
+  return(ranges)
 }
+get_ranges_quantile_dt <- function(animals_dt, level) {
+  # no padding to avoid points already filtered by quantile appear in plot when the axes expanded, since we are only "filter" points by changing x y limit instead of removing points.
+  ranges <- extent_dt(animals_dt, level)
+  x_max_diff_half <- max(ranges[, max_x - min_x]) / 2
+  y_max_diff_half <- max(ranges[, max_y - min_y]) / 2
+  # need to filter data frame too otherwise the middle point is off. merging limits to every row make the filtering is easier.
+  animals_dt_with_range <- merge(animals_dt, ranges, by = "identity")
+  animals_updated <- animals_dt_with_range[x >= min_x & x <= max_x &
+                                             y >= min_y & y <= max_y]
+  dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2,
+                            middle_y = (max(y) + min(y)) / 2),
+                        by = identity]
+  dt[, x_start := middle_x - x_max_diff_half]
+  dt[, x_end := middle_x + x_max_diff_half]
+  dt[, y_start := middle_y - y_max_diff_half]
+  dt[, y_end := middle_y + y_max_diff_half]
+  return(dt)
+}
+g1 <- get_ranges_quantile_dt(merge_animals(buffalo)$data, level)[]
+g2 <- get_ranges_quantile(buffalo, merge_animals(buffalo)$data, level)[]
+identical(as.data.frame(g1), as.data.frame(g2))
 get_ranges_quantile <- function(tele_objs, animals_dt, level) {
   tele_objs <- wrap_single_telemetry(tele_objs)
   ext_list <- lapply(tele_objs, extent, level = level)
