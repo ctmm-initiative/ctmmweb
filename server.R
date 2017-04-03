@@ -222,35 +222,33 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
-  # merge_data() ----
-  # merge obj list into data frame with identity column, easier for ggplot and summary
-  merge_data <- reactive({
-    req(values$input_data)
-    # note_updating <- showNotification(span(icon("spinner fa-spin"), "Updating data..."), type = "message", duration = NULL)
-    # on.exit(removeNotification(note_updating))
-    merge_animals(values$input_data)
-  })
-  # input data may have outliers removed then return to visualization page. The outlier removal step is optional and can be repeated
+  # merge_input() ----
+  # merge_input <- reactive({
+  #   req(values$input_data)
+  #   # tried notification here, the timing is not accurate. This step usually don't need much time. if it does, the importing step will have notification which shoul serve the purpose.
+  #   merge_animals(values$input_data)
+  # })
+  # input data may have outliers removed then return to visualization page. The outlier removal step is optional and can be repeated. current_data will replace merge_input, which always start from original input, apply filter needed.
   # this came from outliers added to quene. vector of row_no. Compare to the actual rows, it's easier to remove rows by row_no from original data.
   values$outliers_to_remove <- NULL
   # outliers removed will be added here. vector of row_no
   values$outliers_removed <- NULL
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
-  # merge_data get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
-  current_data <- reactive({
+  # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
+  current_animals <- reactive({
     req(values$input_data)
     if (!is.null(values$outliers_to_remove)) {
 
     } else{
-      return(values$input_data)
+      return(merge_animals(values$input_data))
     }
   })
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
     if (input$time_unit == "normal") {
-      info_p <- merge_data()$info[, .(identity, start, end, interval, duration)]
+      info_p <- current_animals()$info[, .(identity, start, end, interval, duration)]
     } else {
-      info_p <- merge_data()$info[, .(identity, start, end, interval_s, duration_s)]
+      info_p <- current_animals()$info[, .(identity, start, end, interval_s, duration_s)]
     }
     datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
@@ -270,7 +268,7 @@ server <- function(input, output, session) {
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(input$individuals_rows_current)
-    id_vec <- merge_data()$info[, identity]
+    id_vec <- current_animals()$info[, identity]
     color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
     if (length(input$individuals_rows_selected) == 0) {
@@ -282,8 +280,8 @@ server <- function(input, output, session) {
     chosen_ids <- id_vec[chosen_row_nos]
     chosen_colors <- color_vec[id_vec %in% chosen_ids]
     # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. include it here because the data may actually have subset, outlier removal applied, we cannot take from input directly anymore.
-    return(list(data = merge_data()$data[identity %in% chosen_ids],
-                info = merge_data()$info[identity %in% chosen_ids],
+    return(list(data = current_animals()$data[identity %in% chosen_ids],
+                info = current_animals()$info[identity %in% chosen_ids],
                 tele_objs = values$input_data[chosen_row_nos],
                 # row_nos = chosen_row_nos,
                 colors = chosen_colors))
@@ -322,7 +320,7 @@ server <- function(input, output, session) {
     animals_dt <- req(chose_animal()$data)
     ggplot() +
       {if (input$overlay_all) {
-        geom_point(data = merge_data()$data, aes(x, y),
+        geom_point(data = current_animals()$data, aes(x, y),
                    size = input$point_size_1, alpha = 0.6, colour = "gray")
       }} +
       geom_point(data = animals_dt, aes(x, y, colour = id),
@@ -388,7 +386,7 @@ server <- function(input, output, session) {
   # p4. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
-    info <- merge_data()$info
+    info <- current_animals()$info
     dt <- info[values$selected_animal_no]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   }
@@ -397,7 +395,7 @@ server <- function(input, output, session) {
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
     color_bins <- input$time_color_bins
-    merged <- merge_data()
+    merged <- current_animals()
     animals_dt <- merged$data
     id_vector <- merged$info$identity
     color_vec <- hue_pal()(color_bins)

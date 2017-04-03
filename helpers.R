@@ -59,7 +59,7 @@ wrap_single_telemetry <- function(tele_obj){
   }
   return(tele_obj)
 }
-# now both merge data and merge summary need to go through each individual, combine into one function. put info_selected in return list too. otherwise need to check null for null input in app init
+# merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 merge_animals <- function(tele_objs) {
   tele_objs <- wrap_single_telemetry(tele_objs)
   animal_count <- length(tele_objs)
