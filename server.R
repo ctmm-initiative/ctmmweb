@@ -222,6 +222,7 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
+  # merge_data() ----
   # merge obj list into data frame with identity column, easier for ggplot and summary
   merge_data <- reactive({
     req(values$input_data)
@@ -235,10 +236,13 @@ server <- function(input, output, session) {
   # outliers removed will be added here. vector of row_no
   values$outliers_removed <- NULL
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
+  # merge_data get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
   current_data <- reactive({
     req(values$input_data)
     if (!is.null(values$outliers_to_remove)) {
 
+    } else{
+      return(values$input_data)
     }
   })
   # 2.3 data summary ----
@@ -256,11 +260,12 @@ server <- function(input, output, session) {
       )}
   )
   # 2.4.4 location basic plot
+  # this is the only place that take original input data directly.
   output$location_plot_basic <- renderPlot({
     tele_objs <- req(values$input_data)
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
-  # ids and color of chosen animals ----
+  # chose_animal() ----
   # when there are lots of animals, the color gradient is subtle for neighbors.
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
@@ -276,10 +281,11 @@ server <- function(input, output, session) {
     }
     chosen_ids <- id_vec[chosen_row_nos]
     chosen_colors <- color_vec[id_vec %in% chosen_ids]
-    # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. since it was only used once, return id row number to subset in usage.
+    # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. include it here because the data may actually have subset, outlier removal applied, we cannot take from input directly anymore.
     return(list(data = merge_data()$data[identity %in% chosen_ids],
                 info = merge_data()$info[identity %in% chosen_ids],
-                row_nos = chosen_row_nos,
+                tele_objs = values$input_data[chosen_row_nos],
+                # row_nos = chosen_row_nos,
                 colors = chosen_colors))
   })
   # select single for next analysis ----
@@ -313,18 +319,18 @@ server <- function(input, output, session) {
   }
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
-    animals <- req(chose_animal()$data)
+    animals_dt <- req(chose_animal()$data)
     ggplot() +
       {if (input$overlay_all) {
         geom_point(data = merge_data()$data, aes(x, y),
                    size = input$point_size_1, alpha = 0.6, colour = "gray")
       }} +
-      geom_point(data = animals, aes(x, y, colour = id),
+      geom_point(data = animals_dt, aes(x, y, colour = id),
                  size = input$point_size_1, alpha = 0.7) +
       coord_fixed(xlim = location_plot_gg_range$x, ylim = location_plot_gg_range$y) +
       scale_color_manual(values = chose_animal()$colors) +
-      scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
-      scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
+      scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
@@ -332,12 +338,12 @@ server <- function(input, output, session) {
   # })
   # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
-    # by convention animals mean the data frame, sometimes still need some other items from list, use full expression
-    animals <- req(chose_animal()$data)
-    ggplot(data = animals, aes(x, y)) +
+    # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
+    animals_dt <- req(chose_animal()$data)
+    ggplot(data = animals_dt, aes(x, y)) +
       geom_point(size = 0.1, alpha = 1/3, aes(colour = id)) +
-      scale_x_continuous(labels = format_unit_distance_f(animals$x)) +
-      scale_y_continuous(labels = format_unit_distance_f(animals$y)) +
+      scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
       scale_color_manual(values = chose_animal()$colors) +
       facet_grid(id ~ .) +
       coord_fixed() +
@@ -346,14 +352,13 @@ server <- function(input, output, session) {
   }, height = height_plot_loc, width = "auto")
   # 2.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
-    animals <- req(chose_animal()$data)
-    tele_objs <- values$input_data[chose_animal()$row_nos]
-    new_ranges <- get_ranges_quantile(tele_objs, animals, input$include_level)
+    animals_dt <- req(chose_animal()$data)
+    new_ranges <- get_ranges_quantile(chose_animal()$tele_objs, animals_dt, input$include_level)
     id_vector <- chose_animal()$info$identity
     color_vec <- hue_pal()(length(id_vector))
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
-      data_i <- animals[identity == id_vector[i]]
+      data_i <- animals_dt[identity == id_vector[i]]
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
         geom_point(size = input$point_size_3, alpha = 0.7, color = color_vec[i]) +
@@ -370,8 +375,8 @@ server <- function(input, output, session) {
   }, height = height_plot_3, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
-    animals <- req(chose_animal()$data)
-    ggplot(data = animals, aes(x = timestamp, fill = id)) +
+    animals_dt <- req(chose_animal()$data)
+    ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
@@ -393,10 +398,10 @@ server <- function(input, output, session) {
   color_bin_animal <- reactive({
     color_bins <- input$time_color_bins
     merged <- merge_data()
-    animals <- merged$data
+    animals_dt <- merged$data
     id_vector <- merged$info$identity
     color_vec <- hue_pal()(color_bins)
-    data_i <- animals[identity == id_vector[values$selected_animal_no]]
+    data_i <- animals_dt[identity == id_vector[values$selected_animal_no]]
     data_i[, color_bin_factor := cut(timestamp, color_bins)]
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_factor))
     color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])

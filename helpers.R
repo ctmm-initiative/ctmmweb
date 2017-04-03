@@ -76,20 +76,25 @@ merge_animals <- function(tele_objs) {
   animals_data_dt[, id := factor(identity)]
   # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
   animals_info_dt <- rbindlist(animal_info_list)
+  # by convention we always use animals_dt <- merge_animals()$data
   return(list(data = animals_data_dt, info = animals_info_dt))
 }
 # need the obj format, merged data frame format, level value
 # here we are using the tele_obj format and merged data frame format at the same time because the extent function need tele_obj format. When using with subset, need subset of both.
-get_ranges_quantile <- function(tele_objs, animals, level) {
+# ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame.
+extent_df <- function(animals_dt, level) {
+
+}
+get_ranges_quantile <- function(tele_objs, animals_dt, level) {
   tele_objs <- wrap_single_telemetry(tele_objs)
   ext_list <- lapply(tele_objs, extent, level = level)
-  # no padding to avoid points filtered by quantile appear in plot
+  # no padding to avoid points already filtered by quantile appear in plot when the axes expanded, since we are only "filter" points by changing x y limit instead of removing points.
   x_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$x) }))) / 2L
   y_diff_half <- max(unlist(lapply(ext_list, function(ext) { diff(ext$y) }))) / 2L
   # need to filter data frame too otherwise the middle point is off
   animal_list <- vector("list", length = length(tele_objs))
   for (i in seq_along(tele_objs)) {
-    animal_list[[i]] <- animals[identity == names(ext_list)[i] &
+    animal_list[[i]] <- animals_dt[identity == names(ext_list)[i] &
                                   x >= ext_list[[i]]["min", "x"] &
                                   x <= ext_list[[i]]["max", "x"] &
                                   y >= ext_list[[i]]["min", "y"] &
