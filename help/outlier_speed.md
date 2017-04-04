@@ -1,8 +1,4 @@
-### Outliers in Distance/Speed
-
-distance to median center
-
-plot
+### Outliers in Speed
 
 speed definition
 
