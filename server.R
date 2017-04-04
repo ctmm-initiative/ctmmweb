@@ -243,11 +243,22 @@ server <- function(input, output, session) {
 
     }
     # distance/speed calculation need to be based on updated data
+    # distance
     animals_dt <- animals$data
     animals_dt[, `:=`(median_x = median(x),
                    median_y = median(y)),
                by = identity]
     animals_dt[, distance_center := sqrt((x - median_x) ** 2 + (y - median_y) ** 2)]
+    # speed
+    # x[i] + inc[i] = x[i+1]
+    animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
+                      inc_y = shift(y, 1L, type = "lead") - y,
+                      inc_t = shift(t, 1L, type = "lead") - t), by = id]
+    animals_dt[, speed := sqrt(inc_x ** 2 + inc_y ** 2) / inc_t]
+    # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
+    for (i in animals_dt[is.na(speed), which = TRUE]) {
+      animals_dt[i, speed := animals_dt[i - 1, speed]]
+    }
     # sometimes one animal only have few data points and can be removed as outlier, so we need to make sure info slot sync with data frame
     # TODO ----
 
@@ -397,6 +408,29 @@ server <- function(input, output, session) {
              file = "help/outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              file = "help/outlier_speed.md")
+  # p3.1 distance histogram ----
+  output$distance_histogram <- renderPlot({
+    animals_dt <- req(chose_animal()$data)
+    ggplot(animals_dt, aes(x = distance_center)) +
+      geom_histogram(bins = input$distance_his_bins) +
+      # need to exclude 0 count groups
+      geom_text(stat = 'bin',aes(label = ifelse(..count.. != 0, ..count.., "")),
+                vjust = -1, bins = input$distance_his_bins) +
+      scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
+      # all counts above 20 are not shown, so it's easier to see the few outliers.
+      coord_cartesian(ylim = c(0, input$distance_his_y_limit))
+  })
+  # speed histogram ----
+  output$speed_histogram <- renderPlot({
+    animals_dt <- req(chose_animal()$data)
+    ggplot(animals_dt, aes(x = speed)) +
+      geom_histogram(bins = input$speed_his_bins) +
+      # need to exclude 0 count groups
+      geom_text(stat = 'bin',aes(label = ifelse(..count.. != 0, ..count.., "")),
+                vjust = -1, bins = input$speed_his_bins) +
+      scale_x_continuous(labels = format_speed_f(animals_dt$speed)) +
+      coord_cartesian(ylim = c(0, input$speed_his_y_limit))
+  })
 
   # p4. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
