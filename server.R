@@ -222,7 +222,6 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
-  # merge_input() ----
   # merge_input <- reactive({
   #   req(values$input_data)
   #   # tried notification here, the timing is not accurate. This step usually don't need much time. if it does, the importing step will have notification which shoul serve the purpose.
@@ -235,13 +234,22 @@ server <- function(input, output, session) {
   values$outliers_removed <- NULL
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
   # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
+  # current_animals() ----
+  # merge input into a list of data frame and info frame. also apply the subset or filter.
   current_animals <- reactive({
     req(values$input_data)
+    animals <- merge_animals(values$input_data)
     if (!is.null(values$outliers_to_remove)) {
 
-    } else{
-      return(merge_animals(values$input_data))
     }
+    # distance/speed calculation need to be based on updated data
+    animals_dt <- animals$data
+    animals_dt[, `:=`(median_x = median(x),
+                   median_y = median(y)),
+               by = identity]
+    animals_dt[, distance_center := sqrt((x - median_x) ** 2 + (y - median_y) ** 2)]
+    # sometimes one animal only have few data points and can be removed as outlier, so we need to make sure info slot sync with data frame
+    # TODO ----
   })
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
@@ -382,8 +390,12 @@ server <- function(input, output, session) {
       bigger_theme + bigger_key
   }, height = height_hist, width = "auto")
   # p3. outlier ----
-  callModule(click_help, "outlier", title = "Outliers in Distance/Speed",
-             file = "help/outlier.md")
+  callModule(click_help, "outlier_distance",
+             title = "Outliers in Distance to Median Center",
+             file = "help/outlier_distance.md")
+  callModule(click_help, "outlier_speed", title = "Outliers in Speed",
+             file = "help/outlier_speed.md")
+
   # p4. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
