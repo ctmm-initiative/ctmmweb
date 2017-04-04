@@ -346,7 +346,8 @@ server <- function(input, output, session) {
       }} +
       geom_point(data = animals_dt, aes(x, y, colour = id),
                  size = input$point_size_1, alpha = 0.7) +
-      coord_fixed(xlim = location_plot_gg_range$x, ylim = location_plot_gg_range$y) +
+      coord_fixed(xlim = location_plot_gg_range$x,
+                  ylim = location_plot_gg_range$y) +
       scale_color_manual(values = chose_animal()$colors) +
       scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
@@ -431,7 +432,34 @@ server <- function(input, output, session) {
       scale_x_continuous(labels = format_speed_f(animals_dt$speed)) +
       coord_cartesian(ylim = c(0, input$speed_his_y_limit))
   })
-
+  # distance outlier plot ----
+  distance_outlier_plot_range <- add_zoom("distance_outlier_plot")
+  output$distance_outlier_plot <- renderPlot({
+    animals_dt <- req(chose_animal()$data)
+    ggplot(animals_dt, aes(x, y)) +
+      geom_point(size = 0.5, alpha = 0.2, aes(color = distance_center)) +
+      geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
+                 aes(median_x, median_y), color = "blue") +
+      scale_colour_gradient(low = "gray", high = "red") +
+      coord_fixed(xlim = distance_outlier_plot_range$x,
+                  ylim = distance_outlier_plot_range$y) +
+      scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animals_dt$y))
+      # facet_wrap(~ id, ncol = 2) +
+  })
+  # speed outlier plot ----
+  speed_outlier_plot_range <- add_zoom("speed_outlier_plot")
+  output$speed_outlier_plot <- renderPlot({
+    animals_dt <- req(chose_animal()$data)
+    ggplot(animals_dt, aes(x, y)) +
+      geom_point(size = 0.5, alpha = 0.6, aes(color = speed)) +
+      scale_colour_gradient(low = "gray", high = "red") +
+      coord_fixed(xlim = speed_outlier_plot_range$x,
+                  ylim = speed_outlier_plot_range$y) +
+      scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = format_unit_distance_f(animals_dt$y))
+      # facet_wrap(~ id, ncol = 2) +
+  })
   # p4. subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({

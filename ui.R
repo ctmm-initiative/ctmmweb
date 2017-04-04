@@ -156,6 +156,12 @@ outlier_his_box <- tabBox(title = "Outlier Detection",
                                                                  stroke = "purple",
                                                                  fill = "blue",
                                                                  resetOnNew = TRUE)))),
+                                fluidRow(column(12,
+                                                plotOutput("distance_outlier_plot",                                                      dblclick = "distance_outlier_plot_dblclick",
+                                                               brush = brushOpts(
+                                                                 id = "distance_outlier_plot_brush",
+                                                                 resetOnNew = TRUE
+                                                               )))),
                                 fluidRow(column(2, offset = 10, help_button("outlier_distance")))),
                        tabPanel("Speed",
                        fluidRow(column(4,sliderInput("speed_his_bins", "Histogram Bins",
@@ -173,6 +179,11 @@ outlier_his_box <- tabBox(title = "Outlier Detection",
                                                         stroke = "purple",
                                                         fill = "blue",
                                                         resetOnNew = TRUE)))),
+                       fluidRow(column(12, plotOutput("speed_outlier_plot",                                                      dblclick = "speed_outlier_plot_dblclick",
+                                                      brush = brushOpts(
+                                                        id = "speed_outlier_plot_brush",
+                                                        resetOnNew = TRUE
+                                                      )))),
                        fluidRow(column(2, offset = 10, help_button("outlier_speed")))))
 selected_outliers_box <- box(title = "Selected Outliers",
                              status = "primary", solidHeader = TRUE, width = 12,
@@ -184,9 +195,9 @@ selected_outliers_box <- box(title = "Selected Outliers",
                                                           icon = icon("flag"),
                                                           style = page_action_style)))
 )
-outlier_plot_box <- box(title = "Selected Outliers Plot",
-                        status = "primary", solidHeader = TRUE, width = 12,
-                        fluidRow(column(12, plotOutput("outlier_plot"))))
+# outlier_plot_box <- box(title = "Selected Outliers Plot",
+#                         status = "primary", solidHeader = TRUE, width = 12,
+#                         fluidRow(column(12, plotOutput("outlier_plot"))))
 remove_outliers_box <- box(title = "Remove Outliers",
                            status = "primary", solidHeader = TRUE, width = 12,
                            fluidRow(column(9, h4("Outliers to be removed")),
@@ -320,7 +331,7 @@ body <- dashboardBody(
     tabItem(tabName = "filter",
             fluidRow(outlier_his_box,
                      selected_outliers_box,
-                     outlier_plot_box,
+                     # outlier_plot_box,
                      remove_outliers_box)),
     tabItem(tabName = "visual",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
