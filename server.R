@@ -472,31 +472,35 @@ server <- function(input, output, session) {
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
     color_bins <- input$time_color_bins
-    merged <- current_animals()
-    animals_dt <- merged$data
-    id_vector <- merged$info$identity
+    id_vector <- current_animals()$info$identity
     color_vec <- hue_pal()(color_bins)
-    data_i <- animals_dt[identity == id_vector[values$selected_animal_no]]
-    data_i[, color_bin_factor := cut(timestamp, color_bins)]
-    color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_factor))
-    color_bin_breaks <- c(color_bin_start_vec_time, data_i[t == max(t), timestamp])
+    data_i <- current_animals()$data[identity ==
+                                       id_vector[values$selected_animal_no]]
+    # every row have the color group breaks assigned, but this is only about breaks, not colors. need to get color from vec manually
+    data_i[, color_bin_start := cut(timestamp, color_bins)]  # a factor
+    color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     return(list(data = data_i,
                 color_vec = color_vec,
                 color_bin_start_vec_time = color_bin_start_vec_time,
-                color_bin_breaks = color_bin_breaks))
+                color_bin_breaks = c(color_bin_start_vec_time,
+                                     data_i[t == max(t), timestamp])))
   })
   # 4.1 histogram subsetting ----
+  # histogram cut by color bins. not the usual 30/40 cut since color difference is limited. This is good for time subsetting, but other histogram may differ.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     ggplot(data = animal_binned$data, aes(x = timestamp)) +
-      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks), fill = animal_binned$color_vec) +
+      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
+                     fill = animal_binned$color_vec) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
       ggtitle(animal_binned$data[1, identity]) +
       center_title +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
+  # selected time range ----
   # brush selection and matching color bins
+  # to make module, leave the selection format conversion to each instance. may need axis format function for brush.
   select_time_range <- reactive({
     animal_binned <- color_bin_animal()
     if (is.null(input$histo_sub_brush)) {
@@ -508,8 +512,10 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
     select_length <- select_end - select_start
-    select_start_bin <- findInterval(select_start, animal_binned$color_bin_start_vec_time)
-    select_end_bin <- findInterval(select_end, animal_binned$color_bin_start_vec_time)
+    select_start_bin <- findInterval(select_start,
+                                     animal_binned$color_bin_start_vec_time)
+    select_end_bin <- findInterval(select_end,
+                                   animal_binned$color_bin_start_vec_time)
     selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
     return(list(select_start = select_start, select_end = select_end,
                 select_start_p = format_datetime(select_start),
@@ -534,9 +540,10 @@ server <- function(input, output, session) {
     ggplot(data = animal_binned$data, aes(x, y)) +
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       geom_point(size = 0.01, alpha = 0.9,
-                 data = animal_binned$data[timestamp >= time_range$select_start &
-                                             timestamp <= time_range$select_end],
-                 aes(colour = color_bin_factor)) +
+                 data = animal_binned$data[
+                   (timestamp >= time_range$select_start) &
+                    (timestamp <= time_range$select_end)],
+                 aes(colour = color_bin_start)) +
       scale_colour_manual(values = time_range$selected_color) +
       scale_x_continuous(labels = format_unit_distance_f(animal_binned$data$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animal_binned$data$y)) +
