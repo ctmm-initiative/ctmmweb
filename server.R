@@ -476,12 +476,13 @@ server <- function(input, output, session) {
     color_vec <- hue_pal()(color_bins)
     data_i <- current_animals()$data[identity ==
                                        id_vector[values$selected_animal_no]]
-    # every row have the color group breaks assigned, but this is only about breaks, not colors. need to get color from vec manually
+    # every row have the color group factor, but this is only about index, need to get color from index
     data_i[, color_bin_start := cut(timestamp, color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     return(list(data = data_i,
                 color_vec = color_vec,
                 color_bin_start_vec_time = color_bin_start_vec_time,
+                # vec for interval, findInterval. breaks for hist
                 color_bin_breaks = c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])))
   })
@@ -512,6 +513,7 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$histo_sub_brush$xmax)
     }
     select_length <- select_end - select_start
+    # findInterval need the interval, which don't have closed rightmost value
     select_start_bin <- findInterval(select_start,
                                      animal_binned$color_bin_start_vec_time)
     select_end_bin <- findInterval(select_end,

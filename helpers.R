@@ -18,6 +18,7 @@ format_seconds_f <- function(secs) {
 format_speed_f <- function(speed) {
   pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed", concise = TRUE)
 }
+# note we cannot use format_speed_f(vec)(vec) for value in data.table, which may call the function for single value and lost context in whole vector.
 # intended for single input
 format_diff_time <- function(diff_t) {
   diff_t_secs <- as.numeric(diff_t, units = "secs")
