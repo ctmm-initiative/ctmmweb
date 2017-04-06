@@ -479,12 +479,15 @@ server <- function(input, output, session) {
     # every row have the color group factor, but this is only about index, need to get color from index
     data_i[, color_bin_start := cut(timestamp, color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
+    color_bin_breaks <- c(color_bin_start_vec_time,
+                                     data_i[t == max(t), timestamp])
+    his <- hist(data_i$timestamp, breaks = color_bin_breaks, plot = FALSE)
+    color_vec[which(his$counts == 0)] <- NA
     return(list(data = data_i,
                 color_vec = color_vec,
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 # vec for interval, findInterval. breaks for hist
-                color_bin_breaks = c(color_bin_start_vec_time,
-                                     data_i[t == max(t), timestamp])))
+                color_bin_breaks = color_bin_breaks))
   })
   # 4.1 histogram subsetting ----
   # histogram cut by color bins. not the usual 30/40 cut since color difference is limited. This is good for time subsetting, but other histogram may differ.
@@ -518,7 +521,7 @@ server <- function(input, output, session) {
                                      animal_binned$color_bin_start_vec_time)
     select_end_bin <- findInterval(select_end,
                                    animal_binned$color_bin_start_vec_time)
-    selected_color <- animal_binned$color_vec[select_start_bin:select_end_bin]
+    selected_color <- na.omit(animal_binned$color_vec[select_start_bin:select_end_bin])
     return(list(select_start = select_start, select_end = select_end,
                 select_start_p = format_datetime(select_start),
                 select_end_p = format_datetime(select_end),
