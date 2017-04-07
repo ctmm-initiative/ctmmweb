@@ -304,10 +304,11 @@ server <- function(input, output, session) {
     chosen_colors <- color_vec[id_vec %in% chosen_ids]
     # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. include it here because the data may actually have subset, outlier removal applied, we cannot take from input directly anymore.
     return(list(data = current_animals()$data[identity %in% chosen_ids],
-                info = current_animals()$info[identity %in% chosen_ids],
+                info = current_animals()$info[identity %in% chosen_ids]
                 # tele_objs = values$input_data[chosen_row_nos],
                 # row_nos = chosen_row_nos,
-                colors = chosen_colors))
+                # colors = chosen_colors
+                ))
   })
   # select single for next analysis ----
   values$selected_animal_no <- 1
@@ -350,7 +351,8 @@ server <- function(input, output, session) {
                  size = input$point_size_1, alpha = 0.7) +
       coord_fixed(xlim = location_plot_gg_range$x,
                   ylim = location_plot_gg_range$y) +
-      scale_color_manual(values = chose_animal()$colors) +
+      # scale_color_manual(values = chose_animal()$colors) +
+      color_by_factor(animals_dt$id) +
       scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
       theme(legend.position = "top",
@@ -367,7 +369,8 @@ server <- function(input, output, session) {
       geom_point(size = 0.1, aes(colour = id)) +
       scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
-      scale_color_manual(values = chose_animal()$colors) +
+      # scale_color_manual(values = chose_animal()$colors) +
+      color_by_factor(animals_dt$id) +
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
@@ -384,8 +387,11 @@ server <- function(input, output, session) {
     for (i in seq_along(id_vector)) {
       data_i <- animals_dt[identity == id_vector[i]]
       new_ranges_i <- new_ranges[identity == id_vector[i]]
-      g_list[[i]] <- ggplot(data = data_i, aes(x, y)) +
-        geom_point(size = input$point_size_3, alpha = 0.7, color = color_vec[i]) +
+      g_list[[i]] <- ggplot(data = data_i, aes(x, y, color = id)) +
+        # geom_point(size = input$point_size_3, alpha = 0.7,
+        #            color = color_vec[i]) +
+        geom_point(size = input$point_size_3, alpha = 0.7) +
+        color_by_factor(data_i$id) +
         scale_x_continuous(labels = format_unit_distance_f(data_i$x)) +
         scale_y_continuous(labels = format_unit_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
@@ -402,6 +408,7 @@ server <- function(input, output, session) {
     animals_dt <- req(chose_animal()$data)
     ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
+      fill_by_factor(animals_dt$id) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key

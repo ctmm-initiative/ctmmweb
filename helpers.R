@@ -140,7 +140,7 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
 #   dt[, y_end := middle_y + y_diff_half]
 #   return(dt)
 # }
-# ggplot theme ----
+# ggplot ----
 bigger_theme <- theme(legend.key.size = unit(8, "mm"),
                       legend.key.height = unit(8, "mm"),
                       legend.text = element_text(size = 12),
@@ -148,6 +148,15 @@ bigger_theme <- theme(legend.key.size = unit(8, "mm"),
                       axis.text = element_text(size = 12))
 bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
 center_title <- theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+# map color to a factor with unused levels included, but don't show them in legend.
+# note need to use dt$id format.
+color_by_factor <- function(fac) {
+  scale_colour_hue(drop = FALSE, breaks = levels(droplevels(fac)))
+}
+# note for fill colors we need different function
+fill_by_factor <- function(fac) {
+  scale_fill_hue(drop = FALSE, breaks = levels(droplevels(fac)))
+}
 # movebank download ----
 # always need the response content in text, also need response status
 request <- function(entity_type, user, pass){
