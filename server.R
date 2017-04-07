@@ -2,6 +2,8 @@
 # options(shiny.trace = FALSE)
 # all helper functions are for server side
 source("helpers.R", local = TRUE)
+source("cut_divide.R", local = TRUE)
+
 # some variables need to be visible across different functions. modify with <<-
 # valid_studies <- NULL
 # move_bank_dt <- NULL
@@ -477,7 +479,7 @@ server <- function(input, output, session) {
     data_i <- current_animals()$data[identity ==
                                        id_vector[values$selected_animal_no]]
     # every row have the color group factor, but this is only about index, need to get color from index
-    data_i[, color_bin_start := cut(timestamp, color_bins)]  # a factor
+    data_i[, color_bin_start := cut_date_time(timestamp, color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
