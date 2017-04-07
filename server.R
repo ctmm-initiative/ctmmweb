@@ -292,7 +292,7 @@ server <- function(input, output, session) {
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(input$individuals_rows_current)
     id_vec <- current_animals()$info[, identity]
-    color_vec <- hue_pal()(length(id_vec))
+    # color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
     if (length(input$individuals_rows_selected) == 0) {
       # select all in current page when there is no selection
@@ -301,7 +301,7 @@ server <- function(input, output, session) {
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    chosen_colors <- color_vec[id_vec %in% chosen_ids]
+    # chosen_colors <- color_vec[id_vec %in% chosen_ids]
     # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. include it here because the data may actually have subset, outlier removal applied, we cannot take from input directly anymore.
     return(list(data = current_animals()$data[identity %in% chosen_ids],
                 info = current_animals()$info[identity %in% chosen_ids]
@@ -483,7 +483,7 @@ server <- function(input, output, session) {
   color_bin_animal <- reactive({
     color_bins <- input$time_color_bins
     id_vector <- current_animals()$info$identity
-    color_vec <- hue_pal()(color_bins)
+    # color_vec <- hue_pal()(color_bins)
     data_i <- current_animals()$data[identity ==
                                        id_vector[values$selected_animal_no]]
     # every row have the color group factor, but this is only about index, need to get color from index
@@ -494,7 +494,7 @@ server <- function(input, output, session) {
     his <- hist(data_i$timestamp, breaks = color_bin_breaks, plot = FALSE)
     color_vec[which(his$counts == 0)] <- NA
     return(list(data = data_i,
-                color_vec = color_vec,
+                # color_vec = color_vec,
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 # vec for interval, findInterval. breaks for hist
                 color_bin_breaks = color_bin_breaks))
@@ -503,9 +503,11 @@ server <- function(input, output, session) {
   # histogram cut by color bins. not the usual 30/40 cut since color difference is limited. This is good for time subsetting, but other histogram may differ.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
-    ggplot(data = animal_binned$data, aes(x = timestamp)) +
-      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
-                     fill = animal_binned$color_vec) +
+    ggplot(data = animal_binned$data, aes(x = timestamp, fill = color_bin_start)) +
+      # geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
+      #                fill = animal_binned$color_vec) +
+      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks)) +
+      fill_by_factor(animal_binned$data$color_bin_start) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
       ggtitle(animal_binned$data[1, identity]) +
@@ -527,17 +529,19 @@ server <- function(input, output, session) {
     }
     select_length <- select_end - select_start
     # findInterval need the interval, which don't have closed rightmost value
-    select_start_bin <- findInterval(select_start,
-                                     animal_binned$color_bin_start_vec_time)
-    select_end_bin <- findInterval(select_end,
-                                   animal_binned$color_bin_start_vec_time)
-    selected_color <- na.omit(animal_binned$color_vec[select_start_bin:select_end_bin])
+    # select_start_bin <- findInterval(select_start,
+    #                                  animal_binned$color_bin_start_vec_time)
+    # select_end_bin <- findInterval(select_end,
+    #                                animal_binned$color_bin_start_vec_time)
+    # selected_color <- na.omit(animal_binned$color_vec[select_start_bin:select_end_bin])
     return(list(select_start = select_start, select_end = select_end,
                 select_start_p = format_datetime(select_start),
                 select_end_p = format_datetime(select_end),
                 select_length = select_length,
-                select_length_p = format_diff_time(select_length),
-                selected_color = selected_color))
+                select_length_p = format_diff_time(select_length)
+                # ,
+                # selected_color = selected_color
+                ))
   })
   # 4.2 current range ----
   output$current_range <- DT::renderDataTable({
@@ -552,14 +556,16 @@ server <- function(input, output, session) {
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- select_time_range()
+    animal_selected_data <- animal_binned$data[
+      (timestamp >= time_range$select_start) &
+        (timestamp <= time_range$select_end)]
     ggplot(data = animal_binned$data, aes(x, y)) +
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       geom_point(size = input$point_size_time_loc, alpha = 0.9,
-                 data = animal_binned$data[
-                   (timestamp >= time_range$select_start) &
-                    (timestamp <= time_range$select_end)],
+                 data = animal_selected_data,
                  aes(colour = color_bin_start)) +
-      scale_colour_manual(values = time_range$selected_color) +
+      # scale_colour_manual(values = time_range$selected_color) +
+      color_by_factor(animal_selected_data$color_bin_start) +
       scale_x_continuous(labels = format_unit_distance_f(animal_binned$data$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animal_binned$data$y)) +
       coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
