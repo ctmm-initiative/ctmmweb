@@ -352,7 +352,7 @@ server <- function(input, output, session) {
       coord_fixed(xlim = location_plot_gg_range$x,
                   ylim = location_plot_gg_range$y) +
       # scale_color_manual(values = chose_animal()$colors) +
-      color_by_factor(animals_dt$id) +
+      factor_color(animals_dt$id) +
       scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
       theme(legend.position = "top",
@@ -370,7 +370,7 @@ server <- function(input, output, session) {
       scale_x_continuous(labels = format_unit_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animals_dt$y)) +
       # scale_color_manual(values = chose_animal()$colors) +
-      color_by_factor(animals_dt$id) +
+      factor_color(animals_dt$id) +
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
@@ -391,7 +391,7 @@ server <- function(input, output, session) {
         # geom_point(size = input$point_size_3, alpha = 0.7,
         #            color = color_vec[i]) +
         geom_point(size = input$point_size_3, alpha = 0.7) +
-        color_by_factor(data_i$id) +
+        factor_color(data_i$id) +
         scale_x_continuous(labels = format_unit_distance_f(data_i$x)) +
         scale_y_continuous(labels = format_unit_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
@@ -408,7 +408,7 @@ server <- function(input, output, session) {
     animals_dt <- req(chose_animal()$data)
     ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
-      fill_by_factor(animals_dt$id) +
+      factor_fill(animals_dt$id) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
@@ -503,16 +503,18 @@ server <- function(input, output, session) {
   # histogram cut by color bins. not the usual 30/40 cut since color difference is limited. This is good for time subsetting, but other histogram may differ.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
-    ggplot(data = animal_binned$data, aes(x = timestamp, fill = color_bin_start)) +
+    ggplot(data = animal_binned$data, aes(x = timestamp,
+                                          fill = color_bin_start)) +
       # geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
       #                fill = animal_binned$color_vec) +
       geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks)) +
-      fill_by_factor(animal_binned$data$color_bin_start) +
+      factor_fill(animal_binned$data$color_bin_start) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
       ggtitle(animal_binned$data[1, identity]) +
       center_title +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+      guides(fill = FALSE)  # we don't need guide for color.
   })
   # selected time range ----
   # brush selection and matching color bins
@@ -565,7 +567,7 @@ server <- function(input, output, session) {
                  data = animal_selected_data,
                  aes(colour = color_bin_start)) +
       # scale_colour_manual(values = time_range$selected_color) +
-      color_by_factor(animal_selected_data$color_bin_start) +
+      factor_color(animal_selected_data$color_bin_start) +
       scale_x_continuous(labels = format_unit_distance_f(animal_binned$data$x)) +
       scale_y_continuous(labels = format_unit_distance_f(animal_binned$data$y)) +
       coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +

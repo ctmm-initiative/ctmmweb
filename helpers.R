@@ -149,12 +149,12 @@ bigger_theme <- theme(legend.key.size = unit(8, "mm"),
 bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
 center_title <- theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
-# note need to use dt$id format.
-color_by_factor <- function(fac) {
+# note need to use dt$id format. note the mapping is provided in aes(color/fill = xx) already, this is to override some options.
+factor_color <- function(fac) {
   scale_colour_hue(drop = FALSE, breaks = levels(droplevels(fac)))
 }
 # note for fill colors we need different function
-fill_by_factor <- function(fac) {
+factor_fill <- function(fac) {
   scale_fill_hue(drop = FALSE, breaks = levels(droplevels(fac)))
 }
 # movebank download ----
