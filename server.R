@@ -546,7 +546,7 @@ server <- function(input, output, session) {
     time_range <- select_time_range()
     ggplot(data = animal_binned$data, aes(x, y)) +
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
-      geom_point(size = 0.01, alpha = 0.9,
+      geom_point(size = input$point_size_time_loc, alpha = 0.9,
                  data = animal_binned$data[
                    (timestamp >= time_range$select_start) &
                     (timestamp <= time_range$select_end)],
