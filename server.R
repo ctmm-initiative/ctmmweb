@@ -356,8 +356,9 @@ server <- function(input, output, session) {
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
-  }, height = height_plot_loc, width = "auto")
-  # })
+  }
+  , height = height_plot_loc, width = "auto"
+  )
   # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
