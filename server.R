@@ -503,18 +503,16 @@ server <- function(input, output, session) {
   # histogram cut by color bins. not the usual 30/40 cut since color difference is limited. This is good for time subsetting, but other histogram may differ.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
-    ggplot(data = animal_binned$data, aes(x = timestamp,
-                                          fill = color_bin_start)) +
-      # geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
-      #                fill = animal_binned$color_vec) +
-      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks)) +
-      factor_fill(animal_binned$data$color_bin_start) +
+    ggplot(data = animal_binned$data, aes(x = timestamp)) +
+      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
+                     fill = hue_pal()(input$time_color_bins)) +
+      # geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks)) +
+      # factor_fill(animal_binned$data$color_bin_start) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
       ggtitle(animal_binned$data[1, identity]) +
       center_title +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-      guides(fill = FALSE)  # we don't need guide for color.
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
   # selected time range ----
   # brush selection and matching color bins
