@@ -5,7 +5,7 @@
 pick_best_unit_f <- function(test_value, dimension, concise) {
   # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   best_unit <- ctmm:::unit(test_value, dimension, thresh = 1, concise = concise)
-  unit_format(unit = best_unit$name, scale = 1 / best_unit$scale, digits = 2)
+  scales::unit_format(unit = best_unit$name, scale = 1 / best_unit$scale, digits = 2)
 }
 # function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
 format_unit_distance_f <- function(v){
