@@ -1,8 +1,8 @@
-# Prototype of Shiny web application for ctmm package
+# Shiny web application for ctmm package
 
 ## Introduction
 
-This is a prototype Shiny app for [ctmm](https://cran.r-project.org/web/packages/ctmm/index.html) R package. This repo is used for beta testing of the development version. The app can be run from github directly so it will be easy to distribute the test.
+This is a Shiny web app for [ctmm](https://cran.r-project.org/web/packages/ctmm/index.html) R package. 
 
 Demo of some features:
 
@@ -40,7 +40,7 @@ Other dependency packages will be automatically installed in the first run of ap
 
 3. Run the Shiny app with
 
-	`shiny::runGitHub('ctmm-shiny-prototype', 'ctmm-initiative')`
+	`shiny::runGitHub('ctmm-webapp', 'ctmm-initiative')`
 	
 	
 ## Usage
