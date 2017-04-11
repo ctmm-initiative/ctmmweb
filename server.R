@@ -466,7 +466,6 @@ server <- function(input, output, session) {
                                          select_distance_range()$select_start) &
                                          (distance_center <=
                                          select_distance_range()$select_end)]
-    browser()
     ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.5, colour = "gray") +
       geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),

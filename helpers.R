@@ -203,7 +203,7 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
   color_bin_breaks_units <- vec_formatter(color_bin_breaks)
   color_bin_labels <- paste0(">= ", head(color_bin_breaks_units, -1L))
   animals_dt[, paste0(col_name, "_color_factor") :=
-               cut(speed, breaks = color_bin_breaks,
+               cut(animals_dt[[col_name]], breaks = color_bin_breaks,
                    labels = color_bin_labels, right = FALSE)]  # closed on left to include 0
   # remove empty bins in labels
   his <- hist(animals_dt[[col_name]], breaks = color_bin_breaks, plot = FALSE)
