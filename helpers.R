@@ -8,7 +8,7 @@ pick_best_unit_f <- function(test_value, dimension, concise) {
   scales::unit_format(unit = best_unit$name, scale = 1 / best_unit$scale, digits = 2)
 }
 # function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
-format_unit_distance_f <- function(v){
+format_distance_f <- function(v){
   # didn't use median because it could be near zero with positive and negative values
   pick_best_unit_f(max(abs(v), na.rm = TRUE)/2, dimension = "length", concise = TRUE)
 }
@@ -189,4 +189,32 @@ get_study_detail <- function(mb_id, user, pass) {
 }
 get_study_data <- function(mb_id, user, pass){
   request(paste0("event&study_id=", mb_id), user, pass)
+}
+# outlier ----
+color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
+  color_bin_breaks <- divide(animals_dt[[col_name]], bin_count)
+  # cut generate roughly equal length breaks (with adjustment to include extremes, no need to change this) which sometimes have a negative first value, not good for distanc/speed. shift the breaks so that the first value is 0.
+  if (color_bin_breaks[1] < 0) {
+    color_bin_breaks <- color_bin_breaks + abs(color_bin_breaks[1])
+  }
+  # need to change the default of (b1, b2] to [b1, b2), otherwise 0 will not be included.
+  # format label to include unit. difficult to separate unit with value, could only include left side though.
+  vec_formatter <- unit_formatter(color_bin_breaks)
+  color_bin_breaks_units <- vec_formatter(color_bin_breaks)
+  color_bin_labels <- paste0(">= ", head(color_bin_breaks_units, -1L))
+  animals_dt[, paste0(col_name, "_color_factor") :=
+               cut(speed, breaks = color_bin_breaks,
+                   labels = color_bin_labels, right = FALSE)]  # closed on left to include 0
+  # remove empty bins in labels
+  his <- hist(animals_dt[[col_name]], breaks = color_bin_breaks, plot = FALSE)
+  # with n+1 breaks for n interval/bin count, using count index on breaks will get the left side for each break
+  non_empty_indice <- which(his$counts != 0)
+  # need both side to label the plot properly. this only works when 2 vectors have same length. but I don't like the other method of recyling index new_vec[c(TRUE, FALSE)]
+  non_empty_breaks <- c(rbind(color_bin_breaks[non_empty_indice],
+                              color_bin_breaks[non_empty_indice + 1]))
+  # data.table is modified by reference, but we don't have global dt in app, often in reactive, so need to return it.
+  return(list(animals_dt = animals_dt,
+              color_bin_breaks = color_bin_breaks,
+              non_empty_breaks = non_empty_breaks,
+              vec_formatter = vec_formatter))
 }
