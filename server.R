@@ -270,9 +270,11 @@ server <- function(input, output, session) {
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
     if (input$time_unit == "normal") {
-      info_p <- current_animals()$info[, .(identity, start, end, interval, duration)]
+      info_p <- current_animals()$info[,
+                      .(identity, start, end, interval, duration)]
     } else {
-      info_p <- current_animals()$info[, .(identity, start, end, interval_s, duration_s)]
+      info_p <- current_animals()$info[,
+                      .(identity, start, end, interval_s, duration_s)]
     }
     datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
@@ -421,7 +423,7 @@ server <- function(input, output, session) {
              file = "help/outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              file = "help/outlier_speed.md")
-  # p3.1 distance histogram ----
+  # p3.a.1 distance histogram ----
   bin_by_distance <- reactive({
     animals_dt <- req(chose_animal()$data)
     return(color_break(input$distance_his_bins, animals_dt,
@@ -455,18 +457,22 @@ server <- function(input, output, session) {
       select_end <- input$distance_his_brush$xmax
     }
     distance_formatter <- format_distance_f(animals_dt$distance_center)
+    animal_selected_data <- animals_dt[(distance_center >= select_start) &
+                                         (distance_center <= select_end)]
     return(list(select_start = select_start, select_end = select_end,
                 select_start_p = distance_formatter(select_start),
-                select_end_p = distance_formatter(select_end)))
+                select_end_p = distance_formatter(select_end),
+                animal_selected_data = animal_selected_data))
   })
   # distance outlier plot ----
   distance_outlier_plot_range <- add_zoom("distance_outlier_plot")
   output$distance_outlier_plot <- renderPlot({
-    animals_dt <- req(bin_by_distance()$animals_dt)
-    animal_selected_data <- animals_dt[(distance_center >=
-                                         select_distance_range()$select_start) &
-                                         (distance_center <=
-                                         select_distance_range()$select_end)]
+    animals_dt <- bin_by_distance()$animals_dt
+    # animal_selected_data <- animals_dt[(distance_center >=
+    #                                      select_distance_range()$select_start) &
+    #                                      (distance_center <=
+    #                                      select_distance_range()$select_end)]
+    animal_selected_data <- select_distance_range()$animal_selected_data
     ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.5, colour = "gray") +
       geom_point(data = animal_selected_data,
@@ -482,7 +488,19 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
 
   })
-  # speed histogram ----
+  # points in selected distance range
+  # TODO format table ----
+  output$points_in_distance_range <- DT::renderDataTable({
+    # only render table when there is a selection. otherwise it will be all data.
+    req(input$distance_his_brush)
+    cols <- c("row_no", "timestamp", "id", "distance_center")
+    datatable(select_distance_range()$animal_selected_data[, cols, with = FALSE],
+              options = list(pageLength = 6,
+                             lengthMenu = c(6, 10, 20),
+                             searching = FALSE),
+              rownames = FALSE)
+  })
+  # p3.b.1 speed histogram ----
   output$speed_histogram <- renderPlot({
     animals_dt <- req(chose_animal()$data)
     ggplot(animals_dt, aes(x = speed)) +
@@ -506,7 +524,7 @@ server <- function(input, output, session) {
       scale_y_continuous(labels = format_distance_f(animals_dt$y))
       # facet_wrap(~ id, ncol = 2) +
   })
-  # p4. subset ----
+  # p4. time subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     info <- current_animals()$info
