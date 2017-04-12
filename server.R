@@ -261,6 +261,7 @@ server <- function(input, output, session) {
     animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
     animals_dt[is.infinite(speed), speed := NaN]
     # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
+    # this removed NaN too. The NA values caused speed outlier plot default subset to NULL. should not keep NA, NaN in speed, will cause too many troubles. could use negative value to mark
     for (i in animals_dt[is.na(speed), which = TRUE]) {
       animals_dt[i, speed := animals_dt[i - 1, speed]]
     }
@@ -573,6 +574,30 @@ server <- function(input, output, session) {
     #   scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
     #   scale_y_continuous(labels = format_distance_f(animals_dt$y))
       # facet_wrap(~ id, ncol = 2) +
+  })
+  # points without valid speed values
+  # TODO format table
+  output$points_speed_non_valid <- DT::renderDataTable({
+    # only render table when there is a selection. otherwise it will be all data.
+    animals_dt <- req(current_animals()$data)
+    cols <- c("row_no", "timestamp", "id", "speed")
+    datatable(animals_dt[is.na(speed), cols, with = FALSE],
+              options = list(pageLength = 6,
+                             lengthMenu = c(6, 10, 20),
+                             searching = FALSE),
+              rownames = FALSE)
+  })
+  # points in selected speed range
+  # TODO format table ----
+  output$points_in_speed_range <- DT::renderDataTable({
+    # only render table when there is a selection. otherwise it will be all data.
+    req(input$speed_his_brush)
+    cols <- c("row_no", "timestamp", "id", "speed")
+    datatable(select_speed_range()$animal_selected_data[, cols, with = FALSE],
+              options = list(pageLength = 6,
+                             lengthMenu = c(6, 10, 20),
+                             searching = FALSE),
+              rownames = FALSE)
   })
   # p4. time subset ----
   # actually should not color by page 1 color because we will rainbow color by time
