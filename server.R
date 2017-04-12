@@ -560,7 +560,6 @@ server <- function(input, output, session) {
                                 0.6,
                                 input$speed_alpha),
                  aes(colour = speed_color_factor)) +
-      # selected_geoms +
       factor_color(animal_selected_data$speed_color_factor) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
@@ -568,7 +567,7 @@ server <- function(input, output, session) {
                   ylim = speed_outlier_plot_range$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
-    # prepare selected points data
+    # if selected some points in table of data in range
     if (!is.null(input$points_in_speed_range_rows_selected)) {
       selected_points <- select_speed_range()$animal_selected_data[
         input$points_in_speed_range_rows_selected]
@@ -585,7 +584,7 @@ server <- function(input, output, session) {
                        (abs(row_no - r_no) <= neighbor_size),
                      in_neighbor := TRUE]
         }
-        animals_dt[, c("xend", "yend") := NULL]
+        # animals_dt[, c("xend", "yend") := NULL]
         animals_dt[(in_neighbor), `:=`(xend = x + inc_x, yend = y + inc_y)]
         g <- g +
           geom_point(data = animals_dt[(in_neighbor)],
@@ -618,17 +617,16 @@ server <- function(input, output, session) {
       # facet_wrap(~ id, ncol = 2) +
   })
   # points without valid speed values
-  # TODO format table
-  output$points_speed_non_valid <- DT::renderDataTable({
-    # only render table when there is a selection. otherwise it will be all data.
-    animals_dt <- req(current_animals()$data)
-    cols <- c("row_no", "timestamp", "id", "speed")
-    datatable(animals_dt[is.na(speed), cols, with = FALSE],
-              options = list(pageLength = 6,
-                             lengthMenu = c(6, 10, 20),
-                             searching = FALSE),
-              rownames = FALSE)
-  })
+  # output$points_speed_non_valid <- DT::renderDataTable({
+  #   # only render table when there is a selection. otherwise it will be all data.
+  #   animals_dt <- req(current_animals()$data)
+  #   cols <- c("row_no", "timestamp", "id", "speed")
+  #   datatable(animals_dt[is.na(speed), cols, with = FALSE],
+  #             options = list(pageLength = 6,
+  #                            lengthMenu = c(6, 10, 20),
+  #                            searching = FALSE),
+  #             rownames = FALSE)
+  # })
   # points in selected speed range
   # TODO format table ----
   output$points_in_speed_range <- DT::renderDataTable({
