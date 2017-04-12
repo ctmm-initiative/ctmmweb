@@ -38,7 +38,7 @@ help_button <- function(module_id) {
   actionButton(prefix("help"),
                "Help",
                icon = icon("question"),
-               style = help_button_style
+               style = styles$help_button
   )
 }
 click_help <- function(input, output, session, title, file){
