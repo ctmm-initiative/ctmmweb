@@ -360,7 +360,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   }
-  , height = height_plot_loc, width = "auto"
+  , height = styles$height_plot_loc, width = "auto"
   )
   # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
@@ -376,7 +376,7 @@ server <- function(input, output, session) {
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
-  }, height = height_plot_loc, width = "auto")
+  }, height = styles$height_plot_loc, width = "auto")
   # 2.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(chose_animal()$data)
@@ -396,14 +396,15 @@ server <- function(input, output, session) {
         scale_x_continuous(labels = format_distance_f(data_i$x)) +
         scale_y_continuous(labels = format_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
-        theme(plot.title = element_text(hjust = 0.5)) +
+        theme(plot.title = element_text(hjust = 0.5),
+              legend.position="none") +
         coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
                     ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
                     expand = FALSE)
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     grid.arrange(grobs = g_list)
-  }, height = height_plot_3, width = "auto")
+  }, height = styles$height_plot_3, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(chose_animal()$data)
@@ -413,7 +414,7 @@ server <- function(input, output, session) {
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
-  }, height = height_hist, width = "auto")
+  }, height = styles$height_hist, width = "auto")
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
              title = "Outliers in Distance to Median Center",
@@ -468,11 +469,11 @@ server <- function(input, output, session) {
                                          select_distance_range()$select_end)]
     ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.5, colour = "gray") +
-      geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
-                 aes(x = median_x, y = median_y), color = "blue") +
       geom_point(data = animal_selected_data,
                  size = 0.05, alpha = 0.6,
                  aes(colour = distance_center_color_factor)) +
+      geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
+                 aes(x = median_x, y = median_y), color = "blue", size = 0.8) +
       factor_color(animal_selected_data$distance_center_color_factor) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
