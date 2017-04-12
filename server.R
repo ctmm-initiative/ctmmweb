@@ -495,12 +495,19 @@ server <- function(input, output, session) {
   output$distance_outlier_plot <- renderPlot({
     animals_dt <- req(bin_by_distance()$animals_dt)
     animal_selected_data <- select_distance_range()$animal_selected_data
+    # browser()
     ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       geom_point(data = animal_selected_data,
                  size = input$distance_point_size,
                  alpha = input$distance_alpha,
                  aes(colour = distance_center_color_factor)) +
+      {if (!is.null(input$points_in_distance_range_rows_selected)) {
+        points_selected <- select_distance_range()$animal_selected_data[
+          input$points_in_distance_range_rows_selected]
+        geom_point(data = points_selected, size = 3.5, alpha = 1,
+                   color = "blue", shape = 22)
+      }} +
       geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
                  aes(x = median_x, y = median_y), color = "blue", size = 0.8) +
       factor_color(animal_selected_data$distance_center_color_factor) +
@@ -551,12 +558,13 @@ server <- function(input, output, session) {
   output$speed_outlier_plot <- renderPlot({
     animals_dt <- req(bin_by_speed()$animals_dt)
     animal_selected_data <- select_speed_range()$animal_selected_data
-    ggplot(animals_dt, aes(x, y)) +
+    g <- ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       geom_point(data = animal_selected_data,
                  size = input$speed_point_size,
                  alpha = input$speed_alpha,
                  aes(colour = speed_color_factor)) +
+      # selected_geoms +
       factor_color(animal_selected_data$speed_color_factor) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
@@ -564,6 +572,44 @@ server <- function(input, output, session) {
                   ylim = speed_outlier_plot_range$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
+    # prepare selected points data
+    if (!is.null(input$points_in_speed_range_rows_selected)) {
+      selected_points <- select_speed_range()$animal_selected_data[
+        input$points_in_speed_range_rows_selected]
+      # draw rectangle around selected points
+      g <- g +
+        geom_point(data = selected_points, size = 3.5, alpha = 1,
+                                   color = "blue", shape = 22)
+      # calculate path if needed
+      if ("draw_speed_path" %in% input$selected_details) {
+        neighbor_size <- 4
+        animals_dt[, in_neighbor := NA]
+        for (r_no in selected_points$row_no) {
+          animals_dt[(identity == animals_dt[row_no == r_no, identity]) &
+                       (abs(row_no - r_no) <= neighbor_size),
+                     in_neighbor := TRUE]
+        }
+        animals_dt[, c("xend", "yend") := NULL]
+        animals_dt[(in_neighbor), `:=`(xend = x + inc_x, yend = y + inc_y)]
+        g <- g +
+          geom_point(data = animals_dt[(in_neighbor)],
+                     color = "blue",
+                     alpha = 0.8, size = 1, shape = 21) +
+          # remove the warning of NA otherwise each zoom will have one warning.
+          geom_segment(data = animals_dt[(in_neighbor)],
+                       color = "blue", alpha = 0.3, na.rm = TRUE,
+                       aes(xend = xend, yend = yend),
+                       arrow = arrow(length = unit(2,"mm")))
+        # add label in path if needed, this only work when path is selected.
+        if ("add_label" %in% input$selected_details) {
+          g <- g +
+            geom_text(data = animals_dt[(in_neighbor)],
+                      aes(label = row_no), alpha = 0.6, hjust = -0.1)
+        }
+      }
+    }
+    g
+
 
     # animals_dt <- req(chose_animal()$data)
     # ggplot(animals_dt, aes(x, y)) +
