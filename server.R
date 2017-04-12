@@ -471,10 +471,22 @@ server <- function(input, output, session) {
       }
       animal_selected_data <- animals_dt[(eval(col_name) >= select_start) &
                                            (eval(col_name) <= select_end)]
+      # if no point in range, setnames will complain
+      if (nrow(animal_selected_data) == 0) {
+        animal_selected_formatted <- NULL
+      } else {
+        animal_selected_formatted <- animal_selected_data[,
+                      .(row_no, format_datetime(timestamp), id,
+                        unit_formatter(eval(col_name)))]
+        switch(his_type,
+               distance = setnames(animal_selected_formatted, c("V2", "V4"),
+                                   c("timestamp", "distance_center")),
+               speed = setnames(animal_selected_formatted, c("V2", "V4"),
+                                c("timestamp", "speed")))
+      }
       list(select_start = select_start, select_end = select_end,
-                  select_start_p = unit_formatter(select_start),
-                  select_end_p = unit_formatter(select_end),
-                  animal_selected_data = animal_selected_data)
+           animal_selected_data = animal_selected_data,
+           animal_selected_formatted = animal_selected_formatted)
     }))
   }
   select_distance_range <- select_range("distance")
@@ -512,12 +524,12 @@ server <- function(input, output, session) {
 
   })
   # points in selected distance range
-  # TODO format table ----
   output$points_in_distance_range <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(input$distance_his_brush)
-    cols <- c("row_no", "timestamp", "id", "distance_center")
-    datatable(select_distance_range()$animal_selected_data[, cols, with = FALSE],
+    # cols <- c("row_no", "timestamp", "id", "distance_center")
+    # datatable(select_distance_range()$animal_selected_data[, cols, with = FALSE],
+    datatable(select_distance_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              searching = FALSE),
@@ -628,12 +640,10 @@ server <- function(input, output, session) {
   #             rownames = FALSE)
   # })
   # points in selected speed range
-  # TODO format table ----
   output$points_in_speed_range <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(input$speed_his_brush)
-    cols <- c("row_no", "timestamp", "id", "speed")
-    datatable(select_speed_range()$animal_selected_data[, cols, with = FALSE],
+    datatable(select_speed_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              searching = FALSE),
