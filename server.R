@@ -284,6 +284,21 @@ server <- function(input, output, session) {
                                      hue_pal()(nrow(info_p)))
       )}
   )
+  # to outlier filtering ----
+  observeEvent(input$outlier, {
+    updateTabItems(session, "tabs", "filter")
+  })
+  # to time subsetting ----
+  values$selected_animal_no <- 1
+  observeEvent(input$time_subset, {
+    # must select single animal to proceed
+    if (length(input$individuals_rows_selected) != 1) {
+      showNotification("Please select single Animal.", type = "error")
+    } else {
+      values$selected_animal_no <- input$individuals_rows_selected
+      updateTabItems(session, "tabs", "subset")
+    }
+  })
   # 2.4.4 location basic plot
   # this is the only place that take original input data directly.
   output$location_plot_basic <- renderPlot({
@@ -313,16 +328,6 @@ server <- function(input, output, session) {
                 # row_nos = chosen_row_nos,
                 # colors = chosen_colors
                 ))
-  })
-  # select single for next analysis ----
-  values$selected_animal_no <- 1
-  observeEvent(input$selected, {
-    if (length(input$individuals_rows_selected) != 1) {
-      showNotification("Please select single Animal.", type = "error")
-    } else {
-      values$selected_animal_no <- input$individuals_rows_selected
-      updateTabItems(session, "tabs", "subset")
-    }
   })
   # 2.4.1 overview plot ----
   # to add zoom in for a non-arranged plot, seem more in add_zoom.R and google group discussion
@@ -473,23 +478,6 @@ server <- function(input, output, session) {
     }))
   }
   select_distance_range <- select_range("distance")
-  # select_distance_range <- reactive({
-  #   animals_dt <- req(chose_animal()$data)
-  #   if (is.null(input$distance_his_brush)) {
-  #     select_start <- 0
-  #     select_end <- max(animals_dt$distance_center)
-  #   } else {
-  #     select_start <- input$distance_his_brush$xmin
-  #     select_end <- input$distance_his_brush$xmax
-  #   }
-  #   distance_formatter <- format_distance_f(animals_dt$distance_center)
-  #   animal_selected_data <- animals_dt[(distance_center >= select_start) &
-  #                                        (distance_center <= select_end)]
-  #   return(list(select_start = select_start, select_end = select_end,
-  #               select_start_p = distance_formatter(select_start),
-  #               select_end_p = distance_formatter(select_end),
-  #               animal_selected_data = animal_selected_data))
-  # })
   # distance outlier plot ----
   distance_outlier_plot_range <- add_zoom("distance_outlier_plot")
   output$distance_outlier_plot <- renderPlot({
@@ -499,8 +487,12 @@ server <- function(input, output, session) {
     ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       geom_point(data = animal_selected_data,
-                 size = input$distance_point_size,
-                 alpha = input$distance_alpha,
+                 size = ifelse(is.null(input$distance_his_brush),
+                               0.2,
+                               input$distance_point_size),
+                 alpha = ifelse(is.null(input$distance_his_brush),
+                                0.6,
+                                input$distance_alpha),
                  aes(colour = distance_center_color_factor)) +
       {if (!is.null(input$points_in_distance_range_rows_selected)) {
         points_selected <- select_distance_range()$animal_selected_data[
@@ -561,8 +553,12 @@ server <- function(input, output, session) {
     g <- ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       geom_point(data = animal_selected_data,
-                 size = input$speed_point_size,
-                 alpha = input$speed_alpha,
+                 size = ifelse(is.null(input$speed_his_brush),
+                               0.2,
+                               input$speed_point_size),
+                 alpha = ifelse(is.null(input$speed_his_brush),
+                                0.6,
+                                input$speed_alpha),
                  aes(colour = speed_color_factor)) +
       # selected_geoms +
       factor_color(animal_selected_data$speed_color_factor) +
