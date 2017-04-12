@@ -399,7 +399,7 @@ server <- function(input, output, session) {
         scale_y_continuous(labels = format_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
         theme(plot.title = element_text(hjust = 0.5),
-              legend.position="none") +
+              legend.position = "none") +
         coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
                     ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
                     expand = FALSE)
@@ -445,45 +445,68 @@ server <- function(input, output, session) {
       coord_cartesian(ylim = c(0, input$distance_his_y_limit)) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
-  # selected distance range ----
-  # brush selection
-  select_distance_range <- reactive({
-    animals_dt <- req(chose_animal()$data)
-    if (is.null(input$distance_his_brush)) {
-      select_start <- 0
-      select_end <- max(animals_dt$distance_center)
-    } else {
-      select_start <- input$distance_his_brush$xmin
-      select_end <- input$distance_his_brush$xmax
-    }
-    distance_formatter <- format_distance_f(animals_dt$distance_center)
-    animal_selected_data <- animals_dt[(distance_center >= select_start) &
-                                         (distance_center <= select_end)]
-    return(list(select_start = select_start, select_end = select_end,
-                select_start_p = distance_formatter(select_start),
-                select_end_p = distance_formatter(select_end),
-                animal_selected_data = animal_selected_data))
-  })
+  # brush selection function
+  select_range <- function(his_type){
+    return(reactive({
+      animals_dt <- req(chose_animal()$data)
+      brush <- input[[paste0(his_type, "_his_brush")]]
+      col_name <- switch(his_type,
+                         distance = quote(distance_center),
+                         speed = quote(speed))
+      unit_formatter <- switch(his_type,
+                 distance = format_distance_f(animals_dt[, eval(col_name)]),
+                 speed = format_speed_f(animals_dt[, eval(col_name)]))
+      if (is.null(brush)) {
+        select_start <- 0
+        select_end <- max(animals_dt[, eval(col_name)])
+      } else {
+        select_start <- brush$xmin
+        select_end <- brush$xmax
+      }
+      animal_selected_data <- animals_dt[(eval(col_name) >= select_start) &
+                                           (eval(col_name) <= select_end)]
+      list(select_start = select_start, select_end = select_end,
+                  select_start_p = unit_formatter(select_start),
+                  select_end_p = unit_formatter(select_end),
+                  animal_selected_data = animal_selected_data)
+    }))
+  }
+  select_distance_range <- select_range("distance")
+  # select_distance_range <- reactive({
+  #   animals_dt <- req(chose_animal()$data)
+  #   if (is.null(input$distance_his_brush)) {
+  #     select_start <- 0
+  #     select_end <- max(animals_dt$distance_center)
+  #   } else {
+  #     select_start <- input$distance_his_brush$xmin
+  #     select_end <- input$distance_his_brush$xmax
+  #   }
+  #   distance_formatter <- format_distance_f(animals_dt$distance_center)
+  #   animal_selected_data <- animals_dt[(distance_center >= select_start) &
+  #                                        (distance_center <= select_end)]
+  #   return(list(select_start = select_start, select_end = select_end,
+  #               select_start_p = distance_formatter(select_start),
+  #               select_end_p = distance_formatter(select_end),
+  #               animal_selected_data = animal_selected_data))
+  # })
   # distance outlier plot ----
   distance_outlier_plot_range <- add_zoom("distance_outlier_plot")
   output$distance_outlier_plot <- renderPlot({
-    animals_dt <- bin_by_distance()$animals_dt
-    # animal_selected_data <- animals_dt[(distance_center >=
-    #                                      select_distance_range()$select_start) &
-    #                                      (distance_center <=
-    #                                      select_distance_range()$select_end)]
+    animals_dt <- req(bin_by_distance()$animals_dt)
     animal_selected_data <- select_distance_range()$animal_selected_data
     ggplot(animals_dt, aes(x, y)) +
-      geom_point(size = 0.05, alpha = 0.5, colour = "gray") +
+      geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       geom_point(data = animal_selected_data,
-                 size = 0.05, alpha = 0.6,
+                 size = input$distance_point_size,
+                 alpha = input$distance_alpha,
                  aes(colour = distance_center_color_factor)) +
       geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
                  aes(x = median_x, y = median_y), color = "blue", size = 0.8) +
       factor_color(animal_selected_data$distance_center_color_factor) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
-      coord_fixed() +
+      coord_fixed(xlim = distance_outlier_plot_range$x,
+                  ylim = distance_outlier_plot_range$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
 
@@ -501,27 +524,54 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # p3.b.1 speed histogram ----
-  output$speed_histogram <- renderPlot({
+  bin_by_speed <- reactive({
     animals_dt <- req(chose_animal()$data)
-    ggplot(animals_dt, aes(x = speed)) +
-      geom_histogram(bins = input$speed_his_bins) +
-      # need to exclude 0 count groups
-      geom_text(stat = 'bin',aes(label = ifelse(..count.. != 0, ..count.., "")),
-                vjust = -1, bins = input$speed_his_bins) +
-      scale_x_continuous(labels = format_speed_f(animals_dt$speed)) +
-      coord_cartesian(ylim = c(0, input$speed_his_y_limit))
+    return(color_break(input$speed_his_bins, animals_dt,
+                       "speed", format_speed_f))
   })
+  output$speed_histogram <- renderPlot({
+    speed_binned <- req(bin_by_speed())
+    animals_dt <- speed_binned$animals_dt
+    ggplot(animals_dt, aes(x = speed)) +
+      geom_histogram(breaks = speed_binned$color_bin_breaks,
+                     fill = hue_pal()(input$speed_his_bins)) +
+      # need to exclude 0 count groups
+      geom_text(stat = 'bin', aes(label = ifelse(..count.. != 0, ..count.., "")),
+                vjust = -1, breaks = speed_binned$color_bin_breaks) +
+      scale_x_continuous(breaks = speed_binned$non_empty_breaks,
+                         labels = speed_binned$vec_formatter) +
+      coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  })
+  select_speed_range <- select_range("speed")
   # speed outlier plot ----
   speed_outlier_plot_range <- add_zoom("speed_outlier_plot")
   output$speed_outlier_plot <- renderPlot({
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(bin_by_speed()$animals_dt)
+    animal_selected_data <- select_speed_range()$animal_selected_data
     ggplot(animals_dt, aes(x, y)) +
-      geom_point(size = 0.5, alpha = 0.6, aes(color = speed)) +
-      scale_colour_gradient(low = "gray", high = "red") +
+      geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
+      geom_point(data = animal_selected_data,
+                 size = input$speed_point_size,
+                 alpha = input$speed_alpha,
+                 aes(colour = speed_color_factor)) +
+      factor_color(animal_selected_data$speed_color_factor) +
+      scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
       coord_fixed(xlim = speed_outlier_plot_range$x,
                   ylim = speed_outlier_plot_range$y) +
-      scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = format_distance_f(animals_dt$y))
+      theme(legend.position = "top",
+            legend.direction = "horizontal") + bigger_key
+
+    # animals_dt <- req(chose_animal()$data)
+    # ggplot(animals_dt, aes(x, y)) +
+    #   geom_point(size = 0.5, alpha = 0.6, aes(color = speed)) +
+    #   scale_colour_gradient(low = "gray", high = "red") +
+    #   coord_fixed(xlim = speed_outlier_plot_range$x,
+    #               ylim = speed_outlier_plot_range$y) +
+    #   scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
+    #   scale_y_continuous(labels = format_distance_f(animals_dt$y))
       # facet_wrap(~ id, ncol = 2) +
   })
   # p4. time subset ----
