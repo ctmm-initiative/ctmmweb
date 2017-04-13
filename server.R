@@ -366,7 +366,6 @@ server <- function(input, output, session) {
                  size = input$point_size_1, alpha = 0.7) +
       coord_fixed(xlim = location_plot_gg_range$x,
                   ylim = location_plot_gg_range$y) +
-      # scale_color_manual(values = chose_animal()$colors) +
       factor_color(animals_dt$id) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
@@ -384,7 +383,6 @@ server <- function(input, output, session) {
       geom_point(size = 0.1, aes(colour = id)) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
-      # scale_color_manual(values = chose_animal()$colors) +
       factor_color(animals_dt$id) +
       facet_grid(id ~ .) +
       coord_fixed() +
@@ -394,17 +392,13 @@ server <- function(input, output, session) {
   # 2.4.3 individuals ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(chose_animal()$data)
-    # new_ranges <- get_ranges_quantile(chose_animal()$tele_objs, animals_dt, input$include_level)
     new_ranges <- get_ranges_quantile_dt(animals_dt, input$include_level)
     id_vector <- chose_animal()$info$identity
-    color_vec <- chose_animal()$colors
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
       data_i <- animals_dt[identity == id_vector[i]]
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y, color = id)) +
-        # geom_point(size = input$point_size_3, alpha = 0.7,
-        #            color = color_vec[i]) +
         geom_point(size = input$point_size_3, alpha = 0.7) +
         factor_color(data_i$id) +
         scale_x_continuous(labels = format_distance_f(data_i$x)) +
@@ -624,17 +618,6 @@ server <- function(input, output, session) {
       }
     }
     g
-
-
-    # animals_dt <- req(chose_animal()$data)
-    # ggplot(animals_dt, aes(x, y)) +
-    #   geom_point(size = 0.5, alpha = 0.6, aes(color = speed)) +
-    #   scale_colour_gradient(low = "gray", high = "red") +
-    #   coord_fixed(xlim = speed_outlier_plot_range$x,
-    #               ylim = speed_outlier_plot_range$y) +
-    #   scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
-    #   scale_y_continuous(labels = format_distance_f(animals_dt$y))
-      # facet_wrap(~ id, ncol = 2) +
   })
   # points without valid speed values
   # output$points_speed_non_valid <- DT::renderDataTable({
@@ -715,7 +698,8 @@ server <- function(input, output, session) {
     dt <- data.frame(start = select_time_range()$select_start_p,
                      end = select_time_range()$select_end_p,
                      length = select_time_range()$select_length_p)
-    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
+    datatable(dt, options =
+                list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
   })
   # 4.3 selected locations ----
@@ -754,7 +738,8 @@ server <- function(input, output, session) {
   # selected_times
   output$selected_ranges <- DT::renderDataTable({
     time_range <- select_time_range()
-    datatable(values$selected_time_ranges, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
+    datatable(values$selected_time_ranges, options =
+                list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
   vg.animal_1 <- reactive({
