@@ -4,25 +4,24 @@
 source("helpers.R", local = TRUE)
 source("cut_divide.R", local = TRUE)
 
-# some variables need to be visible across different functions. modify with <<-
-# valid_studies <- NULL
-# move_bank_dt <- NULL
 server <- function(input, output, session) {
   # p1. import ----
-  # values got updated in observeEvent need this format.
+  # reactive values got updated in observeEvent use this.
   values <- reactiveValues()
   # all reference of this value should wrap req around it: req(values$input_data)
   values$input_data <- NULL
   # 1.1 local data ----
   data_import <- function(data) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
-    note_import <- showNotification(shiny::span(icon("spinner fa-spin"), "Importing data..."), type = "message", duration = NULL)
+    note_import <- showNotification(
+      shiny::span(icon("spinner fa-spin"), "Importing data..."),
+      type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     values$input_data <- tryCatch(as.telemetry(data),
-                                  error = function(e) {
-                                    showNotification("Import error, check data again",
-                                                     duration = 4, type = "error")
-                                  })
+        error = function(e) {
+          showNotification("Import error, check data again",
+                           duration = 4, type = "error")
+        })
   }
   # clicking browse button without changing radio button should also update
   file_uploaded <- function(){
@@ -58,7 +57,8 @@ server <- function(input, output, session) {
     updateTextInput(session, "pass", value = mb_pass_env)
     showNotification("Movebank login info found", duration = 1, type = "message")
   }
-  callModule(click_help, "login", title = "Movebank Login", file = "help/movebank_login.md")
+  callModule(click_help, "login", title = "Movebank Login",
+             file = "help/movebank_login.md")
   # 1.3 movebank studies ----
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
   # all studies box
@@ -70,8 +70,10 @@ server <- function(input, output, session) {
   output$studies <- DT::renderDataTable(
     datatable({
       req(values$studies)
-      selected_studies_cols <- c("id", "name", "deployments", "events", "individuals")
-      values$studies[owner == input$data_manager, selected_studies_cols, with = FALSE]
+      selected_studies_cols <- c("id", "name", "deployments",
+                                 "events", "individuals")
+      values$studies[owner == input$data_manager, selected_studies_cols,
+                     with = FALSE]
       },
       rownames = FALSE,
       options = list(pageLength = 5),
@@ -79,16 +81,17 @@ server <- function(input, output, session) {
   ))
   # selected data box
   values$study_detail <- NULL
-  output$study_detail <- DT::renderDataTable(datatable(req(values$study_detail),
-                                                       rownames = FALSE,
-                                                       options = list(pageLength = 5),
-                                                       selection = 'none'))
+  output$study_detail <- DT::renderDataTable(
+    datatable(req(values$study_detail),
+              rownames = FALSE,
+              options = list(pageLength = 5),
+              selection = 'none'))
   # data preview box
   values$study_data_response <- NULL
   output$study_data_response <- renderText(req(values$study_data_response))
   values$study_preview <- NULL
-  output$study_preview <- DT::renderDataTable(datatable(req(values$study_preview),
-                                                        options = list(dom = 't')))
+  output$study_preview <- DT::renderDataTable(
+    datatable(req(values$study_preview), options = list(dom = 't')))
   values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
   # the whole data preview box should be cleared with all actions other than download, otherwise it could be confusing when there is a previous download and user made other actions
   clear_mb_download <- function(res_msg = NULL){
@@ -97,7 +100,9 @@ server <- function(input, output, session) {
     values$move_bank_dt <- NULL
   }
   observeEvent(input$login, {
-    note_studies <- showNotification(shiny::span(icon("spinner fa-spin"), "Downloading studies..."), type = "message", duration = NULL)
+    note_studies <- showNotification(
+      shiny::span(icon("spinner fa-spin"), "Downloading studies..."),
+      type = "message", duration = NULL)
     # always take current form value
     res <- get_all_studies(input$user, input$pass)  # may generate error notification if failed
     removeNotification(note_studies)
@@ -115,7 +120,8 @@ server <- function(input, output, session) {
                            "number_of_individuals",
                            "i_am_owner", "i_can_see_data", "license_terms")
       all_studies <- try(fread(res$res_cont, select = studies_cols))
-      all_studies[, i_can_see_data := ifelse(i_can_see_data == "true", TRUE, FALSE)]
+      all_studies[, i_can_see_data :=
+                    ifelse(i_can_see_data == "true", TRUE, FALSE)]
       all_studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
       valid_studies <- all_studies[(i_can_see_data)]
       new_names <- sub(".*_", "", studies_cols)
@@ -123,8 +129,8 @@ server <- function(input, output, session) {
       setkey(valid_studies, name)
       values$studies <- valid_studies
       values$all_studies_stat <- paste0("Total Studies ", all_studies[, .N],
-                                        "; You can see data of ", values$studies[, .N],
-                                        ";\nYou are data manager of ", values$studies[(owner), .N])
+          "; You can see data of ", values$studies[, .N],
+          ";\nYou are data manager of ", values$studies[(owner), .N])
       values$study_detail <- NULL
       clear_mb_download()
     }
@@ -142,10 +148,9 @@ server <- function(input, output, session) {
         req(input$studies_rows_selected)
         shiny::a(tags$button(icon("external-link"), "Open in Movebank",
                              class = "btn btn-default action-button",
-                             style = external_link_style),
-                 target = "_blank",
-                 href = paste0("https://www.movebank.org/movebank/#page=studies,path=study",
-                               mb_id))
+                             style = styles$external_link),
+                 target = "_blank", href =
+  paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id))
       })
       res <- get_study_detail(mb_id, input$user, input$pass)
       # It's easier to specify cols here to drop some cols and reorder cols at the same time
@@ -155,12 +160,14 @@ server <- function(input, output, session) {
       # need to check content in case something wrong and code below generate error on empty table
       # never had error here because the mb_id came from table itself. so no extra clear up boxes
       if (detail_dt[, .N] == 0) {
-        showNotification("No study information downloaded", duration = 2, type = "error")
+        showNotification("No study information downloaded",
+                         duration = 2, type = "error")
       } else{
         # exclude empty columns (value of NA)
         valid_cols <- names(detail_dt)[colSums(!is.na(detail_dt)) != 0]
         #  show table as rows. will have some warning of coercing different column types, ignored.
-        detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id", na.rm = TRUE))
+        detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id",
+                                             na.rm = TRUE))
         detail_rows[, id := NULL]
         values$study_detail <- detail_rows
         # any selection in studies table should clear downloaded data table
@@ -172,8 +179,9 @@ server <- function(input, output, session) {
   observeEvent(input$download, {
     req(input$studies_rows_selected)
     mb_id <- values$studies[input$studies_rows_selected, id]
-    note_data_download <- showNotification(shiny::span(icon("spinner fa-spin"), "Downloading data..."),
-                                           type = "message", duration = NULL)
+    note_data_download <- showNotification(
+      shiny::span(icon("spinner fa-spin"), "Downloading data..."),
+      type = "message", duration = NULL)
     # always take current form value
     res <- get_study_data(mb_id, input$user, input$pass)
     removeNotification(note_data_download)
@@ -183,21 +191,23 @@ server <- function(input, output, session) {
     movebank_dt_preview <- try(fread(res$res_cont, sep = ",", nrows = 5))
     # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
     if (!("data.table" %in% class(movebank_dt_preview))) {
-      showNotification(h4("No data available -- or you need to agree to license term first."), type = "warning", duration = 5)
+      showNotification(
+        h4("No data available -- or you need to agree to license term first."),
+        type = "warning", duration = 5)
       msg <- html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
-      note_parse <- showNotification(shiny::span(icon("spinner fa-spin"),
-                                                   "Parsing csv..."),
-                                              type = "message", duration = NULL)
+      note_parse <- showNotification(
+        shiny::span(icon("spinner fa-spin"), "Parsing csv..."),
+        type = "message", duration = NULL)
       move_bank_dt <- try(fread(res$res_cont, sep = ","))
       removeNotification(note_parse)
       row_count <- formatC(move_bank_dt[, .N], format = "d", big.mark = ",")
       individual_count <- length(unique(move_bank_dt[, individual_id]))
       values$study_data_response <- paste0(
-          "Data downloaded with ", row_count, " rows, ", individual_count, " individuals. ",
-          "Preview:")
+          "Data downloaded with ", row_count, " rows, ",
+          individual_count, " individuals. ", "Preview:")
       values$study_preview <- movebank_dt_preview
       values$move_bank_dt <- move_bank_dt
     }
@@ -207,12 +217,13 @@ server <- function(input, output, session) {
   # 1.5 save, import data ----
   output$save <- downloadHandler(
     filename = function() {
-                  mb_id <- values$studies[input$studies_rows_selected, id]
-                  # avoid special characters that invalid for file name
-                  study_name <- gsub('[^\\w]', ' ',
-                                     values$studies[input$studies_rows_selected, name],
-                                     perl = TRUE)
-                  paste0("Movebank ", mb_id, " - ", study_name, ".csv") },
+        mb_id <- values$studies[input$studies_rows_selected, id]
+        # avoid special characters that invalid for file name
+        study_name <- gsub('[^\\w]', ' ',
+                           values$studies[input$studies_rows_selected, name],
+                           perl = TRUE)
+        paste0("Movebank ", mb_id, " - ", study_name, ".csv")
+        },
     content = function(file) {
       req(values$move_bank_dt[, .N] > 0)
       fwrite(values$move_bank_dt, file)
@@ -306,12 +317,12 @@ server <- function(input, output, session) {
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
   # chose_animal() ----
-  # when there are lots of animals, the color gradient is subtle for neighbors.
+  # when user selected animals in summary table, all plots update to the subset
+  # with lots of animals, the color gradient could be subtle or have duplicates
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(input$individuals_rows_current)
     id_vec <- current_animals()$info[, identity]
-    # color_vec <- hue_pal()(length(id_vec))
     # table can be sorted, but always return row number in column 1
     if (length(input$individuals_rows_selected) == 0) {
       # select all in current page when there is no selection
@@ -320,18 +331,13 @@ server <- function(input, output, session) {
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    # chosen_colors <- color_vec[id_vec %in% chosen_ids]
-    # we always use id to get data subset, so return data directly. range_quantile need tele obj, which need id row number to subset. include it here because the data may actually have subset, outlier removal applied, we cannot take from input directly anymore.
     return(list(data = current_animals()$data[identity %in% chosen_ids],
                 info = current_animals()$info[identity %in% chosen_ids]
-                # tele_objs = values$input_data[chosen_row_nos],
-                # row_nos = chosen_row_nos,
-                # colors = chosen_colors
                 ))
   })
   # 2.4.1 overview plot ----
   # to add zoom in for a non-arranged plot, seem more in add_zoom.R and google group discussion
-  # 1. add event id in ui, always use same naming pattern with plotid. we can use global variables to record the naming pattern, but that's extra complexity for simple things.
+  # 1. add event id in ui, always use same naming pattern with plotid.
   # 2. call function to create reactive value of range
   # 3. use range in plot xlim/ylim
   add_zoom <- function(plot_id) {
