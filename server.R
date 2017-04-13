@@ -235,25 +235,26 @@ server <- function(input, output, session) {
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
-  # merge_input <- reactive({
-  #   req(values$input_data)
-  #   # tried notification here, the timing is not accurate. This step usually don't need much time. if it does, the importing step will have notification which shoul serve the purpose.
-  #   merge_animals(values$input_data)
-  # })
-  # input data may have outliers removed then return to visualization page. The outlier removal step is optional and can be repeated. current_data will replace merge_input, which always start from original input, apply filter needed.
-  # this came from outliers added to quene. vector of row_no. Compare to the actual rows, it's easier to remove rows by row_no from original data.
+  # input (upload, movebank, buffalo) -> current -> chose animal in table
+  # current: merge telemetry to df, remove outliers if in quene, return df, info table, removed outliers full data
+  # chose animal: selected rows or current page, this apply to all plots, outliers
+  # time subsetting use first or chosen single animal
+  # outlier use current, update outlier quene
+
+  # came from outliers added to quene. vector of row_no. Compare to the actual rows, it's easier to remove rows by row_no from original data.
   values$outliers_to_remove <- NULL
-  # outliers removed will be added here. vector of row_no
-  values$outliers_removed <- NULL
+  values$reset_outliers <- FALSE
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
   # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
   # current_animals() ----
+  # the current state of all animal data
   # merge input into a list of data frame and info frame. also apply the subset or filter.
   current_animals <- reactive({
     req(values$input_data)
     animals <- merge_animals(values$input_data)
     # TODO remove points ----
-    # sync telemetry obj with the data frame. some individual could be removed in outlier removal, also return the telemetry obj
+    # if reset flag is set, reset to input data. after that remove the flag.
+    # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
     if (!is.null(values$outliers_to_remove)) {
 
     }
@@ -537,6 +538,14 @@ server <- function(input, output, session) {
                              searching = FALSE),
               rownames = FALSE)
   })
+  # remove distance outliers ----
+  # actually just put row_no vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
+  observeEvent(input$remove_distance_selected, {
+    req(length(input$points_in_distance_range_rows_selected) > 0)
+    values$outliers_to_remove <- select_distance_range()$animal_selected_data[
+      input$points_in_distance_range_rows_selected, row_no
+    ]
+  })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
     animals_dt <- req(chose_animal()$data)
@@ -640,6 +649,17 @@ server <- function(input, output, session) {
                              searching = FALSE),
               rownames = FALSE)
   })
+  # remove speed outliers
+  observeEvent(input$remove_speed_selected, {
+    req(length(input$points_in_speed_range_rows_selected) > 0)
+    values$outliers_to_remove <- select_speed_range()$animal_selected_data[
+      input$points_in_speed_range_rows_selected, row_no
+      ]
+  })
+  # reset outlier removal
+  observeEvent(input$reset_outliers, {
+    values$reset_outliers <- TRUE
+  })
   # p4. time subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
@@ -732,7 +752,7 @@ server <- function(input, output, session) {
                          length = select_time_range()$select_length_p))
     values$selected_time_ranges <- rbindlist(l)
   })
-  observeEvent(input$reset, {
+  observeEvent(input$reset_time_sub, {
     values$selected_time_ranges <- empty_ranges
   })
   # selected_times

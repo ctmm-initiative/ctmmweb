@@ -255,7 +255,7 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
                            column(2, offset = 10,
-                                  actionButton("reset", "Reset",
+                                  actionButton("reset_time_sub", "Reset",
                                                icon = icon("ban"),
                                                style = styles$page_action)),
                            DT::dataTableOutput('selected_ranges'))
