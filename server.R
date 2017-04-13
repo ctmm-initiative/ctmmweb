@@ -433,6 +433,7 @@ server <- function(input, output, session) {
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              file = "help/outlier_speed.md")
   # p3.a.1 distance histogram ----
+  # everything in this page should take animal_dt after this process
   bin_by_distance <- reactive({
     animals_dt <- req(chose_animal()$data)
     return(color_break(input$distance_his_bins, animals_dt,
@@ -457,14 +458,20 @@ server <- function(input, output, session) {
   # brush selection function
   select_range <- function(his_type){
     return(reactive({
-      animals_dt <- req(chose_animal()$data)
+      # everything in outlier page should take animal_dt from binned version
+      switch(his_type,
+             distance = {
+               col_name = quote(distance_center)
+               animals_dt <- req(bin_by_distance()$animals_dt)
+             },
+             speed = {
+               col_name = quote(speed)
+               animals_dt <- req(bin_by_speed()$animals_dt)
+             })
       brush <- input[[paste0(his_type, "_his_brush")]]
-      col_name <- switch(his_type,
-                         distance = quote(distance_center),
-                         speed = quote(speed))
-      # unit_formatter <- switch(his_type,
-      #            distance = format_distance_f(animals_dt[, eval(col_name)]),
-      #            speed = format_speed_f(animals_dt[, eval(col_name)]))
+      # col_name <- switch(his_type,
+      #                    distance = quote(distance_center),
+      #                    speed = quote(speed))
       if (is.null(brush)) {
         select_start <- 0
         select_end <- max(animals_dt[, eval(col_name)])
@@ -483,11 +490,6 @@ server <- function(input, output, session) {
             distance_center =
               format_distance_f(animals_dt[, distance_center])(distance_center),
             speed = format_speed_f(animals_dt[, speed])(speed))]
-        # switch(his_type,
-        #        distance = setnames(animal_selected_formatted, c("V2", "V4"),
-        #                            c("timestamp", "distance_center")),
-        #        speed = setnames(animal_selected_formatted, c("V2", "V4"),
-        #                         c("timestamp", "speed")))
       }
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
