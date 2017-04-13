@@ -459,9 +459,9 @@ server <- function(input, output, session) {
       col_name <- switch(his_type,
                          distance = quote(distance_center),
                          speed = quote(speed))
-      unit_formatter <- switch(his_type,
-                 distance = format_distance_f(animals_dt[, eval(col_name)]),
-                 speed = format_speed_f(animals_dt[, eval(col_name)]))
+      # unit_formatter <- switch(his_type,
+      #            distance = format_distance_f(animals_dt[, eval(col_name)]),
+      #            speed = format_speed_f(animals_dt[, eval(col_name)]))
       if (is.null(brush)) {
         select_start <- 0
         select_end <- max(animals_dt[, eval(col_name)])
@@ -474,15 +474,17 @@ server <- function(input, output, session) {
       # if no point in range, setnames will complain
       if (nrow(animal_selected_data) == 0) {
         animal_selected_formatted <- NULL
-      } else {
+      } else {# show both distance and speed in 3 tables
         animal_selected_formatted <- animal_selected_data[,
-                      .(row_no, format_datetime(timestamp), id,
-                        unit_formatter(eval(col_name)))]
-        switch(his_type,
-               distance = setnames(animal_selected_formatted, c("V2", "V4"),
-                                   c("timestamp", "distance_center")),
-               speed = setnames(animal_selected_formatted, c("V2", "V4"),
-                                c("timestamp", "speed")))
+          .(row_no, timestamp = format_datetime(timestamp), id,
+            distance_center =
+              format_distance_f(animals_dt[, distance_center])(distance_center),
+            speed = format_speed_f(animals_dt[, speed])(speed))]
+        # switch(his_type,
+        #        distance = setnames(animal_selected_formatted, c("V2", "V4"),
+        #                            c("timestamp", "distance_center")),
+        #        speed = setnames(animal_selected_formatted, c("V2", "V4"),
+        #                         c("timestamp", "speed")))
       }
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,

@@ -21,6 +21,8 @@ styles <- list(
   # sampling time
   height_hist_box = "350px",
   height_hist = 280,
+  # outliers
+  height_outlier_hist = "180px",
   # time subsetting
   # not setting the box height make arrange multiple items easier.
   height_hist_subset_box = "310px",
