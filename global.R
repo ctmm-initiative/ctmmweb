@@ -30,6 +30,8 @@ styles <- list(
   # height_selected_loc_box = "480px"
   # height_selected_loc = 480
   page_action = "background-color: #FFEB3B;font-weight: 600;width:100%;",
+  # using similar color with first box in each page.
+  page_switch = "background-color: #7ad0f7;font-weight: 600;width:100%;",
   external_link = "background-color: #a7c1fc;font-weight: 600;width:100%;",
   help_button = "background-color: #8bc34a;width:100%;"
   # info box blue #00c0ef

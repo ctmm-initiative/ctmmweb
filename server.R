@@ -8,8 +8,9 @@ server <- function(input, output, session) {
   # p1. import ----
   # reactive values got updated in observeEvent use this.
   values <- reactiveValues()
-  # all reference of this value should wrap req around it: req(values$input_data)
-  values$input_data <- NULL
+  # telemetry obj list from as.telemetry on input data. wrap it so even single individual will return a list with one item
+  # all reference of this value should wrap req around it: req(values$input_tele_list)
+  values$input_tele_list <- NULL
   # 1.1 local data ----
   data_import <- function(data) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
@@ -17,7 +18,7 @@ server <- function(input, output, session) {
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
-    values$input_data <- tryCatch(as.telemetry(data),
+    values$input_tele_list <- tryCatch(wrap_single_telemetry(as.telemetry(data)),
         error = function(e) {
           showNotification("Import error, check data again",
                            duration = 4, type = "error")
@@ -37,7 +38,7 @@ server <- function(input, output, session) {
   observeEvent(input$load_option, {
     if (input$load_option == "ctmm") {
       data("buffalo")
-      values$input_data <- buffalo
+      values$input_tele_list <- buffalo
       updateTabItems(session, "tabs", "plots")
     } else if (input$load_option == "upload") {
       # need to check NULL input from source, stop error in downstream
@@ -250,9 +251,10 @@ server <- function(input, output, session) {
   # the current state of all animal data
   # merge input into a list of data frame and info frame. also apply the subset or filter.
   current_animals <- reactive({
-    req(values$input_data)
-    animals <- merge_animals(values$input_data)
+    req(values$input_tele_list)
+    merged <- merge_animals(values$input_tele_list)
     # TODO remove points ----
+    # always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
     # if reset flag is set, reset to input data. after that remove the flag.
     # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
     if (!is.null(values$outliers_to_remove)) {
@@ -260,7 +262,7 @@ server <- function(input, output, session) {
     }
     # distance/speed calculation need to be based on updated data
     # distance
-    animals_dt <- animals$data
+    animals_dt <- merged$data
     animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
                by = identity]
     animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
@@ -278,16 +280,16 @@ server <- function(input, output, session) {
       animals_dt[i, speed := animals_dt[i - 1, speed]]
     }
     # may also need to return updated telemetry obj, for future modeling.
-    return(list(data = animals_dt, info = animals$info))
+    return(list(data = animals_dt, info = merged$info))
   })
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
-    if (input$time_unit == "normal") {
+    if (input$time_in_sec) {
       info_p <- current_animals()$info[,
-                      .(identity, start, end, interval, duration)]
+                  .(identity, start, end, interval_s, duration_s)]
     } else {
       info_p <- current_animals()$info[,
-                      .(identity, start, end, interval_s, duration_s)]
+                  .(identity, start, end, interval, duration)]
     }
     datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
@@ -314,7 +316,7 @@ server <- function(input, output, session) {
   # 2.4.4 location basic plot
   # this is the only place that take original input data directly.
   output$location_plot_basic <- renderPlot({
-    tele_objs <- req(values$input_data)
+    tele_objs <- req(values$input_tele_list)
     plot(tele_objs, col = rainbow(length(tele_objs)))
   })
   # chose_animal() ----
@@ -505,10 +507,11 @@ server <- function(input, output, session) {
                  size = ifelse(is.null(input$distance_his_brush),
                                0.2,
                                input$distance_point_size),
-                 alpha = ifelse(is.null(input$distance_his_brush),
-                                0.6,
-                                input$distance_alpha),
-                 aes(colour = distance_center_color_factor)) +
+                 # alpha = ifelse(is.null(input$distance_his_brush),
+                 #                0.6,
+                 #                input$distance_alpha),
+                 aes(colour = distance_center_color_factor,
+                     alpha = distance_center_color_factor)) +
       {if (!is.null(input$points_in_distance_range_rows_selected)) {
         points_selected <- select_distance_range()$animal_selected_data[
           input$points_in_distance_range_rows_selected]
@@ -518,6 +521,7 @@ server <- function(input, output, session) {
       geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
                  aes(x = median_x, y = median_y), color = "blue", size = 0.8) +
       factor_color(animal_selected_data$distance_center_color_factor) +
+      scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
       coord_fixed(xlim = distance_outlier_plot_range$x,
@@ -763,7 +767,7 @@ server <- function(input, output, session) {
   })
   # p5. variogram ----
   vg.animal_1 <- reactive({
-    animal_1 <- req(values$input_data)
+    animal_1 <- req(values$input_tele_list)
     variogram(animal_1)
   })
   output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
@@ -784,7 +788,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "fitting models\n")
     # }
-    animal_1 <- req(values$input_data)
+    animal_1 <- req(values$input_tele_list)
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
@@ -819,7 +823,7 @@ server <- function(input, output, session) {
     # if (debug) {
     #   cat(file = stderr(), "akde running\n")
     # }
-    animal_1 <- req(values$input_data)
+    animal_1 <- req(values$input_tele_list)
     ouf <- selected_model()
     withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
   })
@@ -833,6 +837,6 @@ server <- function(input, output, session) {
     }
   })
   output$range_plot_basic <- renderPlot({
-    plot(req(values$input_data), UD = akde.animal_1())
+    plot(req(values$input_tele_list), UD = akde.animal_1())
   })
 }
