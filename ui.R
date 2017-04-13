@@ -154,10 +154,11 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
                                    height = styles$height_outlier_hist))),
     fluidRow(column(4, offset = 1, sliderInput("distance_point_size",
                                                "Selected Point Size",
-                           min = 0.1, max = 2, value = 1.5, step = 0.1)),
-             column(4, offset = 0, sliderInput("distance_alpha",
-                                               "Selected Point Alpha ",
-                           min = 0.1, max = 1, value = 1, step = 0.1))),
+                           min = 0.1, max = 2, value = 1.5, step = 0.1))
+             # column(4, offset = 0, sliderInput("distance_alpha",
+             #                                   "Selected Point Alpha ",
+             #               min = 0.1, max = 1, value = 1, step = 0.1))
+             ),
     fluidRow(column(12, plotOutput("distance_outlier_plot",                                                      dblclick = "distance_outlier_plot_dblclick",
                                    brush = brushOpts(
                                      id = "distance_outlier_plot_brush",
@@ -191,10 +192,11 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
                               height = styles$height_outlier_hist))),
     fluidRow(column(4, offset = 1, sliderInput("speed_point_size",
                                                "Selected Point Size",
-                          min = 0.1, max = 2, value = 1.5, step = 0.1)),
-             column(4, offset = 0, sliderInput("speed_alpha",
-                                               "Selected Point Alpha ",
-                          min = 0.1, max = 1, value = 1, step = 0.1))),
+                          min = 0.1, max = 2, value = 1.5, step = 0.1))
+             # column(4, offset = 0, sliderInput("speed_alpha",
+             #                                   "Selected Point Alpha ",
+             #              min = 0.1, max = 1, value = 1, step = 0.1))
+             ),
     fluidRow(column(12, plotOutput("speed_outlier_plot",                                                      dblclick = "speed_outlier_plot_dblclick",
                            brush = brushOpts(
                              id = "speed_outlier_plot_brush",

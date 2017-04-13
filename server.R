@@ -445,15 +445,20 @@ server <- function(input, output, session) {
     animals_dt <- distance_binned$animals_dt
     ggplot(animals_dt, aes(x = distance_center)) +
       geom_histogram(breaks = distance_binned$color_bin_breaks,
-                     fill = hue_pal()(input$distance_his_bins)) +
+                     # fill = hue_pal()(input$distance_his_bins),
+                     aes(fill = distance_center_color_factor,
+                       alpha = distance_center_color_factor)) +
       # need to exclude 0 count groups
       geom_text(stat = 'bin',aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = distance_binned$color_bin_breaks) +
+      factor_fill(animals_dt$distance_center_color_factor) +
+      factor_alpha(animals_dt$distance_center_color_factor) +
       scale_x_continuous(breaks = distance_binned$non_empty_breaks,
                          labels = distance_binned$vec_formatter) +
       # all counts above 20 are not shown, so it's easier to see the few outliers.
       coord_cartesian(ylim = c(0, input$distance_his_y_limit)) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none")
   })
   # brush selection function
   select_range <- function(his_type){
@@ -523,7 +528,8 @@ server <- function(input, output, session) {
       geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
                  aes(x = median_x, y = median_y), color = "blue", size = 0.8) +
       factor_color(animal_selected_data$distance_center_color_factor) +
-      scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
+      # scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
+      factor_alpha(animal_selected_data$distance_center_color_factor) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
       coord_fixed(xlim = distance_outlier_plot_range$x,
@@ -563,14 +569,18 @@ server <- function(input, output, session) {
     animals_dt <- speed_binned$animals_dt
     ggplot(animals_dt, aes(x = speed)) +
       geom_histogram(breaks = speed_binned$color_bin_breaks,
-                     fill = hue_pal()(input$speed_his_bins)) +
+                     aes(fill = speed_color_factor,
+                         alpha = speed_color_factor)) +
       # need to exclude 0 count groups
       geom_text(stat = 'bin', aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = speed_binned$color_bin_breaks) +
+      factor_fill(animals_dt$speed_color_factor) +
+      factor_alpha(animals_dt$speed_color_factor) +
       scale_x_continuous(breaks = speed_binned$non_empty_breaks,
                          labels = speed_binned$vec_formatter) +
       coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none")
 
   })
   select_speed_range <- select_range("speed")
@@ -585,11 +595,14 @@ server <- function(input, output, session) {
                  size = ifelse(is.null(input$speed_his_brush),
                                0.2,
                                input$speed_point_size),
-                 alpha = ifelse(is.null(input$speed_his_brush),
-                                0.6,
-                                input$speed_alpha),
-                 aes(colour = speed_color_factor)) +
+                 # alpha = ifelse(is.null(input$speed_his_brush),
+                 #                0.6,
+                 #                input$speed_alpha),
+                 aes(colour = speed_color_factor,
+                     alpha = speed_color_factor)) +
       factor_color(animal_selected_data$speed_color_factor) +
+      # scale_alpha_discrete(breaks = bin_by_speed()$color_bin_breaks) +
+      factor_alpha(animal_selected_data$speed_color_factor) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
       coord_fixed(xlim = speed_outlier_plot_range$x,
