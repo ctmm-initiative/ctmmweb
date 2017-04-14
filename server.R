@@ -327,30 +327,18 @@ server <- function(input, output, session) {
   # chose_animal() ----
   # when user selected animals in summary table, all plots update to the subset
   # with lots of animals, the color gradient could be subtle or have duplicates
-  chose_row_nos <- reactive({
+  chose_animal <- reactive({
+    # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(input$individuals_rows_current)
+    id_vec <- current_animals()$info[, identity]
+    # table can be sorted, but always return row number in column 1
     if (length(input$individuals_rows_selected) == 0) {
       # select all in current page when there is no selection
       chosen_row_nos <- input$individuals_rows_current
     } else {
       chosen_row_nos <- input$individuals_rows_selected
     }
-    chosen_row_nos
-  })
-  chose_animal <- reactive({
-    # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
-    # req(input$individuals_rows_current)
-    req(chose_row_nos())
-    id_vec <- current_animals()$info[, identity]
-    # table can be sorted, but always return row number in column 1
-    # if (length(input$individuals_rows_selected) == 0) {
-    #   # select all in current page when there is no selection
-    #   chosen_row_nos <- input$individuals_rows_current
-    # } else {
-    #   chosen_row_nos <- input$individuals_rows_selected
-    # }
-    # chosen_ids <- id_vec[chosen_row_nos]
-    chosen_ids <- id_vec[chose_row_nos()]
+    chosen_ids <- id_vec[chosen_row_nos]
     return(list(data = current_animals()$data[identity %in% chosen_ids],
                 info = current_animals()$info[identity %in% chosen_ids]
                 ))
