@@ -35,8 +35,8 @@ animal_info <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
   sampling_interval <- ifelse(length(diffs) == 0,
-                   0,
-                   stats::median(diffs))
+                              0,
+                              stats::median(diffs))
   sampling_range <- max(object$t) - min(object$t)
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
@@ -69,6 +69,7 @@ merge_animals <- function(tele_objs) {
   for (i in 1:animal_count) {
     animal_data_list[[i]] <- data.table(data.frame(tele_objs[[i]]))
     animal_data_list[[i]][, identity := tele_objs[[i]]@info$identity]
+    animal_data_list[[i]][, row_name := row.names(tele_objs[[i]])]
     # print(i)
     animal_info_list[[i]] <- animal_info(tele_objs[[i]])
   }

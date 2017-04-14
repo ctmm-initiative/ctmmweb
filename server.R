@@ -253,16 +253,32 @@ server <- function(input, output, session) {
   current_animals <- reactive({
     req(values$input_tele_list)
     merged <- merge_animals(values$input_tele_list)
+    animals_dt <- merged$data
     # TODO remove points ----
     # always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
     # if reset flag is set, reset to input data. after that remove the flag.
     # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
     if (!is.null(values$outliers_to_remove)) {
+      # start from current, remove row_no in quene.
+      removed_outliers <- animals_dt[row_no %in% values$outliers_to_remove]
+      animals_dt <- animals_dt[!(row_no %in% values$outliers_to_remove)]
+      # always ensure current + removed = merged. check row count
+      need(nrow(animals_dt) + nrow(removed_outliers) == nrow(merged$data),
+           message = "animals data not in sync after outlier removal")
+      # TODO update tele obj ----
+      # update info by checking tele obj again. the sampling range may change
 
+      # add records to removed table, empty quene.
+      values$outliers_to_remove <- NULL
+    }
+    # if reset, back to merged, clear removed, clear reset
+    if (values$reset_outliers) {
+      animals_dt <- merged$data
+      values$outliers_to_remove <- NULL
+      values$reset_outliers <- FALSE
     }
     # distance/speed calculation need to be based on updated data
     # distance
-    animals_dt <- merged$data
     animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
                by = identity]
     animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
