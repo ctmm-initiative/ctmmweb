@@ -8,21 +8,34 @@ server <- function(input, output, session) {
   # p1. import ----
   # reactive values got updated in observeEvent use this.
   values <- reactiveValues()
-  # telemetry obj list from as.telemetry on input data. wrap it so even single individual will return a list with one item
+  # the current state of full data set. 4 parts: input_tele_list, merged data, and tele_list, all_removed_outliers that always sync to merged version
+  values$current <- NULL
+  # telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. merge input depend on this reactive value, so any change from 3 source will trigger the update of merge input.
+  # now we have second source: outlier removal. cannot bind this value itself to current data. need to update the current data in all data sources. no explicit reactive of input values. do have a result of tele_list from each source.
   # all reference of this value should wrap req around it: req(values$input_tele_list)
-  values$input_tele_list <- NULL
-  # 1.1 local data ----
+  # values$input_tele_list <- NULL
+  # 1.1 csv to telemetry ----
+  # call this function for side effect, set values$current
   data_import <- function(data) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
-    values$input_tele_list <- tryCatch(wrap_single_telemetry(as.telemetry(data)),
+    # wrap it so even single individual will return a list with one item
+    tele_list <- tryCatch(wrap_single_telemetry(as.telemetry(data)),
         error = function(e) {
           showNotification("Import error, check data again",
                            duration = 4, type = "error")
         })
+    # only proceed if no error
+    test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
+    req(all(unlist(test_class)))
+    # keep the original input so that can reset to input
+    values$current$input_tele_list <- tele_list
+    values$current$tele_list <- tele_list
+    values$current$merged <- merge_animals(tele_list)
+    values$current$all_removed_outliers <- NULL
   }
   # clicking browse button without changing radio button should also update
   file_uploaded <- function(){
@@ -38,7 +51,10 @@ server <- function(input, output, session) {
   observeEvent(input$load_option, {
     if (input$load_option == "ctmm") {
       data("buffalo")
-      values$input_tele_list <- buffalo
+      # values$input_tele_list <- buffalo
+      values$current$input_tele_list <- buffalo
+      values$current$tele_list <- buffalo
+      values$current$merged <- merge_animals(buffalo)
       updateTabItems(session, "tabs", "plots")
     } else if (input$load_option == "upload") {
       # need to check NULL input from source, stop error in downstream
@@ -242,82 +258,91 @@ server <- function(input, output, session) {
   # time subsetting use first or chosen single animal
   # outlier use current, update outlier quene
   # came from outliers added to quene. vector of row_no.
-  values$outliers_to_remove <- NULL
-  values$reset_outliers <- FALSE
-  # record of all removed outliers after multiple passes
-  values$all_removed_outliers <- NULL
+  # values$outliers_to_remove <- NULL
+  # values$reset_outliers <- FALSE
+
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
   # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
-
   # current_animals() ----
-  # the current state of all animal data
-  # merge input into a list of data frame and info frame. also apply the subset or filter.
-  current_animals <- reactive({
-    req(values$input_tele_list)
-    tele_list <- values$input_tele_list
-    merged <- merge_animals(values$input_tele_list)
-    # TODO remove points ----
-    # need to happen after the distance/speed column creation. always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
-    # if reset flag is set, reset to input data. after that remove the flag.
-    # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
-    # if reset, back to merged, clear removed, clear reset
-    if (values$reset_outliers) {
-      animals_dt <- merged$data
-      info <- merged$info
-      tele_list <- values$input_tele_list
-      # animals_dt <- calculate_distance(animals_dt)
-      # animals_dt <- calculate_speed(animals_dt)
-      values$outliers_to_remove <- NULL
-      values$all_removed_outliers <- NULL
-      values$reset_outliers <- FALSE
-      cat("reset to input\n")
-    } else if (!is.null(values$outliers_to_remove)) {
-      # start from input - all outliers, avoided to use last current value
-      # but here don't have distance column so no way to show them in table.
-      removed_outliers <- merged$data[row_name %in% values$outliers_to_remove]
-      cat("outliers to be removed\n")
-      print(removed_outliers)
-      # add records to all removed table, empty quene.
-      values$all_removed_outliers <- rbindlist(list(values$all_removed_outliers,
-                                                    removed_outliers))
-      cat("all outliers removed\n")
-      print(values$all_removed_outliers)
-      values$outliers_to_remove <- NULL
-      animals_dt <- merged$data[!(row_name %in%
-                                    values$all_removed_outliers[, row_name])]
-      # update tele obj
-      changed <- unique(removed_outliers$identity)
-      tele_list[changed] <- lapply(tele_list[changed], function(x) {
-        x[!(row.names(x) %in% removed_outliers[, row_name]),]
-      })
-      tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-      info_list <- lapply(tele_list, animal_info)
-      info <- rbindlist(info_list)
-      # distance/speed calculation need to updated
-      animals_dt <- calculate_distance(animals_dt)
-      animals_dt <- calculate_speed(animals_dt)
-      cat("outliers removed\n")
-    } else if (is.null(values$all_removed_outliers)) {
-      animals_dt <- merged$data
-      info <- merged$info
-      # animals_dt <- calculate_distance(animals_dt)
-      # animals_dt <- calculate_speed(animals_dt)
-      cat("no remove, start from input\n")
-    }
-    # may also need to return updated telemetry obj, for future modeling.
-    cat("current animals:\n")
-    # the reactive get run again right after outliers removed, didn't go through every branch above, taken from global environment of data.
-    print(animals_dt[, .N, by = identity])
-    print(head(animals_dt))
-    return(list(data = animals_dt, info = info, tele_list = tele_list))
-  })
+  # the current state of all animal data. two sources: merge input, update outliers
+  # values$current_animals <- NULL
+  # # merge input tele objs into a list of data frame and info frame.
+  # current_animals <- reactive({
+  #   req(values$input_tele_list)
+  #   tele_list <- values$input_tele_list
+  #   merged <- merge_animals(values$input_tele_list)
+  #   # TODO remove points ----
+  #   # need to happen after the distance/speed column creation. always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
+  #   # if reset flag is set, reset to input data. after that remove the flag.
+  #   # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
+  #   # if reset, back to merged, clear removed, clear reset
+  #   if (values$reset_outliers) {
+  #     values$current$tele_list <- values$current$input_tele_list
+  #     values$current$merged <- merge_animals(values$current$tele_list)
+  #     values$outliers_to_remove <- NULL
+  #     values$all_removed_outliers <- NULL
+  #
+  #     animals_dt <- merged$data
+  #     info <- merged$info
+  #     tele_list <- values$input_tele_list
+  #     # animals_dt <- calculate_distance(animals_dt)
+  #     # animals_dt <- calculate_speed(animals_dt)
+  #
+  #     values$reset_outliers <- FALSE
+  #     cat("reset to input\n")
+  #   } else if (!is.null(values$outliers_to_remove)) {
+  #     # outliers to remove is parameter transfered from click action
+  #     # start from input - all outliers, avoided to use last current value
+  #     # but here don't have distance column so no way to show them in table.
+  #     removed_outliers <- values$current$merged$data[
+  #       row_name %in% outliers_to_remove]
+  #     cat("outliers to be removed\n")
+  #     print(removed_outliers)
+  #     # add records to all removed table, empty quene.
+  #     values$all_removed_outliers <- rbindlist(list(values$all_removed_outliers,
+  #                                                   removed_outliers))
+  #     cat("all outliers removed\n")
+  #     print(values$all_removed_outliers)
+  #     values$outliers_to_remove <- NULL
+  #     animals_dt <- merged$data[!(row_name %in%
+  #                                   values$all_removed_outliers[, row_name])]
+  #     # update tele obj
+  #     changed <- unique(removed_outliers$identity)
+  #     tele_list[changed] <- lapply(tele_list[changed], function(x) {
+  #       x[!(row.names(x) %in% removed_outliers[, row_name]),]
+  #     })
+  #     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
+  #     info_list <- lapply(tele_list, animal_info)
+  #     info <- rbindlist(info_list)
+  #     # distance/speed calculation need to updated
+  #     animals_dt <- calculate_distance(animals_dt)
+  #     animals_dt <- calculate_speed(animals_dt)
+  #     cat("outliers removed\n")
+  #     values$current$tele_list <- values$current$input_tele_list
+  #     values$current$merged <- merge_animals(values$current$tele_list)
+  #     values$outliers_to_remove <- NULL
+  #     values$all_removed_outliers <- NULL
+  #   } else if (is.null(values$all_removed_outliers)) {
+  #     animals_dt <- merged$data
+  #     info <- merged$info
+  #     # animals_dt <- calculate_distance(animals_dt)
+  #     # animals_dt <- calculate_speed(animals_dt)
+  #     cat("no remove, start from input\n")
+  #   }
+  #   # may also need to return updated telemetry obj, for future modeling.
+  #   cat("current animals:\n")
+  #   # the reactive get run again right after outliers removed, didn't go through every branch above, taken from global environment of data.
+  #   print(animals_dt[, .N, by = identity])
+  #   print(head(animals_dt))
+  #   return(list(data = animals_dt, info = info, tele_list = tele_list))
+  # }) # replace all current_animals() with values$current$merged
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
     if (input$time_in_sec) {
-      info_p <- current_animals()$info[,
+      info_p <- values$current$merged$info[,
                   .(identity, start, end, interval_s, duration_s)]
     } else {
-      info_p <- current_animals()$info[,
+      info_p <- values$current$merged$info[,
                   .(identity, start, end, interval, duration)]
     }
     datatable(info_p, options = list(pageLength = 6,
@@ -330,7 +355,7 @@ server <- function(input, output, session) {
   # select all rows
   proxy_individuals <- dataTableProxy("individuals")
   observeEvent(input$select_all, {
-    selectRows(proxy_individuals, 1:nrow(current_animals()$info))
+    selectRows(proxy_individuals, 1:nrow(values$current$merged$info))
   })
   # to outlier filtering ----
   observeEvent(input$outlier, {
@@ -359,7 +384,7 @@ server <- function(input, output, session) {
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(input$individuals_rows_current)
-    id_vec <- current_animals()$info[, identity]
+    id_vec <- values$current$merged$info[, identity]
     # table can be sorted, but always return row number in column 1
     if (length(input$individuals_rows_selected) == 0) {
       # select all in current page when there is no selection
@@ -368,11 +393,11 @@ server <- function(input, output, session) {
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    animals_dt <- current_animals()$data[identity %in% chosen_ids]
+    animals_dt <- values$current$merged$data[identity %in% chosen_ids]
     cat("chosen animals:\n")
     print(animals_dt[, .N, by = identity])
     return(list(data = animals_dt,
-                info = current_animals()$info[identity %in% chosen_ids]
+                info = values$current$merged$info[identity %in% chosen_ids]
                 ))
   })
   # 2.4.1 overview plot ----
@@ -399,7 +424,7 @@ server <- function(input, output, session) {
     animals_dt <- req(chose_animal()$data)
     ggplot() +
       {if (input$overlay_all) {
-        geom_point(data = current_animals()$data, aes(x, y),
+        geom_point(data = values$current$merged$data, aes(x, y),
                    size = input$point_size_1, alpha = 0.6, colour = "gray")
       }} +
       geom_point(data = animals_dt, aes(x, y, colour = id),
@@ -594,13 +619,45 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # remove distance outliers ----
+  # use side effect, update values$current, not chose animal
+  remove_outliers <- function(outliers_to_remove) {
+    # outliers to remove is parameter transfered from click action
+    # start from input - all outliers, avoided to use last current value
+    # but here don't have distance column so no way to show them in table.
+    removed_points <- values$current$merged$data[
+      row_name %in% outliers_to_remove]
+    cat("outliers to be removed\n")
+    print(removed_points)
+    # add records to all removed table, empty quene.
+    values$current$all_removed_outliers <- rbindlist(list(
+      values$current$all_removed_outliers, removed_points))
+    cat("all outliers removed\n")
+    print(values$current$all_removed_outliers)
+    animals_dt <- values$current$merged$data[
+      !(row_name %in% values$current$all_removed_outliers[, row_name])]
+    # update tele obj
+    changed <- unique(removed_points$identity)
+    tele_list <- values$current$tele_list
+    tele_list[changed] <- lapply(tele_list[changed], function(x) {
+      x[!(row.names(x) %in% removed_points[, row_name]),]
+    })
+    tele_list <- tele_list[lapply(tele_list, nrow) != 0]
+    info_list <- lapply(tele_list, animal_info)
+    info <- rbindlist(info_list)
+    # distance/speed calculation need to updated
+    animals_dt <- calculate_distance(animals_dt)
+    animals_dt <- calculate_speed(animals_dt)
+    cat("outliers removed\n")
+    values$current$tele_list <- tele_list
+    values$current$merged <- list(data = animals_dt, info = info)
+  }
   # actually just put row_name vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
   # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
     req(length(input$points_in_distance_range_rows_selected) > 0)
-    values$outliers_to_remove <- select_distance_range()$animal_selected_data[
-      input$points_in_distance_range_rows_selected, row_name
-    ]
+    outliers_to_remove <- select_distance_range()$animal_selected_data[
+      input$points_in_distance_range_rows_selected, row_name]
+    remove_outliers(outliers_to_remove)
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
@@ -694,7 +751,7 @@ server <- function(input, output, session) {
   # points without valid speed values
   # output$points_speed_non_valid <- DT::renderDataTable({
   #   # only render table when there is a selection. otherwise it will be all data.
-  #   animals_dt <- req(current_animals()$data)
+  #   animals_dt <- req(values$current$merged$data)
   #   cols <- c("row_no", "timestamp", "id", "speed")
   #   datatable(animals_dt[is.na(speed), cols, with = FALSE],
   #             options = list(pageLength = 6,
@@ -715,37 +772,41 @@ server <- function(input, output, session) {
   # remove speed outliers
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
-    values$outliers_to_remove <- select_speed_range()$animal_selected_data[
-      input$points_in_speed_range_rows_selected, row_name
-      ]
+    outliers_to_remove <- select_speed_range()$animal_selected_data[
+      input$points_in_speed_range_rows_selected, row_name]
+    remove_outliers(outliers_to_remove)
   })
   # all removed outliers
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
-    req(values$all_removed_outliers)
+    req(values$current$all_removed_outliers)
     animals_dt <- req(chose_animal()$data)
-    datatable(format_outliers(values$all_removed_outliers, animals_dt),
+    datatable(format_outliers(values$current$all_removed_outliers,
+                              animals_dt),
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              searching = FALSE),
               rownames = FALSE)
   })
-  # reset outlier removal
+  # reset outlier removal. didn't cause update?
   observeEvent(input$reset_outliers, {
-    values$reset_outliers <- TRUE
+    values$current$tele_list <- values$current$input_tele_list
+    values$current$merged <- merge_animals(values$current$tele_list)
+    values$current$all_removed_outliers <- NULL
+    values$outliers_to_remove <- NULL
   })
   # p4. time subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
-    info <- current_animals()$info
+    info <- values$current$merged$info
     dt <- info[values$selected_animal_no]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # selected animal data and color bins
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
-    selected_id <- current_animals()$info$identity[values$selected_animal_no]
-    data_i <- current_animals()$data[identity == selected_id]
+    selected_id <- values$current$merged$info$identity[values$selected_animal_no]
+    data_i <- values$current$merged$data[identity == selected_id]
     data_i[, color_bin_start :=
              cut_date_time(timestamp, input$time_color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
