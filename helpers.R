@@ -60,6 +60,28 @@ wrap_single_telemetry <- function(tele_obj){
   }
   return(tele_obj)
 }
+# distance and speed values need to be updated after outlier removal
+calculate_distance <- function(animals_dt) {
+  animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
+             by = identity]
+  animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
+                                         (y - median_y) ** 2)]
+  return(animals_dt)
+}
+calculate_speed <- function(animals_dt) {
+  # x[i] + inc[i] = x[i+1], note by id
+  animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
+                    inc_y = shift(y, 1L, type = "lead") - y,
+                    inc_t = shift(t, 1L, type = "lead") - t), by = id]
+  animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
+  animals_dt[is.infinite(speed), speed := NaN]
+  # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
+  # this removed NaN too. The NA values caused speed outlier plot default subset to NULL. should not keep NA, NaN in speed, will cause too many troubles. could use negative value to mark
+  for (i in animals_dt[is.na(speed), which = TRUE]) {
+    animals_dt[i, speed := animals_dt[i - 1, speed]]
+  }
+  return(animals_dt)
+}
 # merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 merge_animals <- function(tele_objs) {
   tele_objs <- wrap_single_telemetry(tele_objs)
@@ -77,6 +99,8 @@ merge_animals <- function(tele_objs) {
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
   animals_data_dt[, row_no := .I]
+  animals_data_dt <- calculate_distance(animals_data_dt)
+  animals_data_dt <- calculate_speed(animals_data_dt)
   # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
   animals_info_dt <- rbindlist(animal_info_list)
   # by convention we always use animals_dt <- merge_animals()$data
