@@ -648,6 +648,7 @@ server <- function(input, output, session) {
     animals_dt <- calculate_distance(animals_dt)
     animals_dt <- calculate_speed(animals_dt)
     cat("outliers removed\n")
+    print(animals_dt[, .N, by = identity])
     values$current$tele_list <- tele_list
     values$current$merged <- list(data = animals_dt, info = info)
   }
@@ -684,6 +685,7 @@ server <- function(input, output, session) {
             legend.position = "none")
 
   })
+  outputOptions(output, "speed_histogram", priority = 10)
   select_speed_range <- select_range("speed")
   # speed outlier plot ----
   speed_outlier_plot_range <- add_zoom("speed_outlier_plot")
@@ -710,10 +712,15 @@ server <- function(input, output, session) {
                   ylim = speed_outlier_plot_range$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
-    # if selected some points in table of data in range
-    if (!is.null(input$points_in_speed_range_rows_selected)) {
+    # if selected some points in table of data in range. when some points are removed, data updated but this table is still there, not updated yet, so there are row selection values. Further, the plot is not updated so brush value is still there, select_speed_range() will get selected data with brush value, but last brush value is the higher range now have no match in data after outlier removal.
+    # with 2nd points clicked in 2 points list, removing it cause the selected data update to one point, but the selection row is still 2nd. wrong execution order. reactive need reactive, not if check or normal branch.
+    if (!is.null(input$points_in_speed_range_rows_selected) &&
+                 nrow(select_speed_range()$animal_selected_data) > 0) {
       selected_points <- select_speed_range()$animal_selected_data[
         input$points_in_speed_range_rows_selected]
+      browser()
+      print(input$points_in_speed_range_rows_selected)
+      print(selected_points)
       # draw rectangle around selected points
       g <- g +
         geom_point(data = selected_points, size = 3.5, alpha = 1,
@@ -748,6 +755,7 @@ server <- function(input, output, session) {
     }
     g
   })
+  outputOptions(output, "speed_outlier_plot", priority = 1)
   # points without valid speed values
   # output$points_speed_non_valid <- DT::renderDataTable({
   #   # only render table when there is a selection. otherwise it will be all data.
@@ -769,6 +777,8 @@ server <- function(input, output, session) {
                              searching = FALSE),
               rownames = FALSE)
   })
+  # give it high priority so it will update in before the plot updates
+  outputOptions(output, "points_in_speed_range", priority = 10)
   # remove speed outliers
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
@@ -788,7 +798,7 @@ server <- function(input, output, session) {
                              searching = FALSE),
               rownames = FALSE)
   })
-  # reset outlier removal. didn't cause update?
+  # reset outlier removal.
   observeEvent(input$reset_outliers, {
     values$current$tele_list <- values$current$input_tele_list
     values$current$merged <- merge_animals(values$current$tele_list)
