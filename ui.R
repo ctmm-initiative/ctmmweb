@@ -208,16 +208,17 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
     hr(),
     fluidRow(column(12,
                     DT::dataTableOutput("points_in_speed_range")))))
-removed_outliers_box <- box(title = "Remove Outliers",
+all_removed_outliers_box <- box(title = "Removed Outliers",
                            status = "primary", solidHeader = TRUE, width = 12,
-                     fluidRow(column(9, h4("Removed outliers")),
-                              column(3,
+                     fluidRow(
+                       # column(9, h4("Removed outliers")),
+                              column(3, offset = 9,
                                      actionButton("reset_outliers",
                                             "Reset",
                                             icon = icon("ban"),
                                             style = styles$page_action))),
                      fluidRow(column(12,
-                                     DT::dataTableOutput("removed_outliers"))))
+                                     DT::dataTableOutput("all_removed_outliers"))))
 # p4. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range",
@@ -332,7 +333,7 @@ body <- dashboardBody(
                      selected_ranges_box)),
     tabItem(tabName = "filter",
             fluidRow(outlier_filter_box,
-                     removed_outliers_box)),
+                     all_removed_outliers_box)),
     tabItem(tabName = "visual",
             fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_box_3)),

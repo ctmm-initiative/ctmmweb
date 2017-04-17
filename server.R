@@ -241,49 +241,22 @@ server <- function(input, output, session) {
   # chose animal: selected rows or current page, this apply to all plots, outliers
   # time subsetting use first or chosen single animal
   # outlier use current, update outlier quene
-
-  # came from outliers added to quene. vector of row_no. Compare to the actual rows, it's easier to remove rows by row_no from original data.
+  # came from outliers added to quene. vector of row_no.
   values$outliers_to_remove <- NULL
   values$reset_outliers <- FALSE
+  # record of all removed outliers after multiple passes
+  values$all_removed_outliers <- NULL
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
   # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
-  # current_animals() ----
-  # the current state of all animal data
-  # merge input into a list of data frame and info frame. also apply the subset or filter.
-  current_animals <- reactive({
-    req(values$input_tele_list)
-    merged <- merge_animals(values$input_tele_list)
-    animals_dt <- merged$data
-    # TODO remove points ----
-    # always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
-    # if reset flag is set, reset to input data. after that remove the flag.
-    # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
-    if (!is.null(values$outliers_to_remove)) {
-      # start from current, remove row_no in quene.
-      removed_outliers <- animals_dt[row_no %in% values$outliers_to_remove]
-      animals_dt <- animals_dt[!(row_no %in% values$outliers_to_remove)]
-      # always ensure current + removed = merged. check row count
-      need(nrow(animals_dt) + nrow(removed_outliers) == nrow(merged$data),
-           message = "animals data not in sync after outlier removal")
-      # TODO update tele obj ----
-      # update info by checking tele obj again. the sampling range may change
-
-      # add records to removed table, empty quene.
-      values$outliers_to_remove <- NULL
-    }
-    # if reset, back to merged, clear removed, clear reset
-    if (values$reset_outliers) {
-      animals_dt <- merged$data
-      values$outliers_to_remove <- NULL
-      values$reset_outliers <- FALSE
-    }
-    # distance/speed calculation need to be based on updated data
-    # distance
+  # distance and speed values need to be updated after outlier removal
+  calculate_distance <- function(animals_dt) {
     animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
                by = identity]
     animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
                                            (y - median_y) ** 2)]
-    # speed calculation ----
+    return(animals_dt)
+  }
+  calculate_speed <- function(animals_dt) {
     # x[i] + inc[i] = x[i+1], note by id
     animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
                       inc_y = shift(y, 1L, type = "lead") - y,
@@ -295,8 +268,57 @@ server <- function(input, output, session) {
     for (i in animals_dt[is.na(speed), which = TRUE]) {
       animals_dt[i, speed := animals_dt[i - 1, speed]]
     }
+    return(animals_dt)
+  }
+  # current_animals() ----
+  # the current state of all animal data
+  # merge input into a list of data frame and info frame. also apply the subset or filter.
+  current_animals <- reactive({
+    req(values$input_tele_list)
+    merged <- merge_animals(values$input_tele_list)
+    animals_dt <- merged$data
+    info <- merged$info
+    animals_dt <- calculate_distance(animals_dt)
+    animals_dt <- calculate_speed(animals_dt)
+    # TODO remove points ----
+    # need to happen after the distance/speed column creation. always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
+    # if reset flag is set, reset to input data. after that remove the flag.
+    # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
+    # if reset, back to merged, clear removed, clear reset
+    if (values$reset_outliers) {
+      animals_dt <- merged$data
+      info <- merged$info
+      animals_dt <- calculate_distance(animals_dt)
+      animals_dt <- calculate_speed(animals_dt)
+      values$outliers_to_remove <- NULL
+      values$all_removed_outliers <- NULL
+      values$reset_outliers <- FALSE
+    } else if (!is.null(values$outliers_to_remove)) {
+      # start from current, remove row_no in quene.
+      removed_outliers <- animals_dt[row_no %in% values$outliers_to_remove]
+      animals_dt <- animals_dt[!(row_no %in% values$outliers_to_remove)]
+      # add records to all removed table, empty quene.
+      values$all_removed_outliers <- rbindlist(list(values$all_removed_outliers,
+                                                    removed_outliers))
+      values$outliers_to_remove <- NULL
+      # always ensure current + removed = merged. check row count
+      need(nrow(animals_dt) + nrow(values$all_removed_outliers) ==
+             nrow(merged$data), message =
+             "animals data not in sync after outlier removal")
+      # update tele obj ----
+      changed <- unique(removed_outliers$identity)
+      tele_list[changed] <- lapply(tele_list[changed], function(x) {
+        x[!(row.names(x) %in% removed_outliers[, row_name]),]
+      })
+      tele_list <- tele_list[lapply(tele_list, nrow) != 0]
+      info_list <- lapply(tele_list, animal_info)
+      info <- rbindlist(info_list)
+      # distance/speed calculation need to updated
+      animals_dt <- calculate_distance(animals_dt)
+      animals_dt <- calculate_speed(animals_dt)
+    }
     # may also need to return updated telemetry obj, for future modeling.
-    return(list(data = animals_dt, info = merged$info))
+    return(list(data = animals_dt, info = info, tele_list = tele_list))
   })
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
@@ -482,9 +504,18 @@ server <- function(input, output, session) {
             legend.position = "none")
   })
   # brush selection function
+  # need the whole range to get proper unit selection
+  format_outliers <- function(animal_selected_data, animals_dt) {
+    animal_selected_data[, .(row_no, timestamp = format_datetime(timestamp), id,
+                             distance_center = format_distance_f(
+                               animals_dt[, distance_center])(distance_center),
+                             speed = format_speed_f(
+                               animals_dt[, speed])(speed))]
+  }
   select_range <- function(his_type){
     return(reactive({
       # everything in outlier page should take animal_dt from binned version
+      # the current data have distance/speed column, the binned version just create the color factors. in theory we could use the original data but we may need the color factor sometimes.
       switch(his_type,
              distance = {
                col_name = quote(distance_center)
@@ -511,11 +542,8 @@ server <- function(input, output, session) {
       if (nrow(animal_selected_data) == 0) {
         animal_selected_formatted <- NULL
       } else {# show both distance and speed in 3 tables
-        animal_selected_formatted <- animal_selected_data[,
-          .(row_no, timestamp = format_datetime(timestamp), id,
-            distance_center =
-              format_distance_f(animals_dt[, distance_center])(distance_center),
-            speed = format_speed_f(animals_dt[, speed])(speed))]
+        animal_selected_formatted <- format_outliers(animal_selected_data,
+                                                     animals_dt)
       }
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
@@ -695,6 +723,17 @@ server <- function(input, output, session) {
     values$outliers_to_remove <- select_speed_range()$animal_selected_data[
       input$points_in_speed_range_rows_selected, row_no
       ]
+  })
+  # all removed outliers
+  output$all_removed_outliers <- DT::renderDataTable({
+    # only render table when there is a selection. otherwise it will be all data.
+    req(values$all_removed_outliers)
+    animals_dt <- req(chose_animal()$data)
+    datatable(format_outliers(values$all_removed_outliers, animals_dt),
+              options = list(pageLength = 6,
+                             lengthMenu = c(6, 10, 20),
+                             searching = FALSE),
+              rownames = FALSE)
   })
   # reset outlier removal
   observeEvent(input$reset_outliers, {
