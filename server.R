@@ -263,7 +263,7 @@ server <- function(input, output, session) {
 
   # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
   # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
-  # current_animals() ----
+  # current_animals()
   # the current state of all animal data. two sources: merge input, update outliers
   # values$current_animals <- NULL
   # # merge input tele objs into a list of data frame and info frame.
@@ -271,7 +271,7 @@ server <- function(input, output, session) {
   #   req(values$input_tele_list)
   #   tele_list <- values$input_tele_list
   #   merged <- merge_animals(values$input_tele_list)
-  #   # TODO remove points ----
+  #   # remove points
   #   # need to happen after the distance/speed column creation. always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
   #   # if reset flag is set, reset to input data. after that remove the flag.
   #   # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
@@ -337,13 +337,23 @@ server <- function(input, output, session) {
   #   return(list(data = animals_dt, info = info, tele_list = tele_list))
   # }) # replace all current_animals() with values$current$merged
   # 2.3 data summary ----
+  # output$removed_outlier_summary <- renderText({
+  #   if (!is.null(values$current$all_removed_outliers)) {
+  #     cat("Outliers Removed:\n", capture.output(print(values$current$all_removed_outliers[, .N, by = id])))
+  #   }
+  # })
   output$individuals <- DT::renderDataTable({
+    if (!is.null(values$current$all_removed_outliers)) {
+      showNotification(paste0("   ", nrow(values$current$all_removed_outliers),
+                              " Outliers Removed"),
+                       duration = 2, type = "warning")
+    }
     if (input$time_in_sec) {
       info_p <- values$current$merged$info[,
-                  .(identity, start, end, interval_s, duration_s)]
+                  .(identity, start, end, interval_s, duration_s, points)]
     } else {
       info_p <- values$current$merged$info[,
-                  .(identity, start, end, interval, duration)]
+                  .(identity, start, end, interval, duration, points)]
     }
     datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%

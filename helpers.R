@@ -49,7 +49,8 @@ animal_info <- function(object) {
                    sampling_start = t_start,
                    sampling_end = t_end,
                    start = format_datetime(t_start),
-                   end = format_datetime(t_end))
+                   end = format_datetime(t_end),
+                   points = nrow(object))
   return(dt)
 }
 # merge list of telemetry obj into data frame with identity column, works with single tele obj
