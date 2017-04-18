@@ -159,7 +159,7 @@ server <- function(input, output, session) {
       values$study_detail <- NULL
       clear_mb_download()
     } else {
-      mb_id <- values$studies[input$studies_rows_selected, id]
+      mb_id <- values$studies[owner == input$data_manager][input$studies_rows_selected, id]
       # link to movebank
       output$open_study <- renderUI({
         req(input$studies_rows_selected)
