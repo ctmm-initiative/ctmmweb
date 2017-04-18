@@ -159,6 +159,7 @@ server <- function(input, output, session) {
       values$study_detail <- NULL
       clear_mb_download()
     } else {
+      # note the data manager part, make sure the table is same with view in studies table. also need to use same expression in download part.
       mb_id <- values$studies[owner == input$data_manager][input$studies_rows_selected, id]
       # link to movebank
       output$open_study <- renderUI({
@@ -195,6 +196,7 @@ server <- function(input, output, session) {
   # 1.4 download data ----
   observeEvent(input$download, {
     req(input$studies_rows_selected)
+    # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.
     mb_id <- values$studies[owner == input$data_manager][
       input$studies_rows_selected, id]
     note_data_download <- showNotification(

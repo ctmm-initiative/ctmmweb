@@ -22,10 +22,10 @@ The current repo is the alpha version with much more features in data, subset pa
 
 You can run current repo locally:
 
-1. Install [the latest R](https://www.r-project.org/), currently 3.3.2. Lower version may not work with ctmm.
+1. Install [the latest R](https://www.r-project.org/), currently 3.3.3. Lower version may not work with ctmm.
 2. Install dependency packages in R. You need to install `ctmm` and `shiny` development version separately here. 
 
-Better restart R session if you already have one running to make sure uninstall works.
+**Better restart R session if you already have one running to make sure uninstall works.**
 
 ```r
 # restart R session first
@@ -36,7 +36,7 @@ devtools::install_github("rstudio/shiny")
 devtools::install_github("ctmm-initiative/ctmm")
 ```
 
-Other dependency packages will be automatically installed in the first run of app. Supposedly `ctmm` development version can also be installed automatically, but it may met problem in uninstalling older version if it was installed and loaded.
+Other dependency packages will be automatically installed in the first run of app. 
 
 3. Run the Shiny app with
 
