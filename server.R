@@ -664,12 +664,18 @@ server <- function(input, output, session) {
     values$current$tele_list <- tele_list
     values$current$merged <- list(data = animals_dt, info = info)
   }
+  proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
+                                                deferUntilFlush = FALSE)
   # actually just put row_name vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
   # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
     req(length(input$points_in_distance_range_rows_selected) > 0)
     outliers_to_remove <- select_distance_range()$animal_selected_data[
       input$points_in_distance_range_rows_selected, row_name]
+    freezeReactiveValue(input, "points_in_distance_range_rows_selected")
+    selectRows(proxy_points_in_distance_range, NULL)
+    freezeReactiveValue(input, "distance_his_brush")
+    session$resetBrush("distance_his_brush")
     remove_outliers(outliers_to_remove)
   })
   # p3.b.1 speed histogram ----
@@ -803,7 +809,10 @@ server <- function(input, output, session) {
     outliers_to_remove <- select_speed_range()$animal_selected_data[
       input$points_in_speed_range_rows_selected, row_name]
     # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
+    # freeze it so all expression accessing it will be put on hold until update finish, because the reset here just send message to client, didn't update immediately
+    freezeReactiveValue(input, "points_in_speed_range_rows_selected")
     selectRows(proxy_points_in_speed_range, NULL)
+    freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
     remove_outliers(outliers_to_remove)
   })
