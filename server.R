@@ -394,8 +394,8 @@ server <- function(input, output, session) {
     }
     chosen_ids <- id_vec[chosen_row_nos]
     animals_dt <- values$current$merged$data[identity %in% chosen_ids]
-    cat("chosen animals:\n")
-    print(animals_dt[, .N, by = identity])
+    # cat("chosen animals:\n")
+    # print(animals_dt[, .N, by = identity])
     return(list(data = animals_dt,
                 info = values$current$merged$info[identity %in% chosen_ids]
                 ))
@@ -505,6 +505,8 @@ server <- function(input, output, session) {
     # need to get data from reactive, update by bin count
     distance_binned <- req(bin_by_distance())
     animals_dt <- distance_binned$animals_dt
+    # cat("dataset in distance page\n")
+    # print(animals_dt[, .N, by = id])
     ggplot(animals_dt, aes(x = distance_center)) +
       geom_histogram(breaks = distance_binned$color_bin_breaks,
                      # fill = hue_pal()(input$distance_his_bins),
@@ -626,13 +628,13 @@ server <- function(input, output, session) {
     # but here don't have distance column so no way to show them in table.
     removed_points <- values$current$merged$data[
       row_name %in% outliers_to_remove]
-    cat("outliers to be removed\n")
-    print(removed_points)
+    # cat("outliers to be removed\n")
+    # print(removed_points)
     # add records to all removed table, empty quene.
     values$current$all_removed_outliers <- rbindlist(list(
       values$current$all_removed_outliers, removed_points))
-    cat("all outliers removed\n")
-    print(values$current$all_removed_outliers)
+    # cat("all outliers removed\n")
+    # print(values$current$all_removed_outliers)
     animals_dt <- values$current$merged$data[
       !(row_name %in% values$current$all_removed_outliers[, row_name])]
     # update tele obj
@@ -647,8 +649,8 @@ server <- function(input, output, session) {
     # distance/speed calculation need to updated
     animals_dt <- calculate_distance(animals_dt)
     animals_dt <- calculate_speed(animals_dt)
-    cat("outliers removed\n")
-    print(animals_dt[, .N, by = identity])
+    # cat("outliers removed\n")
+    # print(animals_dt[, .N, by = identity])
     values$current$tele_list <- tele_list
     values$current$merged <- list(data = animals_dt, info = info)
   }
@@ -669,6 +671,8 @@ server <- function(input, output, session) {
   output$speed_histogram <- renderPlot({
     speed_binned <- req(bin_by_speed())
     animals_dt <- speed_binned$animals_dt
+    # cat("dataset in speed page\n")
+    # print(animals_dt[, .N, by = id])
     ggplot(animals_dt, aes(x = speed)) +
       geom_histogram(breaks = speed_binned$color_bin_breaks,
                      aes(fill = speed_color_factor,
@@ -691,6 +695,8 @@ server <- function(input, output, session) {
   speed_outlier_plot_range <- add_zoom("speed_outlier_plot")
   output$speed_outlier_plot <- renderPlot({
     animals_dt <- req(bin_by_speed()$animals_dt)
+    # cat("dataset in speed scatter plot\n")
+    # print(animals_dt[, .N, by = id])
     animal_selected_data <- select_speed_range()$animal_selected_data
     g <- ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
@@ -717,8 +723,10 @@ server <- function(input, output, session) {
     if (!is.null(input$points_in_speed_range_rows_selected)) {
       selected_points <- select_speed_range()$animal_selected_data[
         input$points_in_speed_range_rows_selected]
-      print(input$points_in_speed_range_rows_selected)
-      print(selected_points)
+      # cat("selected row in table\n")
+      # print(input$points_in_speed_range_rows_selected)
+      # cat("selected points in table\n")
+      # print(selected_points)
       # draw rectangle around selected points
       g <- g +
         geom_point(data = selected_points, size = 3.5, alpha = 1,
