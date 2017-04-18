@@ -717,7 +717,6 @@ server <- function(input, output, session) {
     if (!is.null(input$points_in_speed_range_rows_selected)) {
       selected_points <- select_speed_range()$animal_selected_data[
         input$points_in_speed_range_rows_selected]
-      browser()
       print(input$points_in_speed_range_rows_selected)
       print(selected_points)
       # draw rectangle around selected points
