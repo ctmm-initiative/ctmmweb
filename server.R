@@ -195,7 +195,8 @@ server <- function(input, output, session) {
   # 1.4 download data ----
   observeEvent(input$download, {
     req(input$studies_rows_selected)
-    mb_id <- values$studies[input$studies_rows_selected, id]
+    mb_id <- values$studies[owner == input$data_manager][
+      input$studies_rows_selected, id]
     note_data_download <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Downloading data..."),
       type = "message", duration = NULL)
