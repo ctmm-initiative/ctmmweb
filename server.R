@@ -685,7 +685,7 @@ server <- function(input, output, session) {
             legend.position = "none")
 
   })
-  outputOptions(output, "speed_histogram", priority = 10)
+  # outputOptions(output, "speed_histogram", priority = 10)
   select_speed_range <- select_range("speed")
   # speed outlier plot ----
   speed_outlier_plot_range <- add_zoom("speed_outlier_plot")
@@ -714,8 +714,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
     # if selected some points in table of data in range. when some points are removed, data updated but this table is still there, not updated yet, so there are row selection values. Further, the plot is not updated so brush value is still there, select_speed_range() will get selected data with brush value, but last brush value is the higher range now have no match in data after outlier removal.
     # with 2nd points clicked in 2 points list, removing it cause the selected data update to one point, but the selection row is still 2nd. wrong execution order. reactive need reactive, not if check or normal branch.
-    if (!is.null(input$points_in_speed_range_rows_selected) &&
-                 nrow(select_speed_range()$animal_selected_data) > 0) {
+    if (!is.null(input$points_in_speed_range_rows_selected)) {
       selected_points <- select_speed_range()$animal_selected_data[
         input$points_in_speed_range_rows_selected]
       browser()
@@ -755,7 +754,7 @@ server <- function(input, output, session) {
     }
     g
   })
-  outputOptions(output, "speed_outlier_plot", priority = 1)
+  # outputOptions(output, "speed_outlier_plot", priority = 1)
   # points without valid speed values
   # output$points_speed_non_valid <- DT::renderDataTable({
   #   # only render table when there is a selection. otherwise it will be all data.
@@ -778,12 +777,17 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # give it high priority so it will update in before the plot updates
-  outputOptions(output, "points_in_speed_range", priority = 10)
-  # remove speed outliers
+  # outputOptions(output, "points_in_speed_range", priority = 10)
+  # remove speed outliers ----
+  proxy_points_in_speed_range <- dataTableProxy("points_in_speed_range",
+                                                deferUntilFlush = FALSE)
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
     outliers_to_remove <- select_speed_range()$animal_selected_data[
       input$points_in_speed_range_rows_selected, row_name]
+    # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
+    selectRows(proxy_points_in_speed_range, NULL)
+    session$resetBrush("speed_his_brush")
     remove_outliers(outliers_to_remove)
   })
   # all removed outliers
