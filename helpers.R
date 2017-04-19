@@ -107,7 +107,7 @@ calculate_speed <- function(animals_dt) {
     y_3_1 = shift(y, 1L, type = "lead") - y,
     t_3_1 = shift(t, 1L, type = "lead") - t), by = id]
   animals_dt[point_1$V1, speed_min_n :=
-               pmin(speed, sqrt((x_3_1 - x) ^ 2 + (y_3_1 - y) ^ 2) / t_3_1,
+               pmin(speed, sqrt(x_3_1 ^ 2 + y_3_1 ^ 2) / t_3_1,
                     na.rm = TRUE),
              by = id]
   # for N we are using N, N-2 order so still using lead, note order of t
@@ -116,7 +116,7 @@ calculate_speed <- function(animals_dt) {
     y_N_2 = y - shift(y, 1L, type = "lead"),
     t_N_2 = t - shift(t, 1L, type = "lead")), by = id]
   animals_dt[point_N$V1, speed_min_n :=
-               pmin(speed, sqrt((x_N_2 - x) ^ 2 + (y_N_2 - y) ^ 2) / t_N_2,
+               pmin(speed, sqrt(x_N_2 ^ 2 + y_N_2 ^ 2) / t_N_2,
                     na.rm = TRUE),
              by = id]
   # View(animals_dt[c(point_1$V1, point_1$V1 + 2, point_N$V1, point_N$V1 - 2), c(1:13, 17:25), with = TRUE][order(id)])
