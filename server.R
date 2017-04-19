@@ -153,6 +153,10 @@ server <- function(input, output, session) {
     }
   })
   # 1.4 selected details ----
+  mb_id <- reactive({
+    req(input$studies_rows_selected)
+    values$studies[owner == input$data_manager][input$studies_rows_selected, id]
+  })
   # deselect row should clear detail table, so added ignoreNULL
   observeEvent(input$studies_rows_selected, ignoreNULL = FALSE, {
     if (length(input$studies_rows_selected) == 0) {
@@ -160,7 +164,7 @@ server <- function(input, output, session) {
       clear_mb_download()
     } else {
       # note the data manager part, make sure the table is same with view in studies table. also need to use same expression in download part.
-      mb_id <- values$studies[owner == input$data_manager][input$studies_rows_selected, id]
+      # mb_id <- values$studies[owner == input$data_manager][input$studies_rows_selected, id]
       # link to movebank
       output$open_study <- renderUI({
         req(input$studies_rows_selected)
@@ -168,9 +172,9 @@ server <- function(input, output, session) {
                              class = "btn btn-default action-button",
                              style = styles$external_link),
                  target = "_blank", href =
-  paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id))
+  paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id()))
       })
-      res <- get_study_detail(mb_id, input$user, input$pass)
+      res <- get_study_detail(mb_id(), input$user, input$pass)
       # It's easier to specify cols here to drop some cols and reorder cols at the same time
       detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
       detail_dt <- try(fread(res$res_cont, select = detail_cols))
@@ -197,13 +201,13 @@ server <- function(input, output, session) {
   observeEvent(input$download, {
     req(input$studies_rows_selected)
     # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.
-    mb_id <- values$studies[owner == input$data_manager][
-      input$studies_rows_selected, id]
+    # mb_id <- values$studies[owner == input$data_manager][
+    #   input$studies_rows_selected, id]
     note_data_download <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Downloading data..."),
       type = "message", duration = NULL)
     # always take current form value
-    res <- get_study_data(mb_id, input$user, input$pass)
+    res <- get_study_data(mb_id(), input$user, input$pass)
     removeNotification(note_data_download)
     # need to check response content to determine result type. the status is always success
     # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
@@ -237,12 +241,12 @@ server <- function(input, output, session) {
   # 1.5 save, import data ----
   output$save <- downloadHandler(
     filename = function() {
-        mb_id <- values$studies[input$studies_rows_selected, id]
+        # mb_id <- values$studies[input$studies_rows_selected, id]
         # avoid special characters that invalid for file name
         study_name <- gsub('[^\\w]', ' ',
                            values$studies[input$studies_rows_selected, name],
                            perl = TRUE)
-        paste0("Movebank ", mb_id, " - ", study_name, ".csv")
+        paste0("Movebank ", mb_id(), " - ", study_name, ".csv")
         },
     content = function(file) {
       req(values$move_bank_dt[, .N] > 0)
