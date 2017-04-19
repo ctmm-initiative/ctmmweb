@@ -370,21 +370,20 @@ server <- function(input, output, session) {
                                      hue_pal()(nrow(info_p)))
       )}
   )
-  # toggle selecting all rows
+  # selecting all rows
   proxy_individuals <- dataTableProxy("individuals")
-  select_all <- TRUE
-  observeEvent(input$toggle_all, {
-    if (select_all) {
-      selectRows(proxy_individuals, 1:nrow(values$current$merged$info))
-    } else {
+  observeEvent(input$select_all, {
+    selectRows(proxy_individuals, 1:nrow(values$current$merged$info))
+    # select_all <<- !select_all
+  })
+  # deselect all
+  observeEvent(input$deselect_all, {
       selectRows(proxy_individuals, NULL)
-    }
-    select_all <<- !select_all
   })
-  # to outlier filtering ----
-  observeEvent(input$outlier, {
-    updateTabItems(session, "tabs", "filter")
-  })
+  # to outlier filtering
+  # observeEvent(input$outlier, {
+  #   updateTabItems(session, "tabs", "filter")
+  # })
   # to time subsetting ----
   values$selected_animal_no <- 1
   observeEvent(input$time_subset, {
