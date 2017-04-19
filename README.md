@@ -1,20 +1,20 @@
-# Shiny web application for ctmm package
+# Shiny web app for ctmm
 
 ## Introduction
 
-This is a Shiny web app for [ctmm](https://cran.r-project.org/web/packages/ctmm/index.html) R package. 
+This is a Shiny web application for [ctmm](https://cran.r-project.org/web/packages/ctmm/index.html) R package. 
 
-Demo of some features, please choose highest resolution in video:
+Below are some screen recordings showing some features, please choose highest resolution for best result:
 
-Import data locally, plots, time subsetting
+- Import data locally, plots, time subsetting
 
 [![demo 1](http://img.youtube.com/vi/7vRktLa76Ho/0.jpg)](http://www.youtube.com/watch?v=7vRktLa76Ho "shiny prototype demo")
 
-Movebank data import
+- Movebank data import
 
 [![demo 2](http://img.youtube.com/vi/eKTo2L63TIE/0.jpg)](http://www.youtube.com/watch?v=eKTo2L63TIE "Movebank import demo")
 
-Turn on subtitle/CC for this video
+- Filter Outliers in data. Please turn on subtitle/CC for this video
 
 [![demo 3](http://img.youtube.com/vi/nyUe6PIVfyU/0.jpg)](http://www.youtube.com/watch?v=nyUe6PIVfyU "outlier detection")
 
