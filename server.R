@@ -346,6 +346,7 @@ server <- function(input, output, session) {
   #   }
   # })
   output$individuals <- DT::renderDataTable({
+    req(values$current)
     if (!is.null(values$current$all_removed_outliers)) {
       showNotification(paste0("   ", nrow(values$current$all_removed_outliers),
                               " Outliers Removed"),
@@ -396,6 +397,7 @@ server <- function(input, output, session) {
   # with lots of animals, the color gradient could be subtle or have duplicates
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
+    req(values$current)
     req(input$individuals_rows_current)
     id_vec <- values$current$merged$info[, identity]
     # table can be sorted, but always return row number in column 1
@@ -841,6 +843,7 @@ server <- function(input, output, session) {
   # p4. time subset ----
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
+    req(values$current)
     info <- values$current$merged$info
     dt <- info[values$selected_animal_no]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
@@ -848,6 +851,7 @@ server <- function(input, output, session) {
   # selected animal data and color bins
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
+    req(values$current)
     selected_id <- values$current$merged$info$identity[values$selected_animal_no]
     data_i <- values$current$merged$data[identity == selected_id]
     data_i[, color_bin_start :=
