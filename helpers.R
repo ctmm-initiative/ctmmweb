@@ -62,9 +62,29 @@ wrap_single_telemetry <- function(tele_obj){
   return(tele_obj)
 }
 # distance and speed values need to be updated after outlier removal
-calculate_distance <- function(animals_dt) {
+calculate_distance_all <- function(animals_dt) {
   animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
              by = identity]
+  animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
+                                         (y - median_y) ** 2)]
+  return(animals_dt)
+}
+# calculate median center based on time clusters
+calculate_distance <- function(animals_dt) {
+  find_boundary <- function(data) {
+    time_gap_threshold <- quantile((diff(data$t)), 0.8) * 100
+    # increase 1 sec because interval boundry is right open [ )
+    data[inc_t > time_gap_threshold, t + 1]
+  }
+  # need inc_t, so get these column first. always calculate distance then speed
+  animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
+                    inc_y = shift(y, 1L, type = "lead") - y,
+                    inc_t = shift(t, 1L, type = "lead") - t), by = id]
+  animals_dt[, group_index := paste0(identity, "_",
+                                     findInterval(t, find_boundary(.SD))),
+             by = identity]
+  animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
+             by = group_index]
   animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
                                          (y - median_y) ** 2)]
   return(animals_dt)
@@ -72,9 +92,9 @@ calculate_distance <- function(animals_dt) {
 # the naive definition of leaving speed. the NA cleaning is not ideal
 calculate_speed_leaving <- function(animals_dt) {
   # x[i] + inc[i] = x[i+1], note by id
-  animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
-                    inc_y = shift(y, 1L, type = "lead") - y,
-                    inc_t = shift(t, 1L, type = "lead") - t), by = id]
+  # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
+  #                   inc_y = shift(y, 1L, type = "lead") - y,
+  #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]
   animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
   animals_dt[is.infinite(speed), speed := NaN]
   # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
@@ -86,9 +106,9 @@ calculate_speed_leaving <- function(animals_dt) {
 }
 # the pmin method
 calculate_speed <- function(animals_dt) {
-  animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
-                    inc_y = shift(y, 1L, type = "lead") - y,
-                    inc_t = shift(t, 1L, type = "lead") - t), by = id]  # note by id
+  # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
+  #                   inc_y = shift(y, 1L, type = "lead") - y,
+  #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]  # note by id
   # TODO deal with dt==0 cases ----
   # dt == 0, use the sampling resolution to estimate the time difference
   # animals_dt[inc_t == 0]

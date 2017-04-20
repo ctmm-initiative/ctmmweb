@@ -385,16 +385,16 @@ server <- function(input, output, session) {
   #   updateTabItems(session, "tabs", "filter")
   # })
   # to time subsetting ----
-  values$selected_animal_no <- 1
-  observeEvent(input$time_subset, {
-    # must select single animal to proceed
-    if (length(input$individuals_rows_selected) != 1) {
-      showNotification("Please select single Animal.", type = "error")
-    } else {
-      values$selected_animal_no <- input$individuals_rows_selected
-      updateTabItems(session, "tabs", "subset")
-    }
-  })
+  # values$selected_animal_no <- 1
+  # observeEvent(input$time_subset, {
+  #   # must select single animal to proceed
+  #   if (length(input$individuals_rows_selected) != 1) {
+  #     showNotification("Please select single Animal.", type = "error")
+  #   } else {
+  #     values$selected_animal_no <- input$individuals_rows_selected
+  #     updateTabItems(session, "tabs", "subset")
+  #   }
+  # })
   # 2.4.4 location basic plot
   # this is the only place that take original input data directly.
   output$location_plot_basic <- renderPlot({
@@ -619,8 +619,8 @@ server <- function(input, output, session) {
         geom_point(data = points_selected, size = 3.5, alpha = 1,
                    color = "blue", shape = 22)
       }} +
-      geom_point(data = unique(animals_dt[, .(median_x, median_y), by = id]),
-                 aes(x = median_x, y = median_y), color = "blue", size = 0.8) +
+      geom_point(data = unique(animals_dt[, .(id, median_x, median_y)]),
+                 aes(x = median_x, y = median_y, shape = id), color = "blue", size = 0.8) +
       factor_color(animal_selected_data$distance_center_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
       factor_alpha(animal_selected_data$distance_center_color_factor) +
@@ -850,18 +850,29 @@ server <- function(input, output, session) {
     values$outliers_to_remove <- NULL
   })
   # p4. time subset ----
+  observeEvent(input$tabs, {
+    req(values$current)
+    if (input$tabs == "subset") {
+      # must select single animal to proceed
+      if (length(input$individuals_rows_selected) != 1) {
+        showNotification("Please select single Animal", type = "error")
+      }
+    }
+  })
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     req(values$current)
+    req(length(input$individuals_rows_selected) == 1)
     info <- values$current$merged$info
-    dt <- info[values$selected_animal_no]
+    dt <- info[input$individuals_rows_selected]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # selected animal data and color bins
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
     req(values$current)
-    selected_id <- values$current$merged$info$identity[values$selected_animal_no]
+    req(length(input$individuals_rows_selected) == 1)
+    selected_id <- values$current$merged$info$identity[input$individuals_rows_selected]
     data_i <- values$current$merged$data[identity == selected_id]
     data_i[, color_bin_start :=
              cut_date_time(timestamp, input$time_color_bins)]  # a factor
