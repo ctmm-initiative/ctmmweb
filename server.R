@@ -397,10 +397,10 @@ server <- function(input, output, session) {
   # })
   # 2.4.4 location basic plot
   # this is the only place that take original input data directly.
-  output$location_plot_basic <- renderPlot({
-    tele_objs <- req(values$input_tele_list)
-    plot(tele_objs, col = rainbow(length(tele_objs)))
-  })
+  # output$location_plot_basic <- renderPlot({
+  #   tele_objs <- req(values$input_tele_list)
+  #   plot(tele_objs, col = rainbow(length(tele_objs)))
+  # })
   # chose_animal() ----
   # when user selected animals in summary table, all plots update to the subset
   # with lots of animals, the color gradient could be subtle or have duplicates
