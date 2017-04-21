@@ -758,6 +758,7 @@ server <- function(input, output, session) {
       # cat("selected points in table\n")
       # print(selected_points)
       # draw rectangle around selected points
+      # browser()
       g <- g +
         geom_point(data = selected_points, size = 3.5, alpha = 1,
                                    color = "blue", shape = 22)

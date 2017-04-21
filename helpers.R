@@ -62,13 +62,13 @@ wrap_single_telemetry <- function(tele_obj){
   return(tele_obj)
 }
 # distance and speed values need to be updated after outlier removal
-calculate_distance_all <- function(animals_dt) {
-  animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
-             by = identity]
-  animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
-                                         (y - median_y) ** 2)]
-  return(animals_dt)
-}
+# calculate_distance_all <- function(animals_dt) {
+#   animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
+#              by = identity]
+#   animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
+#                                          (y - median_y) ** 2)]
+#   return(animals_dt)
+# }
 # calculate median center based on time clusters
 calculate_distance <- function(animals_dt) {
   find_boundary <- function(data) {
@@ -90,22 +90,22 @@ calculate_distance <- function(animals_dt) {
   return(animals_dt)
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
-calculate_speed_leaving <- function(animals_dt) {
-  # x[i] + inc[i] = x[i+1], note by id
-  # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
-  #                   inc_y = shift(y, 1L, type = "lead") - y,
-  #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]
-  animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
-  animals_dt[is.infinite(speed), speed := NaN]
-  # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
-  # this removed NaN too. The NA values caused speed outlier plot default subset to NULL. should not keep NA, NaN in speed, will cause too many troubles. could use negative value to mark
-  for (i in animals_dt[is.na(speed), which = TRUE]) {
-    animals_dt[i, speed := animals_dt[i - 1, speed]]
-  }
-  return(animals_dt)
-}
+# calculate_speed_leaving <- function(animals_dt) {
+#   # x[i] + inc[i] = x[i+1], note by id
+#   # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
+#   #                   inc_y = shift(y, 1L, type = "lead") - y,
+#   #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]
+#   animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
+#   animals_dt[is.infinite(speed), speed := NaN]
+#   # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
+#   # this removed NaN too. The NA values caused speed outlier plot default subset to NULL. should not keep NA, NaN in speed, will cause too many troubles. could use negative value to mark
+#   for (i in animals_dt[is.na(speed), which = TRUE]) {
+#     animals_dt[i, speed := animals_dt[i - 1, speed]]
+#   }
+#   return(animals_dt)
+# }
 # the pmin method
-calculate_speed <- function(animals_dt) {
+calculate_speed_pmin <- function(animals_dt) {
   # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
   #                   inc_y = shift(y, 1L, type = "lead") - y,
   #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]  # note by id
@@ -145,6 +145,14 @@ calculate_speed <- function(animals_dt) {
   animals_dt[c(point_1$V1, point_N$V1), speed := speed_min_n]
   animals_dt[, c("speed_min", "x_3_1", "y_3_1", "t_3_1", "speed_min_n",
                  "x_N_2", "y_N_2", "t_N_2") := NULL]
+  return(animals_dt)
+}
+# using ctmm util functions
+calculate_speed <- function(animals_dt) {
+  animals_dt[, speed := ctmm:::assign_speeds(.SD,
+                                           dt = ctmm:::time_res(.SD),
+                                           UERE = 0, method = "max"),
+             by = identity]
   return(animals_dt)
 }
 # merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
