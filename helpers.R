@@ -53,15 +53,15 @@ info_single_tele <- function(object) {
                    points = nrow(object))
   return(dt)
 }
-# get info on tele obj or a list of tele obj. use tele_list becauset tele_objs is difficult to separate from single tele_obj
+# taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
 info_tele_objs <- function(tele_objs){
   tele_list <- wrap_single_telemetry(tele_objs)
   animal_info_list <- lapply(tele_list, info_single_tele)
   rbindlist(animal_info_list)
 }
-# merge list of telemetry obj into data frame with identity column, works with single tele obj
 wrap_single_telemetry <- function(tele_obj){
   if (class(tele_obj) != "list") {
+    # use same name so we can return same name if no change made
     tele_obj <- list(tele_obj)
     names(tele_obj) <- attr(tele_obj[[1]],"info")$identity
   }
