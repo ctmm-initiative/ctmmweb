@@ -668,8 +668,9 @@ server <- function(input, output, session) {
       x[!(row.names(x) %in% removed_points[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-    info_list <- lapply(tele_list, animal_info)
-    info <- rbindlist(info_list)
+    # info_list <- lapply(tele_list, animal_info)
+    # info <- rbindlist(info_list)
+    info <- info_tele_objs(tele_list)
     # distance/speed calculation need to updated
     animals_dt <- calculate_distance(animals_dt)
     animals_dt <- calculate_speed(animals_dt)
