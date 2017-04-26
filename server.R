@@ -420,8 +420,10 @@ server <- function(input, output, session) {
     animals_dt <- values$current$merged$data[identity %in% chosen_ids]
     # cat("chosen animals:\n")
     # print(animals_dt[, .N, by = identity])
+    subset_indice <- values$current$merged$info$identity %in% chosen_ids
     return(list(data = animals_dt,
-                info = values$current$merged$info[identity %in% chosen_ids]
+                info = values$current$merged$info[subset_indice],
+                tele = values$current$tele_list[subset_indice]
                 ))
   })
   # 2.4.1 overview plot ----
@@ -966,13 +968,30 @@ server <- function(input, output, session) {
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
-  vg.animal_1 <- reactive({
-    animal_1 <- req(values$input_tele_list)
-    variogram(animal_1)
+  # vg.animal_1 <- reactive({
+  #   animal_1 <- req(values$input_tele_list)
+  #   variogram(animal_1)
+  # })
+  # output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
+  # output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
+  # output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ^ input$zoom, main = sprintf("%2.1f%s", (10 ^ input$zoom) * 100, "% of Total Time-lag" ))})
+  vg_list <- reactive({
+    tele_list <- req(chose_animal()$tele)
+    return(lapply(tele_list, variogram))
   })
-  output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
-  output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
-  output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ^ input$zoom, main = sprintf("%2.1f%s", (10 ^ input$zoom) * 100, "% of Total Time-lag" ))})
+  output$vario_plot_zoom <- renderPlot({
+    req(vg_list())
+    def.par <- par(no.readonly = TRUE)
+    fig_count <- length(vg_list())
+    cell_count <- ifelse(fig_count %% 2 == 0, fig_count, fig_count + 1)
+    layout(matrix(1:cell_count, cell_count / 2, 2, byrow = TRUE))
+    lapply(vg_list(), function(x) {
+      plot(x, fraction = 10 ^ input$zoom)
+      title(x@info$identity)
+    })
+    # par(def.par)
+  })
+
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
   #   btn <- input$snapBtn

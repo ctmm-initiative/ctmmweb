@@ -274,12 +274,12 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                                                style = styles$page_action)),
                            DT::dataTableOutput('selected_ranges'))
 # p5. variogram boxes ----
-vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
-                        status = "primary", solidHeader = TRUE,
-                        plotOutput("vario_plot_1"))
-vario_plot_box_2 <- box(title = "Variogram zoomed in 10% Time-lag",
-                        status = "primary", solidHeader = TRUE,
-                        plotOutput("vario_plot_2"))
+# vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
+#                         status = "primary", solidHeader = TRUE,
+#                         plotOutput("vario_plot_1"))
+# vario_plot_box_2 <- box(title = "Variogram zoomed in 10% Time-lag",
+#                         status = "primary", solidHeader = TRUE,
+#                         plotOutput("vario_plot_2"))
 #                                sliderInput("zoom2", "Log10(fraction)",
 #                                            min = -3, max = 0, step = 0.1,
 #                                            value = log10(0.5))
@@ -288,13 +288,18 @@ vario_plot_box_2 <- box(title = "Variogram zoomed in 10% Time-lag",
 #                          min = -3, max = 0, step = 0.1,
 #                          value = log10(0.5))),
 # mainPanel(plotOutput("vario_plot_2")))
-vario_plot_box_3 <- box(title = "Variogram with Zoom selection",
+vario_plot_zoom_box <- box(title = "Variogram with Zoom selection",
                         status = "info", solidHeader = TRUE, width = 12,
-                        sidebarPanel(h4("Zoom in: 0.1% - 100%"),
-                                     sliderInput("zoom", "Log10(percentage)",
-                                                 min = -3, max = 0, step = 0.1,
-                                                 value = log10(0.5))),
-                        mainPanel(plotOutput("vario_plot_3")))
+                        fluidRow(column(12, h4("Zoom in: 0.1% - 100%")),
+                                 column(6, sliderInput("zoom", "Log10(percentage)",
+                                                        min = -3, max = 0, step = 0.1,
+                                                        value = log10(0.5)))),
+                        # sidebarPanel(h4("Zoom in: 0.1% - 100%"),
+                        #              sliderInput("zoom", "Log10(percentage)",
+                        #                          min = -3, max = 0, step = 0.1,
+                        #                          value = log10(0.5))),
+                        # mainPanel(plotOutput("vario_plot_zoom"))
+                        fluidRow(column(12, plotOutput("vario_plot_zoom"))))
 
 # vario_plot_zoom_box <- box(title = "Variogram with Zoom",
 #                         status = "info", solidHeader = TRUE, width = 12,
@@ -349,8 +354,8 @@ body <- dashboardBody(
             fluidRow(outlier_filter_box,
                      all_removed_outliers_box)),
     tabItem(tabName = "visual",
-            fluidRow(vario_plot_box_1, vario_plot_box_2),
-            fluidRow(vario_plot_box_3)),
+            # fluidRow(vario_plot_box_1, vario_plot_box_2),
+            fluidRow(vario_plot_zoom_box)),
     tabItem(tabName = "model",
             fluidRow(model_summary_box),
             fluidRow(model_plot_box_1, model_plot_box_2)),
