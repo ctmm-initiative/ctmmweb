@@ -40,7 +40,7 @@ Other dependency packages will be automatically installed in the first run of ap
 
 3. Run the Shiny app with
 
-	`shiny::runGitHub('ctmm-webapp', 'ctmm-initiative')`
+	`shiny::runGitHub('ctmm-initiative/ctmm-webapp')`
 	
 	
 ## Usage
