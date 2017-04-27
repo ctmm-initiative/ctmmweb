@@ -1000,14 +1000,14 @@ server <- function(input, output, session) {
   #     ## wrap element in a div with id for ease of removal
   #     ui = plotOutput(paste0("vario_plot_", btn))
   #   )})
-  # model selection ----
+  # p6. model selection ----
   # right now with all default parameter, no user selection
   selected_model <- reactive({
     # debug
     # if (debug) {
     #   cat(file = stderr(), "fitting models\n")
     # }
-    animal_1 <- req(values$input_tele_list)
+    animal_1 <- req(values$current$tele_list)[[1]]
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
