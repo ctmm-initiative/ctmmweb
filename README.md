@@ -20,10 +20,6 @@ Below are some screen recordings showing some features, please choose highest re
 
 ## Installation
 
-[The first beta version is hosted in shinyapps.io](https://ctmm.shinyapps.io/dashboard1/) so you can open it with browser. This version is simple in every step but complete from start to end.
-
-The current repo is the alpha version with much more features in data, subset page, but the latter pages are not connected yet.
-
 You can run current repo locally:
 
 1. Install [the latest R](https://www.r-project.org/), currently 3.3.3. Lower version may not work with ctmm.
