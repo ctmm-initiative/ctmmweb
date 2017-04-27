@@ -55,6 +55,7 @@ click_help <- function(input, output, session, title, file){
   })
 }
 # log slider ----
+# need to be here because it will be used in ui.R
 JS.logify <- function(digits = 2) {
   paste0(  "
            // function to logify a sliderInput

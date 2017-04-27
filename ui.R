@@ -288,19 +288,35 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
 #                          min = -3, max = 0, step = 0.1,
 #                          value = log10(0.5))),
 # mainPanel(plotOutput("vario_plot_2")))
-vario_plot_zoom_box <- box(title = "Variogram with Zoom selection",
-                        status = "info", solidHeader = TRUE, width = 12,
-                        fluidRow(tags$head(tags$script(HTML(JS.logify(3)))),
-                                 tags$head(tags$script(HTML(JS.onload("zoom")))),
-                                 column(6, sliderInput("zoom", "Fraction",
-                                                        min = -3, max = 0, step = 0.1,
-                                                        value = log10(0.5)))),
-                        # sidebarPanel(h4("Zoom in: 0.1% - 100%"),
-                        #              sliderInput("zoom", "Log10(percentage)",
-                        #                          min = -3, max = 0, step = 0.1,
-                        #                          value = log10(0.5))),
-                        # mainPanel(plotOutput("vario_plot_zoom"))
-                        fluidRow(column(12, plotOutput("vario_plot_zoom"))))
+vario_plot_zoom_box <- tabBox(title = "Variogram with Zoom selection",
+                              width = 12,
+      tabPanel("Zoom by lag",
+         fluidRow(tags$head(tags$script(HTML(JS.logify(3)))),
+                  tags$head(tags$script(HTML(JS.onload("zoom")))),
+                  column(6, sliderInput("zoom_lag", "Lag",
+                                        min = -3, max = 0, step = 0.1,
+                                        value = log10(0.5)))),
+         fluidRow(column(12, plotOutput("vario_plot_lag")))
+              ),
+      tabPanel("Zoom by fraction",
+         fluidRow(
+           # tags$head(tags$script(HTML(JS.logify(3)))),
+                  tags$head(tags$script(HTML(JS.onload("zoom")))),
+                  column(5, offset = 0, sliderInput("zoom_fraction", "Fraction",
+                                        min = -3, max = 0, step = 0.1,
+                                        value = log10(0.5))),
+                  column(2, offset = 2, numericInput("fraction_height",
+                                         "Figure height",
+                                         value = 150, min = 50, max = 800,
+                                         step = 50)),
+                  column(2, offset = 1, numericInput("fraction_columns",
+                                         "Columns",
+                                         value = 2, min = 1, max = 6,
+                                         step = 1)),
+                  column(12, plotOutput("vario_plot_fraction",
+                                  # less than 100%, otherwise out of boundary
+                                         width = "99%", height = "98%"))
+                         )))
 
 # vario_plot_zoom_box <- box(title = "Variogram with Zoom",
 #                         status = "info", solidHeader = TRUE, width = 12,

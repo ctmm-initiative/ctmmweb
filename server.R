@@ -979,18 +979,33 @@ server <- function(input, output, session) {
     tele_list <- req(chose_animal()$tele)
     return(lapply(tele_list, variogram))
   })
-  output$vario_plot_zoom <- renderPlot({
+  # to be used in plot size, layout, shared by two tabs
+  vg_layout <- reactive({
+    req(vg_list())
+    fig_count <- length(vg_list())
+    # browser()
+    row_count <- ceiling(fig_count / input$fraction_columns)
+      # ifelse(fig_count %% input$fraction_columns == 0,
+      #                    fig_count, fig_count + 1)
+    layout_matrix <- matrix(1:(row_count * input$fraction_columns),
+                            nrow = row_count,
+                            ncol = input$fraction_columns,
+                            byrow = TRUE)
+    height <- input$fraction_height * row_count
+    return(list(layout_matrix = layout_matrix, height = height))
+  })
+  output$vario_plot_fraction <- renderPlot({
     req(vg_list())
     def.par <- par(no.readonly = TRUE)
-    fig_count <- length(vg_list())
-    cell_count <- ifelse(fig_count %% 2 == 0, fig_count, fig_count + 1)
-    layout(matrix(1:cell_count, cell_count / 2, 2, byrow = TRUE))
+    # fig_count <- length(vg_list())
+    # cell_count <- ifelse(fig_count %% 2 == 0, fig_count, fig_count + 1)
+    layout(vg_layout()$layout_matrix)
     lapply(vg_list(), function(x) {
-      plot(x, fraction = 10 ^ input$zoom)
+      plot(x, fraction = 10 ^ input$zoom_fraction)
       title(x@info$identity)
     })
     # par(def.par)
-  })
+  }, height = function() { vg_layout()$height })
 
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
