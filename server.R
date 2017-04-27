@@ -984,14 +984,14 @@ server <- function(input, output, session) {
     req(vg_list())
     fig_count <- length(vg_list())
     # browser()
-    row_count <- ceiling(fig_count / input$fraction_columns)
+    row_count <- ceiling(fig_count / input$vario_columns)
       # ifelse(fig_count %% input$fraction_columns == 0,
       #                    fig_count, fig_count + 1)
-    layout_matrix <- matrix(1:(row_count * input$fraction_columns),
+    layout_matrix <- matrix(1:(row_count * input$vario_columns),
                             nrow = row_count,
-                            ncol = input$fraction_columns,
+                            ncol = input$vario_columns,
                             byrow = TRUE)
-    height <- input$fraction_height * row_count
+    height <- input$vario_height * row_count
     return(list(layout_matrix = layout_matrix, height = height))
   })
   output$vario_plot_fraction <- renderPlot({
