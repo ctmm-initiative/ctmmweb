@@ -313,14 +313,15 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom selection",
       ),
       tabsetPanel(
       tabPanel("Zoom by lag",
-         fluidRow(tags$head(tags$script(HTML(JS.logify(4)))),
-                  tags$head(tags$script(HTML(JS.onload("zoom_lag")))),
-                  column(6, offset = 1, sliderInput("zoom_lag", "Lag",
+         fluidRow(
+           # tags$head(tags$script(HTML(JS.logify(4)))),
+           #        tags$head(tags$script(HTML(JS.onload("zoom_lag")))),
+                  column(6, offset = 1, sliderInput("zoom_lag",
+                    "Percentage of absolute Lag range",
 # 10^-2.9 = 0.001258 10^-2.8 = 0.001584, so even 0.1 step need 4 digits resolution in labels
-                                        min = -3, max = 0, step = 0.1,
-                                        value = log10(0.5)))),
-         fluidRow(column(12, plotOutput("vario_plot_lag"
-                                        ,
+                                        min = 0.01, max = 1, step = 0.05,
+                                        value = 1))),
+         fluidRow(column(12, plotOutput("vario_plot_lag",
                                         width = "99%", height = "98%"
                                         )))
               ),
@@ -328,7 +329,8 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom selection",
          fluidRow(
            # tags$head(tags$script(HTML(JS.logify(3)))),
                   tags$head(tags$script(HTML(JS.onload("zoom_fraction")))),
-                  column(5, offset = 1, sliderInput("zoom_fraction", "Fraction",
+                  column(5, offset = 1, sliderInput("zoom_fraction",
+                                                    "Fraction of each plot",
                                         min = -3, max = 0, step = 0.1,
                                         value = log10(0.5))),
                   # column(2, offset = 2, numericInput("fraction_height",

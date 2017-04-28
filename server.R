@@ -995,6 +995,18 @@ server <- function(input, output, session) {
     height <- input$vario_height * row_count
     return(list(layout_matrix = layout_matrix, height = height))
   })
+  output$vario_plot_lag <- renderPlot({
+    req(vg_list())
+    max.lag <- sapply(vg_list(), function(v){ last(v$lag) } )
+    max.lag <- max(max.lag)
+    def.par <- par(no.readonly = TRUE)
+    layout(vg_layout()$layout_matrix)
+    lapply(vg_list(), function(x) {
+      plot(x, fraction = 1, xlim = c(0, max.lag * input$zoom_lag))
+      title(x@info$identity)
+    })
+    # par(def.par)
+  }, height = function() { vg_layout()$height })
   output$vario_plot_fraction <- renderPlot({
     req(vg_list())
     def.par <- par(no.readonly = TRUE)
@@ -1007,6 +1019,9 @@ server <- function(input, output, session) {
     })
     # par(def.par)
   }, height = function() { vg_layout()$height })
+
+
+
 
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
