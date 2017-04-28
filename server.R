@@ -464,6 +464,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
   }
+  # , height = 400, width = "auto"
   , height = styles$height_plot_loc, width = "auto"
   )
   # 2.4.2 facet ----

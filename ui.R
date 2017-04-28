@@ -100,7 +100,8 @@ data_summary_box <- box(title = "1. Individuals", status = "info",
 # relying naming convention here. use plot id with postfix for event name.
 location_plot_box <- tabBox(title = "Animal Locations",
                             id = "location_plot_tabs",
-                            height = styles$height_location_box, width = 12,
+                            # height = styles$height_location_box,
+                            width = 12,
   tabPanel("2. Overview",
    fluidRow(column(5, offset = 1,
                   sliderInput("point_size_1", "Size of points in plot",
@@ -113,9 +114,11 @@ location_plot_box <- tabBox(title = "Animal Locations",
    plotOutput("location_plot_gg",
               dblclick = "location_plot_gg_dblclick",
               brush = brushOpts(id = "location_plot_gg_brush",
-                                resetOnNew = TRUE))
+                                resetOnNew = TRUE),
+              width = "99%", height = "100%")
                     ),
-  tabPanel("3. Facet", plotOutput("location_plot_facet_fixed")),
+  tabPanel("3. Facet", plotOutput("location_plot_facet_fixed",
+                                  width = "99%", height = "100%")),
   tabPanel("4. Individual",
            fluidRow(column(5, offset = 1,
             sliderInput("include_level", "Zoom Into Portion of Plots",
@@ -125,13 +128,15 @@ location_plot_box <- tabBox(title = "Animal Locations",
                    sliderInput("point_size_3", "Size of points in plot",
                                min = 0.05, max = 0.5, value = 0.1, step = 0.05,
                                width = "100%"))),
-           plotOutput("location_plot_individual"))
+           plotOutput("location_plot_individual",
+                      width = "99%", height = "100%"))
   # tabPanel("4. Basic Plot", plotOutput("location_plot_basic"))
   )
 histogram_facet_box <- box(title = "5. Sampling Time",
-                           height = styles$height_hist_box,
+                           # height = styles$height_hist_box,
                            status = "primary", solidHeader = TRUE, width = 12,
-                           plotOutput("histogram_facet"))
+                           plotOutput("histogram_facet",
+                                      width = "99%", height = "100%"))
 # p3. outlier ----
 outlier_filter_box <- tabBox(title = "Outlier Detection",
                        id = "outlier_filter_tabs", width = 12,
@@ -245,7 +250,10 @@ histogram_subsetting_box <- box(title = "Select Time Range",
                                        direction = "x",
                                        stroke = "purple",
                                        fill = "blue",
-                                       resetOnNew = TRUE)))))
+                                       resetOnNew = TRUE)
+                                     ,
+                                     # width = "99%", height = "100%"
+                                     ))))
 current_range_box <- box(title = "Current Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
        fluidRow(column(10, DT::dataTableOutput("current_range")),
@@ -265,7 +273,10 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
                   dblclick = "selected_loc_dblclick",
                   brush = brushOpts(
                     id = "selected_loc_brush",
-                    resetOnNew = TRUE)))
+                    resetOnNew = TRUE)
+                  # ,
+                  # width = "99%", height = "100%"
+                  ))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
                            column(2, offset = 10,
@@ -302,12 +313,16 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom selection",
       ),
       tabsetPanel(
       tabPanel("Zoom by lag",
-         fluidRow(tags$head(tags$script(HTML(JS.logify(3)))),
+         fluidRow(tags$head(tags$script(HTML(JS.logify(4)))),
                   tags$head(tags$script(HTML(JS.onload("zoom_lag")))),
                   column(6, offset = 1, sliderInput("zoom_lag", "Lag",
+# 10^-2.9 = 0.001258 10^-2.8 = 0.001584, so even 0.1 step need 4 digits resolution in labels
                                         min = -3, max = 0, step = 0.1,
                                         value = log10(0.5)))),
-         fluidRow(column(12, plotOutput("vario_plot_lag")))
+         fluidRow(column(12, plotOutput("vario_plot_lag"
+                                        ,
+                                        width = "99%", height = "98%"
+                                        )))
               ),
       tabPanel("Zoom by fraction",
          fluidRow(
