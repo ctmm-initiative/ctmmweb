@@ -327,7 +327,7 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom selection",
               ),
       tabPanel("Zoom by fraction",
          fluidRow(
-           # tags$head(tags$script(HTML(JS.logify(3)))),
+           tags$head(tags$script(HTML(JS.logify(3)))),
                   tags$head(tags$script(HTML(JS.onload("zoom_fraction")))),
                   column(5, offset = 1, sliderInput("zoom_fraction",
                                                     "Fraction of each plot",
