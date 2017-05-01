@@ -983,6 +983,12 @@ server <- function(input, output, session) {
                     function(tele) ctmm.guess(tele, interactive = FALSE))
     return(list(SVF_l = SVF_l, GUESS_l = GUESS_l))
   })
+  output$fit_selector <- renderUI({
+    tele_list <- req(chose_animal()$tele)
+    identities <- sapply(tele_list, function(x) x@info$identity)
+    selectInput("fit_selected", "Adjust guess parameters",
+                c("Not selected" = "", identities))
+  })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
     req(vg())
@@ -1008,7 +1014,7 @@ server <- function(input, output, session) {
     def.par <- par(no.readonly = TRUE)
     layout(vg_layout()$layout_matrix)
     if (input$vario_option == "absolute") {
-      extent_tele <- extent(vg()$SVF_l)
+      extent_tele <- ctmm:::extent(vg()$SVF_l)
       max.lag <- extent_tele["max", "x"]
       max.SVF <- extent_tele["max", "y"]
       # lapply(vg_list(), function(x) {
