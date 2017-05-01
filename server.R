@@ -976,14 +976,17 @@ server <- function(input, output, session) {
   # output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
   # output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
   # output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ^ input$zoom, main = sprintf("%2.1f%s", (10 ^ input$zoom) * 100, "% of Total Time-lag" ))})
-  vg_list <- reactive({
+  vg <- reactive({
     tele_list <- req(chose_animal()$tele)
-    return(lapply(tele_list, variogram))
+    SVFS <- lapply(tele_list, variogram)
+    GUESS <- lapply(tele_list,
+                    function(tele) ctmm.guess(tele, interactive = FALSE))
+    return(list(SVFS = SVFS, GUESS = GUESS))
   })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
-    req(vg_list())
-    fig_count <- length(vg_list())
+    req(vg())
+    fig_count <- length(vg()$SVFS)
     # browser()
     row_count <- ceiling(fig_count / input$vario_columns)
       # ifelse(fig_count %% input$fraction_columns == 0,
@@ -996,24 +999,40 @@ server <- function(input, output, session) {
     return(list(layout_matrix = layout_matrix, height = height))
   })
   output$vario_plot_zoom <- renderPlot({
-    req(vg_list())
+    req(vg())
+    if (input$fit_vario) {
+      GUESS <- vg()$GUESS
+    } else {
+      GUESS <- NULL
+    }
     def.par <- par(no.readonly = TRUE)
     layout(vg_layout()$layout_matrix)
     if (input$vario_option == "absolute") {
-      extent_tele <- extent(vg_list())
+      extent_tele <- extent(vg()$SVFS)
       max.lag <- extent_tele["max", "x"]
       max.SVF <- extent_tele["max", "y"]
-      lapply(vg_list(), function(x) {
-        plot(x, fraction = 1,
+      # lapply(vg_list(), function(x) {
+      #   plot(x, fraction = 1,
+      #        xlim = c(0, max.lag * (10 ^ input$zoom_lag_fraction)),
+      #        ylim = c(0, max.SVF))
+      #   title(x@info$identity)
+      # })
+      for (i in seq_along(vg()$SVFS)) {
+        plot(vg()$SVFS[[i]], CTMM = GUESS[[i]], fraction = 1,
              xlim = c(0, max.lag * (10 ^ input$zoom_lag_fraction)),
              ylim = c(0, max.SVF))
-        title(x@info$identity)
-      })
+        title(vg()$SVFS[[i]]@info$identity)
+      }
     } else {
-      lapply(vg_list(), function(x) {
-        plot(x, fraction = 10 ^ input$zoom_lag_fraction)
-        title(x@info$identity)
-      })
+      # lapply(vg_list(), function(x) {
+      #   plot(x, fraction = 10 ^ input$zoom_lag_fraction)
+      #   title(x@info$identity)
+      # })
+      for (i in seq_along(vg()$SVFS)) {
+        plot(vg()$SVFS[[i]], CTMM = GUESS[[i]],
+             fraction = 10 ^ input$zoom_lag_fraction)
+        title(vg()$SVFS[[i]]@info$identity)
+      }
     }
   }, height = function() { vg_layout()$height })
   # output$vario_plot_fraction <- renderPlot({
