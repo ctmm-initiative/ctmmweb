@@ -301,7 +301,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
 vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                            status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
-        column(5, checkboxInput("fit_vario", h4("Fit with guesstimated model"))),
+        column(5, checkboxInput("fit_vario", h4("Overlay guesstimated model"))),
         column(3, offset = 0, radioButtons("vario_option", "Zoom by Time-lag",
                    choices = c("Absolute range for all" = "absolute",
                                "Relative for each" = "relative"),
