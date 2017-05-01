@@ -997,12 +997,17 @@ server <- function(input, output, session) {
   })
   output$vario_plot_lag <- renderPlot({
     req(vg_list())
-    max.lag <- sapply(vg_list(), function(v){ last(v$lag) } )
-    max.lag <- max(max.lag)
+    # max.lag <- sapply(vg_list(), function(v){ last(v$lag) } )
+    # max.lag <- max(max.lag)
+    extent_tele <- extent(vg_list())
+    max.lag <- extent_tele["max", "x"]
+    max.SVF <- extent_tele["max", "y"]
+
     def.par <- par(no.readonly = TRUE)
     layout(vg_layout()$layout_matrix)
     lapply(vg_list(), function(x) {
-      plot(x, fraction = 1, xlim = c(0, max.lag * input$zoom_lag))
+      plot(x, fraction = 1, xlim = c(0, max.lag * input$zoom_lag),
+           ylim = c(0, max.SVF))
       title(x@info$identity)
     })
     # par(def.par)
