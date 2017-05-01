@@ -978,15 +978,15 @@ server <- function(input, output, session) {
   # output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ^ input$zoom, main = sprintf("%2.1f%s", (10 ^ input$zoom) * 100, "% of Total Time-lag" ))})
   vg <- reactive({
     tele_list <- req(chose_animal()$tele)
-    SVFS <- lapply(tele_list, variogram)
-    GUESS <- lapply(tele_list,
+    SVF_l <- lapply(tele_list, variogram)
+    GUESS_l <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
-    return(list(SVFS = SVFS, GUESS = GUESS))
+    return(list(SVF_l = SVF_l, GUESS_l = GUESS_l))
   })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
     req(vg())
-    fig_count <- length(vg()$SVFS)
+    fig_count <- length(vg()$SVF_l)
     # browser()
     row_count <- ceiling(fig_count / input$vario_columns)
       # ifelse(fig_count %% input$fraction_columns == 0,
@@ -1001,14 +1001,14 @@ server <- function(input, output, session) {
   output$vario_plot_zoom <- renderPlot({
     req(vg())
     if (input$fit_vario) {
-      GUESS <- vg()$GUESS
+      GUESS_l <- vg()$GUESS_l
     } else {
-      GUESS <- NULL
+      GUESS_l <- NULL
     }
     def.par <- par(no.readonly = TRUE)
     layout(vg_layout()$layout_matrix)
     if (input$vario_option == "absolute") {
-      extent_tele <- extent(vg()$SVFS)
+      extent_tele <- extent(vg()$SVF_l)
       max.lag <- extent_tele["max", "x"]
       max.SVF <- extent_tele["max", "y"]
       # lapply(vg_list(), function(x) {
@@ -1017,21 +1017,21 @@ server <- function(input, output, session) {
       #        ylim = c(0, max.SVF))
       #   title(x@info$identity)
       # })
-      for (i in seq_along(vg()$SVFS)) {
-        plot(vg()$SVFS[[i]], CTMM = GUESS[[i]], fraction = 1,
+      for (i in seq_along(vg()$SVF_l)) {
+        plot(vg()$SVF_l[[i]], CTMM = GUESS_l[[i]], fraction = 1,
              xlim = c(0, max.lag * (10 ^ input$zoom_lag_fraction)),
              ylim = c(0, max.SVF))
-        title(vg()$SVFS[[i]]@info$identity)
+        title(vg()$SVF_l[[i]]@info$identity)
       }
     } else {
       # lapply(vg_list(), function(x) {
       #   plot(x, fraction = 10 ^ input$zoom_lag_fraction)
       #   title(x@info$identity)
       # })
-      for (i in seq_along(vg()$SVFS)) {
-        plot(vg()$SVFS[[i]], CTMM = GUESS[[i]],
+      for (i in seq_along(vg()$SVF_l)) {
+        plot(vg()$SVF_l[[i]], CTMM = GUESS_l[[i]],
              fraction = 10 ^ input$zoom_lag_fraction)
-        title(vg()$SVFS[[i]]@info$identity)
+        title(vg()$SVF_l[[i]]@info$identity)
       }
     }
   }, height = function() { vg_layout()$height })
