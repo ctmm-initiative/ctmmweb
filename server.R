@@ -995,35 +995,39 @@ server <- function(input, output, session) {
     height <- input$vario_height * row_count
     return(list(layout_matrix = layout_matrix, height = height))
   })
-  output$vario_plot_lag <- renderPlot({
-    req(vg_list())
-    # max.lag <- sapply(vg_list(), function(v){ last(v$lag) } )
-    # max.lag <- max(max.lag)
-    extent_tele <- extent(vg_list())
-    max.lag <- extent_tele["max", "x"]
-    max.SVF <- extent_tele["max", "y"]
-
-    def.par <- par(no.readonly = TRUE)
-    layout(vg_layout()$layout_matrix)
-    lapply(vg_list(), function(x) {
-      plot(x, fraction = 1, xlim = c(0, max.lag * input$zoom_lag),
-           ylim = c(0, max.SVF))
-      title(x@info$identity)
-    })
-    # par(def.par)
-  }, height = function() { vg_layout()$height })
-  output$vario_plot_fraction <- renderPlot({
+  output$vario_plot_zoom <- renderPlot({
     req(vg_list())
     def.par <- par(no.readonly = TRUE)
-    # fig_count <- length(vg_list())
-    # cell_count <- ifelse(fig_count %% 2 == 0, fig_count, fig_count + 1)
     layout(vg_layout()$layout_matrix)
-    lapply(vg_list(), function(x) {
-      plot(x, fraction = 10 ^ input$zoom_fraction)
-      title(x@info$identity)
-    })
-    # par(def.par)
+    if (input$vario_option == "absolute") {
+      extent_tele <- extent(vg_list())
+      max.lag <- extent_tele["max", "x"]
+      max.SVF <- extent_tele["max", "y"]
+      lapply(vg_list(), function(x) {
+        plot(x, fraction = 1,
+             xlim = c(0, max.lag * (10 ^ input$zoom_lag_fraction)),
+             ylim = c(0, max.SVF))
+        title(x@info$identity)
+      })
+    } else {
+      lapply(vg_list(), function(x) {
+        plot(x, fraction = 10 ^ input$zoom_lag_fraction)
+        title(x@info$identity)
+      })
+    }
   }, height = function() { vg_layout()$height })
+  # output$vario_plot_fraction <- renderPlot({
+  #   req(vg_list())
+  #   def.par <- par(no.readonly = TRUE)
+  #   # fig_count <- length(vg_list())
+  #   # cell_count <- ifelse(fig_count %% 2 == 0, fig_count, fig_count + 1)
+  #   layout(vg_layout()$layout_matrix)
+  #   lapply(vg_list(), function(x) {
+  #     plot(x, fraction = 10 ^ input$zoom_fraction)
+  #     title(x@info$identity)
+  #   })
+  #   # par(def.par)
+  # }, height = function() { vg_layout()$height })
 
 
 
