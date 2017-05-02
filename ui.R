@@ -284,20 +284,6 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                                                style = styles$page_action)),
                            DT::dataTableOutput('selected_ranges'))
 # p5. variogram boxes ----
-# vario_plot_box_1 <- box(title = "Variogram zoomed in for 50% Time-lag",
-#                         status = "primary", solidHeader = TRUE,
-#                         plotOutput("vario_plot_1"))
-# vario_plot_box_2 <- box(title = "Variogram zoomed in 10% Time-lag",
-#                         status = "primary", solidHeader = TRUE,
-#                         plotOutput("vario_plot_2"))
-#                                sliderInput("zoom2", "Log10(fraction)",
-#                                            min = -3, max = 0, step = 0.1,
-#                                            value = log10(0.5))
-#                                ))
-# sidebarPanel(sliderInput("zoom2", "Log10(fraction)",
-#                          min = -3, max = 0, step = 0.1,
-#                          value = log10(0.5))),
-# mainPanel(plotOutput("vario_plot_2")))
 vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                            status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
@@ -325,6 +311,9 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                                         "Relative for each" = "relative"),
                             inline = FALSE)),
                   column(12, plotOutput("vario_plot_zoom",
+                                        # click = "vario_plot_zoom_click",
+                                        # dblclick = "vario_plot_zoom_dblclick",
+                                        # hover = "plot_hover",
                                   # less than 100%, otherwise out of boundary
                                          width = "99%", height = "98%"))
                          ))
