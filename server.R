@@ -969,13 +969,6 @@ server <- function(input, output, session) {
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
-  # vg.animal_1 <- reactive({
-  #   animal_1 <- req(values$input_tele_list)
-  #   variogram(animal_1)
-  # })
-  # output$vario_plot_1 <- renderPlot({plot(vg.animal_1())})
-  # output$vario_plot_2 <- renderPlot({plot(vg.animal_1(), fraction = 0.1)})
-  # output$vario_plot_3 <- renderPlot({plot(vg.animal_1(), fraction = 10 ^ input$zoom, main = sprintf("%2.1f%s", (10 ^ input$zoom) * 100, "% of Total Time-lag" ))})
   vg <- reactive({
     tele_list <- req(chose_animal()$tele)
     SVF_l <- lapply(tele_list, variogram)
@@ -993,10 +986,7 @@ server <- function(input, output, session) {
   vg_layout <- reactive({
     req(vg())
     fig_count <- length(vg()$SVF_l)
-    # browser()
     row_count <- ceiling(fig_count / input$vario_columns)
-      # ifelse(fig_count %% input$fraction_columns == 0,
-      #                    fig_count, fig_count + 1)
     layout_matrix <- matrix(1:(row_count * input$vario_columns),
                             nrow = row_count,
                             ncol = input$vario_columns,
@@ -1014,26 +1004,18 @@ server <- function(input, output, session) {
     def.par <- par(no.readonly = TRUE)
     layout(vg_layout()$layout_matrix)
     if (input$vario_option == "absolute") {
-      extent_tele <- ctmm:::extent(vg()$SVF_l)
-      max.lag <- extent_tele["max", "x"]
-      max.SVF <- extent_tele["max", "y"]
-      # lapply(vg_list(), function(x) {
-      #   plot(x, fraction = 1,
-      #        xlim = c(0, max.lag * (10 ^ input$zoom_lag_fraction)),
-      #        ylim = c(0, max.SVF))
-      #   title(x@info$identity)
-      # })
-      for (i in seq_along(vg()$SVF_l)) {
-        plot(vg()$SVF_l[[i]], CTMM = GUESS_l[[i]], fraction = 1,
-             xlim = c(0, max.lag * (10 ^ input$zoom_lag_fraction)),
-             ylim = c(0, max.SVF))
-        title(vg()$SVF_l[[i]]@info$identity)
+      max.lag <- max(sapply(vg()$SVF_l, function(v){ last(v$lag) } ))
+      xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
+      SVF_l_subset <- lapply(vg()$SVF_l,
+                             function(vario) vario[vario$lag <= xlim, ])
+      extent_tele <- ctmm::extent(SVF_l_subset)
+      for (i in seq_along(SVF_l_subset)) {
+        plot(SVF_l_subset[[i]], CTMM = GUESS_l[[i]], fraction = 1,
+             xlim = c(0, extent_tele["max", "x"]),
+             ylim = c(0, extent_tele["max", "y"]))
+        title(SVF_l_subset[[i]]@info$identity)
       }
     } else {
-      # lapply(vg_list(), function(x) {
-      #   plot(x, fraction = 10 ^ input$zoom_lag_fraction)
-      #   title(x@info$identity)
-      # })
       for (i in seq_along(vg()$SVF_l)) {
         plot(vg()$SVF_l[[i]], CTMM = GUESS_l[[i]],
              fraction = 10 ^ input$zoom_lag_fraction)
@@ -1041,21 +1023,6 @@ server <- function(input, output, session) {
       }
     }
   }, height = function() { vg_layout()$height })
-  # output$vario_plot_fraction <- renderPlot({
-  #   req(vg_list())
-  #   def.par <- par(no.readonly = TRUE)
-  #   # fig_count <- length(vg_list())
-  #   # cell_count <- ifelse(fig_count %% 2 == 0, fig_count, fig_count + 1)
-  #   layout(vg_layout()$layout_matrix)
-  #   lapply(vg_list(), function(x) {
-  #     plot(x, fraction = 10 ^ input$zoom_fraction)
-  #     title(x@info$identity)
-  #   })
-  #   # par(def.par)
-  # }, height = function() { vg_layout()$height })
-
-
-
 
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
