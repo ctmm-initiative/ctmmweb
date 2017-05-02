@@ -978,9 +978,11 @@ server <- function(input, output, session) {
   })
   output$fit_selector <- renderUI({
     tele_list <- req(chose_animal()$tele)
-    identities <- sapply(tele_list, function(x) x@info$identity)
-    selectInput("fit_selected", "Adjust guess parameters",
-                c("Not selected" = "", identities))
+    if (input$fit_vario) {
+      identities <- sapply(tele_list, function(x) x@info$identity)
+      selectInput("fit_selected", "Adjust guess parameters",
+                  c("Not selected" = "", identities))
+    }
   })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
