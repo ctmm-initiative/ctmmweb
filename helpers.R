@@ -209,7 +209,7 @@ merge_animals <- function(tele_objs) {
               info = info_tele_objs(tele_objs)))
 }
 
-# ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm:::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22
+# ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22
 extent_dt <- function(animals_dt, level = 1, ...) {
   alpha <- (1-level)/2
   ranges <- animals_dt[, as.list(c(
