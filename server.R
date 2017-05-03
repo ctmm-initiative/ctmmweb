@@ -976,14 +976,6 @@ server <- function(input, output, session) {
                     function(tele) ctmm.guess(tele, interactive = FALSE))
     return(list(SVF_l = SVF_l, GUESS_l = GUESS_l))
   })
-  output$fit_selector <- renderUI({
-    tele_list <- req(chose_animal()$tele)
-    if (input$fit_vario) {
-      identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("fit_selected", "Fine-tune individual",
-                  c("Not selected" = "", identities))
-    }
-  })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
     req(vg())
@@ -1028,6 +1020,27 @@ server <- function(input, output, session) {
       }
     }
   }, height = function() { vg_layout()$height })
+  # select individual plot to fine tune
+  output$fit_selector <- renderUI({
+    tele_list <- req(chose_animal()$tele)
+    if (input$fit_vario) {
+      identities <- sapply(tele_list, function(x) x@info$identity)
+      selectInput("fit_selected", "Fine-tune individual",
+                  c("Not selected" = "", identities))
+    }
+  })
+  # fine tune fit ----
+  observeEvent(input$fit_selected, {
+    if (input$fit_selected != "") {
+      showModal(modalDialog(title = input$fit_selected,
+                            size = "l",
+                            footer = fluidRow(
+        column(3, modalButton("Cancel", icon = icon("ban"))),
+        column(3, offset = 4, actionButton("tuned", "Apply",
+                                           icon = icon("check"))))
+                            ))
+    }
+  })
 
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
