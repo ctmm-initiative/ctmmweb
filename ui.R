@@ -40,13 +40,14 @@ movebank_login_box <- box(title = "Movebank Login",
                                    column(5, offset = 2,
                                           help_button("login")
                                           )))
-movebank_studies_box <- box(title = "Movebank Studies",
+movebank_studies_box <- box(title = "Movebank Studies", collapsible = TRUE,
                             status = "primary", solidHeader = TRUE, width = 12,
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                column(3, checkboxInput("data_manager",
                                        "Only show I'm data manager"))),
       fluidRow(column(12, DT::dataTableOutput('studies'))))
 movebank_study_detail_box <- box(title = "Selected Study Detail", width = 12,
+                                 collapsible = TRUE,
                                  status = "primary", solidHeader = TRUE,
      fluidRow(column(3,
                      actionButton("download",
@@ -62,6 +63,7 @@ movebank_study_detail_box <- box(title = "Selected Study Detail", width = 12,
      fluidRow(column(12, DT::dataTableOutput("study_detail"))))
 movebank_study_preview_box <- box(title = "Selected Study Data", width = 12,
                                   status = "primary", solidHeader = TRUE,
+                                  collapsible = TRUE,
       fluidRow(column(3, downloadButton("save", "Save",
                                         icon = icon("floppy-o"),
                                         style = styles$page_action)),
