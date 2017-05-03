@@ -1032,16 +1032,129 @@ server <- function(input, output, session) {
   # fine tune fit ----
   observeEvent(input$fit_selected, {
     if (input$fit_selected != "") {
-      showModal(modalDialog(title = input$fit_selected,
+      showModal(modalDialog(title = paste0("Fine-tune parameters for ",
+                                           input$fit_selected),
+                            fluidRow(column(4, uiOutput("fit_sliders")),
+                                     column(8, plotOutput("fit_plot"))),
                             size = "l",
                             footer = fluidRow(
         column(3, modalButton("Cancel", icon = icon("ban"))),
-        column(3, offset = 4, actionButton("tuned", "Apply",
-                                           icon = icon("check"))))
+        column(2, offset = 5, actionButton("tuned", "Apply",
+                                           icon = icon("check"),
+                                           style = styles$page_action)))
                             ))
     }
   })
-
+  # init sliders ----
+  init_guess <- reactive({
+    req(vg())
+    ids <- sapply(vg()$SVF_l, function(vario) vario@info$identity)
+    vario <- vg()$SVF_l[ids == input$fit_selected][[1]]
+    CTMM <- vg()$GUESS_l[ids == input$fit_selected][[1]]
+    res <- list()
+    # CTMM <- ctmm.guess(buffalo[[1]], interactive = FALSE)
+    fraction <- 0.5
+    # rename this variable
+    # variogram <- SVFS[[1]]
+    # above should be from reactive
+    m <- 2 # slider length relative to point guestimate
+    n <- length(vario$lag)
+    CTMM <- ctmm:::variogram.guess(vario,CTMM)
+    # CTMM$circle <- 10
+    # slider 1: zoom
+    b <- 4
+    min.step <- 10*vario$lag[2]/vario$lag[n]
+    res$slider1 <- list(label = "zoom",
+                        min = 1+log(min.step,b), max = 1,
+                        value = 1+log(fraction,b), step = 0.01)
+    # slider 2: sigma
+    if(length(CTMM$tau)==1) { CTMM$tau[2] <- 0 }
+    sigma <- mean(diag(CTMM$sigma))
+    sigma.unit <- ctmm:::unit(sigma,"area",concise=TRUE)
+    sigma <- sigma / sigma.unit$scale
+    label_2 <- paste("sigma variance (",sigma.unit$name,")",sep="")
+    res$slider2 <- list(label = label_2, min = 0, max = m*sigma,
+                        value = sigma, step = 0.01)
+    # slider 3_a, 3_b: tau
+    tau <- CTMM$tau
+    tau1.unit <- ctmm:::unit(tau[1],"time",2,concise=TRUE)
+    tau2.unit <- ctmm:::unit(tau[2],"time",2,concise=TRUE)
+    tau[1] <- tau[1] / tau1.unit$scale
+    tau[2] <- tau[2] / tau2.unit$scale
+    label_3_a <- paste("tau position (",tau1.unit$name,")",sep="")
+    label_3_b <- paste("tau velocity (",tau2.unit$name,")",sep="")
+    res$slider3_a <- list(label = label_3_a, min = 0, max = m*tau[1],
+                          value = tau[1], step = 0.01)
+    res$slider3_b <- list(label = label_3_b, min = 0, max = m*tau[2],
+                          value = tau[2], step = 0.01)
+    # optional slider: circulation
+    circle <- CTMM$circle
+    if (circle)
+    {
+      circle.unit <- ctmm:::unit(circle,"time",concise=TRUE)
+      circle <- circle / circle.unit$scale
+      label_cir <- paste("circulation (",circle.unit$name,")",sep="")
+      res$slider_cir <- list(label = label_cir,
+                             min = min(0,m*circle), max = max(0,m*circle),
+                             value = circle, step = 0.01)
+      res$circle.unit <- circle.unit
+    } else {
+      res$slider_cir <- NULL
+    }
+    # slider 5: error
+    error <- CTMM$error
+    e2 <- max(100,2*error)
+    res$slider5 <- list(label = "error (m)", min = 0, max = e2,
+                        value = as.numeric(error), step = 0.1)
+    # assign here so we don't need to change too much in above
+    res <- c(res, list(vario = vario, CTMM = CTMM,
+                       b = b, sigma.unit = sigma.unit,
+                       tau1.unit = tau1.unit, tau2.unit = tau2.unit))
+    return(res)
+  })
+  # init sliders
+  output$fit_sliders <- renderUI({
+    # start from reactive value of selected variogram, guess obj
+    # already have this in app, replace with variable or reactive values
+    req(init_guess())
+    build_slider <- function(id, para_list) {
+      # have to round the number and limit the step otherwise too many digits
+      sliderInput(id, label = para_list$label, min = round(para_list$min, 2),
+                  max = round(para_list$max, 2), value = round(para_list$value, 2),
+                  step = para_list$step)
+    }
+    return(list(build_slider("fit_1_zoom", init_guess()$slider1),
+                build_slider("fit_2_sigma", init_guess()$slider2),
+                build_slider("fit_3_tau_a", init_guess()$slider3_a),
+                build_slider("fit_3_tau_b", init_guess()$slider3_b),
+                if (!is.null(init_guess()$slider_cir))
+                  build_slider("fit_opt_cir", init_guess()$slider_cir),
+                build_slider("fit_5_error", init_guess()$slider5)))
+  })
+  # draw plot based on sliders ----
+  output$fit_plot <- renderPlot({
+    # variables need from reactive: b as log base, each unit, ctmm object
+    CTMM <- req(init_guess()$CTMM)
+    req(input$fit_2_sigma)
+    if (length(CTMM$axes)==2) {
+      CTMM$sigma <- CTMM$sigma@par
+      CTMM$sigma[1] <- input$fit_2_sigma *
+        init_guess()$sigma.unit$scale / cosh(CTMM$sigma[2]/2)
+    } else {
+      CTMM$sigma <- input$fit_2_sigma
+    }
+    CTMM$tau <- c(input$fit_3_tau_a * init_guess()$tau1.unit$scale,
+                  input$fit_3_tau_b * init_guess()$tau2.unit$scale)
+    if(CTMM$circle) {
+      CTMM$circle <- input$fit_opt_cir * init_guess()$circle.unit$scale
+    }
+    CTMM$error <- input$fit_5_error
+    CTMM <- as.list(CTMM)
+    CTMM$info <- attr(init_guess()$vario,"info")
+    CTMM <- do.call("ctmm",CTMM)
+    fraction <- init_guess()$b ^ (input$fit_1_zoom - 1)
+    plot(init_guess()$vario,CTMM=CTMM,fraction=fraction)
+  })
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
   #   btn <- input$snapBtn
