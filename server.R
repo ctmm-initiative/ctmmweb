@@ -1039,8 +1039,9 @@ server <- function(input, output, session) {
                                      column(8, plotOutput("fit_plot"))),
                             size = "l",
                             footer = fluidRow(
-        column(3, modalButton("Cancel", icon = icon("ban"))),
-        column(2, offset = 5, actionButton("tuned", "Apply",
+        column(3, actionButton("extend_sliders", "Double ranges")),
+        column(3, offset = 2, modalButton("Cancel", icon = icon("ban"))),
+        column(2, offset = 2, actionButton("tuned", "Apply",
                                            icon = icon("check"),
                                            style = styles$page_action)))
                             ))
@@ -1060,7 +1061,7 @@ server <- function(input, output, session) {
     # above should be from reactive
     m <- 2 # slider length relative to point guestimate
     n <- length(vario$lag)
-    CTMM <- ctmm:::variogram.guess(vario,CTMM)
+    # CTMM <- ctmm:::variogram.guess(vario,CTMM)
     # CTMM$circle <- 10
     # slider 1: zoom
     b <- 4
@@ -1132,6 +1133,18 @@ server <- function(input, output, session) {
                   build_slider("fit_opt_cir", init_guess()$slider_cir),
                 build_slider("fit_5_error", init_guess()$slider5)))
   })
+  observeEvent(input$extend_sliders, {
+    extend_slider <- function(id, paralist) {
+      # Shiny will complain for named vector
+      updateSliderInput(session, id, max = round(unname(paralist$max) * 2, 2))
+    }
+    extend_slider("fit_2_sigma", init_guess()$slider2)
+    extend_slider("fit_3_tau_a", init_guess()$slider3_a)
+    extend_slider("fit_3_tau_b", init_guess()$slider3_b)
+    if (!is.null(init_guess()$slider_cir))
+      extend_slider("fit_opt_cir", init_guess()$slider_cir)
+    extend_slider("fit_5_error", init_guess()$slider5)
+  })
   # get CTMM from sliders
   updated_CTMM <- reactive({
     # variables need from reactive: b as log base, each unit, ctmm object
@@ -1165,14 +1178,6 @@ server <- function(input, output, session) {
     ids <- sapply(vg()$SVF_l, function(vario) vario@info$identity)
     values$GUESS_l[ids == input$fit_selected][[1]] <- updated_CTMM()
   })
-  # # take snapshot of variogram
-  # observeEvent(input$snapBtn, {
-  #   btn <- input$snapBtn
-  #   insertUI(
-  #     selector = '#varioholder',
-  #     ## wrap element in a div with id for ease of removal
-  #     ui = plotOutput(paste0("vario_plot_", btn))
-  #   )})
   # p6. model selection ----
   # right now with all default parameter, no user selection
   selected_model <- reactive({
