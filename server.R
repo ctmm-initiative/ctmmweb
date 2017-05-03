@@ -969,12 +969,13 @@ server <- function(input, output, session) {
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
+  values$GUESS_l <- NULL
   vg <- reactive({
     tele_list <- req(chose_animal()$tele)
     SVF_l <- lapply(tele_list, variogram)
-    GUESS_l <- lapply(tele_list,
+    values$GUESS_l <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
-    return(list(SVF_l = SVF_l, GUESS_l = GUESS_l))
+    return(list(SVF_l = SVF_l))
   })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
@@ -992,7 +993,7 @@ server <- function(input, output, session) {
   output$vario_plot_zoom <- renderPlot({
     req(vg())
     if (input$fit_vario) {
-      GUESS_l <- vg()$GUESS_l
+      GUESS_l <- values$GUESS_l
     } else {
       GUESS_l <- NULL
     }
@@ -1050,7 +1051,7 @@ server <- function(input, output, session) {
     req(vg())
     ids <- sapply(vg()$SVF_l, function(vario) vario@info$identity)
     vario <- vg()$SVF_l[ids == input$fit_selected][[1]]
-    CTMM <- vg()$GUESS_l[ids == input$fit_selected][[1]]
+    CTMM <- values$GUESS_l[ids == input$fit_selected][[1]]
     res <- list()
     # CTMM <- ctmm.guess(buffalo[[1]], interactive = FALSE)
     fraction <- 0.5
@@ -1131,8 +1132,8 @@ server <- function(input, output, session) {
                   build_slider("fit_opt_cir", init_guess()$slider_cir),
                 build_slider("fit_5_error", init_guess()$slider5)))
   })
-  # draw plot based on sliders ----
-  output$fit_plot <- renderPlot({
+  # get CTMM from sliders
+  updated_CTMM <- reactive({
     # variables need from reactive: b as log base, each unit, ctmm object
     CTMM <- req(init_guess()$CTMM)
     req(input$fit_2_sigma)
@@ -1150,10 +1151,19 @@ server <- function(input, output, session) {
     }
     CTMM$error <- input$fit_5_error
     CTMM <- as.list(CTMM)
-    CTMM$info <- attr(init_guess()$vario,"info")
+    CTMM$info <- attr(init_guess()$vario, "info")
     CTMM <- do.call("ctmm",CTMM)
+  })
+  # draw plot based on sliders ----
+  output$fit_plot <- renderPlot({
+    req(updated_CTMM())
     fraction <- init_guess()$b ^ (input$fit_1_zoom - 1)
-    plot(init_guess()$vario,CTMM=CTMM,fraction=fraction)
+    plot(init_guess()$vario,CTMM=updated_CTMM(),fraction=fraction)
+  })
+  observeEvent(input$tuned, {
+    removeModal()
+    ids <- sapply(vg()$SVF_l, function(vario) vario@info$identity)
+    values$GUESS_l[ids == input$fit_selected][[1]] <- updated_CTMM()
   })
   # # take snapshot of variogram
   # observeEvent(input$snapBtn, {
