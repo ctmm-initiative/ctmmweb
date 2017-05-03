@@ -989,12 +989,13 @@ server <- function(input, output, session) {
     req(vg())
     fig_count <- length(vg()$SVF_l)
     row_count <- ceiling(fig_count / input$vario_columns)
-    layout_matrix <- matrix(1:(row_count * input$vario_columns),
-                            nrow = row_count,
-                            ncol = input$vario_columns,
-                            byrow = TRUE)
+    # layout_matrix <- matrix(1:(row_count * input$vario_columns),
+    #                         nrow = row_count,
+    #                         ncol = input$vario_columns,
+    #                         byrow = TRUE)
     height <- input$vario_height * row_count
-    return(list(layout_matrix = layout_matrix, height = height))
+    # return(list(layout_matrix = layout_matrix, height = height))
+    return(list(row_count = row_count, height = height))
   })
   output$vario_plot_zoom <- renderPlot({
     req(vg())
@@ -1004,7 +1005,9 @@ server <- function(input, output, session) {
       GUESS_l <- NULL
     }
     def.par <- par(no.readonly = TRUE)
-    layout(vg_layout()$layout_matrix)
+    # layout(vg_layout()$layout_matrix)
+    par(mfrow = c(vg_layout()$row_count, input$vario_columns),
+        mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     if (input$vario_option == "absolute") {
       max.lag <- max(sapply(vg()$SVF_l, function(v){ last(v$lag) } ))
       xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
