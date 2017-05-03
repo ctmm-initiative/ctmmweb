@@ -289,6 +289,8 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
       fluidRow(
         column(4, checkboxInput("fit_vario", h4("Guesstimate model"))),
         column(4, uiOutput("fit_selector")),
+        # column(2, br(), actionButton("fine_tune", "",
+        #                              icon = icon("cog"))),
         column(2, offset = 0, numericInput("vario_height",
                                            "Figure height",
                                            value = 250, min = 50, max = 800,

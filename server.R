@@ -980,7 +980,7 @@ server <- function(input, output, session) {
     tele_list <- req(chose_animal()$tele)
     if (input$fit_vario) {
       identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("fit_selected", "Adjust guess parameters",
+      selectInput("fit_selected", "Fine-tune individual",
                   c("Not selected" = "", identities))
     }
   })
