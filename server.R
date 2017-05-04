@@ -1128,7 +1128,8 @@ server <- function(input, output, session) {
                   max = round(para_list$max, 2), value = round(para_list$value, 2),
                   step = para_list$step)
     }
-    return(list(build_slider("fit_1_zoom", init_guess()$slider1),
+    return(list(tags$head(tags$script(HTML(JS.onload("fit_1_zoom")))),
+                build_slider("fit_1_zoom", init_guess()$slider1),
                 build_slider("fit_2_sigma", init_guess()$slider2),
                 build_slider("fit_3_tau_a", init_guess()$slider3_a),
                 build_slider("fit_3_tau_b", init_guess()$slider3_b),
@@ -1184,6 +1185,7 @@ server <- function(input, output, session) {
   })
   # p6. model selection ----
   # right now with all default parameter, no user selection
+  # just fit the first individual, this is used as load test for deployed app
   selected_model <- reactive({
     # debug
     # if (debug) {

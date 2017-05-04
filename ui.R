@@ -378,11 +378,15 @@ body <- dashboardBody(
             # fluidRow(vario_plot_box_1, vario_plot_box_2),
             fluidRow(vario_plot_zoom_box)),
     tabItem(tabName = "model",
-            fluidRow(model_summary_box),
-            fluidRow(model_plot_box_1, model_plot_box_2)),
-    tabItem(tabName = "homerange",
-            fluidRow(range_summary_box),
-            fluidRow(range_plot_box)),
+            fluidRow(model_summary_box)
+            # ,
+            # fluidRow(model_plot_box_1, model_plot_box_2)
+            ),
+    tabItem(tabName = "homerange"
+            # ,
+            # fluidRow(range_summary_box),
+            # fluidRow(range_plot_box)
+            ),
     tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
   )
 )
