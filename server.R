@@ -75,7 +75,7 @@ server <- function(input, output, session) {
     showNotification("Movebank login info found", duration = 1, type = "message")
   }
   callModule(click_help, "login", title = "Movebank Login",
-             file = "help/movebank_login.md")
+             file = "help/1_movebank_login.md")
   # 1.3 movebank studies ----
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
   # all studies box
@@ -237,7 +237,7 @@ server <- function(input, output, session) {
     }
   })
   callModule(click_help, "download", title = "Downloading Movebank data",
-             file = "help/movebank_download.md")
+             file = "help/1_movebank_download.md")
   # 1.5 save, import data ----
   output$save <- downloadHandler(
     filename = function() {
@@ -518,9 +518,9 @@ server <- function(input, output, session) {
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
              title = "Outliers in Distance to Median Center",
-             file = "help/outlier_distance.md")
+             file = "help/3_outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
-             file = "help/outlier_speed.md")
+             file = "help/3_outlier_speed.md")
   # p3.a.1 distance histogram ----
   # everything in this page should take animal_dt after this process
   bin_by_distance <- reactive({

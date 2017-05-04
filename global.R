@@ -35,14 +35,14 @@ styles <- list(
   # using similar color with first box in each page.
   page_switch = "background-color: #7ad0f7;font-weight: 600;width:100%;",
   external_link = "background-color: #a7c1fc;font-weight: 600;width:100%;",
-  help_button = "background-color: #8bc34a;"
+  help_button = "background-color: #8bc34a;width:100%;"
   # info box blue #00c0ef
 )
 # UI modules ----
 help_button <- function(module_id) {
   prefix <- NS(module_id)
   actionButton(prefix("help"),
-               "",
+               "Help",
                icon = icon("question"),
                style = styles$help_button
   )

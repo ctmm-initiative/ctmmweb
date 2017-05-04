@@ -4,7 +4,9 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem
-    menuItem("Import Data", tabName = "import", icon = icon("upload")),
+    menuItem("Introduction", tabName = "intro", icon = icon("info")),
+    menuItem("Import Data", tabName = "import", icon = icon("upload"),
+             selected = TRUE),
     menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
     # menuItem("Filter and Subset", tabName = "subset_filter", icon = icon("database"),
     #          menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter")),
@@ -15,8 +17,7 @@ sidebar <- dashboardSidebar(
     menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
     menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
-    menuItem("Work Report", tabName = "report", icon = icon("file-text-o")),
-    menuItem("Help", tabName = "intro", icon = icon("question"))
+    menuItem("Work Report", tabName = "report", icon = icon("file-text-o"))
   )
 )
 # p1. import ----
@@ -356,6 +357,7 @@ body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
+    tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     tabItem(tabName = "import", fluidRow(upload_box, movebank_login_box),
             fluidRow(movebank_studies_box, movebank_study_detail_box,
                      movebank_study_preview_box)),
