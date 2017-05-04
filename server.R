@@ -1039,11 +1039,11 @@ server <- function(input, output, session) {
                                      column(8, plotOutput("fit_plot"))),
                             size = "l",
                             footer = fluidRow(
-        column(3, sliderInput("range_multiplier", "Increase slider ranges",
-                              min = 0.5, max = 10, value = 1, step = 0.5)),
-        column(3, offset = 2, br(), br(),
+        column(3, actionButton("center_slider", "Center current values",
+                               icon = icon("align-center"))),
+        column(3, offset = 2,
                modalButton("Cancel", icon = icon("ban"))),
-        column(2, offset = 2, br(), br(),
+        column(2, offset = 2,
                actionButton("tuned", "Apply",
                             icon = icon("check"),
                             style = styles$page_action)))
@@ -1067,7 +1067,7 @@ server <- function(input, output, session) {
     # CTMM <- ctmm:::variogram.guess(vario,CTMM)
     # CTMM$circle <- 10
     # slider 1: zoom
-    b <- 4
+    b <- 10
     min.step <- 10*vario$lag[2]/vario$lag[n]
     res$slider1 <- list(label = "zoom",
                         min = 1+log(min.step,b), max = 1,
@@ -1137,18 +1137,17 @@ server <- function(input, output, session) {
                   build_slider("fit_opt_cir", init_guess()$slider_cir),
                 build_slider("fit_5_error", init_guess()$slider5)))
   })
-  observeEvent(input$range_multiplier, {
-    extend_slider <- function(id, paralist) {
+  observeEvent(input$center_slider, {
+    extend_slider <- function(id) {
       # Shiny will complain for named vector
-      updateSliderInput(session, id, max = round(unname(paralist$max) *
-                                                   input$range_multiplier, 2))
+      updateSliderInput(session, id, max = round(input[[id]] * 2, 2))
     }
-    extend_slider("fit_2_sigma", init_guess()$slider2)
-    extend_slider("fit_3_tau_a", init_guess()$slider3_a)
-    extend_slider("fit_3_tau_b", init_guess()$slider3_b)
+    extend_slider("fit_2_sigma")
+    extend_slider("fit_3_tau_a")
+    extend_slider("fit_3_tau_b")
     if (!is.null(init_guess()$slider_cir))
-      extend_slider("fit_opt_cir", init_guess()$slider_cir)
-    extend_slider("fit_5_error", init_guess()$slider5)
+      extend_slider("fit_opt_cir")
+    # extend_slider("fit_5_error")
   })
   # get CTMM from sliders
   updated_CTMM <- reactive({
