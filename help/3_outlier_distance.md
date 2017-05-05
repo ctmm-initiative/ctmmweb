@@ -1,1 +1,16 @@
-outlier in distance to median center
+- For every individual in current subset, the median center of locations is calculated by taking median of all x and y. 
+    - This is a simple approximate that fast to calculate and not sensitive to far fetched outliers.
+    - If there are big gaps in sampling time, the individual could have moved a long distance. The median center of each sampling period are calculated individually to better detect the true outliers.
+- The histogram grouped the points by the distance to center. Points with extreme distances could be outliers that caused by error.
+    - The bin count for histogram can be adjusted.
+    - y axis is compressed to show the few outlier count better.
+- The scatter plot below showed the locations colored by the histogram group color.
+    - The lower distance bin colors are more transparent to reduce clutter.
+    - The median centers are drew with different shape and in blue color.
+    - You can draw a rectangle with mouse button pressed, then double click inside the rectangle to **zoom in**. Double click in plot reset the zoom in.
+- When you use mouse to select a range in histogram, the points in selected range will be highlighted in the scatter plot with bigger size (which can be adjusted), and the other points become gray background.
+    - All points in selected range are listed in the table below, which can be sorted.
+    - Click to select rows in this table will further highlight selected points with a square.
+    - `Remove Selected` button will remove selected points from data, and list them in the table of `Removed Outliers`. The histogram and scatter plot will also update.
+    - You can continue to inspect and remove outliers. The points already removed can also be reset and back to original state.
+    - You can move back to **Visualization** page and the plots will also update. There will be an notification about some points have been removed. You can always check outlier page for the list of removed points.

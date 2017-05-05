@@ -1,5 +1,11 @@
-### Outliers in Speed
-
-speed definition
-
-plot
+- Every point is assigned an estimated speed value. Points with extreme speeds could be outliers due to error.
+- The UI is very similar to the *distance to median center* tab, except there are two checkboxs for selected points (selected rows in table of selected range):
+    - `Draw Path Around Selected Rows` will add paths with arrows for points before and after the selected points. You can zoom in plot for more details.
+    - `Label Row Number in Path` further add row number of points, which is sorted by timestamp.
+- `Removed Outliers` table includes the points removed both in *distance* and *speed* tabs.
+- The speed estimation algorithm is quite complex to deal with some special cases:
+    - Some points have duplicated timestamp which cause zero time and infinite speed value
+    - If A is far from the points before and after it in time, both the speed value of point coming to A and A coming to next point are huge. The algorithm need to assign the extreme speed value to appropriate point.
+    - It's possible that some data set have special cases that were not handled perfectly by the algorithm.
+    - It's often better to use the *distance* tab to filter some obvious outlier first, then the case left for *speed* can be simplified.
+    - See [discussion about the algorithm](https://github.com/ctmm-initiative/ctmm-webapp/issues/5), and [some algorithms used by Movebank](https://www.movebank.org/node/27252).

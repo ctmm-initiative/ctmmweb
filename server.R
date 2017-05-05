@@ -238,7 +238,7 @@ server <- function(input, output, session) {
       values$move_bank_dt <- move_bank_dt
     }
   })
-  callModule(click_help, "download", title = "Downloading Movebank data",
+  callModule(click_help, "download", title = "Download Movebank data",
              size = "l", file = "help/1_movebank_download.md")
   # 1.5 save, import data ----
   output$save <- downloadHandler(
@@ -382,27 +382,8 @@ server <- function(input, output, session) {
   observeEvent(input$deselect_all, {
       selectRows(proxy_individuals, NULL)
   })
-  # to outlier filtering
-  # observeEvent(input$outlier, {
-  #   updateTabItems(session, "tabs", "filter")
-  # })
-  # to time subsetting ----
-  # values$selected_animal_no <- 1
-  # observeEvent(input$time_subset, {
-  #   # must select single animal to proceed
-  #   if (length(input$individuals_rows_selected) != 1) {
-  #     showNotification("Please select single Animal.", type = "error")
-  #   } else {
-  #     values$selected_animal_no <- input$individuals_rows_selected
-  #     updateTabItems(session, "tabs", "subset")
-  #   }
-  # })
-  # 2.4.4 location basic plot
-  # this is the only place that take original input data directly.
-  # output$location_plot_basic <- renderPlot({
-  #   tele_objs <- req(values$input_tele_list)
-  #   plot(tele_objs, col = rainbow(length(tele_objs)))
-  # })
+  callModule(click_help, "visual", title = "Visualization",
+             size = "l", file = "help/2_visualization.md")
   # chose_animal() ----
   # when user selected animals in summary table, all plots update to the subset
   # with lots of animals, the color gradient could be subtle or have duplicates
