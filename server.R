@@ -847,6 +847,8 @@ server <- function(input, output, session) {
       }
     }
   })
+  callModule(click_help, "time_subsetting", title = "Subset data by time",
+             size = "l", file = "help/4_time_subsetting.md")
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
     req(values$current)
@@ -952,6 +954,8 @@ server <- function(input, output, session) {
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
+  callModule(click_help, "variogram", title = "Visual Diagnostics",
+             size = "l", file = "help/5_visual_diagnostics.md")
   values$GUESS_l <- NULL
   vg <- reactive({
     tele_list <- req(chose_animal()$tele)

@@ -14,3 +14,4 @@
     - `Remove Selected` button will remove selected points from data, and list them in the table of `Removed Outliers`. The histogram and scatter plot will also update.
     - You can continue to inspect and remove outliers. The points already removed can also be reset and back to original state.
     - You can move back to **Visualization** page and the plots will also update. There will be an notification about some points have been removed. You can always check outlier page for the list of removed points.
+    - The overall design of this page is quite similar to `Time subsetting`.

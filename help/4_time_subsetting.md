@@ -1,0 +1,7 @@
+- This only work with single individual, so you need to select `one individual` in **Visualization** page, or only one individual is available in current page.
+- All the points are grouped by sampling time, showed in histogram.
+    - The bin count can be adjusted for more resolution or better seasonal representation.
+- The scatter plot colored points with same color of bin group in histogram.
+    - If you select a time range in histogram with mouse, the points in selection will be highlighted, with other points in gray background.
+    - Click `Add` button in `Current Time Range` will add current selection into list of `Selected Time Ranges`. You can add multiple time ranges, or reset the list.
+    - You can **zoom in** the scatter plot.
