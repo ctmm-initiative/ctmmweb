@@ -1173,40 +1173,38 @@ server <- function(input, output, session) {
   # p6. model selection ----
   # right now with all default parameter, no user selection
   # just fit the first individual, this is used as load test for deployed app
-  selected_model <- reactive({
-    # debug
-    # if (debug) {
-    #   cat(file = stderr(), "fitting models\n")
-    # }
+  # selected_model <- reactive({
+  #   # debug
+  #   # if (debug) {
+  #   #   cat(file = stderr(), "fitting models\n")
+  #   # }
+  #   animal_1 <- req(values$current$tele_list)[[1]]
+  #   guessed <- ctmm.guess(animal_1, interactive = FALSE)
+  #   withProgress(ctmm.select(animal_1, CTMM = guessed),
+  #                message = "Fitting models to find the best ...")
+  # })
+  values$fitted_model <- NULL
+  observeEvent(input$fit, {
     animal_1 <- req(values$current$tele_list)[[1]]
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
-    withProgress(ctmm.select(animal_1, CTMM = guessed),
+    values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
   })
-  # observe({
-  #   print("observing")
-  #   invisible(selected_model())
-  # })
   output$model_summary <- renderPrint({
-    fitted.mod <- selected_model()
-    # TODO use validate
-    if (is.null(fitted.mod))
-      cat("No model selected yet")
-    else{
-      summary(fitted.mod)
-    }
+    req(!is.null(values$fitted_model))
+    summary(values$fitted_model)
   })
-  output$model_plot_1 <- renderPlot({
-    ouf <- selected_model()
-    plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
-  })
-  output$model_plot_2 <- renderPlot({
-    ouf <- selected_model()
-    plot(vg.animal_1(),
-         CTMM = ouf,
-         col.CTMM = "#1b9e77",
-         fraction = 0.1)
-  })
+  # output$model_plot_1 <- renderPlot({
+  #   ouf <- selected_model()
+  #   plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
+  # })
+  # output$model_plot_2 <- renderPlot({
+  #   ouf <- selected_model()
+  #   plot(vg.animal_1(),
+  #        CTMM = ouf,
+  #        col.CTMM = "#1b9e77",
+  #        fraction = 0.1)
+  # })
   # home range ----
   akde.animal_1 <- reactive({
     # debug

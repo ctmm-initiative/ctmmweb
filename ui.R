@@ -327,23 +327,12 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                                   # less than 100%, otherwise out of boundary
                                          width = "99%", height = "98%"))
                          ))
-
-# vario_plot_zoom_box <- box(title = "Variogram with Zoom",
-#                         status = "info", solidHeader = TRUE, width = 12,
-#                         sidebarPanel(sliderInput("zoom", "Log10(fraction)",
-#                                                  min = -3, max = 0, step = 0.1,
-#                                                  value = log10(0.5)),
-#                                      actionButton('snapBtn', 'Snapshot')),
-#                         mainPanel(plotOutput("vario_plot_1")))
-# vario_plot_static_box <- box(title = "Variogram snapshots", status = "primary",
-#                              solidHeader = TRUE, width = 12,
-#                              tags$div(id = 'variosnapshots'))
-# TODO plot 3 also have a button to use user selected parameters for next step
-# TOO a button to auto guess parameters for next step
+# p6. model fitting ----
 # explain the result source, then print summary
 model_summary_box <- box(title = "Model Summary", status = "info",
                          solidHeader = TRUE, width = 12,
-                         verbatimTextOutput("model_summary"))
+  fluidRow(column(3, actionButton("fit", "Fit current model"))),
+  fluidRow(column(12, verbatimTextOutput("model_summary"))))
 model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("model_plot_1"))
