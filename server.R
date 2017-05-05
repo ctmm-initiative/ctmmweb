@@ -62,6 +62,8 @@ server <- function(input, output, session) {
       file_uploaded()
     }
   })
+  callModule(click_help, "import", title = "Data Import Options", size = "m",
+             file = "help/1_import_options.md")
   # 1.2 movebank login ----
   # look up user R environment for movebank login
   mb_env <- Sys.getenv(c("movebank_user", "movebank_pass"))
@@ -74,7 +76,7 @@ server <- function(input, output, session) {
     updateTextInput(session, "pass", value = mb_pass_env)
     showNotification("Movebank login info found", duration = 1, type = "message")
   }
-  callModule(click_help, "login", title = "Movebank Login",
+  callModule(click_help, "login", title = "Movebank Login", size = "l",
              file = "help/1_movebank_login.md")
   # 1.3 movebank studies ----
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
@@ -237,7 +239,7 @@ server <- function(input, output, session) {
     }
   })
   callModule(click_help, "download", title = "Downloading Movebank data",
-             file = "help/1_movebank_download.md")
+             size = "l", file = "help/1_movebank_download.md")
   # 1.5 save, import data ----
   output$save <- downloadHandler(
     filename = function() {
@@ -518,9 +520,9 @@ server <- function(input, output, session) {
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
              title = "Outliers in Distance to Median Center",
-             file = "help/3_outlier_distance.md")
+             size = "l", file = "help/3_outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
-             file = "help/3_outlier_speed.md")
+             size = "l", file = "help/3_outlier_speed.md")
   # p3.a.1 distance histogram ----
   # everything in this page should take animal_dt after this process
   bin_by_distance <- reactive({

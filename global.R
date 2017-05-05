@@ -16,7 +16,8 @@ options(shiny.maxRequestSize = 200*1024^2)
 # box, plotOutput, renderPlot, no need to set all three if need adjustment.
 # box height will expand by content, just set plotOutput width and height to percentages (99% width, need to keep it inside the box), then also need to set fixed value in renderPlot (otherwise it didn't show). We set height on histogram to make it shorter, setting box height is easier (no need to set in server part).
 styles <- list(
-  height_data_import_box = "244px",
+  # height_data_import_box = "244px",
+  height_movebank_login_box = "260px",
   # height_location_box = "900px",
   height_plot_loc = 730,
   height_plot_3 = 640,
@@ -47,10 +48,10 @@ help_button <- function(module_id) {
                style = styles$help_button
   )
 }
-click_help <- function(input, output, session, title, file){
+click_help <- function(input, output, session, title, size, file){
   observeEvent(input$help, {
     showModal(modalDialog(
-      title = title, size = "l",
+      title = title, size = size,
       fluidPage(includeMarkdown(file)),
       easyClose = TRUE, fade = FALSE
     ))

@@ -1,0 +1,3 @@
+- Data must be in [Movebank format](https://www.movebank.org/node/13) csv file.
+- The csv file can be compressed in `zip`, `gz`, `bzip` etc, but there can be only one file in a zip.
+- You can upload file by clicking `Browse` directly without having to choose the radio button.

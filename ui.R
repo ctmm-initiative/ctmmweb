@@ -4,7 +4,7 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem
-    menuItem("Introduction", tabName = "intro", icon = icon("info")),
+    # menuItem("Introduction", tabName = "intro", icon = icon("info")),
     menuItem("Import Data", tabName = "import", icon = icon("upload"),
              selected = TRUE),
     menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
@@ -22,16 +22,18 @@ sidebar <- dashboardSidebar(
 )
 # p1. import ----
 upload_box <- box(title = "Local Data Import",
-                  height = styles$height_data_import_box,
+                  # height = styles$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 6,
     radioButtons('load_option', NULL,
                  c("Use Bufflo Data in ctmm" = 'ctmm',
                    "Upload Movebank format file" = 'upload'),
                  selected = "upload"),
     tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}"),
-    fileInput('file1', label = ""))
+    fileInput('file1', label = ""),
+    column(5, offset = 7, help_button("import")))
 movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6,
+                          height = styles$height_movebank_login_box,
                           fluidRow(column(12,
                                     textInput("user", "User Name"),
                                     passwordInput("pass", label = "Password")),
@@ -357,7 +359,7 @@ body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
-    tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
+    # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     tabItem(tabName = "import", fluidRow(upload_box, movebank_login_box),
             fluidRow(movebank_studies_box, movebank_study_detail_box,
                      movebank_study_preview_box)),
