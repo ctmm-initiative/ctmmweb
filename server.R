@@ -1126,8 +1126,9 @@ server <- function(input, output, session) {
     req(init_guess())
     build_slider <- function(id, para_list) {
       # have to round the number and limit the step otherwise too many digits
-      sliderInput(id, label = para_list$label, min = round(para_list$min, 2),
-                  max = round(para_list$max, 2), value = round(para_list$value, 2),
+      sliderInput(id, label = para_list$label, min = round(para_list$min, 3),
+                  max = round(para_list$max, 3),
+                  value = round(para_list$value, 3),
                   step = para_list$step)
     }
     return(list(tags$head(tags$script(HTML(JS.onload("fit_1_zoom")))),
