@@ -233,16 +233,16 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
 all_removed_outliers_box <- box(title = "Removed Outliers",
                            status = "primary", solidHeader = TRUE, width = 12,
                fluidRow(
-                        column(3, offset = 0,
+                        column(3, offset = 9,
                                actionButton("reset_outliers",
                                       "Reset All",
                                       icon = icon("ban"),
-                                      style = styles$page_action)),
-                        column(3, offset = 6,
-                               actionButton("delete_outlier_rows",
-                                            "Remove Selected",
-                                            icon = icon("trash-o"),
-                                            style = styles$page_action))
+                                      style = styles$page_action))
+                        # column(3, offset = 6,
+                        #        actionButton("delete_outlier_rows",
+                        #                     "Delete Selected",
+                        #                     icon = icon("trash-o"),
+                        #                     style = styles$page_action))
                         ),
                fluidRow(column(12,
                                DT::dataTableOutput("all_removed_outliers"))))
@@ -296,7 +296,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                                                style = styles$page_action)),
                    column(3, offset = 6,
                                   actionButton("delete_time_sub_rows",
-                                               "Remove Selected",
+                                               "Delete Selected",
                                                icon = icon("trash-o"),
                                                style = styles$page_action))),
           fluidRow(column(12, DT::dataTableOutput('all_time_ranges'))))

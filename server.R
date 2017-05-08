@@ -264,94 +264,7 @@ server <- function(input, output, session) {
   # p2. plots ----
   # input (upload, movebank, buffalo) -> current -> chose animal in table
   # current: merge telemetry to df, remove outliers if in quene, return df, info table, removed outliers full data
-  # chose animal: selected rows or current page, this apply to all plots, outliers
-  # time subsetting use first or chosen single animal
-  # outlier use current, update outlier quene
-  # came from outliers added to quene. vector of row_no.
-  # values$outliers_to_remove <- NULL
-  # values$reset_outliers <- FALSE
-
-  # When removing outliers, always update the outliers_remove vector, then get current from input data - outliers removed. So always start from original, always keep the full list of outliers, every removal only update the removal list. This is to avoid the reactive building on previous reactive value and creating a loop.
-  # merge_input get df from tele_objs. after we filtered the df, also need a updated tele_objs version to be used in some cases. this make it more complex. better remove the dependency. which is just the extent function.
-  # current_animals()
-  # the current state of all animal data. two sources: merge input, update outliers
-  # values$current_animals <- NULL
-  # # merge input tele objs into a list of data frame and info frame.
-  # current_animals <- reactive({
-  #   req(values$input_tele_list)
-  #   tele_list <- values$input_tele_list
-  #   merged <- merge_animals(values$input_tele_list)
-  #   # remove points
-  #   # need to happen after the distance/speed column creation. always start from merged, remove points to get animals_dt and info, tele obj. always keep them together, keep animals + removed = merged. check rows to ensure
-  #   # if reset flag is set, reset to input data. after that remove the flag.
-  #   # sync telemetry obj with the data frame, just update the data frame slot for each individual? use lapply to subset. some individual could be removed in outlier removal, also return the telemetry obj
-  #   # if reset, back to merged, clear removed, clear reset
-  #   if (values$reset_outliers) {
-  #     values$current$tele_list <- values$current$input_tele_list
-  #     values$current$merged <- merge_animals(values$current$tele_list)
-  #     values$outliers_to_remove <- NULL
-  #     values$all_removed_outliers <- NULL
-  #
-  #     animals_dt <- merged$data
-  #     info <- merged$info
-  #     tele_list <- values$input_tele_list
-  #     # animals_dt <- calculate_distance(animals_dt)
-  #     # animals_dt <- calculate_speed(animals_dt)
-  #
-  #     values$reset_outliers <- FALSE
-  #     cat("reset to input\n")
-  #   } else if (!is.null(values$outliers_to_remove)) {
-  #     # outliers to remove is parameter transfered from click action
-  #     # start from input - all outliers, avoided to use last current value
-  #     # but here don't have distance column so no way to show them in table.
-  #     removed_outliers <- values$current$merged$data[
-  #       row_name %in% outliers_to_remove]
-  #     cat("outliers to be removed\n")
-  #     print(removed_outliers)
-  #     # add records to all removed table, empty quene.
-  #     values$all_removed_outliers <- rbindlist(list(values$all_removed_outliers,
-  #                                                   removed_outliers))
-  #     cat("all outliers removed\n")
-  #     print(values$all_removed_outliers)
-  #     values$outliers_to_remove <- NULL
-  #     animals_dt <- merged$data[!(row_name %in%
-  #                                   values$all_removed_outliers[, row_name])]
-  #     # update tele obj
-  #     changed <- unique(removed_outliers$identity)
-  #     tele_list[changed] <- lapply(tele_list[changed], function(x) {
-  #       x[!(row.names(x) %in% removed_outliers[, row_name]),]
-  #     })
-  #     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-  #     info_list <- lapply(tele_list, animal_info)
-  #     info <- rbindlist(info_list)
-  #     # distance/speed calculation need to updated
-  #     animals_dt <- calculate_distance(animals_dt)
-  #     animals_dt <- calculate_speed(animals_dt)
-  #     cat("outliers removed\n")
-  #     values$current$tele_list <- values$current$input_tele_list
-  #     values$current$merged <- merge_animals(values$current$tele_list)
-  #     values$outliers_to_remove <- NULL
-  #     values$all_removed_outliers <- NULL
-  #   } else if (is.null(values$all_removed_outliers)) {
-  #     animals_dt <- merged$data
-  #     info <- merged$info
-  #     # animals_dt <- calculate_distance(animals_dt)
-  #     # animals_dt <- calculate_speed(animals_dt)
-  #     cat("no remove, start from input\n")
-  #   }
-  #   # may also need to return updated telemetry obj, for future modeling.
-  #   cat("current animals:\n")
-  #   # the reactive get run again right after outliers removed, didn't go through every branch above, taken from global environment of data.
-  #   print(animals_dt[, .N, by = identity])
-  #   print(head(animals_dt))
-  #   return(list(data = animals_dt, info = info, tele_list = tele_list))
-  # }) # replace all current_animals() with values$current$merged
   # 2.3 data summary ----
-  # output$removed_outlier_summary <- renderText({
-  #   if (!is.null(values$current$all_removed_outliers)) {
-  #     cat("Outliers Removed:\n", capture.output(print(values$current$all_removed_outliers[, .N, by = id])))
-  #   }
-  # })
   output$individuals <- DT::renderDataTable({
     req(values$current)
     if (!is.null(values$current$all_removed_outliers)) {
@@ -386,7 +299,7 @@ server <- function(input, output, session) {
   callModule(click_help, "visual", title = "Visualization",
              size = "l", file = "help/2_visualization.md")
   # chose_animal() ----
-  # when user selected animals in summary table, all plots update to the subset
+  # selected rows or current page, this apply to all plots, outliers
   # with lots of animals, the color gradient could be subtle or have duplicates
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
@@ -538,11 +451,11 @@ server <- function(input, output, session) {
   # brush selection function
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
-    animal_selected_data[, .(row_no, timestamp = format_datetime(timestamp), id,
-                             distance_center = format_distance_f(
-                               animals_dt[, distance_center])(distance_center),
-                             speed = format_speed_f(
-                               animals_dt[, speed])(speed))]
+    animal_selected_data[, .(id, row_no,
+       timestamp = format_datetime(timestamp),
+       distance_center = format_distance_f(animals_dt[, distance_center])(
+         distance_center),
+       speed = format_speed_f(animals_dt[, speed])(speed))]
   }
   select_range <- function(his_type){
     return(reactive({
@@ -831,12 +744,12 @@ server <- function(input, output, session) {
                              searching = FALSE),
               rownames = FALSE)
   })
-  # reset outlier removal.
+  # tried to add delete rows like the time range table, but that need to update a lot of values in proper order, the reset is easy because it just use original input. Not really need this complex operations.
+  # reset outlier removal
   observeEvent(input$reset_outliers, {
     values$current$tele_list <- values$current$input_tele_list
     values$current$merged <- merge_animals(values$current$tele_list)
     values$current$all_removed_outliers <- NULL
-    values$outliers_to_remove <- NULL
   })
   # p4. time subset ----
   observeEvent(input$tabs, {
@@ -911,19 +824,23 @@ server <- function(input, output, session) {
                 ))
   })
   # 4.2 current range ----
-  # format a time range table
-  time_range_info <- function(time_range_df) {
-    time_range_dt <- data.table(time_range_df)
-    time_range_dt[, `:=`(start = format_datetime(select_start),
-                         end = format_datetime(select_end),
-                         length = format_diff_time(select_length))]
-    return(time_range_dt[, .(id, start, end, length)])
+  # format a time range table. need to deal with NULL input since in the initialization and after all rows deleted, this is still called.
+  format_time_range <- function(time_range_df) {
+    if (is.null(time_range_df) || nrow(time_range_df) == 0) {
+      return(NULL)
+    } else {
+      time_range_dt <- data.table(time_range_df)
+      time_range_dt[, `:=`(start = format_datetime(select_start),
+                           end = format_datetime(select_end),
+                           length = format_diff_time(select_length))]
+      return(time_range_dt[, .(id, start, end, length)])
+    }
   }
   output$current_range <- DT::renderDataTable({
     # dt <- data.frame(start = select_time_range()$select_start_p,
     #                  end = select_time_range()$select_end_p,
     #                  length = select_time_range()$select_length_p)
-    dt <- time_range_info(as.data.frame(select_time_range()))
+    dt <- format_time_range(as.data.frame(select_time_range()))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
@@ -949,15 +866,8 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
-  # need to register in values$current$time_subsets. make it easy to subset data based on table, and easy to generate info table for summary.
-  # reset should only reset current individual. so this table only show current selected individual time range, not all time ranges. or include all and support row deletion
-  # empty_ranges <- data.frame(id = NULL, start = NULL, end = NULL, length = NULL)
-  # values$current$time_subsets <- empty_ranges
   observeEvent(input$add_time, {
     l <- list(values$current$time_subsets, as.data.frame(select_time_range()))
-              # data.frame(start = select_time_range()$select_start_p,
-              #            end = select_time_range()$select_end_p,
-              #            length = select_time_range()$select_length_p))
     values$current$time_subsets <- rbindlist(l)
   })
   observeEvent(input$delete_time_sub_rows, {
@@ -972,8 +882,8 @@ server <- function(input, output, session) {
   })
   # selected_times
   output$all_time_ranges <- DT::renderDataTable({
-    req(values$current$time_subsets)
-    datatable(time_range_info(values$current$time_subsets), options =
+    # NULL is valid input when all rows removed, no need for req here.
+    datatable(format_time_range(values$current$time_subsets), options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
