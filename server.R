@@ -12,8 +12,8 @@ server <- function(input, output, session) {
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
   # tele_list: updated telemetry objs reflected changes on outlier removal and time subsetting. the values$current prefix noted the current state already.
   # merged: merged version of current telemetry objs.
-  # all_removed_outliers: records of all removed outliers. original - all removed = current
-  # time_subsets:
+  # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
+  # time_subsets: selected time ranges.
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$current
   data_import <- function(data) {
@@ -863,14 +863,15 @@ server <- function(input, output, session) {
   color_bin_animal <- reactive({
     req(values$current)
     req(length(input$individuals_rows_selected) == 1)
-    selected_id <- values$current$merged$info$identity[input$individuals_rows_selected]
+    selected_id <- values$current$merged$info$identity[
+      input$individuals_rows_selected]
     data_i <- values$current$merged$data[identity == selected_id]
     data_i[, color_bin_start :=
              cut_date_time(timestamp, input$time_color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
-    return(list(data = data_i,
+    return(list(id = selected_id, data = data_i,
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 # vec for interval, findInterval. breaks for hist
                 color_bin_breaks = color_bin_breaks))
@@ -900,17 +901,29 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$time_sub_his_brush$xmax)
     }
     select_length <- select_end - select_start
-    return(list(select_start = select_start, select_end = select_end,
-                select_start_p = format_datetime(select_start),
-                select_end_p = format_datetime(select_end),
-                select_length = select_length,
-                select_length_p = format_diff_time(select_length)))
+    return(list(id = animal_binned$id,
+                select_start = select_start, select_end = select_end,
+                # select_start_p = format_datetime(select_start),
+                # select_end_p = format_datetime(select_end),
+                select_length = select_length
+                # ,
+                # select_length_p = format_diff_time(select_length)
+                ))
   })
   # 4.2 current range ----
+  # format a time range table
+  time_range_info <- function(time_range_df) {
+    time_range_dt <- data.table(time_range_df)
+    time_range_dt[, `:=`(start = format_datetime(select_start),
+                         end = format_datetime(select_end),
+                         length = format_diff_time(select_length))]
+    return(time_range_dt[, .(id, start, end, length)])
+  }
   output$current_range <- DT::renderDataTable({
-    dt <- data.frame(start = select_time_range()$select_start_p,
-                     end = select_time_range()$select_end_p,
-                     length = select_time_range()$select_length_p)
+    # dt <- data.frame(start = select_time_range()$select_start_p,
+    #                  end = select_time_range()$select_end_p,
+    #                  length = select_time_range()$select_length_p)
+    dt <- time_range_info(as.data.frame(select_time_range()))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
@@ -936,22 +949,31 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
-  empty_ranges <- data.frame(start = NULL, end = NULL, length = NULL)
-  values$selected_time_ranges <- empty_ranges
+  # need to register in values$current$time_subsets. make it easy to subset data based on table, and easy to generate info table for summary.
+  # reset should only reset current individual. so this table only show current selected individual time range, not all time ranges. or include all and support row deletion
+  # empty_ranges <- data.frame(id = NULL, start = NULL, end = NULL, length = NULL)
+  # values$current$time_subsets <- empty_ranges
   observeEvent(input$add_time, {
-    l <- list(values$selected_time_ranges,
-              data.frame(start = select_time_range()$select_start_p,
-                         end = select_time_range()$select_end_p,
-                         length = select_time_range()$select_length_p))
-    values$selected_time_ranges <- rbindlist(l)
+    l <- list(values$current$time_subsets, as.data.frame(select_time_range()))
+              # data.frame(start = select_time_range()$select_start_p,
+              #            end = select_time_range()$select_end_p,
+              #            length = select_time_range()$select_length_p))
+    values$current$time_subsets <- rbindlist(l)
+  })
+  observeEvent(input$delete_time_sub_rows, {
+    if (!is.null(input$all_time_ranges_rows_selected)) {
+      values$current$time_subsets <- values$current$time_subsets[
+        -as.numeric(input$all_time_ranges_rows_selected)
+      ]
+    }
   })
   observeEvent(input$reset_time_sub, {
-    values$selected_time_ranges <- empty_ranges
+    values$current$time_subsets <- NULL
   })
   # selected_times
-  output$selected_ranges <- DT::renderDataTable({
-    time_range <- select_time_range()
-    datatable(values$selected_time_ranges, options =
+  output$all_time_ranges <- DT::renderDataTable({
+    req(values$current$time_subsets)
+    datatable(time_range_info(values$current$time_subsets), options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----

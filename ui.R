@@ -232,15 +232,20 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
                     DT::dataTableOutput("points_in_speed_range")))))
 all_removed_outliers_box <- box(title = "Removed Outliers",
                            status = "primary", solidHeader = TRUE, width = 12,
-                     fluidRow(
-                       # column(9, h4("Removed outliers")),
-                              column(3, offset = 9,
-                                     actionButton("reset_outliers",
-                                            "Reset",
-                                            icon = icon("ban"),
-                                            style = styles$page_action))),
-                     fluidRow(column(12,
-                                     DT::dataTableOutput("all_removed_outliers"))))
+               fluidRow(
+                        column(3, offset = 0,
+                               actionButton("reset_outliers",
+                                      "Reset All",
+                                      icon = icon("ban"),
+                                      style = styles$page_action)),
+                        column(3, offset = 6,
+                               actionButton("delete_outlier_rows",
+                                            "Remove Selected",
+                                            icon = icon("trash-o"),
+                                            style = styles$page_action))
+                        ),
+               fluidRow(column(12,
+                               DT::dataTableOutput("all_removed_outliers"))))
 # p4. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range",
@@ -285,11 +290,16 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
                   ))
 selected_ranges_box <- box(title = "Selected Time Ranges",
                            status = "primary", solidHeader = TRUE, width = 12,
-                           column(2, offset = 10,
-                                  actionButton("reset_time_sub", "Reset",
+          fluidRow(column(3, offset = 0,
+                                  actionButton("reset_time_sub", "Reset All",
                                                icon = icon("ban"),
                                                style = styles$page_action)),
-                           DT::dataTableOutput('selected_ranges'))
+                   column(3, offset = 6,
+                                  actionButton("delete_time_sub_rows",
+                                               "Remove Selected",
+                                               icon = icon("trash-o"),
+                                               style = styles$page_action))),
+          fluidRow(column(12, DT::dataTableOutput('all_time_ranges'))))
 # p5. variogram boxes ----
 vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                            status = "info", solidHeader = TRUE, width = 12,
