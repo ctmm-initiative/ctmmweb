@@ -6,14 +6,14 @@ source("cut_divide.R", local = TRUE)
 
 server <- function(input, output, session) {
   # p1. import ----
-  # reactive values got updated in observeEvent use this.
   values <- reactiveValues()
-  # the current state of full data set. 4 parts: input_tele_list, merged data, and tele_list, all_removed_outliers that always sync to merged version
+  # current state of data ----
   values$current <- NULL
-  # telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. merge input depend on this reactive value, so any change from 3 source will trigger the update of merge input.
-  # now we have second source: outlier removal. cannot bind this value itself to current data. need to update the current data in all data sources. no explicit reactive of input values. do have a result of tele_list from each source.
-  # all reference of this value should wrap req around it: req(values$input_tele_list)
-  # values$input_tele_list <- NULL
+  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
+  # tele_list: updated telemetry objs reflected changes on outlier removal and time subsetting. the values$current prefix noted the current state already.
+  # merged: merged version of current telemetry objs.
+  # all_removed_outliers: records of all removed outliers. original - all removed = current
+  # time_subsets:
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$current
   data_import <- function(data) {
@@ -139,6 +139,7 @@ server <- function(input, output, session) {
                            "number_of_individuals",
                            "i_am_owner", "i_can_see_data", "license_terms")
       all_studies <- try(fread(res$res_cont, select = studies_cols))
+      # using ifelse because we need vectorized conversion here.
       all_studies[, i_can_see_data :=
                     ifelse(i_can_see_data == "true", TRUE, FALSE)]
       all_studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
