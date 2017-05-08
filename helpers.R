@@ -155,6 +155,7 @@ calculate_distance <- function(animals_dt) {
 # }
 # using ctmm util functions
 calculate_speed <- function(animals_dt) {
+  setkey(animals_dt, row_no)
   animals_dt[, speed := ctmm:::assign_speeds(.SD,
                                            dt = ctmm:::time_res(.SD),
                                            UERE = 0, method = "max"),

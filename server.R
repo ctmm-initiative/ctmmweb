@@ -545,37 +545,26 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # remove distance outliers ----
-  # use side effect, update values$current, not chose animal
+  # use side effect, update values$current, not chose animal. input parameter transfered from click action.
   remove_outliers <- function(outliers_to_remove) {
-    # outliers to remove is parameter transfered from click action
-    # start from input - all outliers, avoided to use last current value
-    # but here don't have distance column so no way to show them in table.
+    # update the all outlier table, always start from original - all outliers.
     removed_points <- values$current$merged$data[
       row_name %in% outliers_to_remove]
-    # cat("outliers to be removed\n")
-    # print(removed_points)
-    # add records to all removed table, empty quene.
     values$current$all_removed_outliers <- rbindlist(list(
       values$current$all_removed_outliers, removed_points))
-    # cat("all outliers removed\n")
-    # print(values$current$all_removed_outliers)
     animals_dt <- values$current$merged$data[
       !(row_name %in% values$current$all_removed_outliers[, row_name])]
-    # update tele obj
+    # update tele obj. more general apporach is update them according to data frame changes.
     changed <- unique(removed_points$identity)
     tele_list <- values$current$tele_list
     tele_list[changed] <- lapply(tele_list[changed], function(x) {
       x[!(row.names(x) %in% removed_points[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-    # info_list <- lapply(tele_list, animal_info)
-    # info <- rbindlist(info_list)
     info <- info_tele_objs(tele_list)
-    # distance/speed calculation need to updated
+    # distance/speed calculation need to be updated. row_no not updated.
     animals_dt <- calculate_distance(animals_dt)
     animals_dt <- calculate_speed(animals_dt)
-    # cat("outliers removed\n")
-    # print(animals_dt[, .N, by = identity])
     values$current$tele_list <- tele_list
     values$current$merged <- list(data = animals_dt, info = info)
   }
@@ -814,14 +803,10 @@ server <- function(input, output, session) {
       select_end <- as_datetime(input$time_sub_his_brush$xmax)
     }
     select_length <- select_end - select_start
-    return(list(id = animal_binned$id,
+    # use identity because id is factor. avoid surprises
+    return(list(identity = animal_binned$identity,
                 select_start = select_start, select_end = select_end,
-                # select_start_p = format_datetime(select_start),
-                # select_end_p = format_datetime(select_end),
-                select_length = select_length
-                # ,
-                # select_length_p = format_diff_time(select_length)
-                ))
+                select_length = select_length))
   })
   # 4.2 current range ----
   # format a time range table. need to deal with NULL input since in the initialization and after all rows deleted, this is still called.
@@ -833,13 +818,10 @@ server <- function(input, output, session) {
       time_range_dt[, `:=`(start = format_datetime(select_start),
                            end = format_datetime(select_end),
                            length = format_diff_time(select_length))]
-      return(time_range_dt[, .(id, start, end, length)])
+      return(time_range_dt[, .(identity, start, end, length)])
     }
   }
   output$current_range <- DT::renderDataTable({
-    # dt <- data.frame(start = select_time_range()$select_start_p,
-    #                  end = select_time_range()$select_end_p,
-    #                  length = select_time_range()$select_length_p)
     dt <- format_time_range(as.data.frame(select_time_range()))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
@@ -879,6 +861,10 @@ server <- function(input, output, session) {
   })
   observeEvent(input$reset_time_sub, {
     values$current$time_subsets <- NULL
+  })
+  # need a explicit apply button because once applied, the data will change and the plot and histogram will change too. updating them in middle is not ideal.
+  observeEvent(input$apply_time_sub, {
+
   })
   # selected_times
   output$all_time_ranges <- DT::renderDataTable({
