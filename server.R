@@ -13,7 +13,6 @@ server <- function(input, output, session) {
   # tele_list: updated telemetry objs reflected changes on outlier removal and time subsetting. the values$current prefix noted the current state already.
   # merged: merged version of current telemetry objs.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
-  # time_subsets: selected time ranges.
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$current
   data_import <- function(data) {
@@ -849,6 +848,8 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
+  # current table of time ranges for current individual, only need to work in time subsetting page, should be NULL at frist, cleared after subset generated. In between these two states, if user returned with same
+  values$time_ranges <- NULL
   observeEvent(input$add_time, {
     l <- list(values$current$time_subsets, as.data.frame(select_time_range()))
     values$current$time_subsets <- rbindlist(l)
@@ -976,9 +977,9 @@ server <- function(input, output, session) {
     # slider 1: zoom
     b <- 10
     min.step <- 10*vario$lag[2]/vario$lag[n]
-    res$slider1 <- list(label = "zoom",
-                        min = 1+log(min.step,b), max = 1,
-                        value = 1+log(fraction,b), step = 0.01)
+    res$slider1 <- list(label = "fraction",
+                        min = log(min.step,b), max = 0,
+                        value = log(fraction,b), step = 0.001)
     # slider 2: sigma
     if(length(CTMM$tau)==1) { CTMM$tau[2] <- 0 }
     sigma <- mean(diag(CTMM$sigma))
@@ -1082,7 +1083,7 @@ server <- function(input, output, session) {
   # draw plot based on sliders ----
   output$fit_plot <- renderPlot({
     req(updated_CTMM())
-    fraction <- init_guess()$b ^ (input$fit_1_zoom - 1)
+    fraction <- init_guess()$b ^ input$fit_1_zoom
     plot(init_guess()$vario,CTMM=updated_CTMM(),fraction=fraction)
   })
   observeEvent(input$tuned, {
