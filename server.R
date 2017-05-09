@@ -804,7 +804,8 @@ server <- function(input, output, session) {
     }
     select_length <- select_end - select_start
     # use identity because id is factor. avoid surprises
-    return(list(identity = animal_binned$identity,
+    return(list(
+      # identity = animal_binned$identity,
                 select_start = select_start, select_end = select_end,
                 select_length = select_length))
   })
@@ -818,7 +819,7 @@ server <- function(input, output, session) {
       time_range_dt[, `:=`(start = format_datetime(select_start),
                            end = format_datetime(select_end),
                            length = format_diff_time(select_length))]
-      return(time_range_dt[, .(identity, start, end, length)])
+      return(time_range_dt[, .(start, end, length)])
     }
   }
   output$current_range <- DT::renderDataTable({
