@@ -768,7 +768,7 @@ server <- function(input, output, session) {
     req(length(input$individuals_rows_selected) == 1)
     # selected_id <- values$data$merged$info$identity[
     #   input$individuals_rows_selected]
-    selected_id <- values$data$merged$info$identity
+    selected_id <- select_data()$info$identity
     # tele_ids <- sapply(values$data$tele_list, function(x) x@info$identity)
     # tele_i <- values$data$tele_list[tele_ids == selected_id][[1]]
     # data_i <- values$data$merged$data[identity == selected_id]
@@ -876,21 +876,26 @@ server <- function(input, output, session) {
   observeEvent(input$generate_time_sub, {
     req(values$time_ranges)
     animal_binned <- color_bin_animal()
-    dt <- animal_binned$data
-    new_tele <- animal_binned$tele
+    # skip the new added column color_bin_start
+    dt <- animal_binned$data[, timestamp:speed]
+    new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     res <- vector("list", length = nrow(values$time_ranges))
     for (i in 1:nrow(values$time_ranges)) {
       res[[i]] <- dt[(timestamp >= values$time_ranges[i, select_start]) &
                        (timestamp <= values$time_ranges[i, select_end])]
     }
+    # organize
     new_dt <- unique(rbindlist(res))
+    setkey(new_dt, row_no)
+    # new name
     matches <- str_match(values$data$merged$info$identity,
-                         paste0(current_id, "_subset_(\\d+)$"))
+                         paste0(animal_binned$identity, "_subset_(\\d+)$"))
     matches[is.na(matches)] <- 0
     last_index <- max(as.numeric(matches[,2]))
     new_suffix <- paste0("_subset_", last_index + 1)
-    new_id <- paste0(current_id, new_suffix)
+    new_id <- paste0(animal_binned$identity, new_suffix)
     new_dt[, identity := new_id]
+    # subset tele by row_name before it changes
     new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
     new_tele@info$identity <- new_id
     # update other columns
@@ -901,15 +906,22 @@ server <- function(input, output, session) {
     row.names(new_tele) <- new_dt$row_name
     # update data
     all_dt <- values$data$merged$data
-    browser()
     all_dt <- rbindlist(list(all_dt, new_dt))
+    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
     all_dt[, id := factor(identity)]
     all_dt[, row_no := .I]
     values$data$merged$data <- all_dt
-    values$data$tele_list <- c(values$data$tele_list, new_tele)
+    # need to wrap single obj otherwise it was flattened by c
+    values$data$tele_list <- c(values$data$tele_list,
+                               wrap_single_telemetry(new_tele))
+    # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
+    sorted_names <- sort(names(values$data$tele_list))
+    values$data$tele_list <- values$data$tele_list[sorted_names]
     values$data$merged$info <- info_tele_objs(values$data$tele_list)
     values$time_ranges <- NULL
     updateTabItems(session, "tabs", "plots")
+    msg <- paste0(new_id, " added to data")
+    showNotification(msg, duration = 2, type = "message")
   })
   output$time_ranges <- DT::renderDataTable({
     # NULL is valid input when all rows removed, no need for req here.
