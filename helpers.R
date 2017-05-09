@@ -187,6 +187,7 @@ calculate_speed <- function(animals_dt) {
 #   return(list(data = animals_data_dt, info = animals_info_dt))
 # }
 # tele objs to data.table
+# assuming row order by timestamp and identity in same order with tele obj.
 dt_tele_objs <- function(tele_objs) {
   tele_list <- wrap_single_telemetry(tele_objs)
   animal_count <- length(tele_list)
@@ -200,6 +201,10 @@ dt_tele_objs <- function(tele_objs) {
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
   animals_data_dt[, row_no := .I]
+  any_dup <- anyDuplicated(animals_data_dt, by = "row_name")
+  if (any_dup != 0) {
+    message("duplicated row name found:\n", animals_data_dt[any_dup])
+  }
   animals_data_dt <- calculate_distance(animals_data_dt)
   animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)

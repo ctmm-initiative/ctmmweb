@@ -319,7 +319,7 @@ server <- function(input, output, session) {
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
     return(list(data = animals_dt,
                 info = values$data$merged$info[subset_indice],
-                tele = values$data$tele_list[subset_indice]
+                tele_list = values$data$tele_list[subset_indice]
                 ))
   })
   # 2.4.1 overview plot ----
@@ -544,11 +544,11 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # remove distance outliers ----
-  # use side effect, update values$data, not chose animal. input parameter transfered from click action.
-  remove_outliers <- function(outliers_to_remove) {
+  # use side effect, update values$data, not chose animal. assuming row_name is always unique
+  remove_outliers <- function(row_names_to_remove) {
     # update the all outlier table, always start from original - all outliers.
     removed_points <- values$data$merged$data[
-      row_name %in% outliers_to_remove]
+      row_name %in% row_names_to_remove]
     values$data$all_removed_outliers <- rbindlist(list(
       values$data$all_removed_outliers, removed_points))
     animals_dt <- values$data$merged$data[
@@ -573,13 +573,13 @@ server <- function(input, output, session) {
   # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
     req(length(input$points_in_distance_range_rows_selected) > 0)
-    outliers_to_remove <- select_distance_range()$animal_selected_data[
+    row_names_to_remove <- select_distance_range()$animal_selected_data[
       input$points_in_distance_range_rows_selected, row_name]
     freezeReactiveValue(input, "points_in_distance_range_rows_selected")
     selectRows(proxy_points_in_distance_range, NULL)
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
-    remove_outliers(outliers_to_remove)
+    remove_outliers(row_names_to_remove)
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
@@ -710,7 +710,7 @@ server <- function(input, output, session) {
                                                 deferUntilFlush = FALSE)
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
-    outliers_to_remove <- select_speed_range()$animal_selected_data[
+    row_names_to_remove <- select_speed_range()$animal_selected_data[
       input$points_in_speed_range_rows_selected, row_name]
     # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
     # freeze it so all expression accessing it will be put on hold until update finish, because the reset here just send message to client, didn't update immediately
@@ -718,7 +718,7 @@ server <- function(input, output, session) {
     selectRows(proxy_points_in_speed_range, NULL)
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
-    remove_outliers(outliers_to_remove)
+    remove_outliers(row_names_to_remove)
   })
   # all removed outliers
   output$all_removed_outliers <- DT::renderDataTable({
@@ -780,7 +780,8 @@ server <- function(input, output, session) {
                                      data_i[t == max(t), timestamp])
     # using id internally to make code shorter, in data frame id is factor
     return(list(identity = selected_id, data = data_i,
-                tele = select_data()$tele,
+                # single tele object, not list, other places use tele_list
+                tele = select_data()$tele_list[[1]],
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 # vec for interval, findInterval. breaks for hist
                 color_bin_breaks = color_bin_breaks))
@@ -871,9 +872,44 @@ server <- function(input, output, session) {
   observeEvent(input$reset_time_sub, {
     values$time_ranges <- NULL
   })
-  # need a explicit button because once applied, the data will change and the plot and histogram will change too. updating them in middle is not ideal. also clear time_subsets, move to the visualization page.
+  # need a explicit button because once applied, the data will change and the plot and histogram will change too. the result applied to values$data, not current select_data(). also clear time_ranges, move to the visualization page.
   observeEvent(input$generate_time_sub, {
-
+    req(values$time_ranges)
+    animal_binned <- color_bin_animal()
+    dt <- animal_binned$data
+    new_tele <- animal_binned$tele
+    res <- vector("list", length = nrow(values$time_ranges))
+    for (i in 1:nrow(values$time_ranges)) {
+      res[[i]] <- dt[(timestamp >= values$time_ranges[i, select_start]) &
+                       (timestamp <= values$time_ranges[i, select_end])]
+    }
+    new_dt <- unique(rbindlist(res))
+    matches <- str_match(values$data$merged$info$identity,
+                         paste0(current_id, "_subset_(\\d+)$"))
+    matches[is.na(matches)] <- 0
+    last_index <- max(as.numeric(matches[,2]))
+    new_suffix <- paste0("_subset_", last_index + 1)
+    new_id <- paste0(current_id, new_suffix)
+    new_dt[, identity := new_id]
+    new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
+    new_tele@info$identity <- new_id
+    # update other columns
+    new_dt[, row_name := paste0(row_name, new_suffix)]
+    new_dt <- calculate_distance(new_dt)
+    new_dt <- calculate_speed(new_dt)
+    # update the row name in tele data frame by new row_name column
+    row.names(new_tele) <- new_dt$row_name
+    # update data
+    all_dt <- values$data$merged$data
+    browser()
+    all_dt <- rbindlist(list(all_dt, new_dt))
+    all_dt[, id := factor(identity)]
+    all_dt[, row_no := .I]
+    values$data$merged$data <- all_dt
+    values$data$tele_list <- c(values$data$tele_list, new_tele)
+    values$data$merged$info <- info_tele_objs(values$data$tele_list)
+    values$time_ranges <- NULL
+    updateTabItems(session, "tabs", "plots")
   })
   output$time_ranges <- DT::renderDataTable({
     # NULL is valid input when all rows removed, no need for req here.
@@ -885,7 +921,7 @@ server <- function(input, output, session) {
              size = "l", file = "help/5_visual_diagnostics.md")
   values$GUESS_l <- NULL
   vg <- reactive({
-    tele_list <- req(select_data()$tele)
+    tele_list <- req(select_data()$tele_list)
     SVF_l <- lapply(tele_list, variogram)
     values$GUESS_l <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
@@ -937,7 +973,7 @@ server <- function(input, output, session) {
   }, height = function() { vg_layout()$height })
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
-    tele_list <- req(select_data()$tele)
+    tele_list <- req(select_data()$tele_list)
     if (input$fit_vario) {
       identities <- sapply(tele_list, function(x) x@info$identity)
       selectInput("fit_selected", "Fine-tune individual",
