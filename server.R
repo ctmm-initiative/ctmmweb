@@ -7,14 +7,14 @@ source("cut_divide.R", local = TRUE)
 server <- function(input, output, session) {
   # p1. import ----
   values <- reactiveValues()
-  # current state of data ----
-  values$current <- NULL
+  # data ----
+  values$data <- NULL
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
-  # tele_list: updated telemetry objs reflected changes on outlier removal and time subsetting. the values$current prefix noted the current state already.
+  # tele_list: updated telemetry objs reflected changes on outlier removal and time subsetting. the values$data prefix noted the current state already.
   # merged: merged version of current telemetry objs.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
   # 1.1 csv to telemetry ----
-  # call this function for side effect, set values$current
+  # call this function for side effect, set values$data
   data_import <- function(data) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
@@ -31,10 +31,10 @@ server <- function(input, output, session) {
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
     req(all(unlist(test_class)))
     # keep the original input so that can reset to input
-    values$current$input_tele_list <- tele_list
-    values$current$tele_list <- tele_list
-    values$current$merged <- merge_animals(tele_list)
-    values$current$all_removed_outliers <- NULL
+    values$data$input_tele_list <- tele_list
+    values$data$tele_list <- tele_list
+    values$data$merged <- merge_animals(tele_list)
+    values$data$all_removed_outliers <- NULL
   }
   # clicking browse button without changing radio button should also update
   file_uploaded <- function(){
@@ -51,9 +51,9 @@ server <- function(input, output, session) {
     if (input$load_option == "ctmm") {
       data("buffalo")
       # values$input_tele_list <- buffalo
-      values$current$input_tele_list <- buffalo
-      values$current$tele_list <- buffalo
-      values$current$merged <- merge_animals(buffalo)
+      values$data$input_tele_list <- buffalo
+      values$data$tele_list <- buffalo
+      values$data$merged <- merge_animals(buffalo)
       updateTabItems(session, "tabs", "plots")
     } else if (input$load_option == "upload") {
       # need to check NULL input from source, stop error in downstream
@@ -265,17 +265,17 @@ server <- function(input, output, session) {
   # current: merge telemetry to df, remove outliers if in quene, return df, info table, removed outliers full data
   # 2.3 data summary ----
   output$individuals <- DT::renderDataTable({
-    req(values$current)
-    if (!is.null(values$current$all_removed_outliers)) {
-      showNotification(paste0("   ", nrow(values$current$all_removed_outliers),
+    req(values$data)
+    if (!is.null(values$data$all_removed_outliers)) {
+      showNotification(paste0("   ", nrow(values$data$all_removed_outliers),
                               " Outliers Removed"),
                        duration = 2, type = "warning")
     }
     if (input$time_in_sec) {
-      info_p <- values$current$merged$info[,
+      info_p <- values$data$merged$info[,
                   .(identity, start, end, interval_s, duration_s, points)]
     } else {
-      info_p <- values$current$merged$info[,
+      info_p <- values$data$merged$info[,
                   .(identity, start, end, interval, duration, points)]
     }
     datatable(info_p, options = list(pageLength = 6,
@@ -288,7 +288,7 @@ server <- function(input, output, session) {
   # selecting all rows
   proxy_individuals <- dataTableProxy("individuals")
   observeEvent(input$select_all, {
-    selectRows(proxy_individuals, 1:nrow(values$current$merged$info))
+    selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
     # select_all <<- !select_all
   })
   # deselect all
@@ -302,9 +302,9 @@ server <- function(input, output, session) {
   # with lots of animals, the color gradient could be subtle or have duplicates
   chose_animal <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
-    req(values$current)
+    req(values$data)
     req(input$individuals_rows_current)
-    id_vec <- values$current$merged$info[, identity]
+    id_vec <- values$data$merged$info[, identity]
     # table can be sorted, but always return row number in column 1
     if (length(input$individuals_rows_selected) == 0) {
       # select all in current page when there is no selection
@@ -313,13 +313,13 @@ server <- function(input, output, session) {
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    animals_dt <- values$current$merged$data[identity %in% chosen_ids]
+    animals_dt <- values$data$merged$data[identity %in% chosen_ids]
     # cat("chosen animals:\n")
     # print(animals_dt[, .N, by = identity])
-    subset_indice <- values$current$merged$info$identity %in% chosen_ids
+    subset_indice <- values$data$merged$info$identity %in% chosen_ids
     return(list(data = animals_dt,
-                info = values$current$merged$info[subset_indice],
-                tele = values$current$tele_list[subset_indice]
+                info = values$data$merged$info[subset_indice],
+                tele = values$data$tele_list[subset_indice]
                 ))
   })
   # 2.4.1 overview plot ----
@@ -346,7 +346,7 @@ server <- function(input, output, session) {
     animals_dt <- req(chose_animal()$data)
     ggplot() +
       {if (input$overlay_all) {
-        geom_point(data = values$current$merged$data, aes(x, y),
+        geom_point(data = values$data$merged$data, aes(x, y),
                    size = input$point_size_1, alpha = 0.6, colour = "gray")
       }} +
       geom_point(data = animals_dt, aes(x, y, colour = id),
@@ -544,18 +544,18 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # remove distance outliers ----
-  # use side effect, update values$current, not chose animal. input parameter transfered from click action.
+  # use side effect, update values$data, not chose animal. input parameter transfered from click action.
   remove_outliers <- function(outliers_to_remove) {
     # update the all outlier table, always start from original - all outliers.
-    removed_points <- values$current$merged$data[
+    removed_points <- values$data$merged$data[
       row_name %in% outliers_to_remove]
-    values$current$all_removed_outliers <- rbindlist(list(
-      values$current$all_removed_outliers, removed_points))
-    animals_dt <- values$current$merged$data[
-      !(row_name %in% values$current$all_removed_outliers[, row_name])]
+    values$data$all_removed_outliers <- rbindlist(list(
+      values$data$all_removed_outliers, removed_points))
+    animals_dt <- values$data$merged$data[
+      !(row_name %in% values$data$all_removed_outliers[, row_name])]
     # update tele obj. more general apporach is update them according to data frame changes.
     changed <- unique(removed_points$identity)
-    tele_list <- values$current$tele_list
+    tele_list <- values$data$tele_list
     tele_list[changed] <- lapply(tele_list[changed], function(x) {
       x[!(row.names(x) %in% removed_points[, row_name]),]
     })
@@ -564,8 +564,8 @@ server <- function(input, output, session) {
     # distance/speed calculation need to be updated. row_no not updated.
     animals_dt <- calculate_distance(animals_dt)
     animals_dt <- calculate_speed(animals_dt)
-    values$current$tele_list <- tele_list
-    values$current$merged <- list(data = animals_dt, info = info)
+    values$data$tele_list <- tele_list
+    values$data$merged <- list(data = animals_dt, info = info)
   }
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
@@ -685,7 +685,7 @@ server <- function(input, output, session) {
   # points without valid speed values
   # output$points_speed_non_valid <- DT::renderDataTable({
   #   # only render table when there is a selection. otherwise it will be all data.
-  #   animals_dt <- req(values$current$merged$data)
+  #   animals_dt <- req(values$data$merged$data)
   #   cols <- c("row_no", "timestamp", "id", "speed")
   #   datatable(animals_dt[is.na(speed), cols, with = FALSE],
   #             options = list(pageLength = 6,
@@ -723,9 +723,9 @@ server <- function(input, output, session) {
   # all removed outliers
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
-    req(values$current$all_removed_outliers)
+    req(values$data$all_removed_outliers)
     animals_dt <- req(chose_animal()$data)
-    datatable(format_outliers(values$current$all_removed_outliers,
+    datatable(format_outliers(values$data$all_removed_outliers,
                               animals_dt),
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
@@ -735,13 +735,13 @@ server <- function(input, output, session) {
   # tried to add delete rows like the time range table, but that need to update a lot of values in proper order, the reset is easy because it just use original input. Not really need this complex operations.
   # reset outlier removal
   observeEvent(input$reset_outliers, {
-    values$current$tele_list <- values$current$input_tele_list
-    values$current$merged <- merge_animals(values$current$tele_list)
-    values$current$all_removed_outliers <- NULL
+    values$data$tele_list <- values$data$input_tele_list
+    values$data$merged <- merge_animals(values$data$tele_list)
+    values$data$all_removed_outliers <- NULL
   })
   # p4. time subset ----
   observeEvent(input$tabs, {
-    req(values$current)
+    req(values$data)
     if (input$tabs == "subset") {
       # must select single animal to proceed
       if (length(input$individuals_rows_selected) != 1) {
@@ -753,26 +753,29 @@ server <- function(input, output, session) {
              size = "l", file = "help/4_time_subsetting.md")
   # actually should not color by page 1 color because we will rainbow color by time
   output$selected_summary <- DT::renderDataTable({
-    req(values$current)
+    req(values$data)
     req(length(input$individuals_rows_selected) == 1)
-    info <- values$current$merged$info
+    info <- values$data$merged$info
     dt <- info[input$individuals_rows_selected]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
-  # selected animal data and color bins
+  # selected animal data and color bins ----
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
-    req(values$current)
+    req(values$data)
     req(length(input$individuals_rows_selected) == 1)
-    selected_id <- values$current$merged$info$identity[
+    selected_id <- values$data$merged$info$identity[
       input$individuals_rows_selected]
-    data_i <- values$current$merged$data[identity == selected_id]
+    tele_ids <- sapply(values$data$tele_list, function(x) x@info$identity)
+    tele_i <- values$data$tele_list[tele_ids == selected_id][[1]]
+    data_i <- values$data$merged$data[identity == selected_id]
     data_i[, color_bin_start :=
              cut_date_time(timestamp, input$time_color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
-    return(list(id = selected_id, data = data_i,
+    # using id internally to make code shorter, in data frame id is factor
+    return(list(identity = selected_id, data = data_i, tele = tele_i,
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 # vec for interval, findInterval. breaks for hist
                 color_bin_breaks = color_bin_breaks))
@@ -848,30 +851,29 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
-  # current table of time ranges for current individual, only need to work in time subsetting page, should be NULL at frist, cleared after subset generated. In between these two states, if user returned with same
-  values$time_ranges <- NULL
+  # values$data$time_subsets hold a table of time ranges for current individual. For time subsettting it's always single individual. If user moved around pages without changing individual, the states are kept. Otherwise it will clear even chosen same individual again. It should be cleared after subset is generated
   observeEvent(input$add_time, {
-    l <- list(values$current$time_subsets, as.data.frame(select_time_range()))
-    values$current$time_subsets <- rbindlist(l)
+    l <- list(values$data$time_subsets, as.data.frame(select_time_range()))
+    values$data$time_subsets <- rbindlist(l)
   })
   observeEvent(input$delete_time_sub_rows, {
     if (!is.null(input$all_time_ranges_rows_selected)) {
-      values$current$time_subsets <- values$current$time_subsets[
+      values$data$time_subsets <- values$data$time_subsets[
         -as.numeric(input$all_time_ranges_rows_selected)
       ]
     }
   })
   observeEvent(input$reset_time_sub, {
-    values$current$time_subsets <- NULL
+    values$data$time_subsets <- NULL
   })
-  # need a explicit apply button because once applied, the data will change and the plot and histogram will change too. updating them in middle is not ideal.
-  observeEvent(input$apply_time_sub, {
+  # need a explicit button because once applied, the data will change and the plot and histogram will change too. updating them in middle is not ideal. also clear time_subsets, move to the visualization page.
+  observeEvent(input$generate_time_sub, {
 
   })
-  # selected_times
+  # selected_times. filter the table to show matches for current individual only.
   output$all_time_ranges <- DT::renderDataTable({
     # NULL is valid input when all rows removed, no need for req here.
-    datatable(format_time_range(values$current$time_subsets), options =
+    datatable(format_time_range(values$data$time_subsets), options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
@@ -1099,14 +1101,14 @@ server <- function(input, output, session) {
   #   # if (debug) {
   #   #   cat(file = stderr(), "fitting models\n")
   #   # }
-  #   animal_1 <- req(values$current$tele_list)[[1]]
+  #   animal_1 <- req(values$data$tele_list)[[1]]
   #   guessed <- ctmm.guess(animal_1, interactive = FALSE)
   #   withProgress(ctmm.select(animal_1, CTMM = guessed),
   #                message = "Fitting models to find the best ...")
   # })
   values$fitted_model <- NULL
   observeEvent(input$fit, {
-    animal_1 <- req(values$current$tele_list)[[1]]
+    animal_1 <- req(values$data$tele_list)[[1]]
     guessed <- ctmm.guess(animal_1, interactive = FALSE)
     values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
                  message = "Fitting models to find the best ...")
