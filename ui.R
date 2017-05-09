@@ -304,7 +304,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                                        icon = icon("pie-chart"),
                                        style = styles$page_action))
                    ),
-          fluidRow(column(12, DT::dataTableOutput('all_time_ranges'))))
+          fluidRow(column(12, DT::dataTableOutput('time_ranges'))))
 # p5. variogram boxes ----
 vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                            status = "info", solidHeader = TRUE, width = 12,

@@ -10,9 +10,9 @@ server <- function(input, output, session) {
   # data ----
   values$data <- NULL
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
-  # tele_list: updated telemetry objs reflected changes on outlier removal and time subsetting. the values$data prefix noted the current state already.
-  # merged: merged version of current telemetry objs.
+  # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
+  # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
   data_import <- function(data) {
@@ -851,29 +851,28 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
-  # values$data$time_subsets hold a table of time ranges for current individual. For time subsettting it's always single individual. If user moved around pages without changing individual, the states are kept. Otherwise it will clear even chosen same individual again. It should be cleared after subset is generated
+  # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process, which is always on single individual. If user moved around pages without changing individual, the states are kept. Otherwise it will clear even chosen same individual again. It should be cleared after subset is generated. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
   observeEvent(input$add_time, {
-    l <- list(values$data$time_subsets, as.data.frame(select_time_range()))
-    values$data$time_subsets <- rbindlist(l)
+    l <- list(values$time_ranges, as.data.frame(select_time_range()))
+    values$time_ranges <- rbindlist(l)
   })
   observeEvent(input$delete_time_sub_rows, {
-    if (!is.null(input$all_time_ranges_rows_selected)) {
-      values$data$time_subsets <- values$data$time_subsets[
-        -as.numeric(input$all_time_ranges_rows_selected)
+    if (!is.null(input$time_ranges_rows_selected)) {
+      values$time_ranges <- values$time_ranges[
+        -as.numeric(input$time_ranges_rows_selected)
       ]
     }
   })
   observeEvent(input$reset_time_sub, {
-    values$data$time_subsets <- NULL
+    values$time_ranges <- NULL
   })
   # need a explicit button because once applied, the data will change and the plot and histogram will change too. updating them in middle is not ideal. also clear time_subsets, move to the visualization page.
   observeEvent(input$generate_time_sub, {
 
   })
-  # selected_times. filter the table to show matches for current individual only.
-  output$all_time_ranges <- DT::renderDataTable({
+  output$time_ranges <- DT::renderDataTable({
     # NULL is valid input when all rows removed, no need for req here.
-    datatable(format_time_range(values$data$time_subsets), options =
+    datatable(format_time_range(values$time_ranges), options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
