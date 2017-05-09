@@ -285,6 +285,10 @@ server <- function(input, output, session) {
                                      hue_pal()(nrow(info_p)))
       )}
   )
+  # delete selected individuals
+  observeEvent(input$delete_individuals, {
+
+  })
   # selecting all rows
   proxy_individuals <- dataTableProxy("individuals")
   observeEvent(input$select_all, {
