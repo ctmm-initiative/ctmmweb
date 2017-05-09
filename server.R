@@ -297,10 +297,10 @@ server <- function(input, output, session) {
   })
   callModule(click_help, "visual", title = "Visualization",
              size = "l", file = "help/2_visualization.md")
-  # chose_animal() ----
+  # select_data() ----
   # selected rows or current page, this apply to all plots, outliers
   # with lots of animals, the color gradient could be subtle or have duplicates
-  chose_animal <- reactive({
+  select_data <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(values$data)
     req(input$individuals_rows_current)
@@ -343,7 +343,7 @@ server <- function(input, output, session) {
   }
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     ggplot() +
       {if (input$overlay_all) {
         geom_point(data = values$data$merged$data, aes(x, y),
@@ -366,7 +366,7 @@ server <- function(input, output, session) {
   # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     ggplot(data = animals_dt, aes(x, y)) +
       geom_point(size = 0.1, aes(colour = id)) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
@@ -379,9 +379,9 @@ server <- function(input, output, session) {
   }, height = styles$height_plot_loc, width = "auto")
   # 2.4.3 individual plot ----
   output$location_plot_individual <- renderPlot({
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     new_ranges <- get_ranges_quantile_dt(animals_dt, input$include_level)
-    id_vector <- chose_animal()$info$identity
+    id_vector <- select_data()$info$identity
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
       data_i <- animals_dt[identity == id_vector[i]]
@@ -403,7 +403,7 @@ server <- function(input, output, session) {
   }, height = styles$height_plot_3, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
       factor_fill(animals_dt$id) +
@@ -420,7 +420,7 @@ server <- function(input, output, session) {
   # p3.a.1 distance histogram ----
   # everything in this page should take animal_dt after this process
   bin_by_distance <- reactive({
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     return(color_break(input$distance_his_bins, animals_dt,
                        "distance_center", format_distance_f))
   })
@@ -583,7 +583,7 @@ server <- function(input, output, session) {
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     return(color_break(input$speed_his_bins, animals_dt,
                        "speed", format_speed_f))
   })
@@ -724,7 +724,7 @@ server <- function(input, output, session) {
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(values$data$all_removed_outliers)
-    animals_dt <- req(chose_animal()$data)
+    animals_dt <- req(select_data()$data)
     datatable(format_outliers(values$data$all_removed_outliers,
                               animals_dt),
               options = list(pageLength = 6,
@@ -851,7 +851,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
-  # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process, which is always on single individual. If user moved around pages without changing individual, the states are kept. Otherwise it will clear even chosen same individual again. It should be cleared after subset is generated. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
+  # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, which is the chose animal reactive. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
   observeEvent(input$add_time, {
     l <- list(values$time_ranges, as.data.frame(select_time_range()))
     values$time_ranges <- rbindlist(l)
@@ -880,7 +880,7 @@ server <- function(input, output, session) {
              size = "l", file = "help/5_visual_diagnostics.md")
   values$GUESS_l <- NULL
   vg <- reactive({
-    tele_list <- req(chose_animal()$tele)
+    tele_list <- req(select_data()$tele)
     SVF_l <- lapply(tele_list, variogram)
     values$GUESS_l <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
@@ -932,7 +932,7 @@ server <- function(input, output, session) {
   }, height = function() { vg_layout()$height })
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
-    tele_list <- req(chose_animal()$tele)
+    tele_list <- req(select_data()$tele)
     if (input$fit_vario) {
       identities <- sapply(tele_list, function(x) x@info$identity)
       selectInput("fit_selected", "Fine-tune individual",
