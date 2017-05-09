@@ -759,23 +759,28 @@ server <- function(input, output, session) {
     dt <- info[input$individuals_rows_selected]
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
-  # selected animal data and color bins ----
+  # color_bin_animal() ----
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
+    # ensure time range table are cleared even there is no suitable single individual
+    values$time_ranges <- NULL
     req(values$data)
     req(length(input$individuals_rows_selected) == 1)
-    selected_id <- values$data$merged$info$identity[
-      input$individuals_rows_selected]
-    tele_ids <- sapply(values$data$tele_list, function(x) x@info$identity)
-    tele_i <- values$data$tele_list[tele_ids == selected_id][[1]]
-    data_i <- values$data$merged$data[identity == selected_id]
+    # selected_id <- values$data$merged$info$identity[
+    #   input$individuals_rows_selected]
+    selected_id <- values$data$merged$info$identity
+    # tele_ids <- sapply(values$data$tele_list, function(x) x@info$identity)
+    # tele_i <- values$data$tele_list[tele_ids == selected_id][[1]]
+    # data_i <- values$data$merged$data[identity == selected_id]
+    data_i <- select_data()$data
     data_i[, color_bin_start :=
              cut_date_time(timestamp, input$time_color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
     # using id internally to make code shorter, in data frame id is factor
-    return(list(identity = selected_id, data = data_i, tele = tele_i,
+    return(list(identity = selected_id, data = data_i,
+                tele = select_data()$tele,
                 color_bin_start_vec_time = color_bin_start_vec_time,
                 # vec for interval, findInterval. breaks for hist
                 color_bin_breaks = color_bin_breaks))
@@ -851,7 +856,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") + bigger_key
   })
   # 4.4 time range table ----
-  # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, which is the chose animal reactive. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
+  # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, in color_bin_animal. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
   observeEvent(input$add_time, {
     l <- list(values$time_ranges, as.data.frame(select_time_range()))
     values$time_ranges <- rbindlist(l)
