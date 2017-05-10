@@ -155,6 +155,7 @@ server <- function(input, output, session) {
     }
   })
   # 1.4 selected details ----
+  # save file name need different column so didn't use this reactive
   mb_id <- reactive({
     req(input$studies_rows_selected)
     values$studies[owner == input$data_manager][input$studies_rows_selected, id]
@@ -246,7 +247,8 @@ server <- function(input, output, session) {
         # mb_id <- values$studies[input$studies_rows_selected, id]
         # avoid special characters that invalid for file name
         study_name <- gsub('[^\\w]', ' ',
-                           values$studies[input$studies_rows_selected, name],
+                           values$studies[owner == input$data_manager][
+                             input$studies_rows_selected, name],
                            perl = TRUE)
         paste0("Movebank ", mb_id(), " - ", study_name, ".csv")
         },
@@ -421,22 +423,35 @@ server <- function(input, output, session) {
              size = "l", file = "help/3_outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              size = "l", file = "help/3_outlier_speed.md")
+  observeEvent(input$tabs, {
+    req(values$data)
+    if (input$tabs == "filter") {
+      animals_dt <- values$data$merged$data
+      animals_dt <- calculate_distance(animals_dt)
+      animals_dt <- calculate_speed(animals_dt)
+      # this will force update but created a infinite loop
+      values$data$merged$data <- NULL
+      values$data$merged$data <- animals_dt
+
+    }
+  })
   # p3.a.1 distance histogram ----
   # calculate distance and speed outlier. start from whole data, so there is no duplicated calculation for various subset.
-  calc_outlier <- reactive({
-    animals_dt <- values$data$merged$data
-    animals_dt <- calculate_distance(animals_dt)
-    animals_dt <- calculate_speed(animals_dt)
-    # this will force update but created a infinite loop
-    # values$data$merged$data <- NULL
-    values$data$merged$data <- animals_dt
-    # select_data should update after whole data changes. use this like select_data() but with a layer of outlier calculation update. this layer only is added in outlier page, should not have impact on other page
-    return(select_data())
-  })
+  # calc_outlier <- reactive({
+  #   animals_dt <- values$data$merged$data
+  #   animals_dt <- calculate_distance(animals_dt)
+  #   animals_dt <- calculate_speed(animals_dt)
+  #   # this will force update but created a infinite loop
+  #   # values$data$merged$data <- NULL
+  #   values$data$merged$data <- animals_dt
+  #   # select_data should update after whole data changes. use this like select_data() but with a layer of outlier calculation update. this layer only is added in outlier page, should not have impact on other page
+  #   updated_data <- select_data()
+  #   return(updated_data)
+  # })
   # everything in this page should take animal_dt from the calc_outlier(), which is like select_data
   bin_by_distance <- reactive({
-    animals_dt <- req(calc_outlier()$data)
-    browser()
+    animals_dt <- req(select_data()$data)
+    # animals_dt <- req(calc_outlier()$data)
     return(color_break(input$distance_his_bins, animals_dt,
                        "distance_center", format_distance_f))
   })
@@ -599,7 +614,7 @@ server <- function(input, output, session) {
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
-    animals_dt <- req(calc_outlier()$data)
+    animals_dt <- req(select_data()$data)
     return(color_break(input$speed_his_bins, animals_dt,
                        "speed", format_speed_f))
   })
@@ -740,7 +755,7 @@ server <- function(input, output, session) {
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(values$data$all_removed_outliers)
-    animals_dt <- req(calc_outlier()$data)
+    animals_dt <- req(select_data()$data)
     datatable(format_outliers(values$data$all_removed_outliers,
                               animals_dt),
               options = list(pageLength = 6,
