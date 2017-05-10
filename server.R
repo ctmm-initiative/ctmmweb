@@ -601,6 +601,9 @@ server <- function(input, output, session) {
     animals_dt <- calculate_speed(animals_dt)
     values$data$tele_list <- tele_list
     values$data$merged <- list(data = animals_dt, info = info)
+    # TODO use corner messages instead.
+    output$outlier_msg <- renderUI(h4(paste0(nrow(values$data$all_removed_outliers),
+                                             " outliers removed")))
   }
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
