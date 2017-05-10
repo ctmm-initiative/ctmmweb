@@ -45,7 +45,9 @@ Other dependency packages will be automatically installed in the first run of ap
 	
 ## Usage
 
-The web page have a side bar at left for each stage of analysis. 
+The web page have a side bar at left for each stage of analysis.
+
+Currently pages from `Import Data` to `Visual Diagnostics` are fully working.
 
 ### Currently working
 

@@ -422,9 +422,21 @@ server <- function(input, output, session) {
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              size = "l", file = "help/3_outlier_speed.md")
   # p3.a.1 distance histogram ----
-  # everything in this page should take animal_dt after this process
+  # calculate distance and speed outlier. start from whole data, so there is no duplicated calculation for various subset.
+  calc_outlier <- reactive({
+    animals_dt <- values$data$merged$data
+    animals_dt <- calculate_distance(animals_dt)
+    animals_dt <- calculate_speed(animals_dt)
+    # this will force update but created a infinite loop
+    # values$data$merged$data <- NULL
+    values$data$merged$data <- animals_dt
+    # select_data should update after whole data changes. use this like select_data() but with a layer of outlier calculation update. this layer only is added in outlier page, should not have impact on other page
+    return(select_data())
+  })
+  # everything in this page should take animal_dt from the calc_outlier(), which is like select_data
   bin_by_distance <- reactive({
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(calc_outlier()$data)
+    browser()
     return(color_break(input$distance_his_bins, animals_dt,
                        "distance_center", format_distance_f))
   })
@@ -587,7 +599,7 @@ server <- function(input, output, session) {
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(calc_outlier()$data)
     return(color_break(input$speed_his_bins, animals_dt,
                        "speed", format_speed_f))
   })
@@ -728,7 +740,7 @@ server <- function(input, output, session) {
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(values$data$all_removed_outliers)
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(calc_outlier()$data)
     datatable(format_outliers(values$data$all_removed_outliers,
                               animals_dt),
               options = list(pageLength = 6,

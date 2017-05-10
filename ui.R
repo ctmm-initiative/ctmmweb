@@ -341,7 +341,11 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
 # explain the result source, then print summary
 model_summary_box <- box(title = "Model Summary", status = "info",
                          solidHeader = TRUE, width = 12,
-  fluidRow(column(3, actionButton("fit", "Fit current model"))),
+  fluidRow(column(3, actionButton("fit", "Fit current model")),
+           column(9, h4("This button is used for internal load test only."),
+                  br(),
+                  h4("It will fit the first individual which could take several minutes."),
+                     br(), h4("Using it in Shinyapps.io app could block other users' usage."))),
   fluidRow(column(12, verbatimTextOutput("model_summary"))))
 model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
                         status = "primary", solidHeader = TRUE,
