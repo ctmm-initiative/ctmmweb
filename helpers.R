@@ -53,12 +53,6 @@ info_single_tele <- function(object) {
                    points = nrow(object))
   return(dt)
 }
-# taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
-info_tele_objs <- function(tele_objs){
-  tele_list <- wrap_single_telemetry(tele_objs)
-  animal_info_list <- lapply(tele_list, info_single_tele)
-  rbindlist(animal_info_list)
-}
 wrap_single_telemetry <- function(tele_obj){
   if (class(tele_obj) != "list") {
     # use same name so we can return same name if no change made
@@ -67,6 +61,18 @@ wrap_single_telemetry <- function(tele_obj){
   }
   return(tele_obj)
 }
+# sort tele list by identity, ggplot always sort by id. ctmm keep same order in csv, but this should not create problem. actually I found the table is sorted from ctmm for old buffalo data 1764627, which is unsorted in csv.
+# we should keep the list sorted, not the info table. info table order match original list because we need to use table index.
+sort_tele_list <- function(tele_list) {
+  tele_list[sort(names(tele_list))]
+}
+# taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
+info_tele_objs <- function(tele_objs){
+  tele_list <- wrap_single_telemetry(tele_objs)
+  animal_info_list <- lapply(tele_list, info_single_tele)
+  rbindlist(animal_info_list)
+}
+
 # distance and speed values need to be updated after outlier removal
 # calculate_distance_all <- function(animals_dt) {
 #   animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
@@ -169,29 +175,6 @@ calculate_speed <- function(animals_dt) {
   return(animals_dt)
 }
 # merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
-# merge_animals <- function(tele_objs) {
-#   tele_list <- wrap_single_telemetry(tele_objs)
-#   animal_count <- length(tele_list)
-#   animal_data_list <- vector(mode = "list", length = animal_count)
-#   animal_info_list <- vector(mode = "list", length = animal_count)
-#   for (i in 1:animal_count) {
-#     animal_data_list[[i]] <- data.table(data.frame(tele_list[[i]]))
-#     animal_data_list[[i]][, identity := tele_list[[i]]@info$identity]
-#     animal_data_list[[i]][, row_name := row.names(tele_list[[i]])]
-#     # print(i)
-#     animal_info_list[[i]] <- animal_info(tele_list[[i]])
-#   }
-#   animals_data_dt <- rbindlist(animal_data_list)
-#   # ggplot color need a factor column. if do factor in place, legend will have factor in name
-#   animals_data_dt[, id := factor(identity)]
-#   animals_data_dt[, row_no := .I]
-#   animals_data_dt <- calculate_distance(animals_data_dt)
-#   animals_data_dt <- calculate_speed(animals_data_dt)
-#   # animals_data_dt[, timestamp := with_tz(timestamp, "UTC")]
-#   animals_info_dt <- rbindlist(animal_info_list)
-#   # by convention we always use animals_dt <- merge_animals()$data
-#   return(list(data = animals_data_dt, info = animals_info_dt))
-# }
 # tele objs to data.table
 # assuming row order by timestamp and identity in same order with tele obj.
 dt_tele_objs <- function(tele_objs) {
@@ -211,8 +194,8 @@ dt_tele_objs <- function(tele_objs) {
   if (any_dup != 0) {
     message("duplicated row name found:\n", animals_data_dt[any_dup])
   }
-  # animals_data_dt <- calculate_distance(animals_data_dt)
-  # animals_data_dt <- calculate_speed(animals_data_dt)
+  animals_data_dt <- calculate_distance(animals_data_dt)
+  animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)
 }
 # tele objs to data.table and info

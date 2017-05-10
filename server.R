@@ -30,6 +30,8 @@ server <- function(input, output, session) {
     # only proceed if no error
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
     req(all(unlist(test_class)))
+    # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
+    tele_list <- sort_tele_list(tele_list)
     # keep the original input so that can reset to input
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
@@ -423,20 +425,20 @@ server <- function(input, output, session) {
              size = "l", file = "help/3_outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              size = "l", file = "help/3_outlier_speed.md")
-  observeEvent(input$tabs, {
-    req(values$data)
-    if (input$tabs == "filter") {
-      update_outlier <- function(animals_dt) {
-        animals_dt <- calculate_distance(animals_dt)
-        animals_dt <- calculate_speed(animals_dt)
-      }
-      update_outlier_cached <- memoise(update_outlier)
-      # res <- update_outlier_cached(values$data$merged$data)
-      res <- update_outlier(values$data$merged$data)
-      values$data$merged$data <- NULL
-      values$data$merged$data <- res
-    }
-  })
+  # observeEvent(input$tabs, {
+  #   req(values$data)
+  #   if (input$tabs == "filter") {
+  #     update_outlier <- function(animals_dt) {
+  #       animals_dt <- calculate_distance(animals_dt)
+  #       animals_dt <- calculate_speed(animals_dt)
+  #     }
+  #     update_outlier_cached <- memoise(update_outlier)
+  #     # res <- update_outlier_cached(values$data$merged$data)
+  #     res <- update_outlier(values$data$merged$data)
+  #     values$data$merged$data <- NULL
+  #     values$data$merged$data <- res
+  #   }
+  # })
   # p3.a.1 distance histogram ----
   # calculate distance and speed outlier. start from whole data, so there is no duplicated calculation for various subset.
   # calc_outlier <- reactive({
@@ -948,8 +950,8 @@ server <- function(input, output, session) {
     values$data$tele_list <- c(values$data$tele_list,
                                wrap_single_telemetry(new_tele))
     # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
-    sorted_names <- sort(names(values$data$tele_list))
-    values$data$tele_list <- values$data$tele_list[sorted_names]
+    # sorted_names <- sort(names(values$data$tele_list))
+    values$data$tele_list <- sort_tele_list(values$data$tele_list)
     values$data$merged$info <- info_tele_objs(values$data$tele_list)
     values$time_ranges <- NULL
     updateTabItems(session, "tabs", "plots")
