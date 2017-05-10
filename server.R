@@ -426,13 +426,15 @@ server <- function(input, output, session) {
   observeEvent(input$tabs, {
     req(values$data)
     if (input$tabs == "filter") {
-      animals_dt <- values$data$merged$data
-      animals_dt <- calculate_distance(animals_dt)
-      animals_dt <- calculate_speed(animals_dt)
-      # this will force update but created a infinite loop
+      update_outlier <- function(animals_dt) {
+        animals_dt <- calculate_distance(animals_dt)
+        animals_dt <- calculate_speed(animals_dt)
+      }
+      update_outlier_cached <- memoise(update_outlier)
+      # res <- update_outlier_cached(values$data$merged$data)
+      res <- update_outlier(values$data$merged$data)
       values$data$merged$data <- NULL
-      values$data$merged$data <- animals_dt
-
+      values$data$merged$data <- res
     }
   })
   # p3.a.1 distance histogram ----
