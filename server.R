@@ -7,12 +7,14 @@ source("cut_divide.R", local = TRUE)
 server <- function(input, output, session) {
   # p1. import ----
   values <- reactiveValues()
-  # data ----
-  values$data <- NULL
-  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
+  # data <----
+  values$data <- NULL  # 4 items need to be synced
+  # important reactive value and expressions need special comments, use <--. the design need to well thought
+  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. Once it's used, no need to keep the copy. thus add it with the new time subset. We don't need to keep the dt version because we can often just use existing dt and other info. do need to verify tele and dt is synced.
   # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
+  # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
   data_import <- function(data) {
@@ -32,7 +34,7 @@ server <- function(input, output, session) {
     req(all(unlist(test_class)))
     # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
     tele_list <- sort_tele_list(tele_list)
-    # keep the original input so that can reset to input
+    # for any data source changes, need to update these 4 items together.
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
     values$data$merged <- merge_animals(tele_list)
@@ -56,6 +58,7 @@ server <- function(input, output, session) {
       values$data$input_tele_list <- buffalo
       values$data$tele_list <- buffalo
       values$data$merged <- merge_animals(buffalo)
+      values$data$all_removed_outliers <- NULL
       updateTabItems(session, "tabs", "plots")
     } else if (input$load_option == "upload") {
       # need to check NULL input from source, stop error in downstream
@@ -268,13 +271,20 @@ server <- function(input, output, session) {
   # input (upload, movebank, buffalo) -> current -> chose animal in table
   # current: merge telemetry to df, remove outliers if in quene, return df, info table, removed outliers full data
   # 2.3 data summary ----
+  output$outlier_report <- renderUI({
+    if (!is.null(values$data$all_removed_outliers)) {
+      h4(style = "color: #F44336;font-weight: bold;text-decoration: underline;",
+         paste0(nrow(values$data$all_removed_outliers),
+             " outliers removed from original"))
+    }
+  })
   output$individuals <- DT::renderDataTable({
     req(values$data)
-    if (!is.null(values$data$all_removed_outliers)) {
-      showNotification(paste0("   ", nrow(values$data$all_removed_outliers),
-                              " Outliers Removed"),
-                       duration = 2, type = "warning")
-    }
+    # if (!is.null(values$data$all_removed_outliers)) {
+    #   showNotification(paste0("Total ", nrow(values$data$all_removed_outliers),
+    #                           " outliers removed from original data"),
+    #                    duration = 2, type = "warning")
+    # }
     if (input$time_in_sec) {
       info_p <- values$data$merged$info[,
                   .(identity, start, end, interval_s, duration_s, points)]
@@ -601,9 +611,6 @@ server <- function(input, output, session) {
     animals_dt <- calculate_speed(animals_dt)
     values$data$tele_list <- tele_list
     values$data$merged <- list(data = animals_dt, info = info)
-    # TODO use corner messages instead.
-    output$outlier_msg <- renderUI(h4(paste0(nrow(values$data$all_removed_outliers),
-                                             " outliers removed")))
   }
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
