@@ -268,6 +268,7 @@ request <- function(entity_type, user, pass){
   if (status != "Success") {
     showNotification(paste0(http_status(res)$message, "\nCheck console for more information"),
                      duration = 6, type = "error")
+    # will use xml2::read_html
     res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
     txt <- html_to_text(res_cont)
     formated_txt <- gsub("^ $", ": ", txt)
