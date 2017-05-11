@@ -5,7 +5,7 @@ if (!require("pacman")) install.packages("pacman")
 # pacman::p_load_gh("ctmm-initiative/ctmm@a24eeab591c7b00a28406a9972a26878507a43a1")
 # packrat doesn't recognize p_load_gh so need to put ctmm in p_load again.
 pacman::p_load(shiny, shinydashboard, DT, markdown,
-               ctmm, data.table, memoise,
+               ctmm, data.table,
                ggplot2, scales, grid, gridExtra, lubridate,
                httr, stringr, XML, xml2)
 # increase the uploading file size limit to 200M

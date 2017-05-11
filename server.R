@@ -432,20 +432,6 @@ server <- function(input, output, session) {
              size = "l", file = "help/3_outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              size = "l", file = "help/3_outlier_speed.md")
-  # observeEvent(input$tabs, {
-  #   req(values$data)
-  #   if (input$tabs == "filter") {
-  #     update_outlier <- function(animals_dt) {
-  #       animals_dt <- calculate_distance(animals_dt)
-  #       animals_dt <- calculate_speed(animals_dt)
-  #     }
-  #     update_outlier_cached <- memoise(update_outlier)
-  #     # res <- update_outlier_cached(values$data$merged$data)
-  #     res <- update_outlier(values$data$merged$data)
-  #     values$data$merged$data <- NULL
-  #     values$data$merged$data <- res
-  #   }
-  # })
   # calc_outlier() ----
   # take current subset, add distance and speed columns. everything in this page start from this data. The outlier removal need to apply to whole data then trickle down here
   calc_outlier <- reactive({
@@ -457,6 +443,7 @@ server <- function(input, output, session) {
     return(outlier_page_data)
   })
   # p3.a.1 distance histogram ----
+  # note this also add bin factor column
   bin_by_distance <- reactive({
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
@@ -584,7 +571,6 @@ server <- function(input, output, session) {
   })
   # remove distance outliers ----
   # use side effect, update values$data, not chose animal. assuming row_name is always unique. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns in all_removed_points, but build dt by subset with row_name only, so no extra column transferred.
-
   remove_outliers <- function(points_to_remove) {
     # update the all outlier table, always start from original - all outliers.
     # removed_points <- values$data$merged$data[
@@ -610,7 +596,6 @@ server <- function(input, output, session) {
     values$data$merged <- NULL
     values$data$merged <- list(data = animals_dt, info = info)
   }
-
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
   # actually just put row_name vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
@@ -783,7 +768,9 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # tried to add delete rows like the time range table, but that need to update a lot of values in proper order, the reset is easy because it just use original input. Not really need this complex operations.
-  # reset outlier removal
+  # reset outlier removal ----
+  # method 1. merge data back, just reverse the remove outlier. that require add rows to tele which is not possible now? need that tele update function later. if this is doable, pros: merge dt is faster than merge_animals; time-subset don't need to update input tele, only need to maintain current tele/dt.
+  # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
     values$data$tele_list <- values$data$input_tele_list
     values$data$merged <- merge_animals(values$data$tele_list)
@@ -922,12 +909,14 @@ server <- function(input, output, session) {
   observeEvent(input$reset_time_sub, {
     values$time_ranges <- NULL
   })
+  # generate time subset ----
   # need a explicit button because once applied, the data will change and the plot and histogram will change too. the result applied to values$data, not current select_data(). also clear time_ranges, move to the visualization page.
+  # update input_tele for reset_remove_outlier, but need to use the input_tele + new timesub, not current tele + new timesub to include the possible outliers. so we cannot use already updated current tele.
   observeEvent(input$generate_time_sub, {
     req(values$time_ranges)
     animal_binned <- color_bin_animal()
-    # skip the new added column color_bin_start
-    dt <- animal_binned$data[, timestamp:speed]
+    # skip the new added column color_bin_start. the name of last column may change depend on other changes in data structure
+    dt <- animal_binned$data[, timestamp:row_no]
     new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     res <- vector("list", length = nrow(values$time_ranges))
     for (i in 1:nrow(values$time_ranges)) {
@@ -950,8 +939,8 @@ server <- function(input, output, session) {
     new_tele@info$identity <- new_id
     # update other columns
     new_dt[, row_name := paste0(row_name, new_suffix)]
-    new_dt <- calculate_distance(new_dt)
-    new_dt <- calculate_speed(new_dt)
+    # new_dt <- calculate_distance(new_dt)
+    # new_dt <- calculate_speed(new_dt)
     # update the row name in tele data frame by new row_name column
     row.names(new_tele) <- new_dt$row_name
     # update data
@@ -964,9 +953,13 @@ server <- function(input, output, session) {
     # need to wrap single obj otherwise it was flattened by c
     values$data$tele_list <- c(values$data$tele_list,
                                wrap_single_telemetry(new_tele))
+    # also update input tele from original input + new tele
+    values$data$input_tele_list <- c(values$data$input_tele_list,
+                                     wrap_single_telemetry(new_tele))
     # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- sort_tele_list(values$data$tele_list)
+    values$data$input_tele_list <- sort_tele_list(values$data$input_tele_list)
     values$data$merged$info <- info_tele_objs(values$data$tele_list)
     values$time_ranges <- NULL
     updateTabItems(session, "tabs", "plots")
