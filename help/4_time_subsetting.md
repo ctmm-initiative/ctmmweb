@@ -5,3 +5,4 @@
     - If you select a time range in histogram with mouse, the points in selection will be highlighted, with other points in gray background.
     - Click `Add` button in `Current Time Range` will add current selection into list of `Selected Time Ranges`. You can add multiple time ranges, or reset the list.
     - You can **zoom in** the scatter plot.
+- Click `Generate Subset` will generate an new individual and add to data set, return to Visualization page.

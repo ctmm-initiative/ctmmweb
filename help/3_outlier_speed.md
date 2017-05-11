@@ -2,6 +2,9 @@
 - The UI is very similar to the *distance to median center* tab, except there are two checkboxs for selected points (selected rows in table of selected range):
     - `Draw Path Around Selected Rows` will add paths with arrows for points before and after the selected points. You can zoom in plot for more details.
     - `Label Row Number in Path` further add row number of points, which is sorted by timestamp.
+- The speed value can have more sparse distribution, with majority of points at low speed, which could result:
+    - Most points could be almost transparent in color. You can select a range in histogram to highlight them if needed.
+    - The speed unit is determined by the median value in all speed values to ensure all units to be same in dataset, so the high value outliers can be seen with lower unit.
 - `Removed Outliers` table includes the points removed both in *distance* and *speed* tabs.
 - The speed estimation algorithm is quite complex to deal with some special cases:
     - Some points have duplicated timestamp which cause zero time and infinite speed value
@@ -9,3 +12,4 @@
     - It's possible that some data set have special cases that were not handled perfectly by the algorithm.
     - It's often better to use the *distance* tab to filter some obvious outlier first, then the case left for *speed* can be simplified.
     - See [discussion about the algorithm](https://github.com/ctmm-initiative/ctmm-webapp/issues/5), and [some algorithms used by Movebank](https://www.movebank.org/node/27252).
+    - If the sophisticated method failed for any reason, it will fall back to a simpler method with less accurate estimation but more robust for data.
