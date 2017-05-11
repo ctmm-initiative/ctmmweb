@@ -454,6 +454,7 @@ server <- function(input, output, session) {
     # need to get data from reactive, update by bin count
     distance_binned <- req(bin_by_distance())
     animals_dt <- distance_binned$animals_dt
+    # use this to check if distance and speed data is synced
     # cat("dataset in distance page\n")
     # print(animals_dt[, .N, by = id])
     ggplot(animals_dt, aes(x = distance_center)) +

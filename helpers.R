@@ -126,7 +126,7 @@ calculate_speed_pmin <- function(animals_dt) {
   # animals_dt[inc_t == 0]
   # sampling_resolution <- gcd_vec(diff(animals_dt$t))
   animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
-  # TODO these NA cleaning are temporary
+  # TODO these NA cleaning are temporary. not sure which is optimal. histogram will remove infinite value but we may want to filter these points. since this is just fallback temp method and mainly rely on ctmm function, stop here now. probably should clean dup time first in separate method, maybe remove them to list with a warning. in my leaving speed just assign to point before it, which is not ideal but hide all problems.
   # animals_dt[is.na(speed)]
   animals_dt[is.infinite(speed), speed := NaN]
   animals_dt[, speed_min := pmin(speed, shift(speed, 1L), na.rm = TRUE), by = id]
@@ -168,10 +168,24 @@ calculate_speed_ctmm <- function(animals_dt) {
              by = identity]
   return(animals_dt)
 }
+# all speed calculation except ctmm assume distance have been calculated. Since we always update two together, this is not problem.
 calculate_speed <- function(animals_dt) {
   setkey(animals_dt, row_no)
-  animals_dt <- calculate_speed_ctmm(animals_dt)
+  # animals_dt <- calculate_speed_ctmm(animals_dt)
   # animals_dt <- calculate_speed_pmin(animals_dt)
+  # my speed calculation need distance columns
+  test_calc <- function(data, fun, fun_bak) {
+    res <- tryCatch(fun(data), error = function(e) "error")
+    if (class(res)[1] == "character") {
+      res <- fun_bak(data)
+      cat("Had error with first speed definition, use alternative instead\n")
+    }
+    return(res)
+  }
+  # we didn't use the third fallback, pmin should be robust enough.
+  animals_dt <- test_calc(animals_dt,
+                          calculate_speed_ctmm, calculate_speed_pmin)
+  # animals_dt <- calculate_speed_ctmm(animals_dt)
   return(animals_dt)
 }
 # merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
