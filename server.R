@@ -7,7 +7,7 @@ source("cut_divide.R", local = TRUE)
 server <- function(input, output, session) {
   # p1. import ----
   values <- reactiveValues()
-  # data <----
+  # $data <----
   values$data <- NULL  # 4 items need to be synced
   # important reactive value and expressions need special comments, use <--. the design need to well thought
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. Once it's used, no need to keep the copy. thus add it with the new time subset. We don't need to keep the dt version because we can often just use existing dt and other info. do need to verify tele and dt is synced.
@@ -299,24 +299,21 @@ server <- function(input, output, session) {
                                      hue_pal()(nrow(info_p)))
       )}
   )
-  # delete selected individuals
+  # TODO delete selected individuals ----
   observeEvent(input$delete_individuals, {
 
   })
-  # selecting all rows
   proxy_individuals <- dataTableProxy("individuals")
   observeEvent(input$select_all, {
     selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
-    # select_all <<- !select_all
   })
-  # deselect all
   observeEvent(input$deselect_all, {
       selectRows(proxy_individuals, NULL)
   })
   callModule(click_help, "visual", title = "Visualization",
              size = "l", file = "help/2_visualization.md")
   # select_data() ----
-  # selected rows or current page, this apply to all plots, outliers
+  # selected rows or current page, all pages start from this current subset
   # with lots of animals, the color gradient could be subtle or have duplicates
   select_data <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
@@ -449,23 +446,20 @@ server <- function(input, output, session) {
   #     values$data$merged$data <- res
   #   }
   # })
+  # calc_outlier() ----
+  # take current subset, add distance and speed columns. everything in this page start from this data. The outlier removal need to apply to whole data then trickle down here
+  calc_outlier <- reactive({
+    outlier_page_data <- req(select_data())  # data, info, tele_list
+    animals_dt <- outlier_page_data$data
+    animals_dt <- calculate_distance(animals_dt)
+    animals_dt <- calculate_speed(animals_dt)
+    outlier_page_data$data <- animals_dt
+    return(outlier_page_data)
+  })
   # p3.a.1 distance histogram ----
-  # calculate distance and speed outlier. start from whole data, so there is no duplicated calculation for various subset.
-  # calc_outlier <- reactive({
-  #   animals_dt <- values$data$merged$data
-  #   animals_dt <- calculate_distance(animals_dt)
-  #   animals_dt <- calculate_speed(animals_dt)
-  #   # this will force update but created a infinite loop
-  #   # values$data$merged$data <- NULL
-  #   values$data$merged$data <- animals_dt
-  #   # select_data should update after whole data changes. use this like select_data() but with a layer of outlier calculation update. this layer only is added in outlier page, should not have impact on other page
-  #   updated_data <- select_data()
-  #   return(updated_data)
-  # })
-  # everything in this page should take animal_dt from the calc_outlier(), which is like select_data
   bin_by_distance <- reactive({
-    animals_dt <- req(select_data()$data)
-    # animals_dt <- req(calc_outlier()$data)
+    # animals_dt <- req(select_data()$data)
+    animals_dt <- req(calc_outlier()$data)
     return(color_break(input$distance_his_bins, animals_dt,
                        "distance_center", format_distance_f))
   })
@@ -492,7 +486,6 @@ server <- function(input, output, session) {
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none")
   })
-  # brush selection function
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
     animal_selected_data[, .(id, row_no,
@@ -501,6 +494,7 @@ server <- function(input, output, session) {
          distance_center),
        speed = format_speed_f(animals_dt[, speed])(speed))]
   }
+  # brush selection function
   select_range <- function(his_type){
     return(reactive({
       # everything in outlier page should take animal_dt from binned version
@@ -589,7 +583,7 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # remove distance outliers ----
-  # use side effect, update values$data, not chose animal. assuming row_name is always unique
+  # use side effect, update values$data, not chose animal. assuming row_name is always unique. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns.
   remove_outliers <- function(row_names_to_remove) {
     # update the all outlier table, always start from original - all outliers.
     removed_points <- values$data$merged$data[
@@ -607,9 +601,10 @@ server <- function(input, output, session) {
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
     info <- info_tele_objs(tele_list)
     # distance/speed calculation need to be updated. row_no not updated.
-    animals_dt <- calculate_distance(animals_dt)
-    animals_dt <- calculate_speed(animals_dt)
+    # animals_dt <- calculate_distance(animals_dt)
+    # animals_dt <- calculate_speed(animals_dt)
     values$data$tele_list <- tele_list
+    values$data$merged <- NULL
     values$data$merged <- list(data = animals_dt, info = info)
   }
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
@@ -628,7 +623,8 @@ server <- function(input, output, session) {
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
-    animals_dt <- req(select_data()$data)
+    # animals_dt <- req(select_data()$data)
+    animals_dt <- req(calc_outlier()$data)
     return(color_break(input$speed_his_bins, animals_dt,
                        "speed", format_speed_f))
   })
@@ -765,11 +761,13 @@ server <- function(input, output, session) {
     session$resetBrush("speed_his_brush")
     remove_outliers(row_names_to_remove)
   })
-  # all removed outliers
+  # all removed outliers ----
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(values$data$all_removed_outliers)
-    animals_dt <- req(select_data()$data)
+    # animals_dt <- req(select_data()$data)
+    animals_dt <- req(calc_outlier()$data)
+    browser()
     datatable(format_outliers(values$data$all_removed_outliers,
                               animals_dt),
               options = list(pageLength = 6,

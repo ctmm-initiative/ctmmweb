@@ -194,8 +194,8 @@ dt_tele_objs <- function(tele_objs) {
   if (any_dup != 0) {
     message("duplicated row name found:\n", animals_data_dt[any_dup])
   }
-  animals_data_dt <- calculate_distance(animals_data_dt)
-  animals_data_dt <- calculate_speed(animals_data_dt)
+  # animals_data_dt <- calculate_distance(animals_data_dt)
+  # animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)
 }
 # tele objs to data.table and info
