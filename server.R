@@ -300,8 +300,34 @@ server <- function(input, output, session) {
       )}
   )
   # TODO delete selected individuals ----
+  # update tele_list, merged data and info, all removed outliers
   observeEvent(input$delete_individuals, {
-
+    req(values$data)
+    req(input$individuals_rows_current)
+    id_vec <- values$data$merged$info[, identity]
+    if (length(input$individuals_rows_selected) > 0) {
+      chosen_row_nos <- input$individuals_rows_selected
+      chosen_ids <- id_vec[chosen_row_nos]
+      # if all are deleted, will have error in plots. this is different from the req check, just diable this behavior
+      if (identical(chosen_ids, id_vec)) {
+        showNotification("Cannot proceed because all data will be deleted",
+                         duration = 3, type = "error")
+        return()
+      }
+      # begin removal. freeze plots to avoid it update before data finish sync. we cannot freeze output, but the key factor is the selected rows which will reset after table updated, which could be slower than data updates. so we freeze the row selection which will also freeze select_data. This row selection is often slower than data update, same in remove outlier
+      freezeReactiveValue(input, "individuals_rows_selected")
+      if (!is.null(values$data$all_removed_outliers)) {
+        values$data$all_removed_outliers <- values$data$all_removed_outliers[
+          !(identity %in% chosen_ids)
+          ]
+      }
+      values$data$merged$data <- values$data$merged$data[
+        !(identity %in% chosen_ids)
+      ]
+      remaining_indice <- !(values$data$merged$info$identity %in% chosen_ids)
+      values$data$merged$info <- values$data$merged$info[remaining_indice]
+      values$data$tele_list <- values$data$tele_list[remaining_indice]
+    }
   })
   proxy_individuals <- dataTableProxy("individuals")
   observeEvent(input$select_all, {
