@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a Shiny web application for [ctmm](https://cran.r-project.org/web/packages/ctmm/index.html) [R package](https://github.com/ctmm-initiative/ctmm). 
+This is a Shiny web application for [ctmm](https://github.com/ctmm-initiative/ctmm) [R package](https://cran.r-project.org/web/packages/ctmm/index.html). 
 
 Check [the videos here](README-demo.md) for feature demonstrations.
 
@@ -17,7 +17,6 @@ With app [hosted in a website](https://ctmm.shinyapps.io/dashboardalpha/), you c
 - The active hours per month is limited. 
 
 ### Download and run locally
-You can run current repo locally:
 
 1. Install [the latest R](https://www.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/)
 2. Install dependency packages in R. You need to install `ctmm` and `shiny` development version instead of CRAN version. 
