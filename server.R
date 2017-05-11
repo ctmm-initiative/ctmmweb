@@ -583,20 +583,23 @@ server <- function(input, output, session) {
               rownames = FALSE)
   })
   # remove distance outliers ----
-  # use side effect, update values$data, not chose animal. assuming row_name is always unique. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns.
-  remove_outliers <- function(row_names_to_remove) {
+  # use side effect, update values$data, not chose animal. assuming row_name is always unique. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns in all_removed_points, but build dt by subset with row_name only, so no extra column transferred.
+
+  remove_outliers <- function(points_to_remove) {
     # update the all outlier table, always start from original - all outliers.
-    removed_points <- values$data$merged$data[
-      row_name %in% row_names_to_remove]
+    # removed_points <- values$data$merged$data[
+    #   row_name %in% row_names_to_remove]
+    # distance and speed color_break will add each own factor column, so two tab have different columns. we only need the extra columns minus these factor column in summary table
+    points_to_remove <- points_to_remove[, timestamp:speed]
     values$data$all_removed_outliers <- rbindlist(list(
-      values$data$all_removed_outliers, removed_points))
+      values$data$all_removed_outliers, points_to_remove))
     animals_dt <- values$data$merged$data[
       !(row_name %in% values$data$all_removed_outliers[, row_name])]
     # update tele obj. more general apporach is update them according to data frame changes.
-    changed <- unique(removed_points$identity)
+    changed <- unique(points_to_remove$identity)
     tele_list <- values$data$tele_list
     tele_list[changed] <- lapply(tele_list[changed], function(x) {
-      x[!(row.names(x) %in% removed_points[, row_name]),]
+      x[!(row.names(x) %in% points_to_remove[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
     info <- info_tele_objs(tele_list)
@@ -607,19 +610,22 @@ server <- function(input, output, session) {
     values$data$merged <- NULL
     values$data$merged <- list(data = animals_dt, info = info)
   }
+
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
   # actually just put row_name vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
   # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
     req(length(input$points_in_distance_range_rows_selected) > 0)
-    row_names_to_remove <- select_distance_range()$animal_selected_data[
-      input$points_in_distance_range_rows_selected, row_name]
+    # row_names_to_remove <- select_distance_range()$animal_selected_data[
+    #   input$points_in_distance_range_rows_selected, row_name]
+    points_to_remove <- select_distance_range()$animal_selected_data[
+      input$points_in_distance_range_rows_selected]
     freezeReactiveValue(input, "points_in_distance_range_rows_selected")
     selectRows(proxy_points_in_distance_range, NULL)
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
-    remove_outliers(row_names_to_remove)
+    remove_outliers(points_to_remove)
   })
   # p3.b.1 speed histogram ----
   bin_by_speed <- reactive({
@@ -751,15 +757,17 @@ server <- function(input, output, session) {
                                                 deferUntilFlush = FALSE)
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
-    row_names_to_remove <- select_speed_range()$animal_selected_data[
-      input$points_in_speed_range_rows_selected, row_name]
+    # row_names_to_remove <- select_speed_range()$animal_selected_data[
+    #   input$points_in_speed_range_rows_selected, row_name]
+    points_to_remove <- select_speed_range()$animal_selected_data[
+      input$points_in_speed_range_rows_selected]
     # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
     # freeze it so all expression accessing it will be put on hold until update finish, because the reset here just send message to client, didn't update immediately
     freezeReactiveValue(input, "points_in_speed_range_rows_selected")
     selectRows(proxy_points_in_speed_range, NULL)
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
-    remove_outliers(row_names_to_remove)
+    remove_outliers(points_to_remove)
   })
   # all removed outliers ----
   output$all_removed_outliers <- DT::renderDataTable({
@@ -767,7 +775,6 @@ server <- function(input, output, session) {
     req(values$data$all_removed_outliers)
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
-    browser()
     datatable(format_outliers(values$data$all_removed_outliers,
                               animals_dt),
               options = list(pageLength = 6,
