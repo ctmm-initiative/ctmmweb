@@ -1251,6 +1251,10 @@ server <- function(input, output, session) {
   #        fraction = 0.1)
   # })
   # home range ----
+  output$under_construction <- renderImage({
+    list(src = "help/under_construction.jpg",
+         contentType = "image/jpg")
+  })
   akde.animal_1 <- reactive({
     # debug
     # if (debug) {

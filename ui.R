@@ -344,7 +344,7 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                          ))
 # p6. model fitting ----
 # explain the result source, then print summary
-model_summary_box <- box(title = "Model Summary", status = "info",
+model_summary_box <- box(title = "Model Summary", status = "warning",
                          solidHeader = TRUE, width = 12,
   fluidRow(column(3, actionButton("fit", "Fit current model")),
            column(9, h4("This button is used for internal load test only."),
@@ -358,6 +358,10 @@ model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
 model_plot_box_2 <- box(title = "Variogram with model for minimal lag",
                         status = "primary", solidHeader = TRUE,
                         plotOutput("model_plot_2"))
+# p7. home range ----
+under_construction_box <- box(title = "Coming soon", status = "primary",
+                              solidHeader = TRUE, width = 12
+                              )
 range_summary_box <- box(title = "Home Range Estimation", status = "info",
                          solidHeader = TRUE, width = 12,
                          verbatimTextOutput("range_summary"))
@@ -398,7 +402,8 @@ body <- dashboardBody(
             # fluidRow(model_plot_box_1, model_plot_box_2)
             ),
     tabItem(tabName = "homerange"
-            # ,
+            ,
+            under_construction_box
             # fluidRow(range_summary_box),
             # fluidRow(range_plot_box)
             ),

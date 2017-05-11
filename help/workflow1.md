@@ -1,6 +1,5 @@
-# app version 0.0.2
-# simple single model workflow
-
+# simple sample work report
+This is a proof of concept sample report for app v0.0.1. The ideal work report should reproduce all actions happened in app, which will be very challenging to generate.
 
 
 ```r
