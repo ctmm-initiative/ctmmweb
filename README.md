@@ -29,7 +29,7 @@ remove.packages("ctmm")
 if (!require("devtools"))
   install.packages("devtools")
 devtools::install_github("rstudio/shiny")
-devtools::install_github("ctmm-initiative/ctmm", ref = "8332cb3")
+devtools::install_github("ctmm-initiative/ctmm")
 ```
 
 3. Download the stable version from [releases page](https://github.com/ctmm-initiative/ctmm-webapp/releases), currently `v0.0.5`. You can also try the [latest development version](https://github.com/ctmm-initiative/ctmm-webapp/archive/master.zip).
