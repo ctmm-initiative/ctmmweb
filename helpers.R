@@ -176,7 +176,7 @@ calculate_speed <- function(animals_dt) {
   # my speed calculation need distance columns
   test_calc <- function(data, fun, fun_bak) {
     res <- tryCatch(fun(data), error = function(e) "error")
-    if (class(res)[1] == "character") {
+    if (identical(res, "error")) {
       res <- fun_bak(data)
       cat("Had error with first speed definition, use alternative instead\n")
     }
