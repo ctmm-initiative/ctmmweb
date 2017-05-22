@@ -1,0 +1,10 @@
+name: webapp
+title: webapp
+account: ctmm
+server: shinyapps.io
+appId: 182592
+bundleId: 836235
+url: https://ctmm.shinyapps.io/webapp/
+when: 1495464596.59574
+asMultiple: FALSE
+asStatic: FALSE

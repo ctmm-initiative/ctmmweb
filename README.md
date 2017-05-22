@@ -11,7 +11,7 @@ Check [the videos here](README-demo.md) for feature demonstrations.
 There are several methods to run the app:
 
 ### Hosted app
-With app [hosted in a website](https://ctmm.shinyapps.io/dashboardalpha/), you can use the app with just a browser. This is more intended for demonstration use because
+With app [hosted in a website](https://ctmm.shinyapps.io/ctmmweb/), you can use the app with just a browser. This is more intended for demonstration use because
 
 - R is single threaded, so any computation heavy operations like loading large datasets, fitting models could block other users in same thread.
 - The active hours per month is limited. 
