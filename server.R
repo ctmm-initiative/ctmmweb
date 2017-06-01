@@ -299,7 +299,7 @@ server <- function(input, output, session) {
                                      hue_pal()(nrow(info_p)))
       )}
   )
-  # TODO delete selected individuals ----
+  # delete selected individuals ----
   # update tele_list, merged data and info, all removed outliers
   observeEvent(input$delete_individuals, {
     req(values$data)
