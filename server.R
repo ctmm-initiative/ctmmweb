@@ -334,7 +334,8 @@ server <- function(input, output, session) {
     selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
   })
   observeEvent(input$deselect_all, {
-      selectRows(proxy_individuals, NULL)
+    # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
+    selectRows(proxy_individuals, list())
   })
   callModule(click_help, "visual", title = "Visualization",
              size = "l", file = "help/2_visualization.md")
