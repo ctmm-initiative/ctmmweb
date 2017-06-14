@@ -19,8 +19,8 @@ sidebar <- dashboardSidebar(
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Work Report", tabName = "report", icon = icon("file-text-o"))
   )
-  ,
-  uiOutput("outlier_msg", inline = TRUE)
+  # ,
+  # uiOutput("outlier_msg", inline = TRUE)
   # h4(" message about outlier")
 
 )
