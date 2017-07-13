@@ -1230,15 +1230,32 @@ server <- function(input, output, session) {
   #                message = "Fitting models to find the best ...")
   # })
   values$fitted_model <- NULL
+  # test parallel ----
   observeEvent(input$fit, {
     animal_1 <- req(values$data$tele_list)[[1]]
-    guessed <- ctmm.guess(animal_1, interactive = FALSE)
-    values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
-                 message = "Fitting models to find the best ...")
+    # guessed <- ctmm.guess(animal_1, interactive = FALSE)
+    # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
+    #              message = "Fitting models to find the best ...")
+    cores <- max(1, detectCores(logical = FALSE) - 1)
+    subset_size <- 100
+    chunks <- lapply(1:cores, function(i) {
+      dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
+        subset_size * i), ]))
+      dt[, timestamp := as.character(timestamp)]
+      as.telemetry(dt)
+    })
+    test <- function(x) {
+      guessed <- ctmm.guess(x, interactive = FALSE)
+      ctmm.select(x, CTMM = guessed)
+    }
+    # values$fitted_model <- system.time(test(chunks[[1]]))
+    time_cost <- system.time(mclapply(chunks, test, mc.cores = cores))
+    values$fitted_model <- list(cores = cores, time_cost = time_cost)
   })
   output$model_summary <- renderPrint({
     req(!is.null(values$fitted_model))
-    summary(values$fitted_model)
+    print(values$fitted_model)
+    # summary(values$fitted_model)
   })
   # output$model_plot_1 <- renderPlot({
   #   ouf <- selected_model()
