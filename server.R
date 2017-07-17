@@ -1236,9 +1236,9 @@ server <- function(input, output, session) {
     # guessed <- ctmm.guess(animal_1, interactive = FALSE)
     # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
     #              message = "Fitting models to find the best ...")
-    cores <- max(1, detectCores(logical = FALSE) - 1)
-    subset_size <- 100
-    chunks <- lapply(1:cores, function(i) {
+    population <- 5
+    subset_size <- 300
+    chunks <- lapply(1:population, function(i) {
       dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
         subset_size * i), ]))
       dt[, timestamp := as.character(timestamp)]
@@ -1248,9 +1248,30 @@ server <- function(input, output, session) {
       guessed <- ctmm.guess(x, interactive = FALSE)
       ctmm.select(x, CTMM = guessed)
     }
-    # values$fitted_model <- system.time(test(chunks[[1]]))
-    time_cost <- system.time(mclapply(chunks, test, mc.cores = cores))
-    values$fitted_model <- list(cores = cores, time_cost = time_cost)
+    # parallel ----
+    os <- .Platform$OS.type
+    cores <- detectCores(logical = FALSE)
+    cat(os, "with", cores, "physical cores detected\n")
+    upper_limit <- cores * 3L
+    cluster_size <- min(population, upper_limit)
+    if (os == "windows")  {
+      cl <- parallel::makeCluster(cluster_size, outfile = "")
+    } else {
+      cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
+    }
+    time_in_parallel <- system.time({
+      # library needed. use pacman?
+      clusterEvalQ(cl, pacman::p_load(ctmm))
+      # export if needed
+      # use load balanced version
+      parLapplyLB(cl, chunks, test)
+    })
+    stopCluster(cl)
+    # put serial version later so we can find parallel problem earlier.
+    time_in_serial <- system.time(lapply(chunks, test))
+    values$fitted_model <- list(time_in_serial = time_in_serial,
+                                time_in_parallel = time_in_parallel)
+    print(values$fitted_model)
   })
   output$model_summary <- renderPrint({
     req(!is.null(values$fitted_model))
