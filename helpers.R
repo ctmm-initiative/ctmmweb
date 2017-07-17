@@ -342,6 +342,8 @@ para_ll <- function(ll, fun) {
     res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
     return(res)
   } else if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
+    # windows have more communication overhead, use physical cores
+    cluster_size <- detectCores(logical = FALSE)
     cat("running parallel in SOCKET cluster of", cluster_size, "\n")
     cl <- parallel::makeCluster(cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
