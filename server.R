@@ -1236,7 +1236,7 @@ server <- function(input, output, session) {
     # guessed <- ctmm.guess(animal_1, interactive = FALSE)
     # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
     #              message = "Fitting models to find the best ...")
-    population <- 5
+    population <- 10
     subset_size <- 300
     chunks <- lapply(1:population, function(i) {
       dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
@@ -1254,24 +1254,27 @@ server <- function(input, output, session) {
     cat(os, "with", cores, "physical cores detected\n")
     upper_limit <- cores * 3L
     cluster_size <- min(population, upper_limit)
-    if (os == "windows")  {
-      cl <- parallel::makeCluster(cluster_size, outfile = "")
-    } else {
-      cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
-    }
-    time_in_parallel <- system.time({
-      # library needed. use pacman?
-      clusterEvalQ(cl, pacman::p_load(ctmm))
-      # export if needed
-      # use load balanced version
-      parLapplyLB(cl, chunks, test)
-    })
-    stopCluster(cl)
+    time_in_parallel <- system.time(mclapply(chunks, test,
+                                             mc.cores = cluster_size))
+    # if (os == "windows")  {
+    #   cl <- parallel::makeCluster(cluster_size, outfile = "")
+    # } else {
+    #   cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
+    # }
+    # time_in_parallel <- system.time({
+    #   # library needed. use pacman?
+    #   clusterEvalQ(cl, pacman::p_load(ctmm))
+    #   # export if needed
+    #   # use load balanced version
+    #   parLapplyLB(cl, chunks, test)
+    # })
+    # stopCluster(cl)
     # put serial version later so we can find parallel problem earlier.
     time_in_serial <- system.time(lapply(chunks, test))
     values$fitted_model <- list(time_in_serial = time_in_serial,
                                 time_in_parallel = time_in_parallel)
     print(values$fitted_model)
+    # values$fitted_model <- list(sysinfo = Sys.info(), platform = .Platform)
   })
   output$model_summary <- renderPrint({
     req(!is.null(values$fitted_model))
