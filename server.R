@@ -1254,8 +1254,10 @@ server <- function(input, output, session) {
       library(ctmm)
       export_test <- "test"
     })
-    time_in_parallel <- system.time(para_ll(chunks, test))
-    time_in_serial <- system.time(lapply(chunks, test))
+    withProgress({
+      time_in_parallel <- system.time(para_ll(chunks, test))
+      time_in_serial <- system.time(lapply(chunks, test))},
+      message = "Fitting models in parallel ...")
     values$fitted_model <- list(time_in_serial = time_in_serial,
                                 time_in_parallel = time_in_parallel)
     print(values$fitted_model)
