@@ -341,14 +341,14 @@ para_ll <- function(ll, fun) {
   if (sysinfo["user"] == "shiny") {
     res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
     return(res)
-  } else if (sysinfo["sysname"] == "Windows")  {
-    cat("running parallel in socket cluster\n")
+  } else if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
+    cat("running parallel in SOCKET cluster of", cluster_size, "\n")
     cl <- parallel::makeCluster(cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
     clusterExport(cl, c("exp_init"))
     clusterEvalQ(cl, eval(exp_init))
   } else {
-    cat("running parallel in fork cluster\n")
+    cat("running parallel in FORK cluster of", cluster_size, "\n")
     cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
   }
   print(system.time(res <- parLapplyLB(cl, ll, fun)))

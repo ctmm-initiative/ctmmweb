@@ -3,8 +3,8 @@ title: webapp
 account: ctmmtest
 server: shinyapps.io
 appId: 196675
-bundleId: 906950
+bundleId: 907366
 url: https://ctmmtest.shinyapps.io/webapp/
-when: 1500346382.31369
+when: 1500381129.27224
 asMultiple: FALSE
 asStatic: FALSE
