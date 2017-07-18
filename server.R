@@ -1249,7 +1249,8 @@ server <- function(input, output, session) {
       ctmm.select(x, CTMM = guessed)
     }
     # parallel ----
-    exp_init = expression({
+    # export take from global env, so need to assign in global
+    exp_init <<- expression({
       library(ctmm)
       export_test <- "test"
     })
