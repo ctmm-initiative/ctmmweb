@@ -334,3 +334,24 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
               non_empty_breaks = non_empty_breaks,
               vec_formatter = vec_formatter))
 }
+# parallel ----
+para_ll <- function(ll, fun) {
+  sysinfo <- Sys.info()
+  cluster_size <- min(length(ll), detectCores(logical = FALSE) * 3)
+  if (sysinfo["user"] == "shiny") {
+    res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
+    return(res)
+  } else if (sysinfo["sysname"] == "Windows")  {
+    cat("running parallel in socket cluster\n")
+    cl <- parallel::makeCluster(cluster_size, outfile = "")
+    # have to export parameter too because it's not available in remote
+    clusterExport(cl, c("exp_init"))
+    clusterEvalQ(cl, eval(exp_init))
+  } else {
+    cat("running parallel in fork cluster\n")
+    cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
+  }
+  print(system.time(res <- parLapplyLB(cl, ll, fun)))
+  stopCluster(cl)
+  return(res)
+}

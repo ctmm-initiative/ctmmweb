@@ -1236,8 +1236,8 @@ server <- function(input, output, session) {
     # guessed <- ctmm.guess(animal_1, interactive = FALSE)
     # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
     #              message = "Fitting models to find the best ...")
-    population <- 10
-    subset_size <- 300
+    population <- input$population
+    subset_size <- input$subset_size
     chunks <- lapply(1:population, function(i) {
       dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
         subset_size * i), ]))
@@ -1249,27 +1249,11 @@ server <- function(input, output, session) {
       ctmm.select(x, CTMM = guessed)
     }
     # parallel ----
-    os <- .Platform$OS.type
-    cores <- detectCores(logical = FALSE)
-    cat(os, "with", cores, "physical cores detected\n")
-    upper_limit <- cores * 3L
-    cluster_size <- min(population, upper_limit)
-    time_in_parallel <- system.time(mclapply(chunks, test,
-                                             mc.cores = cluster_size))
-    # if (os == "windows")  {
-    #   cl <- parallel::makeCluster(cluster_size, outfile = "")
-    # } else {
-    #   cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
-    # }
-    # time_in_parallel <- system.time({
-    #   # library needed. use pacman?
-    #   clusterEvalQ(cl, pacman::p_load(ctmm))
-    #   # export if needed
-    #   # use load balanced version
-    #   parLapplyLB(cl, chunks, test)
-    # })
-    # stopCluster(cl)
-    # put serial version later so we can find parallel problem earlier.
+    exp_init = expression({
+      library(ctmm)
+      export_test <- "test"
+    })
+    time_in_parallel <- system.time(para_ll(chunks, test))
     time_in_serial <- system.time(lapply(chunks, test))
     values$fitted_model <- list(time_in_serial = time_in_serial,
                                 time_in_parallel = time_in_parallel)
