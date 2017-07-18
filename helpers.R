@@ -191,7 +191,7 @@ calculate_speed <- function(animals_dt) {
 # merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # tele objs to data.table
 # assuming row order by timestamp and identity in same order with tele obj.
-dt_tele_objs <- function(tele_objs) {
+tele_list_to_dt <- function(tele_objs) {
   tele_list <- wrap_single_telemetry(tele_objs)
   animal_count <- length(tele_list)
   animal_data_list <- vector(mode = "list", length = animal_count)
@@ -214,7 +214,7 @@ dt_tele_objs <- function(tele_objs) {
 }
 # tele objs to data.table and info
 merge_animals <- function(tele_objs) {
-  return(list(data = dt_tele_objs(tele_objs),
+  return(list(data = tele_list_to_dt(tele_objs),
               info = info_tele_objs(tele_objs)))
 }
 
