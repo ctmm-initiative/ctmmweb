@@ -1023,13 +1023,20 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
-  output$vario_plot_zoom <- renderPlot({
-    req(vg())
-    if (input$fit_vario) {
+  config_fit_vario <- reactive({
+    if ("fit" %in% input$fit_vario) {
       GUESS_l <- values$GUESS_l
+      if ("error" %in% input$fit_vario) {
+        GUESS_l$error <- TRUE
+      }
     } else {
       GUESS_l <- NULL
     }
+    return(GUESS_l)
+  })
+  output$vario_plot_zoom <- renderPlot({
+    req(vg())
+    GUESS_l <- config_fit_vario()
     def.par <- par(no.readonly = TRUE)
     # layout(vg_layout()$layout_matrix)
     par(mfrow = c(vg_layout()$row_count, input$vario_columns),
@@ -1057,7 +1064,7 @@ server <- function(input, output, session) {
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
     tele_list <- req(select_data()$tele_list)
-    if (input$fit_vario) {
+    if ("fit" %in% input$fit_vario) {
       identities <- sapply(tele_list, function(x) x@info$identity)
       selectInput("fit_selected", "Fine-tune individual",
                   c("Not selected" = "", identities))
