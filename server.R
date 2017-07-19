@@ -1252,11 +1252,12 @@ server <- function(input, output, session) {
     # export take from global env, so need to assign in global
     exp_init <<- expression({
       library(ctmm)
-      export_test <- "test"
+      # export_test <- "test"
     })
     withProgress({
       time_in_parallel <- system.time(para_ll(chunks, test))
-      time_in_serial <- system.time(lapply(chunks, test))},
+      time_in_serial <- system.time(lapply(chunks, test))
+      },
       message = "Fitting models in parallel ...")
     values$fitted_model <- list(time_in_serial = time_in_serial,
                                 time_in_parallel = time_in_parallel)
