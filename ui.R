@@ -347,7 +347,7 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
 model_summary_box <- box(title = "test only", status = "warning",
                          solidHeader = TRUE, width = 12,
   fluidRow(
-           column(3, numericInput("population", "Population", value = 3, step = 1)),
+           column(3, numericInput("population", "Population", value = 8, step = 1)),
            column(3, numericInput("subset_size", "Size", value = 300)),
            column(3, br(), actionButton("fit", "Fit current model")),
            column(9, h4("Population * Size must < 3528"))),

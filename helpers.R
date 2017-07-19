@@ -338,23 +338,19 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 # cannot transfer cluster size as parameter, because of environment?
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()
-  cluster_size <- min(length(ll), detectCores(logical = FALSE) * 3)
-  if (sysinfo["user"] == "xhdong") {  # shiny for shinyapps.io
-    res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
-    return(res)
-  } else if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-    # windows have more communication overhead, use physical cores
-    cluster_size <- detectCores(logical = FALSE)
-    cat("running parallel in SOCKET cluster of", cluster_size, "\n")
-    cl <- parallel::makeCluster(cluster_size, outfile = "")
+  if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
+    win_cluster_size <- detectCores(logical = FALSE)
+    cat("running parallel in SOCKET cluster of", win_cluster_size, "\n")
+    cl <- parallel::makeCluster(win_cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
     clusterExport(cl, c("exp_init"))
     clusterEvalQ(cl, eval(exp_init))
+    print(system.time(res <- parLapplyLB(cl, ll, fun)))
+    stopCluster(cl)
   } else {
-    cat("running parallel in FORK cluster of", cluster_size, "\n")
-    cl <- parallel::makeCluster(cluster_size, type = "FORK", outfile = "")
+    cluster_size <- min(length(ll), detectCores(logical = FALSE) * 4)
+    cat("running parallel with mclapply in cluster of", cluster_size, "\n")
+    res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
   }
-  print(system.time(res <- parLapplyLB(cl, ll, fun)))
-  stopCluster(cl)
   return(res)
 }
