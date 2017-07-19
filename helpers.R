@@ -339,7 +339,7 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()
   cluster_size <- min(length(ll), detectCores(logical = FALSE) * 3)
-  if (sysinfo["user"] == "shiny") {
+  if (sysinfo["user"] == "xhdong") {  # shiny for shinyapps.io
     res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
     return(res)
   } else if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
