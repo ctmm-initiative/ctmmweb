@@ -1023,11 +1023,16 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
+  # values$GUESS_l created from input data and always update. but how to use it depend on these config parameters.
   config_fit_vario <- reactive({
     if ("fit" %in% input$fit_vario) {
       GUESS_l <- values$GUESS_l
       if ("error" %in% input$fit_vario) {
-        GUESS_l$error <- TRUE
+        # need to assign result back to list. lapply didn't change reference
+        GUESS_l <- lapply(GUESS_l, function(x) {
+          x$error <- TRUE
+          x
+        })
       }
     } else {
       GUESS_l <- NULL
@@ -1051,13 +1056,28 @@ server <- function(input, output, session) {
         plot(SVF_l_subset[[i]], CTMM = GUESS_l[[i]], fraction = 1,
              xlim = c(0, extent_tele["max", "x"]),
              ylim = c(0, extent_tele["max", "y"]))
-        title(SVF_l_subset[[i]]@info$identity)
+        if (!is.null(GUESS_l[[i]]) && GUESS_l[[i]]$error) {
+          title(SVF_l_subset[[i]]@info$identity, sub = "Error on",
+                cex.sub = 0.85, col.sub = "red")
+        } else {
+          title(SVF_l_subset[[i]]@info$identity)
+        }
       }
     } else {
       for (i in seq_along(vg()$SVF_l)) {
         plot(vg()$SVF_l[[i]], CTMM = GUESS_l[[i]],
              fraction = 10 ^ input$zoom_lag_fraction)
-        title(vg()$SVF_l[[i]]@info$identity)
+        # browser()
+        if (!is.null(GUESS_l[[i]]) && GUESS_l[[i]]$error) {
+          title(vg()$SVF_l[[i]]@info$identity, sub = "Error on",
+                cex.sub = 0.85, col.sub = "red")
+        } else {
+          title(vg()$SVF_l[[i]]@info$identity)
+        }
+
+        # if (GUESS_l[[i]]$error) {
+        #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
+        # }
       }
     }
   }, height = function() { vg_layout()$height })
