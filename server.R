@@ -1059,18 +1059,18 @@ server <- function(input, output, session) {
     if (input$vario_option == "absolute") {
       max.lag <- max(sapply(vg_list(), function(v){ last(v$lag) } ))
       xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
-      SVF_l_subset <- lapply(vg_list(),
+      vg_subset_list <- lapply(vg_list(),
                              function(vario) vario[vario$lag <= xlim, ])
-      extent_tele <- ctmm::extent(SVF_l_subset)
-      for (i in seq_along(SVF_l_subset)) {
-        plot(SVF_l_subset[[i]], CTMM = GUESS_l[[i]], fraction = 1,
+      extent_tele <- ctmm::extent(vg_subset_list)
+      for (i in seq_along(vg_subset_list)) {
+        plot(vg_subset_list[[i]], CTMM = GUESS_l[[i]], fraction = 1,
              xlim = c(0, extent_tele["max", "x"]),
              ylim = c(0, extent_tele["max", "y"]))
         if (!is.null(GUESS_l[[i]]) && GUESS_l[[i]]$error) {
-          title(SVF_l_subset[[i]]@info$identity, sub = "Error on",
+          title(vg_subset_list[[i]]@info$identity, sub = "Error on",
                 cex.sub = 0.85, col.sub = "red")
         } else {
-          title(SVF_l_subset[[i]]@info$identity)
+          title(vg_subset_list[[i]]@info$identity)
         }
       }
     } else {
