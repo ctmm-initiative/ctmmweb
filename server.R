@@ -9,7 +9,9 @@ server <- function(input, output, session) {
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals.
   verify_data <- reactive({
-    match_tele_merged(values$data$tele_list, values$data$merged)
+    if (debug_mode) {
+      match_tele_merged(values$data$tele_list, values$data$merged)
+    }
   })
   # $data <----
   values$data <- NULL  # 4 items need to be synced
@@ -641,7 +643,7 @@ server <- function(input, output, session) {
     points_to_remove <- select_distance_range()$animal_selected_data[
       input$points_in_distance_range_rows_selected]
     freezeReactiveValue(input, "points_in_distance_range_rows_selected")
-    selectRows(proxy_points_in_distance_range, NULL)
+    selectRows(proxy_points_in_distance_range, list())
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
     remove_outliers(points_to_remove)
@@ -783,7 +785,7 @@ server <- function(input, output, session) {
     # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
     # freeze it so all expression accessing it will be put on hold until update finish, because the reset here just send message to client, didn't update immediately
     freezeReactiveValue(input, "points_in_speed_range_rows_selected")
-    selectRows(proxy_points_in_speed_range, NULL)
+    selectRows(proxy_points_in_speed_range, list())
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
     remove_outliers(points_to_remove)

@@ -227,7 +227,7 @@ match_tele_merged <- function(tele_list, merged) {
     stopifnot(all.equal(dt_list[[x]][, timestamp:y],
                         data.table(data.frame(tele_list[[x]]))))
   })
-  # print("data consistency verified")
+  print("data consistency verified")
 }
 # ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22
 extent_dt <- function(animals_dt, level = 1, ...) {

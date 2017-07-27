@@ -10,7 +10,8 @@ pacman::p_load(shiny, shinydashboard, DT, markdown,
                httr, stringr, XML, xml2)
 # increase the uploading file size limit to 200M
 options(shiny.maxRequestSize = 200*1024^2)
-
+# enable more debugging and messages
+debug_mode <- FALSE
 # UI style constants ----
 # some are used in server call, so put them all here instead of ui.R
 # box, plotOutput, renderPlot, no need to set all three if need adjustment.
