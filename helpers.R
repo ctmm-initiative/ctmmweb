@@ -31,7 +31,7 @@ format_datetime <- function(datetime) {
   format(datetime, "%Y-%m-%d %H:%M")
 }
 # get single animal info in one row data frame
-info_single_tele <- function(object) {
+single_tele_info <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
   sampling_interval <- ifelse(length(diffs) == 0,
@@ -67,9 +67,9 @@ sort_tele_list <- function(tele_list) {
   tele_list[sort(names(tele_list))]
 }
 # taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
-info_tele_objs <- function(tele_objs){
+tele_list_info <- function(tele_objs){
   tele_list <- wrap_single_telemetry(tele_objs)
-  animal_info_list <- lapply(tele_list, info_single_tele)
+  animal_info_list <- lapply(tele_list, single_tele_info)
   rbindlist(animal_info_list)
 }
 
@@ -215,7 +215,7 @@ tele_list_to_dt <- function(tele_objs) {
 # tele objs to data.table and info
 merge_animals <- function(tele_objs) {
   return(list(data = tele_list_to_dt(tele_objs),
-              info = info_tele_objs(tele_objs)))
+              info = tele_list_info(tele_objs)))
 }
 
 # ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22

@@ -616,7 +616,7 @@ server <- function(input, output, session) {
       x[!(row.names(x) %in% points_to_remove[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-    info <- info_tele_objs(tele_list)
+    info <- tele_list_info(tele_list)
     # distance/speed calculation need to be updated. row_no not updated.
     # animals_dt <- calculate_distance(animals_dt)
     # animals_dt <- calculate_speed(animals_dt)
@@ -988,7 +988,7 @@ server <- function(input, output, session) {
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- sort_tele_list(values$data$tele_list)
     values$data$input_tele_list <- sort_tele_list(values$data$input_tele_list)
-    values$data$merged$info <- info_tele_objs(values$data$tele_list)
+    values$data$merged$info <- tele_list_info(values$data$tele_list)
     values$time_ranges <- NULL
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
