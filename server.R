@@ -1013,17 +1013,17 @@ server <- function(input, output, session) {
   callModule(click_help, "variogram", title = "Visual Diagnostics",
              size = "l", file = "help/5_visual_diagnostics.md")
   values$GUESS_l <- NULL
-  vg <- reactive({
+  vg_list <- reactive({
     tele_list <- req(select_data()$tele_list)
-    SVF_l <- lapply(tele_list, variogram)
+    # guess value need to be reactive so it can be modified in manual fit.
     values$GUESS_l <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
-    return(list(SVF_l = SVF_l))
+    lapply(tele_list, variogram)
   })
   # to be used in plot size, layout, shared by two tabs
   vg_layout <- reactive({
-    req(vg())
-    fig_count <- length(vg()$SVF_l)
+    req(vg_list())
+    fig_count <- length(vg_list())
     row_count <- ceiling(fig_count / input$vario_columns)
     # layout_matrix <- matrix(1:(row_count * input$vario_columns),
     #                         nrow = row_count,
@@ -1050,16 +1050,16 @@ server <- function(input, output, session) {
     return(GUESS_l)
   })
   output$vario_plot_zoom <- renderPlot({
-    req(vg())
+    req(vg_list())
     GUESS_l <- config_fit_vario()
     def.par <- par(no.readonly = TRUE)
     # layout(vg_layout()$layout_matrix)
     par(mfrow = c(vg_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     if (input$vario_option == "absolute") {
-      max.lag <- max(sapply(vg()$SVF_l, function(v){ last(v$lag) } ))
+      max.lag <- max(sapply(vg_list(), function(v){ last(v$lag) } ))
       xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
-      SVF_l_subset <- lapply(vg()$SVF_l,
+      SVF_l_subset <- lapply(vg_list(),
                              function(vario) vario[vario$lag <= xlim, ])
       extent_tele <- ctmm::extent(SVF_l_subset)
       for (i in seq_along(SVF_l_subset)) {
@@ -1074,15 +1074,15 @@ server <- function(input, output, session) {
         }
       }
     } else {
-      for (i in seq_along(vg()$SVF_l)) {
-        plot(vg()$SVF_l[[i]], CTMM = GUESS_l[[i]],
+      for (i in seq_along(vg_list())) {
+        plot(vg_list()[[i]], CTMM = GUESS_l[[i]],
              fraction = 10 ^ input$zoom_lag_fraction)
         # browser()
         if (!is.null(GUESS_l[[i]]) && GUESS_l[[i]]$error) {
-          title(vg()$SVF_l[[i]]@info$identity, sub = "Error on",
+          title(vg_list()[[i]]@info$identity, sub = "Error on",
                 cex.sub = 0.85, col.sub = "red")
         } else {
-          title(vg()$SVF_l[[i]]@info$identity)
+          title(vg_list()[[i]]@info$identity)
         }
 
         # if (GUESS_l[[i]]$error) {
@@ -1122,9 +1122,9 @@ server <- function(input, output, session) {
   })
   # init sliders ----
   init_guess <- reactive({
-    req(vg())
-    ids <- sapply(vg()$SVF_l, function(vario) vario@info$identity)
-    vario <- vg()$SVF_l[ids == input$fit_selected][[1]]
+    req(vg_list())
+    ids <- sapply(vg_list(), function(vario) vario@info$identity)
+    vario <- vg_list()[ids == input$fit_selected][[1]]
     CTMM <- values$GUESS_l[ids == input$fit_selected][[1]]
     res <- list()
     # CTMM <- ctmm.guess(buffalo[[1]], interactive = FALSE)
@@ -1250,7 +1250,7 @@ server <- function(input, output, session) {
   })
   observeEvent(input$tuned, {
     removeModal()
-    ids <- sapply(vg()$SVF_l, function(vario) vario@info$identity)
+    ids <- sapply(vg_list(), function(vario) vario@info$identity)
     values$GUESS_l[ids == input$fit_selected][[1]] <- updated_CTMM()
   })
   # p6. model selection ----

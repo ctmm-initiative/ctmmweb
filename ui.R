@@ -339,6 +339,8 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                             label = NULL,
                             choices = c("Absolute" = "absolute",
                                         "Relative" = "relative"),
+                            # the manual fit is by relative, if default abs user may not see the difference after changes.
+                            selected = "relative",
                             inline = FALSE)),
                   column(2, br(), br(), help_button("variogram")),
                   column(12, plotOutput("vario_plot_zoom",
