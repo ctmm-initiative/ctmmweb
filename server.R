@@ -8,7 +8,7 @@ server <- function(input, output, session) {
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals.
-  verify_data <- reactive({
+  verify_global_data <- reactive({
     if (debug_mode) {
       match_tele_merged(values$data$tele_list, values$data$merged)
     }
@@ -333,7 +333,7 @@ server <- function(input, output, session) {
       remaining_indice <- !(values$data$merged$info$identity %in% chosen_ids)
       values$data$merged$info <- values$data$merged$info[remaining_indice]
       values$data$tele_list <- values$data$tele_list[remaining_indice]
-      verify_data()
+      verify_global_data()
     }
   })
   proxy_individuals <- dataTableProxy("individuals")
@@ -366,6 +366,7 @@ server <- function(input, output, session) {
     # cat("chosen animals:\n")
     # print(animals_dt[, .N, by = identity])
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
+    # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data = animals_dt,
                 info = values$data$merged$info[subset_indice],
                 tele_list = values$data$tele_list[subset_indice]
@@ -630,7 +631,7 @@ server <- function(input, output, session) {
     values$data$tele_list <- tele_list
     values$data$merged <- NULL
     values$data$merged <- list(data = animals_dt, info = info)
-    verify_data()
+    verify_global_data()
   }
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
@@ -998,7 +999,7 @@ server <- function(input, output, session) {
     values$data$input_tele_list <- sort_tele_list(values$data$input_tele_list)
     values$data$merged$info <- tele_list_info(values$data$tele_list)
     values$time_ranges <- NULL
-    verify_data()
+    verify_global_data()
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
