@@ -7,6 +7,10 @@ source("cut_divide.R", local = TRUE)
 server <- function(input, output, session) {
   # p1. import ----
   values <- reactiveValues()
+  # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals.
+  verify_data <- reactive({
+    match_tele_merged(values$data$tele_list, values$data$merged)
+  })
   # $data <----
   values$data <- NULL  # 4 items need to be synced
   # important reactive value and expressions need special comments, use <--. the design need to well thought
@@ -327,6 +331,7 @@ server <- function(input, output, session) {
       remaining_indice <- !(values$data$merged$info$identity %in% chosen_ids)
       values$data$merged$info <- values$data$merged$info[remaining_indice]
       values$data$tele_list <- values$data$tele_list[remaining_indice]
+      verify_data()
     }
   })
   proxy_individuals <- dataTableProxy("individuals")
@@ -623,6 +628,7 @@ server <- function(input, output, session) {
     values$data$tele_list <- tele_list
     values$data$merged <- NULL
     values$data$merged <- list(data = animals_dt, info = info)
+    verify_data()
   }
   proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
                                                 deferUntilFlush = FALSE)
@@ -990,6 +996,7 @@ server <- function(input, output, session) {
     values$data$input_tele_list <- sort_tele_list(values$data$input_tele_list)
     values$data$merged$info <- tele_list_info(values$data$tele_list)
     values$time_ranges <- NULL
+    verify_data()
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
