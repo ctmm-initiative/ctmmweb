@@ -361,10 +361,19 @@ variograms_box <- box(title = "Variograms", status = "primary",
   # p5.v.a empirical
   # tabPanel("Empirical",
     fluidRow(
-      column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
-      column(4, radioButtons("vario_mode", NULL, choiceNames = c() )),
-      column(4, offset = 0, uiOutput("fit_selector")),
-      column(2, offset = 2, help_button("variogram")),
+      # column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
+      column(4, radioButtons("vario_mode", NULL,
+                             choiceNames = list(div(icon("battery-empty"),
+                                                    ("Empirical")),
+                                                div(icon("battery-half"),
+                                                    ("Guesstimate")),
+                                                div(icon("battery-full"),
+                                                    ("Modeled"))),
+                             choiceValues = c("empirical", "guesstimate",
+                                              "modeled")
+                             )),
+      column(4, offset = 0, br(), uiOutput("fit_selector")),
+      column(2, offset = 2, br(), help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
                          # less than 100%, otherwise out of boundary
                          width = "99%", height = "98%")))

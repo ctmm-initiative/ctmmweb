@@ -1012,6 +1012,7 @@ server <- function(input, output, session) {
   # p5. variogram ----
   callModule(click_help, "variogram", title = "Visual Diagnostics",
              size = "l", file = "help/5_visual_diagnostics.md")
+  # values$guess_list created from input data and save manual changes from fine tune.
   values$guess_list <- NULL
   # vg_list ----
   vg_list <- reactive({
@@ -1034,26 +1035,37 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
-  # values$guess_list created from input data and always update. but how to use it depend on these config parameters.
-  config_fit_vario <- reactive({
-    if (input$guesstimate) {
-      guess_list <- values$guess_list
-      # if ("error" %in% input$fit_vario) {
-      #   # need to assign result back to list. lapply didn't change reference
-      #   guess_list <- lapply(guess_list, function(x) {
-      #     x$error <- TRUE
-      #     x
-      #   })
-      # }
-    } else {
-      guess_list <- NULL
-    }
-    return(guess_list)
+  values$model_select_res <- NULL
+  # variogram CTMM ----
+  get_vario_ctmm_list <- reactive({
+    switch(input$vario_mode,
+           empirical = NULL,
+           guesstimate = values$guess_list,
+           # the plot will not shown when models are not fitted yet
+           modeled = lapply(req(values$model_select_res), function(x) {
+             x[[1]]
+           }))
+    # if (input$vario_mode == ) {
+    #   guess_list <- values$guess_list
+    #   # if ("error" %in% input$fit_vario) {
+    #   #   # need to assign result back to list. lapply didn't change reference
+    #   #   guess_list <- lapply(guess_list, function(x) {
+    #   #     x$error <- TRUE
+    #   #     x
+    #   #   })
+    #   # }
+    # } else {
+    #   guess_list <- NULL
+    # }
+    # return(guess_list)
   })
-  # empirical variograms ----
+  # plot variograms ----
   output$vario_plot_zoom <- renderPlot({
     req(vg_list())
-    guess_list <- config_fit_vario()
+    ctmm_list <- get_vario_ctmm_list()
+    ctmm_color <- switch(input$vario_mode,
+                         guesstimate = "green",
+                         modeled = "purple")
     def.par <- par(no.readonly = TRUE)
     # layout(vg_layout()$layout_matrix)
     par(mfrow = c(vg_layout()$row_count, input$vario_columns),
@@ -1065,10 +1077,11 @@ server <- function(input, output, session) {
                              function(vario) vario[vario$lag <= xlim, ])
       extent_tele <- ctmm::extent(vg_subset_list)
       for (i in seq_along(vg_subset_list)) {
-        plot(vg_subset_list[[i]], CTMM = guess_list[[i]], fraction = 1,
+        plot(vg_subset_list[[i]], CTMM = ctmm_list[[i]],
+             col.CTMM = ctmm_color, fraction = 1,
              xlim = c(0, extent_tele["max", "x"]),
              ylim = c(0, extent_tele["max", "y"]))
-        if (!is.null(guess_list[[i]]) && guess_list[[i]]$error) {
+        if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
           title(vg_subset_list[[i]]@info$identity, sub = "Error on",
                 cex.sub = 0.85, col.sub = "red")
         } else {
@@ -1077,17 +1090,18 @@ server <- function(input, output, session) {
       }
     } else {
       for (i in seq_along(vg_list())) {
-        plot(vg_list()[[i]], CTMM = guess_list[[i]],
+        plot(vg_list()[[i]], CTMM = ctmm_list[[i]],
+             col.CTMM = ctmm_color,
              fraction = 10 ^ input$zoom_lag_fraction)
         # browser()
-        if (!is.null(guess_list[[i]]) && guess_list[[i]]$error) {
+        if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
           title(vg_list()[[i]]@info$identity, sub = "Error on",
                 cex.sub = 0.85, col.sub = "red")
         } else {
           title(vg_list()[[i]]@info$identity)
         }
 
-        # if (guess_list[[i]]$error) {
+        # if (ctmm_list[[i]]$error) {
         #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
         # }
       }
@@ -1096,10 +1110,10 @@ server <- function(input, output, session) {
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
     tele_list <- req(select_data()$tele_list)
-    if (input$guesstimate) {
+    if (input$vario_mode == "guesstimate") {
       identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("fit_selected", NULL,
-                  c("Fine-tune individual" = "", identities))
+      selectInput("fit_selected", "Fine-tune individual",
+                  c("Not Selected" = "", identities))
     }
   })
   # fine tune fit start ----
@@ -1259,7 +1273,6 @@ server <- function(input, output, session) {
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_model_selection.md")
-  values$model_select_res <- NULL
   observeEvent(input$fit_models, {
     model_select <- function(tele_guess) {
       ctmm.select(tele_guess$a, CTMM = tele_guess$b,
