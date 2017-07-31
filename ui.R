@@ -305,9 +305,13 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                                        style = styles$page_action))
                    ),
           fluidRow(column(12, DT::dataTableOutput('time_ranges'))))
-# p5. variogram boxes ----
-vario_plot_zoom_box <- box(title = "Variogram with Zoom",
-                           status = "info", solidHeader = TRUE, width = 12,
+# p5. vario control ----
+vario_control_box <- tabBox(title = "Variogram Controls",
+                             id = "vario_control_tabs", width = 12,
+                             # p5.c.a layout ----
+                             tabPanel("Control",
+# vario_plot_zoom_box <- box(title = "Variogram with Zoom",
+#                            status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
         # column(4, checkboxInput("fit_vario", h4("Guesstimate model"))),
         column(4, checkboxGroupInput("fit_vario", label = NULL,
@@ -342,14 +346,24 @@ vario_plot_zoom_box <- box(title = "Variogram with Zoom",
                             # the manual fit is by relative, if default abs user may not see the difference after changes.
                             selected = "relative",
                             inline = FALSE)),
-                  column(2, br(), br(), help_button("variogram")),
-                  column(12, plotOutput("vario_plot_zoom",
-                                        # click = "vario_plot_zoom_click",
-                                        # dblclick = "vario_plot_zoom_dblclick",
-                                        # hover = "plot_hover",
-                                  # less than 100%, otherwise out of boundary
-                                         width = "99%", height = "98%"))
-                         ))
+                  column(2, br(), br(), help_button("variogram"))
+
+                         )),
+tabPanel("Irregular Data"))
+# p5. variograms ----
+variograms_box <- tabBox(title = "Variograms",
+                            id = "vario_tabs", width = 12,
+                            # p5.v.a empirical ----
+                            tabPanel("Empirical",
+                      fluidRow(                  column(12, plotOutput("vario_plot_zoom",
+                                                                       # click = "vario_plot_zoom_click",
+                                                                       # dblclick = "vario_plot_zoom_dblclick",
+                                                                       # hover = "plot_hover",
+                                                                       # less than 100%, otherwise out of boundary
+                                                                       width = "99%", height = "98%")))),
+                      tabPanel("Model",
+                               fluidRow())
+)
 # p6. model fitting ----
 # explain the result source, then print summary
 model_summary_box <- box(title = "test only", status = "warning",
@@ -402,8 +416,7 @@ body <- dashboardBody(
             fluidRow(outlier_filter_box,
                      all_removed_outliers_box)),
     tabItem(tabName = "visual",
-            # fluidRow(vario_plot_box_1, vario_plot_box_2),
-            fluidRow(vario_plot_zoom_box)),
+            fluidRow(vario_control_box, variograms_box)),
     tabItem(tabName = "model",
             fluidRow(model_summary_box)
             # ,
