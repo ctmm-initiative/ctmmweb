@@ -362,6 +362,7 @@ variograms_box <- box(title = "Variograms", status = "primary",
   # tabPanel("Empirical",
     fluidRow(
       column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
+      column(4, radioButtons("vario_mode", NULL, choiceNames = c() )),
       column(4, offset = 0, uiOutput("fit_selector")),
       column(2, offset = 2, help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
