@@ -346,6 +346,12 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
               vec_formatter = vec_formatter))
 }
 # parallel ----
+# windows need this ----
+# export take from global env, so need to assign in global
+exp_init <<- expression({
+  library(ctmm)
+  # export_test <- "test"
+})
 # cannot transfer cluster size as parameter, because of environment?
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()

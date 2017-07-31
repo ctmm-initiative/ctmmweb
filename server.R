@@ -1012,11 +1012,11 @@ server <- function(input, output, session) {
   # p5. variogram ----
   callModule(click_help, "variogram", title = "Visual Diagnostics",
              size = "l", file = "help/5_visual_diagnostics.md")
-  values$GUESS_l <- NULL
+  values$guess_list <- NULL
   vg_list <- reactive({
     tele_list <- req(select_data()$tele_list)
     # guess value need to be reactive so it can be modified in manual fit.
-    values$GUESS_l <- lapply(tele_list,
+    values$guess_list <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
     lapply(tele_list, variogram)
   })
@@ -1033,25 +1033,25 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
-  # values$GUESS_l created from input data and always update. but how to use it depend on these config parameters.
+  # values$guess_list created from input data and always update. but how to use it depend on these config parameters.
   config_fit_vario <- reactive({
     if ("fit" %in% input$fit_vario) {
-      GUESS_l <- values$GUESS_l
+      guess_list <- values$guess_list
       if ("error" %in% input$fit_vario) {
         # need to assign result back to list. lapply didn't change reference
-        GUESS_l <- lapply(GUESS_l, function(x) {
+        guess_list <- lapply(guess_list, function(x) {
           x$error <- TRUE
           x
         })
       }
     } else {
-      GUESS_l <- NULL
+      guess_list <- NULL
     }
-    return(GUESS_l)
+    return(guess_list)
   })
   output$vario_plot_zoom <- renderPlot({
     req(vg_list())
-    GUESS_l <- config_fit_vario()
+    guess_list <- config_fit_vario()
     def.par <- par(no.readonly = TRUE)
     # layout(vg_layout()$layout_matrix)
     par(mfrow = c(vg_layout()$row_count, input$vario_columns),
@@ -1063,10 +1063,10 @@ server <- function(input, output, session) {
                              function(vario) vario[vario$lag <= xlim, ])
       extent_tele <- ctmm::extent(vg_subset_list)
       for (i in seq_along(vg_subset_list)) {
-        plot(vg_subset_list[[i]], CTMM = GUESS_l[[i]], fraction = 1,
+        plot(vg_subset_list[[i]], CTMM = guess_list[[i]], fraction = 1,
              xlim = c(0, extent_tele["max", "x"]),
              ylim = c(0, extent_tele["max", "y"]))
-        if (!is.null(GUESS_l[[i]]) && GUESS_l[[i]]$error) {
+        if (!is.null(guess_list[[i]]) && guess_list[[i]]$error) {
           title(vg_subset_list[[i]]@info$identity, sub = "Error on",
                 cex.sub = 0.85, col.sub = "red")
         } else {
@@ -1075,17 +1075,17 @@ server <- function(input, output, session) {
       }
     } else {
       for (i in seq_along(vg_list())) {
-        plot(vg_list()[[i]], CTMM = GUESS_l[[i]],
+        plot(vg_list()[[i]], CTMM = guess_list[[i]],
              fraction = 10 ^ input$zoom_lag_fraction)
         # browser()
-        if (!is.null(GUESS_l[[i]]) && GUESS_l[[i]]$error) {
+        if (!is.null(guess_list[[i]]) && guess_list[[i]]$error) {
           title(vg_list()[[i]]@info$identity, sub = "Error on",
                 cex.sub = 0.85, col.sub = "red")
         } else {
           title(vg_list()[[i]]@info$identity)
         }
 
-        # if (GUESS_l[[i]]$error) {
+        # if (guess_list[[i]]$error) {
         #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
         # }
       }
@@ -1125,7 +1125,7 @@ server <- function(input, output, session) {
     req(vg_list())
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
     vario <- vg_list()[ids == input$fit_selected][[1]]
-    CTMM <- values$GUESS_l[ids == input$fit_selected][[1]]
+    CTMM <- values$guess_list[ids == input$fit_selected][[1]]
     res <- list()
     # CTMM <- ctmm.guess(buffalo[[1]], interactive = FALSE)
     fraction <- 0.5
@@ -1246,14 +1246,14 @@ server <- function(input, output, session) {
   output$fit_plot <- renderPlot({
     req(updated_CTMM())
     fraction <- init_guess()$b ^ input$fit_1_zoom
-    plot(init_guess()$vario,CTMM=updated_CTMM(),fraction=fraction)
+    plot(init_guess()$vario,CTMM = updated_CTMM(),fraction=fraction)
   })
   observeEvent(input$tuned, {
     removeModal()
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
-    values$GUESS_l[ids == input$fit_selected][[1]] <- updated_CTMM()
+    values$guess_list[ids == input$fit_selected][[1]] <- updated_CTMM()
   })
-  # p6. model selection ----
+  # p5. model selection ----
   # right now with all default parameter, no user selection
   # just fit the first individual, this is used as load test for deployed app
   # selected_model <- reactive({
@@ -1266,47 +1266,42 @@ server <- function(input, output, session) {
   #   withProgress(ctmm.select(animal_1, CTMM = guessed),
   #                message = "Fitting models to find the best ...")
   # })
-  values$fitted_model <- NULL
-  # test parallel ----
-  observeEvent(input$fit, {
-    animal_1 <- req(values$data$tele_list)[[1]]
-    # guessed <- ctmm.guess(animal_1, interactive = FALSE)
-    # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
-    #              message = "Fitting models to find the best ...")
-    population <- input$population
-    subset_size <- input$subset_size
-    chunks <- lapply(1:population, function(i) {
-      dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
-        subset_size * i), ]))
-      dt[, timestamp := as.character(timestamp)]
-      as.telemetry(dt)
-    })
-    test <- function(x) {
-      guessed <- ctmm.guess(x, interactive = FALSE)
-      ctmm.select(x, CTMM = guessed)
-    }
-    # parallel ----
-    # windows need this ----
-    # export take from global env, so need to assign in global
-    exp_init <<- expression({
-      library(ctmm)
-      # export_test <- "test"
-    })
-    withProgress({
-      time_in_parallel <- system.time(para_ll(chunks, test))
-      time_in_serial <- system.time(lapply(chunks, test))
-      },
-      message = "Fitting models in parallel ...")
-    values$fitted_model <- list(time_in_serial = time_in_serial,
-                                time_in_parallel = time_in_parallel)
-    print(values$fitted_model)
-    # values$fitted_model <- list(sysinfo = Sys.info(), platform = .Platform)
-  })
-  output$model_summary <- renderPrint({
-    req(!is.null(values$fitted_model))
-    print(values$fitted_model)
-    # summary(values$fitted_model)
-  })
+  # values$fitted_model <- NULL
+  # # test parallel ----
+  # observeEvent(input$fit, {
+  #   animal_1 <- req(values$data$tele_list)[[1]]
+  #   # guessed <- ctmm.guess(animal_1, interactive = FALSE)
+  #   # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
+  #   #              message = "Fitting models to find the best ...")
+  #   population <- input$population
+  #   subset_size <- input$subset_size
+  #   chunks <- lapply(1:population, function(i) {
+  #     dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
+  #       subset_size * i), ]))
+  #     dt[, timestamp := as.character(timestamp)]
+  #     as.telemetry(dt)
+  #   })
+  #   test <- function(x) {
+  #     guessed <- ctmm.guess(x, interactive = FALSE)
+  #     ctmm.select(x, CTMM = guessed)
+  #   }
+  #   # parallel ----
+  #
+  #   withProgress({
+  #     time_in_parallel <- system.time(para_ll(chunks, test))
+  #     time_in_serial <- system.time(lapply(chunks, test))
+  #     },
+  #     message = "Fitting models in parallel ...")
+  #   values$fitted_model <- list(time_in_serial = time_in_serial,
+  #                               time_in_parallel = time_in_parallel)
+  #   print(values$fitted_model)
+  #   # values$fitted_model <- list(sysinfo = Sys.info(), platform = .Platform)
+  # })
+  # output$model_summary <- renderPrint({
+  #   req(!is.null(values$fitted_model))
+  #   print(values$fitted_model)
+  #   # summary(values$fitted_model)
+  # })
   # output$model_plot_1 <- renderPlot({
   #   ouf <- selected_model()
   #   plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
@@ -1318,7 +1313,7 @@ server <- function(input, output, session) {
   #        col.CTMM = "#1b9e77",
   #        fraction = 0.1)
   # })
-  # home range ----
+  # p6. home range ----
   output$under_construction <- renderImage({
     list(src = "help/under_construction.jpg",
          contentType = "image/jpg")
