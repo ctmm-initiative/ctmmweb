@@ -313,17 +313,20 @@ vario_control_box <- tabBox(title = "Variogram Controls",
 # vario_plot_zoom_box <- box(title = "Variogram with Zoom",
 #                            status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
-        # column(4, checkboxInput("fit_vario", h4("Guesstimate model"))),
-        # column(4, checkboxGroupInput("fit_vario", label = NULL,
-        #             choiceNames = list(div(icon("question-circle-o"),
-        #                                    ("Guesstimate model")),
-        #                                div(icon("stethoscope"),
-        #                                    ("Telemetry error"))),
-        #             choiceValues = c("fit", "error"))),
-
-        # column(2, br(), actionButton("fine_tune", "",
-        #                              icon = icon("cog"))),
-        column(2, offset = 8, numericInput("vario_height",
+        tags$head(tags$script(HTML(JS.logify(3)))),
+        tags$head(tags$script(HTML(JS.onload("zoom_lag_fraction")))),
+        column(6, offset = 0, sliderInput("zoom_lag_fraction",
+                                          "Fraction of Time-lag range",
+                                          min = -3, max = 0, step = 0.01,
+                                          value = log10(0.5))),
+        column(2, offset = 0, radioButtons("vario_option",
+                                                 label = NULL,
+                                                 choices = c("Absolute" = "absolute",
+                                                             "Relative" = "relative"),
+                                                 # the manual fit is by relative, if default abs user may not see the difference after changes.
+                                                 selected = "relative",
+                                                 inline = FALSE)),
+        column(2, offset = 0, numericInput("vario_height",
                                            "Figure height",
                                            value = 250, min = 50, max = 800,
                                            step = 50)),
@@ -331,23 +334,7 @@ vario_control_box <- tabBox(title = "Variogram Controls",
                                            "Columns",
                                            value = 2, min = 1, max = 6,
                                            step = 1))
-      ),
-         fluidRow(
-           tags$head(tags$script(HTML(JS.logify(3)))),
-                  tags$head(tags$script(HTML(JS.onload("zoom_lag_fraction")))),
-                  column(8, offset = 0, sliderInput("zoom_lag_fraction",
-                                        "Fraction of Time-lag range",
-                                        min = -3, max = 0, step = 0.01,
-                                        value = log10(0.5))),
-                  column(2, offset = 0, br(), radioButtons("vario_option",
-                            label = NULL,
-                            choices = c("Absolute" = "absolute",
-                                        "Relative" = "relative"),
-                            # the manual fit is by relative, if default abs user may not see the difference after changes.
-                            selected = "relative",
-                            inline = FALSE)),
-                  column(2, br(), br(), help_button("variogram"))
-                         )),
+      )),
     # p5.c.b irregular ----
     tabPanel("Irregular Data",
              fluidRow(
@@ -374,15 +361,15 @@ variograms_box <- tabBox(title = "Variograms",
     fluidRow(
       column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
       column(4, offset = 0, uiOutput("fit_selector")),
+      column(2, offset = 2, help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
-                         # click = "vario_plot_zoom_click",
-                         # dblclick = "vario_plot_zoom_dblclick",
-                         # hover = "plot_hover",
                          # less than 100%, otherwise out of boundary
                          width = "99%", height = "98%")))),
   # p5.v.b model ----
   tabPanel("Model",
-           fluidRow())
+           fluidRow(column(12, plotOutput("vario_plot_model",
+                                          # less than 100%, otherwise out of boundary
+                                          width = "99%", height = "98%"))))
 )
 # p5. model selection ----
 model_selection_box <- box(title = "Model Selection", status = "info",
@@ -390,7 +377,9 @@ model_selection_box <- box(title = "Model Selection", status = "info",
   fluidRow(column(3, actionButton("fit_models", "Fit Models",
                                   icon = icon("hourglass-start"),
                                   style = styles$page_action)),
-           column(2, offset = 7, help_button("model_selection")),
+           column(5, checkboxInput("detailed_model_summary",
+                                   "Show model details")),
+           column(2, offset = 2, help_button("model_selection")),
            column(12, verbatimTextOutput("model_fit_results")))
   )
 # # explain the result source, then print summary

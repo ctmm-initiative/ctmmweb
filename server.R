@@ -1050,6 +1050,7 @@ server <- function(input, output, session) {
     }
     return(guess_list)
   })
+  # empirical variograms ----
   output$vario_plot_zoom <- renderPlot({
     req(vg_list())
     guess_list <- config_fit_vario()
@@ -1097,11 +1098,11 @@ server <- function(input, output, session) {
     tele_list <- req(select_data()$tele_list)
     if (input$guesstimate) {
       identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("fit_selected", "Fine-tune individual",
-                  c("Not selected" = "", identities))
+      selectInput("fit_selected", NULL,
+                  c("Fine-tune individual" = "", identities))
     }
   })
-  # fine tune fit ----
+  # fine tune fit start ----
   observeEvent(input$fit_selected, {
     if (input$fit_selected != "") {
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
@@ -1254,7 +1255,10 @@ server <- function(input, output, session) {
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
     values$guess_list[ids == input$fit_selected][[1]] <- updated_CTMM()
   })
+  # fine tune fit end ----
   # p5. model selection ----
+  callModule(click_help, "model_selection", title = "Model Selection",
+             size = "l", file = "help/5_model_selection.md")
   values$model_select_res <- NULL
   observeEvent(input$fit_models, {
     model_select <- function(tele_guess) {
@@ -1263,10 +1267,26 @@ server <- function(input, output, session) {
     }
     tele_guess_list <- align_list(req(select_data()$tele_list),
                                   values$guess_list)
-    print(system.time(model_select_res <- para_ll(tele_guess_list,
-                                                  model_select)))
+    withProgress(print(system.time(
+      values$model_select_res <- para_ll(tele_guess_list, model_select))),
+      message = "Fitting models to find the best ...")
+    updateTabsetPanel(session, "vario_tabs", selected = "Model")
   })
+  # model summary ----
+  output$model_fit_results <- renderPrint({
+    req(!is.null(values$model_select_res))
+    if (input$detailed_model_summary) {
+      lapply(values$model_select_res, function(x) {
+        lapply(x, summary)
+      })
+    } else {
+      lapply(values$model_select_res, summary)
+    }
+  })
+  # model variograms ----
+  output$vario_plot_model <- renderPlot({
 
+  })
   # right now with all default parameter, no user selection
   # just fit the first individual, this is used as load test for deployed app
   # selected_model <- reactive({
