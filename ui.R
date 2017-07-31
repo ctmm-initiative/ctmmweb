@@ -354,22 +354,24 @@ vario_control_box <- tabBox(title = "Variogram Controls",
                column(2, offset = 7, help_button("vario_irregular"))
                )))
 # p5. variograms ----
-variograms_box <- tabBox(title = "Variograms",
-                            id = "vario_tabs", width = 12,
-  # p5.v.a empirical ----
-  tabPanel("Empirical",
+variograms_box <- box(title = "Variograms", status = "primary",
+    solidHeader = TRUE, width = 12,
+# variograms_box <- tabBox(title = "Variograms",
+#                             id = "vario_tabs", width = 12,
+  # p5.v.a empirical
+  # tabPanel("Empirical",
     fluidRow(
       column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
       column(4, offset = 0, uiOutput("fit_selector")),
       column(2, offset = 2, help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
                          # less than 100%, otherwise out of boundary
-                         width = "99%", height = "98%")))),
-  # p5.v.b model ----
-  tabPanel("Model",
-           fluidRow(column(12, plotOutput("vario_plot_model",
-                                          # less than 100%, otherwise out of boundary
-                                          width = "99%", height = "98%"))))
+                         width = "99%", height = "98%")))
+  # p5.v.b model
+  # tabPanel("Model",
+  #          fluidRow(column(12, plotOutput("vario_plot_model",
+  #                                         # less than 100%, otherwise out of boundary
+  #                                         width = "99%", height = "98%"))))
 )
 # p5. model selection ----
 model_selection_box <- box(title = "Model Selection", status = "info",
