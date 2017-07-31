@@ -15,7 +15,7 @@ sidebar <- dashboardSidebar(
     menuItem("Filter Outliers", tabName = "filter", icon = icon("filter")),
     menuItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
     menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
-    menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
+    # menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Work Report", tabName = "report", icon = icon("file-text-o"))
   )
@@ -248,8 +248,8 @@ all_removed_outliers_box <- box(title = "Removed Outliers",
                                DT::dataTableOutput("all_removed_outliers"))))
 # p4. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
-histogram_subsetting_box <- box(title = "Select Time Range",
-                                status = "info", solidHeader = TRUE, width = 12,
+histogram_subsetting_box <- box(title = "Select Time Range", status = "info",
+                                solidHeader = TRUE, width = 12,
                                 height = styles$height_hist_subset_box,
       fluidRow(column(6, offset = 0,
                       sliderInput("time_color_bins", "Histogram Bins",
@@ -381,33 +381,46 @@ variograms_box <- tabBox(title = "Variograms",
   tabPanel("Model",
            fluidRow())
 )
-# p6. model fitting ----
-# explain the result source, then print summary
-model_summary_box <- box(title = "test only", status = "warning",
+# p5. model selection ----
+model_selection_box <- box(title = "Model Selection", status = "info",
                          solidHeader = TRUE, width = 12,
-  fluidRow(
-           column(3, numericInput("population", "Population", value = 8, step = 1)),
-           column(3, numericInput("subset_size", "Size", value = 300)),
-           column(3, br(), actionButton("fit", "Fit current model")),
-           column(9, h4("Population * Size must < 3528"))),
-  fluidRow(column(12, verbatimTextOutput("model_summary"))))
-model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
-                        status = "primary", solidHeader = TRUE,
-                        plotOutput("model_plot_1"))
-model_plot_box_2 <- box(title = "Variogram with model for minimal lag",
-                        status = "primary", solidHeader = TRUE,
-                        plotOutput("model_plot_2"))
-# p7. home range ----
+  fluidRow(column(3, actionButton("fit_models", "Fit Models",
+                                  icon = icon("hourglass-start"),
+                                  style = styles$page_action)),
+           column(2, offset = 7, help_button("model_selection")),
+           column(12, verbatimTextOutput("model_fit_results")))
+  )
+# # explain the result source, then print summary
+# model_summary_box <- box(title = "test only", status = "warning",
+#                          solidHeader = TRUE, width = 12,
+#   fluidRow(
+#            column(3, numericInput("population", "Population", value = 8, step = 1)),
+#            column(3, numericInput("subset_size", "Size", value = 300)),
+#            column(3, br(), actionButton("fit", "Fit current model")),
+#            column(9, h4("Population * Size must < 3528"))),
+#   fluidRow(column(12, verbatimTextOutput("model_summary"))))
+# model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
+#                         status = "primary", solidHeader = TRUE,
+#                         plotOutput("model_plot_1"))
+# model_plot_box_2 <- box(title = "Variogram with model for minimal lag",
+#                         status = "primary", solidHeader = TRUE,
+#                         plotOutput("model_plot_2"))
+# p6. home range ----
 under_construction_box <- box(title = "Coming soon", status = "primary",
                               solidHeader = TRUE, width = 12
                               )
-range_summary_box <- box(title = "Home Range Estimation", status = "info",
-                         solidHeader = TRUE, width = 12,
-                         verbatimTextOutput("range_summary"))
-range_plot_box <- tabBox(title = "Home Range Estimation plot",
-                         id = "rangeplottabs", height = "450px", width = 12,
-                         tabPanel("Basic Plot", plotOutput("range_plot_basic")),
-                         tabPanel("ggplot2", plotOutput("range_plot_gg")))
+range_box <- box(title = "Home Range Estimation", status = "info",
+                 solidHeader = TRUE, width = 12,
+   fluidRow(column(12, verbatimTextOutput("range_summary")),
+            column(12, plotOutput("range_plot")))
+                 )
+# range_summary_box <- box(title = "Home Range Estimation", status = "info",
+#                          solidHeader = TRUE, width = 12,
+#                          verbatimTextOutput("range_summary"))
+# range_plot_box <- tabBox(title = "Home Range Estimation plot",
+#                          id = "rangeplottabs", height = "450px", width = 12,
+#                          tabPanel("Basic Plot", plotOutput("range_plot_basic")),
+#                          tabPanel("ggplot2", plotOutput("range_plot_gg")))
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
@@ -433,17 +446,15 @@ body <- dashboardBody(
             fluidRow(outlier_filter_box,
                      all_removed_outliers_box)),
     tabItem(tabName = "visual",
-            fluidRow(vario_control_box, variograms_box)),
-    tabItem(tabName = "model",
-            fluidRow(model_summary_box)
-            # ,
-            # fluidRow(model_plot_box_1, model_plot_box_2)
-            ),
-    tabItem(tabName = "homerange"
-            ,
-            under_construction_box
-            # fluidRow(range_summary_box),
-            # fluidRow(range_plot_box)
+            fluidRow(vario_control_box, variograms_box, model_selection_box)),
+    # tabItem(tabName = "model",
+    #         fluidRow(model_summary_box)
+    #         # ,
+    #         # fluidRow(model_plot_box_1, model_plot_box_2)
+    #         ),
+    tabItem(tabName = "homerange",
+            # under_construction_box
+            fluidRow(range_box)
             ),
     tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
   )
