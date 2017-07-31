@@ -1011,7 +1011,9 @@ server <- function(input, output, session) {
   })
   # p5. variogram ----
   callModule(click_help, "variogram", title = "Visual Diagnostics",
-             size = "l", file = "help/5_visual_diagnostics.md")
+             size = "l", file = "help/5_a_visual_diagnostics.md")
+  callModule(click_help, "vario_irregular", title = "Irregular Data",
+             size = "l", file = "help/5_b_irregular_data.md")
   # values$guess_list created from input data and save manual changes from fine tune.
   values$guess_list <- NULL
   # vg_list ----
@@ -1258,7 +1260,7 @@ server <- function(input, output, session) {
     CTMM$info <- attr(init_guess()$vario, "info")
     CTMM <- do.call("ctmm",CTMM)
   })
-  # draw plot based on sliders ----
+  # update plot by sliders ----
   output$fit_plot <- renderPlot({
     req(updated_CTMM())
     fraction <- init_guess()$b ^ input$fit_1_zoom
@@ -1272,7 +1274,7 @@ server <- function(input, output, session) {
   # fine tune fit end ----
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
-             size = "l", file = "help/5_model_selection.md")
+             size = "l", file = "help/5_c_model_selection.md")
   observeEvent(input$fit_models, {
     model_select <- function(tele_guess) {
       ctmm.select(tele_guess$a, CTMM = tele_guess$b,
@@ -1283,7 +1285,7 @@ server <- function(input, output, session) {
     withProgress(print(system.time(
       values$model_select_res <- para_ll(tele_guess_list, model_select))),
       message = "Fitting models to find the best ...")
-    updateTabsetPanel(session, "vario_tabs", selected = "Model")
+    updateRadioButtons(session, "vario_mode", selected = "modeled")
   })
   # model summary ----
   output$model_fit_results <- renderPrint({
@@ -1295,10 +1297,6 @@ server <- function(input, output, session) {
     } else {
       lapply(values$model_select_res, summary)
     }
-  })
-  # model variograms ----
-  output$vario_plot_model <- renderPlot({
-
   })
   # right now with all default parameter, no user selection
   # just fit the first individual, this is used as load test for deployed app
