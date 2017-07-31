@@ -346,12 +346,20 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
               vec_formatter = vec_formatter))
 }
 # parallel ----
-# windows need this ----
+# need to prepare exp_init for windows version ----
+# try to include all variables in the lapply list so fun only take one parameter. that means exp_init usually only init libraries.
 # export take from global env, so need to assign in global
 exp_init <<- expression({
   library(ctmm)
-  # export_test <- "test"
 })
+# generate a new list, each item have two item from list a and b. use a b because we want to name the item, but difficult to use original name of input
+align_list <- function(list_a, list_b) {
+  stopifnot(length(list_a) == length(list_b))
+  # use lapply instead of for only because we can get a list without initialization
+  lapply(seq_along(list_a), function(i) {
+    list(a = list_a[[i]], b = list_b[[i]])
+  })
+}
 # cannot transfer cluster size as parameter, because of environment?
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()

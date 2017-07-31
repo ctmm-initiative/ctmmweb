@@ -1013,6 +1013,7 @@ server <- function(input, output, session) {
   callModule(click_help, "variogram", title = "Visual Diagnostics",
              size = "l", file = "help/5_visual_diagnostics.md")
   values$guess_list <- NULL
+  # vg_list ----
   vg_list <- reactive({
     tele_list <- req(select_data()$tele_list)
     # guess value need to be reactive so it can be modified in manual fit.
@@ -1035,15 +1036,15 @@ server <- function(input, output, session) {
   })
   # values$guess_list created from input data and always update. but how to use it depend on these config parameters.
   config_fit_vario <- reactive({
-    if ("fit" %in% input$fit_vario) {
+    if (input$guesstimate) {
       guess_list <- values$guess_list
-      if ("error" %in% input$fit_vario) {
-        # need to assign result back to list. lapply didn't change reference
-        guess_list <- lapply(guess_list, function(x) {
-          x$error <- TRUE
-          x
-        })
-      }
+      # if ("error" %in% input$fit_vario) {
+      #   # need to assign result back to list. lapply didn't change reference
+      #   guess_list <- lapply(guess_list, function(x) {
+      #     x$error <- TRUE
+      #     x
+      #   })
+      # }
     } else {
       guess_list <- NULL
     }
@@ -1094,7 +1095,7 @@ server <- function(input, output, session) {
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
     tele_list <- req(select_data()$tele_list)
-    if ("fit" %in% input$fit_vario) {
+    if (input$guesstimate) {
       identities <- sapply(tele_list, function(x) x@info$identity)
       selectInput("fit_selected", "Fine-tune individual",
                   c("Not selected" = "", identities))
@@ -1254,6 +1255,18 @@ server <- function(input, output, session) {
     values$guess_list[ids == input$fit_selected][[1]] <- updated_CTMM()
   })
   # p5. model selection ----
+  values$model_select_res <- NULL
+  observeEvent(input$fit_models, {
+    model_select <- function(tele_guess) {
+      ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                  trace = TRUE, verbose = TRUE)
+    }
+    tele_guess_list <- align_list(req(select_data()$tele_list),
+                                  values$guess_list)
+    print(system.time(model_select_res <- para_ll(tele_guess_list,
+                                                  model_select)))
+  })
+
   # right now with all default parameter, no user selection
   # just fit the first individual, this is used as load test for deployed app
   # selected_model <- reactive({
