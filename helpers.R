@@ -370,7 +370,7 @@ para_ll <- function(ll, fun) {
     # have to export parameter too because it's not available in remote
     clusterExport(cl, c("exp_init"))
     clusterEvalQ(cl, eval(exp_init))
-    print(system.time(res <- parLapplyLB(cl, ll, fun)))
+    res <- parLapplyLB(cl, ll, fun)
     stopCluster(cl)
   } else {
     cluster_size <- min(length(ll), detectCores(logical = FALSE) * 4)
