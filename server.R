@@ -21,6 +21,13 @@ server <- function(input, output, session) {
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
+  # for any data source changes, need to update these 4 items together.
+  update_input_data <- function(tele_list) {
+    values$data$input_tele_list <- tele_list
+    values$data$tele_list <- tele_list
+    values$data$merged <- merge_animals(tele_list)
+    values$data$all_removed_outliers <- NULL
+  }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
   data_import <- function(data) {
@@ -40,13 +47,9 @@ server <- function(input, output, session) {
     req(all(unlist(test_class)))
     # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
     tele_list <- sort_tele_list(tele_list)
-    # for any data source changes, need to update these 4 items together.
-    values$data$input_tele_list <- tele_list
-    values$data$tele_list <- tele_list
-    values$data$merged <- merge_animals(tele_list)
-    values$data$all_removed_outliers <- NULL
+    update_input_data(tele_list)
   }
-  # clicking browse button without changing radio button should also update
+  # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   file_uploaded <- function(){
     data_import(input$file1$datapath)
     updateRadioButtons(session, "load_option", selected = "upload")
@@ -61,20 +64,13 @@ server <- function(input, output, session) {
     switch(input$load_option,
            ctmm = {
              data("buffalo")
-             # values$input_tele_list <- buffalo
-             values$data$input_tele_list <- buffalo
-             values$data$tele_list <- buffalo
-             values$data$merged <- merge_animals(buffalo)
-             values$data$all_removed_outliers <- NULL
+             update_input_data(buffalo)
              updateTabItems(session, "tabs", "plots")
            },
            ctmm_sample = {
              data("buffalo")
              sample_data <- pick_m_tele_list(buffalo, input$sample_size)
-             values$data$input_tele_list <- sample_data
-             values$data$tele_list <- sample_data
-             values$data$merged <- merge_animals(sample_data)
-             values$data$all_removed_outliers <- NULL
+             update_input_data(sample_data)
              updateTabItems(session, "tabs", "plots")
            },
            upload = {
