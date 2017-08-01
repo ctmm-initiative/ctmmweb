@@ -58,19 +58,43 @@ server <- function(input, output, session) {
   })
   # observe radio button changes
   observeEvent(input$load_option, {
-    if (input$load_option == "ctmm") {
-      data("buffalo")
-      # values$input_tele_list <- buffalo
-      values$data$input_tele_list <- buffalo
-      values$data$tele_list <- buffalo
-      values$data$merged <- merge_animals(buffalo)
-      values$data$all_removed_outliers <- NULL
-      updateTabItems(session, "tabs", "plots")
-    } else if (input$load_option == "upload") {
-      # need to check NULL input from source, stop error in downstream
-      req(input$file1)
-      file_uploaded()
-    }
+    switch(input$load_option,
+           ctmm = {
+             data("buffalo")
+             # values$input_tele_list <- buffalo
+             values$data$input_tele_list <- buffalo
+             values$data$tele_list <- buffalo
+             values$data$merged <- merge_animals(buffalo)
+             values$data$all_removed_outliers <- NULL
+             updateTabItems(session, "tabs", "plots")
+           },
+           ctmm_sample = {
+             data("buffalo")
+             sample_data <- pick_m_tele_list(buffalo, input$sample_size)
+             values$data$input_tele_list <- sample_data
+             values$data$tele_list <- sample_data
+             values$data$merged <- merge_animals(sample_data)
+             values$data$all_removed_outliers <- NULL
+             updateTabItems(session, "tabs", "plots")
+           },
+           upload = {
+             # need to check NULL input from source, stop error in downstream
+             req(input$file1)
+             file_uploaded()
+           })
+    # if (input$load_option == "ctmm") {
+    #   data("buffalo")
+    #   # values$input_tele_list <- buffalo
+    #   values$data$input_tele_list <- buffalo
+    #   values$data$tele_list <- buffalo
+    #   values$data$merged <- merge_animals(buffalo)
+    #   values$data$all_removed_outliers <- NULL
+    #   updateTabItems(session, "tabs", "plots")
+    # } else if (input$load_option == "upload") {
+    #   # need to check NULL input from source, stop error in downstream
+    #   req(input$file1)
+    #   file_uploaded()
+    # }
   })
   callModule(click_help, "import", title = "Data Import Options", size = "m",
              file = "help/1_import_options.md")

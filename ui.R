@@ -28,13 +28,19 @@ sidebar <- dashboardSidebar(
 upload_box <- box(title = "Local Data Import",
                   # height = styles$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 6,
-    radioButtons('load_option', NULL,
-                 c("Use Bufflo Data in ctmm" = 'ctmm',
-                   "Upload Movebank format file" = 'upload'),
-                 selected = "upload"),
-    tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}"),
-    fileInput('file1', label = ""),
-    column(5, offset = 7, help_button("import")))
+  fluidRow(column(8, radioButtons('load_option', NULL,
+                                  c("Sample Buffalo Data" = 'ctmm_sample',
+                                    "Use Bufflo Data in ctmm" = 'ctmm',
+                                    "Upload Movebank format file" = 'upload'),
+                                  selected = "upload"),
+      tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}")
+                  ),
+          column(4, numericInput("sample_size", "Sample Size",
+                                 value = 100, step = 50)),
+          column(12, fileInput('file1', label = "")),
+          column(5, offset = 7, help_button("import"))
+           )
+    )
 movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6,
                           height = styles$height_movebank_login_box,

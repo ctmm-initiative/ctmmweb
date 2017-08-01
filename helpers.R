@@ -379,3 +379,18 @@ para_ll <- function(ll, fun) {
   }
   return(res)
 }
+# sample buffalo data ----
+pick_m <- function(n, m) {
+  floor(seq(from = 1, to = n, length.out = m))
+}
+pick_m_tele <- function(tele, m) {
+  # dt <- data.table(data.frame(tele[pick_m(nrow(tele), m), ]))
+  # dt[, timestamp := as.character(timestamp)]
+  # as.telemetry(dt)
+  tele[pick_m(nrow(tele), m), ]
+}
+pick_m_tele_list <- function(tele_list, m) {
+  lapply(buffalo, function(x) {
+    pick_m_tele(x, m)
+  })
+}
