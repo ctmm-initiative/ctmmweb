@@ -1093,7 +1093,6 @@ server <- function(input, output, session) {
                          guesstimate = "green",
                          modeled = "purple")
     def.par <- par(no.readonly = TRUE)
-    # layout(vg_layout()$layout_matrix)
     par(mfrow = c(vg_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     if (input$vario_option == "absolute") {
@@ -1132,6 +1131,7 @@ server <- function(input, output, session) {
         # }
       }
     }
+    par(def.par)
   }, height = function() { vg_layout()$height })
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
@@ -1322,89 +1322,29 @@ server <- function(input, output, session) {
       lapply(values$model_select_res, summary)
     }
   })
-  # right now with all default parameter, no user selection
-  # just fit the first individual, this is used as load test for deployed app
-  # selected_model <- reactive({
-  #   # debug
-  #   # if (debug) {
-  #   #   cat(file = stderr(), "fitting models\n")
-  #   # }
-  #   animal_1 <- req(values$data$tele_list)[[1]]
-  #   guessed <- ctmm.guess(animal_1, interactive = FALSE)
-  #   withProgress(ctmm.select(animal_1, CTMM = guessed),
-  #                message = "Fitting models to find the best ...")
-  # })
-  # values$fitted_model <- NULL
-  # # test parallel ----
-  # observeEvent(input$fit, {
-  #   animal_1 <- req(values$data$tele_list)[[1]]
-  #   # guessed <- ctmm.guess(animal_1, interactive = FALSE)
-  #   # values$fitted_model <- withProgress(ctmm.select(animal_1, CTMM = guessed),
-  #   #              message = "Fitting models to find the best ...")
-  #   population <- input$population
-  #   subset_size <- input$subset_size
-  #   chunks <- lapply(1:population, function(i) {
-  #     dt <- data.table(data.frame(animal_1[(1 + subset_size * (i - 1)):(
-  #       subset_size * i), ]))
-  #     dt[, timestamp := as.character(timestamp)]
-  #     as.telemetry(dt)
-  #   })
-  #   test <- function(x) {
-  #     guessed <- ctmm.guess(x, interactive = FALSE)
-  #     ctmm.select(x, CTMM = guessed)
-  #   }
-  #   # parallel ----
-  #
-  #   withProgress({
-  #     time_in_parallel <- system.time(para_ll(chunks, test))
-  #     time_in_serial <- system.time(lapply(chunks, test))
-  #     },
-  #     message = "Fitting models in parallel ...")
-  #   values$fitted_model <- list(time_in_serial = time_in_serial,
-  #                               time_in_parallel = time_in_parallel)
-  #   print(values$fitted_model)
-  #   # values$fitted_model <- list(sysinfo = Sys.info(), platform = .Platform)
-  # })
-  # output$model_summary <- renderPrint({
-  #   req(!is.null(values$fitted_model))
-  #   print(values$fitted_model)
-  #   # summary(values$fitted_model)
-  # })
-  # output$model_plot_1 <- renderPlot({
-  #   ouf <- selected_model()
-  #   plot(vg.animal_1(), CTMM = ouf, col.CTMM = "#1b9e77")
-  # })
-  # output$model_plot_2 <- renderPlot({
-  #   ouf <- selected_model()
-  #   plot(vg.animal_1(),
-  #        CTMM = ouf,
-  #        col.CTMM = "#1b9e77",
-  #        fraction = 0.1)
-  # })
   # p6. home range ----
-  output$under_construction <- renderImage({
-    list(src = "help/under_construction.jpg",
-         contentType = "image/jpg")
-  })
-  akde.animal_1 <- reactive({
-    # debug
-    # if (debug) {
-    #   cat(file = stderr(), "akde running\n")
-    # }
-    animal_1 <- req(values$input_tele_list)
-    ouf <- selected_model()
-    withProgress(akde(animal_1,CTMM = ouf), message = "Calculating home range ...")
+  # hrange_list ----
+  hrange_list <- reactive({
+    tele_list <- req(select_data()$tele_list)
+    model_select_res_1st_item <- lapply(req(values$model_select_res),
+                                        function(x) { x[[1]] })
+    withProgress(res <- akde(tele_list, CTMM = model_select_res_1st_item),
+                 message = "Calculating home range ...")
+    return(res)
   })
   output$range_summary <- renderPrint({
-    akde1 <- akde.animal_1()
-    # TODO use validate
-    if (is.null(akde1))
-      cat("No model selected yet")
-    else{
-      summary(akde1)
-    }
+    lapply(hrange_list(), summary)
   })
-  output$range_plot_basic <- renderPlot({
-    plot(req(values$input_tele_list), UD = akde.animal_1())
-  })
+  output$range_plot <- renderPlot({
+    tele_list <- req(select_data()$tele_list)
+    def.par <- par(no.readonly = TRUE)
+    par(mfrow = c(vg_layout()$row_count, input$vario_columns),
+        mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+    lapply(seq_along(tele_list), function(i) {
+      plot(tele_list[[i]], UD = hrange_list()[[i]])
+      title(tele_list[[i]]@info$identity)
+      # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
+    })
+    par(def.par)
+  }, height = function() { vg_layout()$height })
 }

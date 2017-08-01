@@ -381,7 +381,7 @@ variograms_box <- box(title = "Variograms", status = "primary",
       column(4, offset = 0, br(), uiOutput("fit_selector")),
       column(2, offset = 2, br(), help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
-                         # less than 100%, otherwise out of boundary
+                         # less than 100%, otherwise out of boundary because we updated figure size by parameter
                          width = "99%", height = "98%")))
   # p5.v.b model
   # tabPanel("Model",
@@ -419,11 +419,15 @@ model_selection_box <- box(title = "Model Selection", status = "info",
 under_construction_box <- box(title = "Coming soon", status = "primary",
                               solidHeader = TRUE, width = 12
                               )
-range_box <- box(title = "Home Range Estimation", status = "info",
+range_plot_box <- box(title = "Home Range Estimation", status = "info",
                  solidHeader = TRUE, width = 12,
-   fluidRow(column(12, verbatimTextOutput("range_summary")),
-            column(12, plotOutput("range_plot")))
-                 )
+   fluidRow(column(12, plotOutput("range_plot",
+                                  # less than 100%, otherwise out of boundary
+                                  width = "99%", height = "98%"))))
+range_summary_box <- box(title = "Home Range Summary", status = "primary",
+                      solidHeader = TRUE, width = 12,
+                      fluidRow(column(12, verbatimTextOutput("range_summary")))
+)
 # range_summary_box <- box(title = "Home Range Estimation", status = "info",
 #                          solidHeader = TRUE, width = 12,
 #                          verbatimTextOutput("range_summary"))
@@ -464,7 +468,7 @@ body <- dashboardBody(
     #         ),
     tabItem(tabName = "homerange",
             # under_construction_box
-            fluidRow(range_box)
+            fluidRow(range_plot_box, range_summary_box)
             ),
     tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
   )
