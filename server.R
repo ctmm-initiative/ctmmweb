@@ -1307,7 +1307,7 @@ server <- function(input, output, session) {
     tele_guess_list <- align_list(req(select_data()$tele_list),
                                   values$guess_list)
     withProgress(print(system.time(
-      values$model_select_res <- memo_para_ll(tele_guess_list, model_select))),
+      values$model_select_res <- para_ll(tele_guess_list, model_select))),
       message = "Fitting models to find the best ...")
     updateRadioButtons(session, "vario_mode", selected = "modeled")
   })

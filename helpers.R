@@ -379,7 +379,7 @@ para_ll <- function(ll, fun) {
   }
   return(res)
 }
-memo_para_ll <- memoise(para_ll)
+# memo_para_ll <- memoise(para_ll)
 # sample buffalo data ----
 pick_m <- function(n, m) {
   floor(seq(from = 1, to = n, length.out = m))
