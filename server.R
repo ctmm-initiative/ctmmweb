@@ -27,6 +27,7 @@ server <- function(input, output, session) {
     values$data$tele_list <- tele_list
     values$data$merged <- merge_animals(tele_list)
     values$data$all_removed_outliers <- NULL
+    updateTabItems(session, "tabs", "plots")
   }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
@@ -65,13 +66,11 @@ server <- function(input, output, session) {
            ctmm = {
              data("buffalo")
              update_input_data(buffalo)
-             updateTabItems(session, "tabs", "plots")
            },
            ctmm_sample = {
              data("buffalo")
              sample_data <- pick_m_tele_list(buffalo, input$sample_size)
              update_input_data(sample_data)
-             updateTabItems(session, "tabs", "plots")
            },
            upload = {
              # need to check NULL input from source, stop error in downstream
