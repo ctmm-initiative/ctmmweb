@@ -15,10 +15,14 @@ format_distance_f <- function(v){
 format_seconds_f <- function(secs) {
   pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time", concise = FALSE)
 }
+# note we cannot use format_speed_f(vec)(vec) for value in data.table, which may call the function for single value and lost context in whole vector.
 format_speed_f <- function(speed) {
   pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed", concise = TRUE)
 }
-# note we cannot use format_speed_f(vec)(vec) for value in data.table, which may call the function for single value and lost context in whole vector.
+format_area_f <- function(area) {
+  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "speed", concise = TRUE)
+}
+
 # intended for single input
 format_diff_time <- function(diff_t) {
   diff_t_secs <- as.numeric(diff_t, units = "secs")
