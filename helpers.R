@@ -20,7 +20,7 @@ format_speed_f <- function(speed) {
   pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed", concise = TRUE)
 }
 format_area_f <- function(area) {
-  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "speed", concise = TRUE)
+  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area", concise = TRUE)
 }
 
 # intended for single input
