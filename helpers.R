@@ -436,6 +436,19 @@ merge_up <- function(dt_list, meta_name) {
 move_to_start <- function(name_vec, to_move){
   c(to_move, name_vec[!(name_vec %in% to_move)])
 }
+summary_ctmm_list_dt <- function(tele_list, model_select_res) {
+  # need to start from the bottom level
+  # list for each animal
+  animal_dt_list <- lapply(model_select_res, function(animal) {
+    # one model one table, list of models for one animal
+    model_dt_list <- lapply(animal, summary_ctmm_dt)
+    merge_up(model_dt_list, "model")
+  })
+  # assign name so we can use it
+  names(animal_dt_list) <- names(tele_list)
+  res_dt <- merge_up(animal_dt_list, "identity")
+  setcolorder(res_dt, move_to_start(names(res_dt), c("identity", "model")))
+}
 format_summary_dt <- function(dt, format_f_list) {
   # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
   for (i in seq_along(format_f_list)) {
