@@ -1299,7 +1299,7 @@ server <- function(input, output, session) {
       ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                   trace = TRUE, verbose = TRUE)
     }
-    tele_guess_list <- align_list(req(select_data()$tele_list),
+    tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
     withProgress(print(system.time(
       values$model_select_res <- para_ll(tele_guess_list, model_select))),
@@ -1307,15 +1307,22 @@ server <- function(input, output, session) {
     updateRadioButtons(session, "vario_mode", selected = "modeled")
   })
   # model summary ----
-  output$model_fit_results <- renderPrint({
-    req(!is.null(values$model_select_res))
-    if (input$detailed_model_summary) {
-      lapply(values$model_select_res, function(x) {
-        lapply(x, summary)
-      })
-    } else {
-      lapply(values$model_select_res, summary)
-    }
+  # output$model_fit_results <- renderPrint({
+  #   req(!is.null(values$model_select_res))
+  #   if (input$detailed_model_summary) {
+  #     lapply(values$model_select_res, function(x) {
+  #       lapply(x, summary)
+  #     })
+  #   } else {
+  #     lapply(values$model_select_res, summary)
+  #   }
+  # })
+  output$model_fit_summary_dt <- DT::renderDataTable({
+    # should not need to use req on reactive expression if that expression have req inside.
+    ctmm_info_dt <- summary_ctmm_list_dt(select_data()$tele_list,
+                                         req(values$model_select_res))
+    dt <- format_ctmm_summary(ctmm_info_dt)
+    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE)
   })
   # p6. home range ----
   # hrange_list ----
@@ -1327,8 +1334,13 @@ server <- function(input, output, session) {
                  message = "Calculating home range ...")
     return(res)
   })
-  output$range_summary <- renderPrint({
-    lapply(hrange_list(), summary)
+  # output$range_summary <- renderPrint({
+  #   lapply(hrange_list(), summary)
+  # })
+  output$range_summary_dt <- DT::renderDataTable({
+    hrange_summary_dt <- summary_hrange_list_dt(req(hrange_list()))
+    dt <- format_hrange_summary(hrange_summary_dt)
+    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE)
   })
   output$range_plot <- renderPlot({
     tele_list <- req(select_data()$tele_list)

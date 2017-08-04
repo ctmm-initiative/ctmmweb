@@ -1,7 +1,13 @@
-# helper functions that useful to shiny app, only need to run once
+# helper functions that useful to shiny app. fold the functions in script so it's easier to copy. keep comments in code so it's easy to update code later as two versions are identical.
 # to be placed in same directory of app.r/server.r
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
+# need to round up digits otherwise DT is showing too many digits
+unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
+  function(x){
+    paste(scales::comma(round(x * scale, 3), ...), unit, sep = sep)
+  }
+}
 pick_best_unit_f <- function(test_value, dimension, concise) {
   # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   best_unit <- ctmm:::unit(test_value, dimension, thresh = 1, concise = concise)
@@ -395,4 +401,84 @@ pick_m_tele_list <- function(tele_list, m) {
   lapply(buffalo, function(x) {
     pick_m_tele(x, m)
   })
+}
+# format ctmm model summary ----
+summary_ctmm_dt <- function(model) {
+  # convert the named vectors into data table, keep relevant info
+  model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
+    data.table(t(data.frame(item)), keep.rownames = TRUE)
+  })
+  # any modification to dof_dt actually changed the parameter. this cause problems in rerun the function second time.
+  dof_dt <- copy(model_summary_list[["DOF"]])
+  ci_dt <- copy(model_summary_list[["CI"]])
+  # need literal treatment by item name because every case is different
+  # we need row name of CI, but not dof
+  dof_dt[, rn := NULL]
+  setnames(dof_dt, names(dof_dt), str_c("DOF ", names(dof_dt)))
+  setnames(ci_dt, "rn", "estimate")
+  ci_dt[estimate %in% c("low", "high"), estimate := str_c("CI ", estimate)]
+  # with SI units, we only need to know which type of unit. the actual format need to happen after the whole table is built. so we only need a mapping from col name to proper unit function later.
+  setnames(ci_dt, names(ci_dt), str_replace_all(names(ci_dt), "\\s\\(.*", ""))
+  # two part need to bind together, add model name col, then add animal name col in last step. because of row number difference, it's easier to use merge, add common col first.
+  dof_dt[, item := 1]
+  ci_dt[, item := 1]
+  res_dt <- merge(dof_dt, ci_dt, by = "item")
+  res_dt[, item := NULL]
+}
+merge_up <- function(dt_list, meta_name) {
+  item_names <- names(dt_list)
+  # we modify reference so no need to save return value
+  lapply(seq_along(dt_list), function(i) {
+    dt_list[[i]][, (meta_name) := item_names[i]]
+  })
+  rbindlist(dt_list, fill = TRUE)
+}
+move_to_start <- function(name_vec, to_move){
+  c(to_move, name_vec[!(name_vec %in% to_move)])
+}
+format_summary_dt <- function(dt, format_f_list) {
+  # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
+  for (i in seq_along(format_f_list)) {
+    # tried to use identity for cols don't need change, but we cannot update existing cols because col type changed
+    if (!is.null(format_f_list[[i]])) {
+      dt[, paste0(names(dt)[i], "_units") := format_f_list[[i]](dt[[names(dt)[i]]])]
+    }
+  }
+  new_cols <- names(dt)[str_detect(names(dt), "_units")]
+  old_cols <- str_replace_all(new_cols, "_units", "")
+  dt[, (old_cols) := NULL]
+  setnames(dt, new_cols, old_cols)
+}
+format_ctmm_summary <- function(summary_dt) {
+  # data.table modify reference, use copy so we can rerun same line again
+  dt <- copy(summary_dt)
+  format_f_list <- lapply(names(dt), function(col_name) {
+    switch(col_name,
+           area = format_area_f(dt[[col_name]]),
+           `tau position` = format_seconds_f(dt[[col_name]]),
+           `tau velocity` = format_seconds_f(dt[[col_name]]),
+           speed = format_speed_f(dt[[col_name]]),
+           error = format_distance_f(dt[[col_name]])
+    )
+  })
+  # not really used, but easier to debug
+  # names(format_f_list) <- names(dt)
+  format_summary_dt(dt, format_f_list)
+}
+summary_hrange_list_dt <- function(hrange_list) {
+  range_dt_list <- lapply(hrange_list, summary_ctmm_dt)
+  range_dt <- merge_up(range_dt_list, "identity")
+  setcolorder(range_dt, move_to_start(names(range_dt), "identity"))
+}
+format_hrange_summary <- function(hrange_summary_dt) {
+  # data.table modify reference, use copy so we can rerun same line again
+  dt <- copy(hrange_summary_dt)
+  format_f_list <- lapply(names(dt), function(col_name) {
+    switch(col_name,
+           area = format_area_f(dt[[col_name]])
+    )
+  })
+  # not really used, but easier to debug
+  # names(format_f_list) <- names(dt)
+  format_summary_dt(dt, format_f_list)
 }

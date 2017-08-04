@@ -395,26 +395,13 @@ model_selection_box <- box(title = "Model Selection", status = "info",
   fluidRow(column(3, actionButton("fit_models", "Fit Models",
                                   icon = icon("hourglass-start"),
                                   style = styles$page_action)),
-           column(5, checkboxInput("detailed_model_summary",
-                                   "Show model details")),
-           column(2, offset = 2, help_button("model_selection")),
-           column(12, verbatimTextOutput("model_fit_results")))
+           # column(5, checkboxInput("detailed_model_summary",
+           #                         "Show model details")),
+           column(2, offset = 7, help_button("model_selection")),
+           column(12, br()),
+           column(12, DT::dataTableOutput("model_fit_summary_dt")))
+           # column(12, verbatimTextOutput("model_fit_results")))
   )
-# # explain the result source, then print summary
-# model_summary_box <- box(title = "test only", status = "warning",
-#                          solidHeader = TRUE, width = 12,
-#   fluidRow(
-#            column(3, numericInput("population", "Population", value = 8, step = 1)),
-#            column(3, numericInput("subset_size", "Size", value = 300)),
-#            column(3, br(), actionButton("fit", "Fit current model")),
-#            column(9, h4("Population * Size must < 3528"))),
-#   fluidRow(column(12, verbatimTextOutput("model_summary"))))
-# model_plot_box_1 <- box(title = "Variogram with model for up to 50% lag",
-#                         status = "primary", solidHeader = TRUE,
-#                         plotOutput("model_plot_1"))
-# model_plot_box_2 <- box(title = "Variogram with model for minimal lag",
-#                         status = "primary", solidHeader = TRUE,
-#                         plotOutput("model_plot_2"))
 # p6. home range ----
 under_construction_box <- box(title = "Coming soon", status = "primary",
                               solidHeader = TRUE, width = 12
@@ -426,7 +413,10 @@ range_plot_box <- box(title = "Home Range Estimation", status = "info",
                                   width = "99%", height = "98%"))))
 range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       solidHeader = TRUE, width = 12,
-                      fluidRow(column(12, verbatimTextOutput("range_summary")))
+                      fluidRow(
+                        column(12, DT::dataTableOutput("range_summary_dt"))
+                        # column(12, verbatimTextOutput("range_summary"))
+                        )
 )
 # range_summary_box <- box(title = "Home Range Estimation", status = "info",
 #                          solidHeader = TRUE, width = 12,
