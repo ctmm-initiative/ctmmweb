@@ -3,35 +3,47 @@
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
 # need to round up digits otherwise DT is showing too many digits
+# hardcoded values are round to 4 digits, print 2 digits.
 unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
   function(x){
-    paste(scales::comma(round(x * scale, 3), ...), unit, sep = sep)
+    paste(scales::comma(round(x * scale, 4), ...), unit, sep = sep)
   }
 }
-pick_best_unit_f <- function(test_value, dimension, concise) {
+# km <- unit_format(unit = "km", scale = 1e-3, digits = 2)
+# km()
+# extra round option when really needed
+pick_best_unit_f <- function(test_value, dimension, concise, round = FALSE) {
   # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   best_unit <- ctmm:::unit(test_value, dimension, thresh = 1, concise = concise)
-  scales::unit_format(unit = best_unit$name, scale = 1 / best_unit$scale,
-                      digits = 2
-                      # , nsmall = 2  # using this will cause 60 mins become 60.00
-                      )
+  if (round) {
+    unit_format_round(unit = best_unit$name, scale = 1 / best_unit$scale,
+                      digits = 2)
+  } else {
+    scales::unit_format(unit = best_unit$name, scale = 1 / best_unit$scale,
+                        digits = 2
+                        # , nsmall = 2  # using this will cause 60 mins become 60.00
+    )
+  }
 }
 # function will take vector as input, but only return a format function which is good for scales in ggplot. will need to apply to vector again if need the formated result.
-format_distance_f <- function(v){
+format_distance_f <- function(v, round = FALSE){
   # didn't use median because it could be near zero with positive and negative values
-  pick_best_unit_f(max(abs(v), na.rm = TRUE)/2, dimension = "length", concise = TRUE)
+  pick_best_unit_f(max(abs(v), na.rm = TRUE)/2, dimension = "length",
+                   concise = TRUE, round = round)
 }
-format_seconds_f <- function(secs) {
-  pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time", concise = FALSE)
+format_seconds_f <- function(secs, round = FALSE) {
+  pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time",
+                   concise = FALSE, round = round)
 }
 # note we cannot use format_speed_f(vec)(vec) for value in data.table, which may call the function for single value and lost context in whole vector.
-format_speed_f <- function(speed) {
-  pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed", concise = TRUE)
+format_speed_f <- function(speed, round = FALSE) {
+  pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed",
+                   concise = TRUE, round = round)
 }
-format_area_f <- function(area) {
-  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area", concise = TRUE)
+format_area_f <- function(area, round = FALSE) {
+  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area",
+                   concise = TRUE, round = round)
 }
-
 # intended for single input
 format_diff_time <- function(diff_t) {
   diff_t_secs <- as.numeric(diff_t, units = "secs")
@@ -465,17 +477,22 @@ format_summary_dt <- function(dt, format_f_list) {
 format_ctmm_summary <- function(summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(summary_dt)
+  # speed is m/day, need manual adjust before ctmm update on this
+  dt[, speed := speed / (24 * 3600)]
+  # round up dof mean, area
+  dt[, `DOF mean` := round(`DOF mean`, 3)]
+  dt[, `DOF area` := round(`DOF area`, 3)]
   format_f_list <- lapply(names(dt), function(col_name) {
     switch(col_name,
-           area = format_area_f(dt[[col_name]]),
-           `tau position` = format_seconds_f(dt[[col_name]]),
-           `tau velocity` = format_seconds_f(dt[[col_name]]),
-           speed = format_speed_f(dt[[col_name]]),
-           error = format_distance_f(dt[[col_name]])
+           area = format_area_f(dt[[col_name]], round = TRUE),
+           `tau position` = format_seconds_f(dt[[col_name]], round = TRUE),
+           `tau velocity` = format_seconds_f(dt[[col_name]], round = TRUE),
+           speed = format_speed_f(dt[[col_name]], round = TRUE),
+           error = format_distance_f(dt[[col_name]], round = TRUE)
     )
   })
   # not really used, but easier to debug
-  # names(format_f_list) <- names(dt)
+  names(format_f_list) <- names(dt)
   format_summary_dt(dt, format_f_list)
 }
 summary_hrange_list_dt <- function(hrange_list) {
@@ -486,9 +503,11 @@ summary_hrange_list_dt <- function(hrange_list) {
 format_hrange_summary <- function(hrange_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(hrange_summary_dt)
+  dt[, `DOF area` := round(`DOF area`, 3)]
+  dt[, `DOF bandwidth` := round(`DOF bandwidth`, 3)]
   format_f_list <- lapply(names(dt), function(col_name) {
     switch(col_name,
-           area = format_area_f(dt[[col_name]])
+           area = format_area_f(dt[[col_name]], round = TRUE)
     )
   })
   # not really used, but easier to debug
