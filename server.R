@@ -1322,11 +1322,12 @@ server <- function(input, output, session) {
     ctmm_info_dt <- summary_ctmm_list_dt(select_data()$tele_list,
                                          req(values$model_select_res))
     dt <- format_ctmm_summary(ctmm_info_dt)
-    id_vec <- unique(dt$identity)
+    # need the full info table to keep the color mapping when only a subset is selected
+    info_p <- values$data$merged$info
     datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
       formatStyle('identity', target = 'row',
-                  color = styleEqual(id_vec,
-                                     hue_pal()(length(id_vec)))
+                  color = styleEqual(info_p$identity,
+                                     hue_pal()(nrow(info_p)))
       )
   })
   # p6. home range ----
@@ -1345,11 +1346,11 @@ server <- function(input, output, session) {
   output$range_summary_dt <- DT::renderDataTable({
     hrange_summary_dt <- summary_hrange_list_dt(req(hrange_list()))
     dt <- format_hrange_summary(hrange_summary_dt)
-    id_vec <- unique(dt$identity)
+    info_p <- values$data$merged$info
     datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
       formatStyle('identity', target = 'row',
-                  color = styleEqual(id_vec,
-                                     hue_pal()(length(id_vec)))
+                  color = styleEqual(info_p$identity,
+                                     hue_pal()(nrow(info_p)))
       )
   })
   output$range_plot <- renderPlot({
