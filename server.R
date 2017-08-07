@@ -322,8 +322,8 @@ server <- function(input, output, session) {
       formatStyle('identity', target = 'row',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
-      )}
-  )
+      )
+  })
   # delete selected individuals ----
   # update tele_list, merged data and info, all removed outliers
   observeEvent(input$delete_individuals, {
@@ -1322,7 +1322,12 @@ server <- function(input, output, session) {
     ctmm_info_dt <- summary_ctmm_list_dt(select_data()$tele_list,
                                          req(values$model_select_res))
     dt <- format_ctmm_summary(ctmm_info_dt)
-    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE)
+    id_vec <- unique(dt$identity)
+    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
+      formatStyle('identity', target = 'row',
+                  color = styleEqual(id_vec,
+                                     hue_pal()(length(id_vec)))
+      )
   })
   # p6. home range ----
   # hrange_list ----
@@ -1340,7 +1345,12 @@ server <- function(input, output, session) {
   output$range_summary_dt <- DT::renderDataTable({
     hrange_summary_dt <- summary_hrange_list_dt(req(hrange_list()))
     dt <- format_hrange_summary(hrange_summary_dt)
-    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE)
+    id_vec <- unique(dt$identity)
+    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
+      formatStyle('identity', target = 'row',
+                  color = styleEqual(id_vec,
+                                     hue_pal()(length(id_vec)))
+      )
   })
   output$range_plot <- renderPlot({
     tele_list <- req(select_data()$tele_list)
