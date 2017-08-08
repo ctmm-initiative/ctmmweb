@@ -385,6 +385,10 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
+model_select <- function(tele_guess) {
+  ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+              trace = TRUE, verbose = TRUE)
+}
 # cannot transfer cluster size as parameter, because of environment?
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()

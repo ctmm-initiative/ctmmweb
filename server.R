@@ -1295,15 +1295,12 @@ server <- function(input, output, session) {
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
   observeEvent(input$fit_models, {
-    model_select <- function(tele_guess) {
-      ctmm.select(tele_guess$a, CTMM = tele_guess$b,
-                  trace = TRUE, verbose = TRUE)
-    }
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
     withProgress(print(system.time(
       values$model_select_res <- para_ll(tele_guess_list, model_select))),
       message = "Fitting models to find the best ...")
+    names(values$model_select_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
   })
   # model summary ----
