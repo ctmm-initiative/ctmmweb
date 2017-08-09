@@ -1337,7 +1337,7 @@ server <- function(input, output, session) {
     }
     selected_models_dt <- merge(selected_dt, summary_models()$models_dt,
                                 by = c("identity", "model_name"))
-    selected_tele_list <- tele_list[selected_dt$identity]
+    selected_tele_list <- select_data()$tele_list[selected_dt$identity]
     selected_models <- selected_models_dt$model
     return(list(dt = selected_dt,
                 tele_list = selected_tele_list,
@@ -1393,6 +1393,7 @@ server <- function(input, output, session) {
     withProgress(print(system.time(selected_occurrences <-
                                      para_ll(ud_para_list, ud_calc))),
                  message = "Calculating Occurrence Distributions ...")
+    # plot
     def.par <- par(no.readonly = TRUE)
     par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
