@@ -1048,10 +1048,6 @@ server <- function(input, output, session) {
     req(vg_list())
     fig_count <- length(vg_list())
     row_count <- ceiling(fig_count / input$vario_columns)
-    # layout_matrix <- matrix(1:(row_count * input$vario_columns),
-    #                         nrow = row_count,
-    #                         ncol = input$vario_columns,
-    #                         byrow = TRUE)
     height <- input$vario_height * row_count
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
@@ -1347,6 +1343,13 @@ server <- function(input, output, session) {
                 tele_list = selected_tele_list,
                 models = selected_models))
   })
+  select_models_layout <- reactive({
+    fig_count <- length(select_models()$models)
+    row_count <- ceiling(fig_count / input$vario_columns)
+    height <- input$vario_height * row_count
+    # return(list(layout_matrix = layout_matrix, height = height))
+    return(list(row_count = row_count, height = height))
+  })
   # hrange_list ----
   selected_hrange_list <- reactive({
     withProgress(res <- akde(select_models()$tele_list,
@@ -1354,9 +1357,6 @@ server <- function(input, output, session) {
                  message = "Calculating home range ...")
     return(res)
   })
-  # output$range_summary <- renderPrint({
-  #   lapply(hrange_list(), summary)
-  # })
   output$range_summary <- DT::renderDataTable({
     hrange_summary_dt <- summary_models_dt(build_hrange_dt(
       select_models()$dt, selected_hrange_list()))
@@ -1374,7 +1374,7 @@ server <- function(input, output, session) {
   output$range_plot <- renderPlot({
     selected_tele_list <- select_models()$tele_list
     def.par <- par(no.readonly = TRUE)
-    par(mfrow = c(vg_layout()$row_count, input$vario_columns),
+    par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(selected_tele_list), function(i) {
       plot(selected_tele_list[[i]], UD = selected_hrange_list()[[i]])
@@ -1382,5 +1382,29 @@ server <- function(input, output, session) {
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
     par(def.par)
-  }, height = function() { vg_layout()$height })
+  }, height = function() { select_models_layout()$height })
+  # p7. occurrence plot ----
+  output$occurrence_plot <- renderPlot({
+    selected_tele_list <- select_models()$tele_list
+    ud_para_list <- align_list(selected_tele_list, select_models()$models)
+    ud_calc <- function(ud_para_list) {
+      occurrence(ud_para_list$a, ud_para_list$b)
+    }
+    withProgress(print(system.time(selected_occurrences <-
+                                     para_ll(ud_para_list, ud_calc))),
+                 message = "Calculating Occurrence Distributions ...")
+    def.par <- par(no.readonly = TRUE)
+    par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
+        mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+    lapply(seq_along(selected_occurrences), function(i) {
+      tryCatch({
+        plot(selected_occurrences[[i]])
+      }, error = function(e) {
+        warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
+        plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
+      })
+      title(select_models()$dt[i, paste0(identity, " - ", model_name)])
+    })
+    par(def.par)
+  }, height = function() { select_models_layout()$height })
 }
