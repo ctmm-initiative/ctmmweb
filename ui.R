@@ -17,6 +17,7 @@ sidebar <- dashboardSidebar(
     menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
     # menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
+    menuItem("Occurrence", tabName = "occurrence", icon = icon("map-marker")),
     menuItem("Work Report", tabName = "report", icon = icon("file-text-o"))
   )
   # ,
@@ -395,17 +396,17 @@ model_selection_box <- box(title = "Model Selection", status = "info",
   fluidRow(column(3, actionButton("fit_models", "Fit Models",
                                   icon = icon("hourglass-start"),
                                   style = styles$page_action)),
-           # column(5, checkboxInput("detailed_model_summary",
-           #                         "Show model details")),
-           column(2, offset = 7, help_button("model_selection")),
+           column(5, checkboxInput("show_ci_model",
+                                   "Show Confidence Intervals")),
+           column(2, offset = 2, help_button("model_selection")),
            column(12, br()),
-           column(12, DT::dataTableOutput("model_fit_summary_dt")))
+           column(12, DT::dataTableOutput("model_fit_summary")))
            # column(12, verbatimTextOutput("model_fit_results")))
   )
 # p6. home range ----
-under_construction_box <- box(title = "Coming soon", status = "primary",
-                              solidHeader = TRUE, width = 12
-                              )
+# under_construction_box <- box(title = "Coming soon", status = "primary",
+#                               solidHeader = TRUE, width = 12
+#                               )
 range_plot_box <- box(title = "Home Range Estimation", status = "info",
                  solidHeader = TRUE, width = 12,
    fluidRow(column(12, plotOutput("range_plot",
@@ -414,17 +415,17 @@ range_plot_box <- box(title = "Home Range Estimation", status = "info",
 range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
-                        column(12, DT::dataTableOutput("range_summary_dt"))
+                        column(4, checkboxInput("show_ci_hrange",
+                                                "Show Confidence Intervals")),
+                        column(12, DT::dataTableOutput("range_summary"))
                         # column(12, verbatimTextOutput("range_summary"))
                         )
 )
-# range_summary_box <- box(title = "Home Range Estimation", status = "info",
-#                          solidHeader = TRUE, width = 12,
-#                          verbatimTextOutput("range_summary"))
-# range_plot_box <- tabBox(title = "Home Range Estimation plot",
-#                          id = "rangeplottabs", height = "450px", width = 12,
-#                          tabPanel("Basic Plot", plotOutput("range_plot_basic")),
-#                          tabPanel("ggplot2", plotOutput("range_plot_gg")))
+# p7. occurrence ----
+occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
+                      solidHeader = TRUE, width = 12,
+                      fluidRow(column(12, plotOutput("occurrence_plot",
+                                width = "99%", height = "98%"))))
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
@@ -460,6 +461,8 @@ body <- dashboardBody(
             # under_construction_box
             fluidRow(range_plot_box, range_summary_box)
             ),
+    tabItem(tabName = "occurrence",
+            fluidRow(occurrence_plot_box)),
     tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
   )
 )

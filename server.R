@@ -1303,22 +1303,23 @@ server <- function(input, output, session) {
     names(values$model_select_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
   })
-  # model summary ----
-  # output$model_fit_results <- renderPrint({
-  #   req(!is.null(values$model_select_res))
-  #   if (input$detailed_model_summary) {
-  #     lapply(values$model_select_res, function(x) {
-  #       lapply(x, summary)
-  #     })
-  #   } else {
-  #     lapply(values$model_select_res, summary)
-  #   }
-  # })
-  output$model_fit_summary_dt <- DT::renderDataTable({
+  # summary_models() ----
+  # summary table and model dt with model as list column
+  summary_models <- reactive({
+    # the dt with model in list column
+    models_dt <- build_models_dt(req(values$model_select_res))
+    # the model summary table
+    model_summary_dt <- summary_models_dt(models_dt)
+    formated_summary_dt <- format_ctmm_summary(model_summary_dt)
+    if (!input$show_ci_model) {
+      formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
+    }
+    return(list(models_dt = models_dt,
+                summary_dt = formated_summary_dt))
+  })
+  output$model_fit_summary <- DT::renderDataTable({
     # should not need to use req on reactive expression if that expression have req inside.
-    ctmm_info_dt <- summary_ctmm_list_dt(select_data()$tele_list,
-                                         req(values$model_select_res))
-    dt <- format_ctmm_summary(ctmm_info_dt)
+    dt <- summary_models()$summary_dt
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
@@ -1328,21 +1329,41 @@ server <- function(input, output, session) {
       )
   })
   # p6. home range ----
+  # select_models() ----
+  select_models <- reactive({
+    model_summary_dt <- summary_models()$summary_dt
+    if (length(input$model_fit_summary_rows_selected) > 0) {
+      selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
+                                             .(identity, model_name)])
+    } else {
+      selected_dt <- model_summary_dt[, .(model_name = model_name[1]),
+                                      by = identity]
+    }
+    selected_models_dt <- merge(selected_dt, summary_models()$models_dt,
+                                by = c("identity", "model_name"))
+    selected_tele_list <- tele_list[selected_dt$identity]
+    selected_models <- selected_models_dt$model
+    return(list(dt = selected_dt,
+                tele_list = selected_tele_list,
+                models = selected_models))
+  })
   # hrange_list ----
-  hrange_list <- reactive({
-    tele_list <- req(select_data()$tele_list)
-    model_select_res_1st_item <- lapply(req(values$model_select_res),
-                                        function(x) { x[[1]] })
-    withProgress(res <- akde(tele_list, CTMM = model_select_res_1st_item),
+  selected_hrange_list <- reactive({
+    withProgress(res <- akde(select_models()$tele_list,
+                             CTMM = select_models()$models),
                  message = "Calculating home range ...")
     return(res)
   })
   # output$range_summary <- renderPrint({
   #   lapply(hrange_list(), summary)
   # })
-  output$range_summary_dt <- DT::renderDataTable({
-    hrange_summary_dt <- summary_hrange_list_dt(req(hrange_list()))
+  output$range_summary <- DT::renderDataTable({
+    hrange_summary_dt <- summary_models_dt(build_hrange_dt(
+      select_models()$dt, selected_hrange_list()))
     dt <- format_hrange_summary(hrange_summary_dt)
+    if (!input$show_ci_hrange) {
+      dt <- dt[!str_detect(estimate, "CI")]
+    }
     info_p <- values$data$merged$info
     datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
       formatStyle('identity', target = 'row',
@@ -1351,13 +1372,13 @@ server <- function(input, output, session) {
       )
   })
   output$range_plot <- renderPlot({
-    tele_list <- req(select_data()$tele_list)
+    selected_tele_list <- select_models()$tele_list
     def.par <- par(no.readonly = TRUE)
     par(mfrow = c(vg_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    lapply(seq_along(tele_list), function(i) {
-      plot(tele_list[[i]], UD = hrange_list()[[i]])
-      title(tele_list[[i]]@info$identity)
+    lapply(seq_along(selected_tele_list), function(i) {
+      plot(selected_tele_list[[i]], UD = selected_hrange_list()[[i]])
+      title(select_models()$dt[i, paste0(identity, " - ", model_name)])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
     par(def.par)

@@ -441,35 +441,37 @@ summary_ctmm_dt <- function(model) {
   res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
-merge_up <- function(dt_list, meta_name) {
-  item_names <- names(dt_list)
-  # we modify reference so no need to save return value
-  lapply(seq_along(dt_list), function(i) {
-    dt_list[[i]][, (meta_name) := item_names[i]]
-  })
-  rbindlist(dt_list, fill = TRUE)
+build_models_dt <- function(model_select_res) {
+  animal_names_dt <- data.table(identity = names(model_select_res))
+  model_name_list <- lapply(model_select_res, names)
+  # must use per row by to create list column, otherwise dt try to apply whole column to function
+  animal_names_dt[, model_name_list := list(list(model_name_list[[identity]])),
+                  by = 1:nrow(animal_names_dt)]
+  models_dt <- animal_names_dt[, .(model_name = unlist(model_name_list)),
+                               by = identity]
+  models_dt[, model := list(list(model_select_res[[identity]][[model_name]])),
+            by = 1:nrow(models_dt)]
+  models_dt[, model_no := .I]
 }
-move_to_start <- function(name_vec, to_move){
-  c(to_move, name_vec[!(name_vec %in% to_move)])
-}
-summary_ctmm_list_dt <- function(tele_list, model_select_res) {
-  # need to start from the bottom level
-  # list for each animal
-  animal_dt_list <- lapply(model_select_res, function(animal) {
-    # one model one table, list of models for one animal
-    model_dt_list <- lapply(animal, summary_ctmm_dt)
-    merge_up(model_dt_list, "model")
+summary_models_dt <- function(models_dt) {
+  # make copy first because we will remove column later
+  # a list of converted summary on each model
+  model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
+    summary_dt <- summary_ctmm_dt(models_dt$model[[i]])
+    summary_dt[, model_no := i]
   })
-  # assign name so we can use it
-  names(animal_dt_list) <- names(tele_list)
-  res_dt <- merge_up(animal_dt_list, "identity")
-  setcolorder(res_dt, move_to_start(names(res_dt), c("identity", "model")))
+  model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
+  res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
+                  model_summary_dt,
+                  by = "model_no")
+  res_dt[, model_no := NULL]
 }
 format_summary_dt <- function(dt, format_f_list) {
   # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
   for (i in seq_along(format_f_list)) {
     # tried to use identity for cols don't need change, but we cannot update existing cols because col type changed
     if (!is.null(format_f_list[[i]])) {
+      # the data table in shiny printed too many digits.
       dt[, paste0(names(dt)[i], "_units") := format_f_list[[i]](dt[[names(dt)[i]]])]
     }
   }
@@ -499,10 +501,10 @@ format_ctmm_summary <- function(summary_dt) {
   names(format_f_list) <- names(dt)
   format_summary_dt(dt, format_f_list)
 }
-summary_hrange_list_dt <- function(hrange_list) {
-  range_dt_list <- lapply(hrange_list, summary_ctmm_dt)
-  range_dt <- merge_up(range_dt_list, "identity")
-  setcolorder(range_dt, move_to_start(names(range_dt), "identity"))
+build_hrange_dt <- function(selected_dt, selected_hrange_list) {
+  dt <- copy(selected_dt)
+  dt[, model := list(selected_hrange_list)]
+  dt[, model_no := .I]
 }
 format_hrange_summary <- function(hrange_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
