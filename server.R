@@ -1350,7 +1350,7 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
-  # hrange_list ----
+  # selected_hrange_list ----
   selected_hrange_list <- reactive({
     withProgress(res <- akde(select_models()$tele_list,
                              CTMM = select_models()$models),
@@ -1384,7 +1384,8 @@ server <- function(input, output, session) {
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p7. occurrence plot ----
-  output$occurrence_plot <- renderPlot({
+  # selected_occurrence() ----
+  select_occurrences <- reactive({
     selected_tele_list <- select_models()$tele_list
     ud_para_list <- align_list(selected_tele_list, select_models()$models)
     ud_calc <- function(ud_para_list) {
@@ -1392,14 +1393,17 @@ server <- function(input, output, session) {
     }
     withProgress(print(system.time(selected_occurrences <-
                                      para_ll(ud_para_list, ud_calc))),
-                 message = "Calculating Occurrence Distributions ...")
+                 message = "Calculating Occurrence ...")
+    selected_occurrences
+  })
+  output$occurrence_plot <- renderPlot({
     # plot
     def.par <- par(no.readonly = TRUE)
     par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    lapply(seq_along(selected_occurrences), function(i) {
+    lapply(seq_along(select_occurrences()), function(i) {
       tryCatch({
-        plot(selected_occurrences[[i]])
+        plot(select_occurrences()[[i]])
       }, error = function(e) {
         warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
