@@ -13,7 +13,7 @@ server <- function(input, output, session) {
       match_tele_merged(values$data$tele_list, values$data$merged)
     }
   })
-  # $data <----
+  # values$ <----
   values$data <- NULL  # 4 items need to be synced
   # important reactive value and expressions need special comments, use <--. the design need to well thought
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. Once it's used, no need to keep the copy. thus add it with the new time subset. We don't need to keep the dt version because we can often just use existing dt and other info. do need to verify tele and dt is synced.
@@ -27,6 +27,7 @@ server <- function(input, output, session) {
     values$data$tele_list <- tele_list
     values$data$merged <- merge_animals(tele_list)
     values$data$all_removed_outliers <- NULL
+    values$model_select_res <- NULL
     updateTabItems(session, "tabs", "plots")
   }
   # 1.1 csv to telemetry ----
@@ -77,19 +78,6 @@ server <- function(input, output, session) {
              req(input$file1)
              file_uploaded()
            })
-    # if (input$load_option == "ctmm") {
-    #   data("buffalo")
-    #   # values$input_tele_list <- buffalo
-    #   values$data$input_tele_list <- buffalo
-    #   values$data$tele_list <- buffalo
-    #   values$data$merged <- merge_animals(buffalo)
-    #   values$data$all_removed_outliers <- NULL
-    #   updateTabItems(session, "tabs", "plots")
-    # } else if (input$load_option == "upload") {
-    #   # need to check NULL input from source, stop error in downstream
-    #   req(input$file1)
-    #   file_uploaded()
-    # }
   })
   callModule(click_help, "import", title = "Data Import Options", size = "m",
              file = "help/1_import_options.md")
@@ -110,10 +98,12 @@ server <- function(input, output, session) {
   # 1.3 movebank studies ----
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
   # all studies box
+  # $all_studies_stat ----
   values$all_studies_stat <- NULL
   output$all_studies_stat <- renderText(req(values$all_studies_stat))
-  values$studies <- NULL
   # values$studies hold complete data, only render part of it according to reactive input
+  # $studies ----
+  values$studies <- NULL
   # only show selected cols because we don't want to show owner col. want to keep it insivibly so we can switch it on and off.
   output$studies <- DT::renderDataTable(
     datatable({
@@ -128,6 +118,7 @@ server <- function(input, output, session) {
       selection = 'single'
   ))
   # selected data box
+  # $study_detail ----
   values$study_detail <- NULL
   output$study_detail <- DT::renderDataTable(
     datatable(req(values$study_detail),
@@ -135,11 +126,14 @@ server <- function(input, output, session) {
               options = list(pageLength = 5),
               selection = 'none'))
   # data preview box
+  # $study_data_response ----
   values$study_data_response <- NULL
   output$study_data_response <- renderText(req(values$study_data_response))
+  # $study_preview ----
   values$study_preview <- NULL
   output$study_preview <- DT::renderDataTable(
     datatable(req(values$study_preview), options = list(dom = 't')))
+  # $move_bank_dt ----
   values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
   # the whole data preview box should be cleared with all actions other than download, otherwise it could be confusing when there is a previous download and user made other actions
   clear_mb_download <- function(res_msg = NULL){
@@ -305,11 +299,6 @@ server <- function(input, output, session) {
   })
   output$individuals <- DT::renderDataTable({
     req(values$data)
-    # if (!is.null(values$data$all_removed_outliers)) {
-    #   showNotification(paste0("Total ", nrow(values$data$all_removed_outliers),
-    #                           " outliers removed from original data"),
-    #                    duration = 2, type = "warning")
-    # }
     if (input$time_in_sec) {
       info_p <- values$data$merged$info[,
                   .(identity, start, end, interval_s, duration_s, points)]
@@ -1052,7 +1041,7 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
-  values$model_select_res <- NULL
+
   # variogram CTMM ----
   get_vario_ctmm_list <- reactive({
     switch(input$vario_mode,
@@ -1290,6 +1279,8 @@ server <- function(input, output, session) {
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
+  # $model_select_res ----
+  values$model_select_res <- NULL  # need to clear this at input change too
   observeEvent(input$fit_models, {
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
