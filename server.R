@@ -360,6 +360,7 @@ server <- function(input, output, session) {
   select_data <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(values$data)
+    # switching data summary units cause redraw of plot, because the table redraw changed the rows_current value to null then new, triggered this change.
     req(input$individuals_rows_current)
     id_vec <- values$data$merged$info[, identity]
     # table can be sorted, but always return row number in column 1
@@ -1024,33 +1025,36 @@ server <- function(input, output, session) {
              size = "l", file = "help/5_b_irregular_data.md")
   # values$guess_list created from input data and save manual changes from fine tune.
   values$guess_list <- NULL
-  # vg_list ----
+  # vg_list() ----
   vg_list <- reactive({
-    tele_list <- req(select_data()$tele_list)
+    tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$guess_list <- lapply(tele_list,
                     function(tele) ctmm.guess(tele, interactive = FALSE))
-    lapply(tele_list, variogram)
+    res <- lapply(tele_list, variogram)
+    names(res) <- names(tele_list)
+    return(res)
   })
-  # to be used in plot size, layout, shared by two tabs
+  # vg_layout() ----
+  # modeled mode and home range etc share same layout, which could coexist with variograms. so we cannot use one layout for all of them.
   vg_layout <- reactive({
-    req(vg_list())
     fig_count <- length(vg_list())
     row_count <- ceiling(fig_count / input$vario_columns)
     height <- input$vario_height * row_count
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
-
   # variogram CTMM ----
   get_vario_ctmm_list <- reactive({
     switch(input$vario_mode,
            empirical = NULL,
            guesstimate = values$guess_list,
            # the plot will not shown when models are not fitted yet
-           modeled = lapply(req(values$model_select_res), function(x) {
-             x[[1]]
-           }))
+           # modeled = lapply(req(values$model_select_res), function(x) {
+           #   x[[1]]
+           # })
+           modeled = select_models()$models
+           )
     # if (input$vario_mode == ) {
     #   guess_list <- values$guess_list
     #   # if ("error" %in% input$fit_vario) {
@@ -1067,52 +1071,69 @@ server <- function(input, output, session) {
   })
   # plot variograms ----
   output$vario_plot_zoom <- renderPlot({
-    req(vg_list())
-    ctmm_list <- get_vario_ctmm_list()
+    # in modeled mode, draw selected subset of vg_list and selected models, using select_models_layout
+    if (input$vario_mode != "modeled") {
+      vg_lst <- vg_list()
+      row_count <- vg_layout()$row_count
+      title_vec <- names(select_data()$tele_list)
+    } else {
+      vg_lst <- select_models()$vg_list
+      row_count <- select_models_layout()$row_count
+      title_vec <- select_models()$dt[, paste0(identity, " - ", model_name)]
+    }
+    ctmm_list <- get_vario_ctmm_list()  # this adjust to selected models by self
     ctmm_color <- switch(input$vario_mode,
                          guesstimate = "green",
                          modeled = "purple")
     def.par <- par(no.readonly = TRUE)
-    par(mfrow = c(vg_layout()$row_count, input$vario_columns),
+    par(mfrow = c(row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     if (input$vario_option == "absolute") {
-      max.lag <- max(sapply(vg_list(), function(v){ last(v$lag) } ))
+      max.lag <- max(sapply(vg_lst, function(v){ last(v$lag) } ))
       xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
-      vg_subset_list <- lapply(vg_list(),
+      vg_zoomed_list <- lapply(vg_lst,
                              function(vario) vario[vario$lag <= xlim, ])
-      extent_tele <- ctmm::extent(vg_subset_list)
-      for (i in seq_along(vg_subset_list)) {
-        plot(vg_subset_list[[i]], CTMM = ctmm_list[[i]],
+      extent_tele <- ctmm::extent(vg_zoomed_list)
+      for (i in seq_along(vg_zoomed_list)) {
+        plot(vg_zoomed_list[[i]], CTMM = ctmm_list[[i]],
              col.CTMM = ctmm_color, fraction = 1,
              xlim = c(0, extent_tele["max", "x"]),
              ylim = c(0, extent_tele["max", "y"]))
-        if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
-          title(vg_subset_list[[i]]@info$identity, sub = "Error on",
-                cex.sub = 0.85, col.sub = "red")
-        } else {
-          title(vg_subset_list[[i]]@info$identity)
-        }
+        title(title_vec[i])
+        # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
+        #   title(vg_zoomed_list[[i]]@info$identity, sub = "Error on",
+        #         cex.sub = 0.85, col.sub = "red")
+        # } else {
+        #   title(title_vec[i])
+        # }
       }
     } else {
-      for (i in seq_along(vg_list())) {
-        plot(vg_list()[[i]], CTMM = ctmm_list[[i]],
+      for (i in seq_along(vg_lst)) {
+        plot(vg_lst[[i]], CTMM = ctmm_list[[i]],
              col.CTMM = ctmm_color,
              fraction = 10 ^ input$zoom_lag_fraction)
         # browser()
-        if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
-          title(vg_list()[[i]]@info$identity, sub = "Error on",
-                cex.sub = 0.85, col.sub = "red")
-        } else {
-          title(vg_list()[[i]]@info$identity)
-        }
-
+        title(title_vec[i])
+        # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
+        #   title(vg_lst[[i]]@info$identity, sub = "Error on",
+        #         cex.sub = 0.85, col.sub = "red")
+        # } else {
+        #   title(vg_lst[[i]]@info$identity)
+        # }
         # if (ctmm_list[[i]]$error) {
         #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
         # }
       }
     }
     par(def.par)
-  }, height = function() { vg_layout()$height })
+  }, height = function() {
+      if (input$vario_mode != "modeled") {
+        vg_layout()$height
+      } else {
+        select_models_layout()$height
+      }
+    }
+  )
   # select individual plot to fine tune
   output$fit_selector <- renderUI({
     tele_list <- req(select_data()$tele_list)
@@ -1300,6 +1321,7 @@ server <- function(input, output, session) {
     formated_summary_dt <- format_ctmm_summary(model_summary_dt)
     if (!input$show_ci_model) {
       formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
+      formated_summary_dt[, estimate := NULL]
     }
     return(list(models_dt = models_dt,
                 summary_dt = formated_summary_dt))
@@ -1313,26 +1335,37 @@ server <- function(input, output, session) {
       formatStyle('identity', target = 'row',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
-      )
+      ) # wanted to format NA values gray, but cannot format by string pattern.
   })
-  # p6. home range ----
+  proxy_model_dt <- dataTableProxy("model_fit_summary")
+  observeEvent(input$clear_models, {
+    # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
+    selectRows(proxy_model_dt, list())
+  })
   # select_models() ----
   select_models <- reactive({
     model_summary_dt <- summary_models()$summary_dt
     if (length(input$model_fit_summary_rows_selected) > 0) {
+      # unique is to remove duplicate selection in CI mode
       selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
                                              .(identity, model_name)])
     } else {
       selected_dt <- model_summary_dt[, .(model_name = model_name[1]),
                                       by = identity]
     }
+    # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_dt, summary_models()$models_dt,
-                                by = c("identity", "model_name"))
+                                by = c("identity", "model_name"), sort = FALSE)
+    # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_dt$identity]
     selected_models <- selected_models_dt$model
+    selected_vg_list <- vg_list()[selected_dt$identity]
+    # must make sure all items in same order
     return(list(dt = selected_dt,
                 tele_list = selected_tele_list,
-                models = selected_models))
+                models = selected_models,
+                vg_list = selected_vg_list
+                ))
   })
   select_models_layout <- reactive({
     fig_count <- length(select_models()$models)
@@ -1341,6 +1374,7 @@ server <- function(input, output, session) {
     # return(list(layout_matrix = layout_matrix, height = height))
     return(list(row_count = row_count, height = height))
   })
+  # p6. home range ----
   # selected_hrange_list ----
   selected_hrange_list <- reactive({
     withProgress(res <- akde(select_models()$tele_list,
@@ -1354,6 +1388,7 @@ server <- function(input, output, session) {
     dt <- format_hrange_summary(hrange_summary_dt)
     if (!input$show_ci_hrange) {
       dt <- dt[!str_detect(estimate, "CI")]
+      dt[, estimate := NULL]
     }
     info_p <- values$data$merged$info
     datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%

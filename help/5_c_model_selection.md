@@ -1,0 +1,3 @@
+- Clicking `Fit Models` will start to fit possible models for every individual in current subset. It could be time taking so it need to be manually activated.
+- Depend on platform (Windows/Mac/Linux), different parallel processes are used. There will be a time report in console when running app in local mode. The `user` time is the total cpu time spent on all threads, and `elapsed` time is the actual time used.
+- Variograms with model
