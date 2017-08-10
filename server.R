@@ -1302,6 +1302,7 @@ server <- function(input, output, session) {
              size = "l", file = "help/5_c_model_selection.md")
   # $model_select_res ----
   values$model_select_res <- NULL  # need to clear this at input change too
+  # fit models ----
   observeEvent(input$fit_models, {
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
@@ -1310,6 +1311,11 @@ server <- function(input, output, session) {
       message = "Fitting models to find the best ...")
     names(values$model_select_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
+    # we are selecting rows on a table just generated.
+    dt <- copy(summary_models()$summary_dt)
+    dt[, row_no := .I]
+    dt[, row_no[1], by = identity]$V1
+    selectRows(proxy_model_dt, dt[, row_no[1], by = identity]$V1)
   })
   # summary_models() ----
   # summary table and model dt with model as list column
@@ -1326,12 +1332,17 @@ server <- function(input, output, session) {
     return(list(models_dt = models_dt,
                 summary_dt = formated_summary_dt))
   })
+  # model table ----
   output$model_fit_summary <- DT::renderDataTable({
     # should not need to use req on reactive expression if that expression have req inside.
     dt <- summary_models()$summary_dt
+    # delete extra col here so it will not be shown, but we can still use them in code because the reactive expression still have it.
+    dt[, model_no := NULL]
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
-    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
+    datatable(dt, options = list(scrollX = TRUE, pageLength = 10,
+                                 lengthMenu = c(5, 10, 25)),
+              rownames = FALSE) %>%
       formatStyle('identity', target = 'row',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
@@ -1343,16 +1354,20 @@ server <- function(input, output, session) {
     selectRows(proxy_model_dt, list())
   })
   # select_models() ----
+  # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this.
   select_models <- reactive({
+    req(length(input$model_fit_summary_rows_selected) > 0)
     model_summary_dt <- summary_models()$summary_dt
-    if (length(input$model_fit_summary_rows_selected) > 0) {
-      # unique is to remove duplicate selection in CI mode
-      selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
-                                             .(identity, model_name)])
-    } else {
-      selected_dt <- model_summary_dt[, .(model_name = model_name[1]),
-                                      by = identity]
-    }
+    # if (length(input$model_fit_summary_rows_selected) > 0) {
+    #   # unique is to remove duplicate selection in CI mode
+    #   selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
+    #                                          .(identity, model_name)])
+    # } else {
+    #   selected_dt <- model_summary_dt[, .(model_name = model_name[1]),
+    #                                   by = identity]
+    # }
+    selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
+                                           .(identity, model_name)])
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_dt, summary_models()$models_dt,
                                 by = c("identity", "model_name"), sort = FALSE)
@@ -1386,6 +1401,7 @@ server <- function(input, output, session) {
     hrange_summary_dt <- summary_models_dt(build_hrange_dt(
       select_models()$dt, selected_hrange_list()))
     dt <- format_hrange_summary(hrange_summary_dt)
+    dt[, model_no := NULL]
     if (!input$show_ci_hrange) {
       dt <- dt[!str_detect(estimate, "CI")]
       dt[, estimate := NULL]

@@ -419,6 +419,7 @@ pick_m_tele_list <- function(tele_list, m) {
   })
 }
 # format ctmm model summary ----
+# from CTMM model obj to summary table
 summary_ctmm_dt <- function(model) {
   # convert the named vectors into data table, keep relevant info
   model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
@@ -441,6 +442,7 @@ summary_ctmm_dt <- function(model) {
   res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
+# from ctmm.fit result model list to data table with models in list column
 build_models_dt <- function(model_select_res) {
   animal_names_dt <- data.table(identity = names(model_select_res))
   model_name_list <- lapply(model_select_res, names)
@@ -453,6 +455,7 @@ build_models_dt <- function(model_select_res) {
             by = 1:nrow(models_dt)]
   models_dt[, model_no := .I]
 }
+# from models list col dt to model summary table
 summary_models_dt <- function(models_dt) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -464,9 +467,9 @@ summary_models_dt <- function(models_dt) {
   res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
                   model_summary_dt,
                   by = "model_no")
-  res_dt[, model_no := NULL]
 }
-format_summary_dt <- function(dt, format_f_list) {
+# apply units format functions list to columns
+apply_format_f_list <- function(dt, format_f_list) {
   # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
   for (i in seq_along(format_f_list)) {
     # tried to use identity for cols don't need change, but we cannot update existing cols because col type changed
@@ -480,6 +483,7 @@ format_summary_dt <- function(dt, format_f_list) {
   dt[, (old_cols) := NULL]
   setnames(dt, new_cols, old_cols)
 }
+# format units in model summary table
 format_ctmm_summary <- function(summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(summary_dt)
@@ -499,13 +503,15 @@ format_ctmm_summary <- function(summary_dt) {
   })
   # not really used, but easier to debug
   names(format_f_list) <- names(dt)
-  format_summary_dt(dt, format_f_list)
+  apply_format_f_list(dt, format_f_list)
 }
+# from akde result model list to data table with models in list column
 build_hrange_dt <- function(selected_dt, selected_hrange_list) {
   dt <- copy(selected_dt)
   dt[, model := list(selected_hrange_list)]
   dt[, model_no := .I]
 }
+# format units in home range summary table
 format_hrange_summary <- function(hrange_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(hrange_summary_dt)
@@ -518,5 +524,5 @@ format_hrange_summary <- function(hrange_summary_dt) {
   })
   # not really used, but easier to debug
   # names(format_f_list) <- names(dt)
-  format_summary_dt(dt, format_f_list)
+  apply_format_f_list(dt, format_f_list)
 }
