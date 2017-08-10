@@ -14,7 +14,7 @@ sidebar <- dashboardSidebar(
     #          ),
     menuItem("Filter Outliers", tabName = "filter", icon = icon("filter")),
     menuItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
-    menuItem("Visual Diagnostics", tabName = "visual", icon = icon("stethoscope")),
+    menuItem("Model Selection", tabName = "model", icon = icon("hourglass-start")),
     # menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Occurrence", tabName = "occurrence", icon = icon("map-marker")),
@@ -420,6 +420,7 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       fluidRow(
                         column(4, checkboxInput("show_ci_hrange",
                                                 "Show Confidence Intervals")),
+                        column(2, offset = 6, help_button("home_range")),
                         column(12, DT::dataTableOutput("range_summary"))
                         # column(12, verbatimTextOutput("range_summary"))
                         )
@@ -427,7 +428,9 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
 # p7. occurrence ----
 occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                       solidHeader = TRUE, width = 12,
-                      fluidRow(column(12, plotOutput("occurrence_plot",
+                      fluidRow(
+                        column(2, offset = 10, help_button("occurrence")),
+                        column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
 # body ----
 body <- dashboardBody(
@@ -453,7 +456,7 @@ body <- dashboardBody(
     tabItem(tabName = "filter",
             fluidRow(outlier_filter_box,
                      all_removed_outliers_box)),
-    tabItem(tabName = "visual",
+    tabItem(tabName = "model",
             fluidRow(vario_control_box, variograms_box, model_selection_box)),
     # tabItem(tabName = "model",
     #         fluidRow(model_summary_box)
