@@ -313,7 +313,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                    ),
           fluidRow(column(12, DT::dataTableOutput('time_ranges'))))
 # p5. vario control ----
-vario_control_box <- tabBox(title = "Variogram Controls",
+vario_control_box <- tabBox(title = "Plot Controls",
                              id = "vario_control_tabs", width = 12,
    # p5.c.a layout ----
    tabPanel("Control",
