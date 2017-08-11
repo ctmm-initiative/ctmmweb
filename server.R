@@ -1390,8 +1390,8 @@ server <- function(input, output, session) {
     return(list(row_count = row_count, height = height))
   })
   # p6. home range ----
-  callModule(click_help, "home_range", title = "Home Range",
-             size = "l", file = "help/6_home_range.md")
+  # callModule(click_help, "home_range", title = "Home Range",
+  #            size = "l", file = "help/6_home_range.md")
   # selected_hrange_list ----
   selected_hrange_list <- reactive({
     withProgress(res <- akde(select_models()$tele_list,
@@ -1428,8 +1428,8 @@ server <- function(input, output, session) {
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p7. occurrence ----
-  callModule(click_help, "occurrence", title = "Occurrence Distribution",
-             size = "l", file = "help/7_occurrence.md")
+  # callModule(click_help, "occurrence", title = "Occurrence Distribution",
+  #            size = "l", file = "help/7_occurrence.md")
   # selected_occurrence() ----
   select_occurrences <- reactive({
     selected_tele_list <- select_models()$tele_list

@@ -11,3 +11,5 @@ Variograms of individuals in current subset are plotted here.
     - `Center current values` will update sliders 2, 3, 4 range to twice of current value. This can extend range with slider in right end, or increase resolution with slider in left end.
     - `Apply` butto will accept adjusted parameters and update the variogram.
 - `Modeled` mode is enabled after models are fitted and selected.
+- Clicking `Fit Models` will start to fit possible models for every individual in current subset. It could be time taking so it need to be manually activated.
+    + Depend on platform (Windows/Mac/Linux), different parallel processes are used. There will be a time report in console when running app in local mode. The `user` time is the total cpu time spent on all threads, and `elapsed` time is the actual time used.

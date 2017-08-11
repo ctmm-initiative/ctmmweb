@@ -421,7 +421,7 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       fluidRow(
                         column(4, checkboxInput("show_ci_hrange",
                                                 "Show Confidence Intervals")),
-                        column(2, offset = 6, help_button("home_range")),
+                        # column(2, offset = 6, help_button("home_range")),
                         column(12, DT::dataTableOutput("range_summary"))
                         # column(12, verbatimTextOutput("range_summary"))
                         )
@@ -430,7 +430,7 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
 occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
-                        column(2, offset = 10, help_button("occurrence")),
+                        # column(2, offset = 10, help_button("occurrence")),
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
 # body ----
