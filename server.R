@@ -1139,8 +1139,8 @@ server <- function(input, output, session) {
     tele_list <- req(select_data()$tele_list)
     if (input$vario_mode == "guesstimate") {
       identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("fit_selected", "Fine-tune individual",
-                  c("Not Selected" = "", identities))
+      selectInput("fit_selected", NULL,
+                  c("Fine-tune" = "", identities))
     }
   })
   # fine tune fit start ----

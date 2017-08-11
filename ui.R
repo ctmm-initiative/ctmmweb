@@ -379,8 +379,11 @@ variograms_box <- box(title = "Variograms", status = "primary",
                              choiceValues = c("empirical", "guesstimate",
                                               "modeled")
                              )),
-      column(4, offset = 0, br(), uiOutput("fit_selector")),
-      column(2, offset = 2, br(), help_button("variogram")),
+      column(3, offset = 0, br(), uiOutput("fit_selector")),
+      column(3, br(), actionButton("fit_models", "Fit Models",
+                             icon = icon("hourglass-start"),
+                             style = styles$page_action)),
+      column(2, offset = 0, br(), help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
                          # less than 100%, otherwise out of boundary because we updated figure size by parameter
                          width = "99%", height = "98%")))
@@ -393,15 +396,13 @@ variograms_box <- box(title = "Variograms", status = "primary",
 # p5. model selection ----
 model_selection_box <- box(title = "Model Selection", status = "info",
                          solidHeader = TRUE, width = 12,
-  fluidRow(column(3, actionButton("fit_models", "Fit Models",
-                                  icon = icon("hourglass-start"),
-                                  style = styles$page_action)),
-           column(4, checkboxInput("show_ci_model",
-                                   "Show Confidence Intervals")),
+  fluidRow(
            column(3, actionButton("clear_models", "Clear Selection",
-                                  icon = icon("square-o"),
-                                  style = styles$page_action)),
-           column(2, offset = 0, help_button("model_selection")),
+                                 icon = icon("square-o"),
+                                 style = styles$page_action)),
+           column(4, checkboxInput("show_ci_model",
+                                         "Show Confidence Intervals")),
+           column(2, offset = 3, help_button("model_selection")),
            column(12, br()),
            column(12, DT::dataTableOutput("model_fit_summary")))
            # column(12, verbatimTextOutput("model_fit_results")))
