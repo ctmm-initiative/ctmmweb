@@ -20,7 +20,11 @@ This is more intended for demonstration purposes because
 
 You can run app in your local machine with these steps:
 
-1. Install [the latest R](https://www.r-project.org/). [RStudio](https://www.rstudio.com/products/rstudio/download/) is not required but recommended.
+1. Install [the latest R](https://www.r-project.org/). 
+
+    Note R 3.4 bring some big changes, so it's better to upgrade all the existing packages if you have earlier version installed.
+    
+    [RStudio](https://www.rstudio.com/products/rstudio/download/) is not required but recommended.
 
 2. Install some dependency packages in R. 
 
