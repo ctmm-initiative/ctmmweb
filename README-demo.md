@@ -12,3 +12,7 @@ Below are some screen recordings showing some features, please choose highest re
 - Filter Outliers in data. Please turn on subtitle/CC for this video
 
 [![demo 3](http://img.youtube.com/vi/nyUe6PIVfyU/0.jpg)](http://www.youtube.com/watch?v=nyUe6PIVfyU "outlier detection")
+
+- Model Selection, Home Range and Occurrence.
+
+[![demo 4](http://img.youtube.com/vi/eLmVFkkUMAE/0.jpg)](https://www.youtube.com/watch?v=eLmVFkkUMAE "Model Selection, Home Range and Occurrence")
