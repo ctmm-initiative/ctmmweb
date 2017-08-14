@@ -393,7 +393,7 @@ model_select <- function(tele_guess) {
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()
   if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-    win_cluster_size <- min(length(ll), detectCores(logical = FALSE))
+    win_cluster_size <- min(length(ll), detectCores())
     cat("running parallel in SOCKET cluster of", win_cluster_size, "\n")
     cl <- parallel::makeCluster(win_cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
