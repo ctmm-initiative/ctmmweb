@@ -1,10 +1,12 @@
 name: ctmmweb
 title: ctmmweb
+username:
 account: ctmm
 server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
 appId: 182623
-bundleId: 836347
+bundleId: 940095
 url: https://ctmm.shinyapps.io/ctmmweb/
-when: 1495469087.71012
+when: 1502716626.11929
 asMultiple: FALSE
 asStatic: FALSE
