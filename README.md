@@ -39,6 +39,8 @@ devtools::install_github("rstudio/shiny")
 devtools::install_github("ctmm-initiative/ctmm")
 ```
 
+  [Some tips for Linux installation can be found here](README-install.md).
+
 3. Pick stable version or latest version to run:
 
 ```r
