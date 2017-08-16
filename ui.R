@@ -328,12 +328,12 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                    ),
           fluidRow(column(12, DT::dataTableOutput('time_ranges'))))
 # p5. vario control ----
-vario_control_box <- tabBox(title = "Plot Controls",
-                             id = "vario_control_tabs", width = 12,
-   # p5.c.a layout ----
-   tabPanel("Control",
-# vario_plot_zoom_box <- box(title = "Variogram with Zoom",
-#                            status = "info", solidHeader = TRUE, width = 12,
+# vario_control_box <- tabBox(title = "Plot Controls",
+#                              id = "vario_control_tabs", width = 12,
+#    # p5.c.a layout ----
+#    tabPanel("Control",
+vario_control_box <- box(title = "Plot Controls",
+                           status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
         tags$head(tags$script(HTML(JS.logify(3)))),
         tags$head(tags$script(HTML(JS.onload("zoom_lag_fraction")))),
@@ -355,25 +355,28 @@ vario_control_box <- tabBox(title = "Plot Controls",
                                            "Columns",
                                            value = 2, min = 1, max = 6,
                                            step = 1))
-      )),
-    # p5.c.b irregular ----
-    tabPanel("Irregular Data",
-             fluidRow(
-               column(3, actionButton("para_dt", "Set dt",
-                                      icon = icon("bar-chart"),
-                                      style = styles$page_action)),
-               column(3, offset = 1, actionButton("para_res", "Set res",
-                                      icon = icon("search-plus"),
-                                      style = styles$page_action)),
-               column(3, offset = 2, actionButton("para_error", "Set ERROR",
-                                      icon = icon("exclamation-triangle"),
-                                      style = styles$page_action)),
-               column(12, DT::dataTableOutput("irregular_para_dt")),
-               column(3, actionButton("para_pool", "Pool Variograms",
-                                      icon = icon("pie-chart"),
-                                      style = styles$page_action)),
-               column(2, offset = 7, help_button("vario_irregular"))
-               )))
+      )
+      # )
+# ,
+    # # p5.c.b irregular ----
+    # tabPanel("Irregular Data",
+    #          fluidRow(
+    #            column(3, actionButton("para_dt", "Set dt",
+    #                                   icon = icon("bar-chart"),
+    #                                   style = styles$page_action)),
+    #            column(3, offset = 1, actionButton("para_res", "Set res",
+    #                                   icon = icon("search-plus"),
+    #                                   style = styles$page_action)),
+    #            column(3, offset = 2, actionButton("para_error", "Set ERROR",
+    #                                   icon = icon("exclamation-triangle"),
+    #                                   style = styles$page_action)),
+    #            column(12, DT::dataTableOutput("irregular_para_dt")),
+    #            column(3, actionButton("para_pool", "Pool Variograms",
+    #                                   icon = icon("pie-chart"),
+    #                                   style = styles$page_action)),
+    #            column(2, offset = 7, help_button("vario_irregular"))
+    #            ))
+)
 # p5. variograms ----
 variograms_box <- box(title = "Variograms", status = "primary",
     solidHeader = TRUE, width = 12,
