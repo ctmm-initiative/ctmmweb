@@ -420,7 +420,9 @@ server <- function(input, output, session) {
       bigger_theme + bigger_key
   }
   # , height = 400, width = "auto"
-  , height = styles$height_plot_loc, width = "auto"
+  # , height = styles$height_plot_loc, width = "auto"
+  , height = function() { input$canvas_height }
+    , width = "auto"
   )
   # 2.4.2 facet ----
   output$location_plot_facet_fixed <- renderPlot({
@@ -435,7 +437,7 @@ server <- function(input, output, session) {
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
-  }, height = styles$height_plot_loc, width = "auto")
+  }, height = function() { input$canvas_height }, width = "auto")
   # 2.4.3 individual plot ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(select_data()$data)
@@ -458,8 +460,11 @@ server <- function(input, output, session) {
                     expand = FALSE)
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
-    grid.arrange(grobs = g_list)
-  }, height = styles$height_plot_3, width = "auto")
+    fig_count <- length(id_vector)
+    grid.arrange(grobs = g_list, layout_matrix =
+                   matrix(1:fig_count, nrow = fig_count / input$plot4_col,
+                          ncol = input$plot4_col, byrow = TRUE))
+  }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(select_data()$data)

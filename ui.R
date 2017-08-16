@@ -116,31 +116,46 @@ location_plot_box <- tabBox(title = "Animal Locations",
                             # height = styles$height_location_box,
                             width = 12,
   tabPanel("2. Overview",
-   fluidRow(column(5, offset = 1,
-                  sliderInput("point_size_1", "Size of points in plot",
-                              min = 0.05, max = 1, value = 0.1, step = 0.05,
-                              width = "100%")),
-            column(6, offset = 0, br(),
-                   checkboxInput("overlay_all",
-                                 h4("All individuals in background"),
-                                 value = TRUE))),
+   fluidRow(
+
+     column(3, offset = 1, numericInput("canvas_height", "Canvas Height", 400,
+                            min = 200, max = 1000, step = 50),
+            checkboxInput("overlay_all",
+                          "Others in background",
+                          value = TRUE)),
+     column(4, offset = 3,
+            sliderInput("point_size_1", "Size of points in plot",
+                        min = 0.05, max = 1, value = 0.1, step = 0.05,
+                        width = "100%"))
+     # ,
+     #        column(5, offset = 0, br(),
+     #               checkboxInput("overlay_all",
+     #                             "Others in background",
+     #                             value = TRUE))
+     ),
    plotOutput("location_plot_gg",
               dblclick = "location_plot_gg_dblclick",
               brush = brushOpts(id = "location_plot_gg_brush",
-                                resetOnNew = TRUE),
-              width = "99%", height = "100%")
+                                resetOnNew = TRUE)
+              ,
+              width = "99%", height = "100%"
+              )
                     ),
   tabPanel("3. Facet", plotOutput("location_plot_facet_fixed",
                                   width = "99%", height = "100%")),
   tabPanel("4. Individual",
-           fluidRow(column(5, offset = 1,
-            sliderInput("include_level", "Zoom Into Portion of Plots",
-              min = 0.9, max = 1, value = 1, step = 0.001,
-              width = "100%")),
+           fluidRow(
+            column(2, numericInput("plot4_col", "Columns", value = 2,
+                                    min = 1, max = 8, step = 1)),
+            column(5, offset = 0,
+              sliderInput("include_level", "Zoom Into Portion of Plots",
+                min = 0.9, max = 1, value = 1, step = 0.001,
+                width = "100%")),
             column(4, offset = 1,
                    sliderInput("point_size_3", "Size of points in plot",
                                min = 0.05, max = 0.5, value = 0.1, step = 0.05,
-                               width = "100%"))),
+                               width = "100%"))
+            ),
            plotOutput("location_plot_individual",
                       width = "99%", height = "100%"))
   # tabPanel("4. Basic Plot", plotOutput("location_plot_basic"))
