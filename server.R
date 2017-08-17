@@ -1454,7 +1454,7 @@ server <- function(input, output, session) {
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(select_occurrences()), function(i) {
       tryCatch({
-        plot(select_occurrences()[[i]])
+        plot(select_occurrences()[[i]], level.UD = input$ud_level)
       }, error = function(e) {
         warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
