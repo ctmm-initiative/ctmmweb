@@ -1447,6 +1447,16 @@ server <- function(input, output, session) {
                  message = "Calculating Occurrence ...")
     selected_occurrences
   })
+  # function on input didn't update, need a reactive expression?
+  parse_CI_levels <- reactive({
+    if (input$ud_level_text == "") {
+      return(0.95)
+    }
+    else {
+      items <- str_trim(str_split(input$ud_level_text, ",")[[1]])
+      as.numeric(items[items != ""]) / 100
+    }
+  })
   output$occurrence_plot <- renderPlot({
     # plot
     def.par <- par(no.readonly = TRUE)
@@ -1454,7 +1464,8 @@ server <- function(input, output, session) {
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(select_occurrences()), function(i) {
       tryCatch({
-        plot(select_occurrences()[[i]], level.UD = input$ud_level)
+        # plot(select_occurrences()[[i]], level.UD = input$ud_level)
+        plot(select_occurrences()[[i]], level.UD = parse_CI_levels())
       }, error = function(e) {
         warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))

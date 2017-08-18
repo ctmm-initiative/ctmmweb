@@ -488,7 +488,7 @@ format_ctmm_summary <- function(summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(summary_dt)
   # speed is m/day, need manual adjust before ctmm update on this
-  dt[, speed := speed / (24 * 3600)]
+  # dt[, speed := speed / (24 * 3600)]
   # round up dof mean, area
   dt[, `DOF mean` := round(`DOF mean`, 3)]
   dt[, `DOF area` := round(`DOF area`, 3)]
@@ -526,3 +526,13 @@ format_hrange_summary <- function(hrange_summary_dt) {
   # names(format_f_list) <- names(dt)
   apply_format_f_list(dt, format_f_list)
 }
+# occurrence ----
+# parse_CI_levels <- function(s) {
+#   if (s == "") {
+#     return(95)
+#   }
+#   else {
+#     items <- str_trim(str_split(s, ",")[[1]])
+#     as.numeric(items[items != ""])
+#   }
+# }
