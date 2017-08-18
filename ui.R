@@ -447,18 +447,20 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
 occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
-                        # column(2, offset = 10, help_button("occurrence")),
                         # column(4, offset = 4,
                         #        sliderInput("ud_level",
                         #                    "Confidence level of contours",
                         #                    min = 0.1, max = 1, value = 0.95,
                         #                    step = 0.05,
                         #                    width = "100%")),
-                        column(4, offset = 4,
+                        column(4, offset = 3,
                                textInput("ud_level_text",
-                                         "Confidence levels of contour",
-                                         placeholder = "like 95 or 50, 95"
+                                         "% Confidence levels of contour",
+                                         value = 95
+                                         # ,
+                                         # placeholder = "like 95 or 50, 95"
                                                         )),
+                        column(2, offset = 3, br(), help_button("occurrence")),
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
 # body ----

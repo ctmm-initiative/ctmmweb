@@ -1433,8 +1433,8 @@ server <- function(input, output, session) {
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p7. occurrence ----
-  # callModule(click_help, "occurrence", title = "Occurrence Distribution",
-  #            size = "l", file = "help/7_occurrence.md")
+  callModule(click_help, "occurrence", title = "Occurrence Distribution",
+             size = "l", file = "help/7_occurrence.md")
   # selected_occurrence() ----
   select_occurrences <- reactive({
     selected_tele_list <- select_models()$tele_list
@@ -1449,8 +1449,8 @@ server <- function(input, output, session) {
   })
   # function on input didn't update, need a reactive expression?
   parse_CI_levels <- reactive({
-    if (input$ud_level_text == "") {
-      return(0.95)
+    if (str_trim(input$ud_level_text) == "") {
+      return(NA)
     }
     else {
       items <- str_trim(str_split(input$ud_level_text, ",")[[1]])
