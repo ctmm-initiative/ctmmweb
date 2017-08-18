@@ -438,9 +438,13 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       fluidRow(
                         column(4, checkboxInput("show_ci_hrange",
                                                 "Show Confidence Intervals")),
-                        # column(2, offset = 6, help_button("home_range")),
+                        column(3, offset = 1,
+                               downloadButton("export_hrange",
+                                              "Export Shapefiles",
+                                              icon = icon("save"),
+                                              style = styles$page_action)),
+                        column(2, offset = 2, help_button("home_range")),
                         column(12, DT::dataTableOutput("range_summary"))
-                        # column(12, verbatimTextOutput("range_summary"))
                         )
 )
 # p7. occurrence ----

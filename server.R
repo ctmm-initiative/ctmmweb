@@ -1344,13 +1344,15 @@ server <- function(input, output, session) {
     # delete extra col here so it will not be shown, but we can still use them in code because the reactive expression still have it.
     dt[, model_no := NULL]
     # need the full info table to keep the color mapping when only a subset is selected
-    info_p <- values$data$merged$info
+    # info_p <- values$data$merged$info
+    CI_colors <- color_CI(values$data$merged$info$identity)
     datatable(dt, options = list(scrollX = TRUE, pageLength = 10,
                                  lengthMenu = c(5, 10, 25)),
               rownames = FALSE) %>%
-      formatStyle('identity', target = 'row',
-                  color = styleEqual(info_p$identity,
-                                     hue_pal()(nrow(info_p)))
+      formatStyle('color_target', target = 'row',
+                  # color = styleEqual(info_p$identity,
+                  #                    hue_pal()(nrow(info_p)))
+                  color = styleEqual(CI_colors$levels, CI_colors$values)
       ) # wanted to format NA values gray, but cannot format by string pattern.
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")
@@ -1395,8 +1397,8 @@ server <- function(input, output, session) {
     return(list(row_count = row_count, height = height))
   })
   # p6. home range ----
-  # callModule(click_help, "home_range", title = "Home Range",
-  #            size = "l", file = "help/6_home_range.md")
+  callModule(click_help, "home_range", title = "Home Range",
+             size = "l", file = "help/6_home_range.md")
   # selected_hrange_list ----
   selected_hrange_list <- reactive({
     withProgress(res <- akde(select_models()$tele_list,

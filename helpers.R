@@ -467,6 +467,7 @@ summary_models_dt <- function(models_dt) {
   res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
                   model_summary_dt,
                   by = "model_no")
+  res_dt[, color_target := str_c(identity, " - " , estimate)]
 }
 # apply units format functions list to columns
 apply_format_f_list <- function(dt, format_f_list) {
@@ -525,6 +526,14 @@ format_hrange_summary <- function(hrange_summary_dt) {
   # not really used, but easier to debug
   # names(format_f_list) <- names(dt)
   apply_format_f_list(dt, format_f_list)
+}
+color_CI <- function(ids) {
+  color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),
+                                  paste, sep = " - "))
+  color_values <- c(hue_pal(l = 90)(length(ids)),
+                    hue_pal(l = 65)(length(ids)),
+                    hue_pal(l = 40)(length(ids)))
+  return(list(levels = color_levels, values = color_values))
 }
 # occurrence ----
 # parse_CI_levels <- function(s) {
