@@ -418,8 +418,7 @@ pick_m_tele_list <- function(tele_list, m) {
     pick_m_tele(x, m)
   })
 }
-# format ctmm model summary ----
-# from CTMM model obj to summary table
+# build ctmm model summary table ----
 ctmm_obj_to_summary_dt <- function(model) {
   # convert the named vectors into data table, keep relevant info
   model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
@@ -455,7 +454,6 @@ model_select_res_to_model_list_dt <- function(model_select_res) {
             by = 1:nrow(models_dt)]
   models_dt[, model_no := .I]
 }
-# from models list col dt to model summary table
 model_list_dt_to_model_summary_dt <- function(models_dt) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -484,10 +482,9 @@ apply_format_f_list <- function(dt, format_f_list) {
   dt[, (old_cols) := NULL]
   setnames(dt, new_cols, old_cols)
 }
-# format units in model summary table
-format_model_summary_dt <- function(summary_dt) {
+format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
-  dt <- copy(summary_dt)
+  dt <- copy(model_summary_dt)
   # speed is m/day, need manual adjust before ctmm update on this
   # dt[, speed := speed / (24 * 3600)]
   # round up dof mean, area
@@ -495,16 +492,19 @@ format_model_summary_dt <- function(summary_dt) {
   dt[, `DOF area` := round(`DOF area`, 3)]
   format_f_list <- lapply(names(dt), function(col_name) {
     switch(col_name,
-           area = format_area_f(dt[[col_name]], round = TRUE),
-           `tau position` = format_seconds_f(dt[[col_name]], round = TRUE),
-           `tau velocity` = format_seconds_f(dt[[col_name]], round = TRUE),
-           speed = format_speed_f(dt[[col_name]], round = TRUE),
-           error = format_distance_f(dt[[col_name]], round = TRUE)
-    )
+       area = format_area_f(dt[[col_name]], round = TRUE),
+       `tau position` = format_seconds_f(dt[[col_name]], round = TRUE),
+       `tau velocity` = format_seconds_f(dt[[col_name]], round = TRUE),
+       speed = format_speed_f(dt[[col_name]], round = TRUE),
+       error = format_distance_f(dt[[col_name]], round = TRUE)
+       )
   })
   # not really used, but easier to debug
   names(format_f_list) <- names(dt)
-  apply_format_f_list(dt, format_f_list)
+  res_dt <- apply_format_f_list(dt, format_f_list)
+  # NA cells should have units removed or just empty values
+  res_dt[str_detect(`tau velocity`, "^NA "),
+         c("tau velocity", "speed") := ""]
 }
 # from akde result model list to data table with models in list column
 build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {
@@ -512,7 +512,6 @@ build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {
   dt[, model := list(selected_hrange_list)]
   dt[, model_no := .I]
 }
-# format units in home range summary table
 format_hrange_summary_dt <- function(hrange_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(hrange_summary_dt)
