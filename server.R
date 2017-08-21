@@ -1326,10 +1326,10 @@ server <- function(input, output, session) {
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- build_models_dt(req(values$model_select_res))
+    models_dt <- model_select_res_to_model_list_dt(req(values$model_select_res))
     # the model summary table
-    model_summary_dt <- summary_models_dt(models_dt)
-    formated_summary_dt <- format_ctmm_summary(model_summary_dt)
+    model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
+    formated_summary_dt <- format_model_summary_dt(model_summary_dt)
     if (!input$show_ci_model) {
       formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
       formated_summary_dt[, estimate := NULL]
@@ -1409,9 +1409,9 @@ server <- function(input, output, session) {
     return(res)
   })
   output$range_summary <- DT::renderDataTable({
-    hrange_summary_dt <- summary_models_dt(build_hrange_dt(
+    hrange_summary_dt <- model_list_dt_to_model_summary_dt(build_hrange_list_dt(
       select_models()$dt, selected_hrange_list()))
-    dt <- format_hrange_summary(hrange_summary_dt)
+    dt <- format_hrange_summary_dt(hrange_summary_dt)
     dt[, model_no := NULL]
     if (!input$show_ci_hrange) {
       dt <- dt[!str_detect(estimate, "CI")]

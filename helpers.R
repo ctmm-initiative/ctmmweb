@@ -420,7 +420,7 @@ pick_m_tele_list <- function(tele_list, m) {
 }
 # format ctmm model summary ----
 # from CTMM model obj to summary table
-summary_ctmm_dt <- function(model) {
+ctmm_obj_to_summary_dt <- function(model) {
   # convert the named vectors into data table, keep relevant info
   model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
     data.table(t(data.frame(item)), keep.rownames = TRUE)
@@ -443,7 +443,7 @@ summary_ctmm_dt <- function(model) {
   res_dt[, item := NULL]
 }
 # from ctmm.fit result model list to data table with models in list column
-build_models_dt <- function(model_select_res) {
+model_select_res_to_model_list_dt <- function(model_select_res) {
   animal_names_dt <- data.table(identity = names(model_select_res))
   model_name_list <- lapply(model_select_res, names)
   # must use per row by to create list column, otherwise dt try to apply whole column to function
@@ -456,11 +456,11 @@ build_models_dt <- function(model_select_res) {
   models_dt[, model_no := .I]
 }
 # from models list col dt to model summary table
-summary_models_dt <- function(models_dt) {
+model_list_dt_to_model_summary_dt <- function(models_dt) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
   model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
-    summary_dt <- summary_ctmm_dt(models_dt$model[[i]])
+    summary_dt <- ctmm_obj_to_summary_dt(models_dt$model[[i]])
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
@@ -485,7 +485,7 @@ apply_format_f_list <- function(dt, format_f_list) {
   setnames(dt, new_cols, old_cols)
 }
 # format units in model summary table
-format_ctmm_summary <- function(summary_dt) {
+format_model_summary_dt <- function(summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(summary_dt)
   # speed is m/day, need manual adjust before ctmm update on this
@@ -507,13 +507,13 @@ format_ctmm_summary <- function(summary_dt) {
   apply_format_f_list(dt, format_f_list)
 }
 # from akde result model list to data table with models in list column
-build_hrange_dt <- function(selected_dt, selected_hrange_list) {
+build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {
   dt <- copy(selected_dt)
   dt[, model := list(selected_hrange_list)]
   dt[, model_no := .I]
 }
 # format units in home range summary table
-format_hrange_summary <- function(hrange_summary_dt) {
+format_hrange_summary_dt <- function(hrange_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(hrange_summary_dt)
   dt[, `DOF area` := round(`DOF area`, 3)]
