@@ -118,8 +118,8 @@ location_plot_box <- tabBox(title = "Animal Locations",
   tabPanel("2. Overview",
    fluidRow(
 
-     column(3, offset = 1, numericInput("canvas_height", "Canvas Height", 400,
-                            min = 200, max = 1000, step = 100),
+     column(3, offset = 1, numericInput("canvas_height", "Canvas Height", 600,
+                            min = 400, max = 1200, step = 200),
             checkboxInput("overlay_all",
                           "Others in background",
                           value = TRUE)),
@@ -457,12 +457,12 @@ occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                         #                    min = 0.1, max = 1, value = 0.95,
                         #                    step = 0.05,
                         #                    width = "100%")),
-                        column(4, offset = 3,
+                        column(5, offset = 2,
                                textInput("ud_level_text",
-                                         "% Confidence levels of contour",
+                    "% Contour level of the Occurrence Distribution",
                                          value = 95
                                          # ,
-                                         # placeholder = "like 95 or 50, 95"
+                                         # placeholder = "%"
                                                         )),
                         column(2, offset = 3, br(), help_button("occurrence")),
                         column(12, plotOutput("occurrence_plot",

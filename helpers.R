@@ -530,9 +530,13 @@ format_hrange_summary <- function(hrange_summary_dt) {
 color_CI <- function(ids) {
   color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),
                                   paste, sep = " - "))
-  color_values <- c(hue_pal(l = 90)(length(ids)),
-                    hue_pal(l = 65)(length(ids)),
-                    hue_pal(l = 40)(length(ids)))
+  color_values <- c(
+    # hue_pal(l = 50)(length(ids)),
+    rep("#999999", length(ids)),
+    hue_pal(l = 65)(length(ids)),
+    # hue_pal(l = 80)(length(ids))
+    rep("#999999", length(ids))
+    )
   return(list(levels = color_levels, values = color_values))
 }
 # occurrence ----

@@ -1348,8 +1348,10 @@ server <- function(input, output, session) {
     CI_colors <- color_CI(values$data$merged$info$identity)
     datatable(dt, options = list(scrollX = TRUE, pageLength = 10,
                                  lengthMenu = c(5, 10, 25)),
+              class = 'table-bordered',
               rownames = FALSE) %>%
       formatStyle('color_target', target = 'row',
+                  backgroundColor = NULL,
                   # color = styleEqual(info_p$identity,
                   #                    hue_pal()(nrow(info_p)))
                   color = styleEqual(CI_colors$levels, CI_colors$values)
