@@ -529,7 +529,9 @@ server <- function(input, output, session) {
        timestamp = format_datetime(timestamp),
        distance_center = format_distance_f(animals_dt[, distance_center])(
          distance_center),
-       speed = format_speed_f(animals_dt[, speed])(speed))]
+       distance_center_SI = format(distance_center, digits = 3),
+       speed = format_speed_f(animals_dt[, speed])(speed),
+       speed_SI = format(speed, digits = 3))]
   }
   # brush selection function
   select_range <- function(his_type){
@@ -616,6 +618,7 @@ server <- function(input, output, session) {
     datatable(select_distance_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
+                             scrollX = TRUE,
                              searching = FALSE),
               rownames = FALSE)
   })
@@ -783,6 +786,7 @@ server <- function(input, output, session) {
     datatable(select_speed_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
+                             scrollX = TRUE,
                              searching = FALSE),
               rownames = FALSE)
   })
