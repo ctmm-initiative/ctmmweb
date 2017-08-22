@@ -1367,8 +1367,8 @@ server <- function(input, output, session) {
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
                                      hue_pal()(length(model_names)))
-                  ,
-                  backgroundColor = "#FFFFFF"
+                  # ,
+                  # backgroundColor = "#FFFFFF"
                   # lineHeight = '70%'
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
@@ -1377,18 +1377,17 @@ server <- function(input, output, session) {
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
+      ) %>%
+      # override the low/high cols with background
+      formatStyle(
+        # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
+        'estimate',
+        target = 'row',
+        # valueColumns = 'estimate',
+        backgroundColor = styleEqual(c("CI low", "ML" , "CI high"),
+                           c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
+        # color = styleEqual(CI_colors$levels, CI_colors$values)
       )
-    # %>%
-    #   # override the low/high cols
-    #   formatStyle(
-    #     # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
-    #     'estimate',
-    #     target = 'row',
-    #     # valueColumns = 'estimate',
-    #     backgroundColor = styleEqual(c("CI low", "CI high"),
-    #                        c("#E3E3E3", "#CCCCCC"))
-    #     # color = styleEqual(CI_colors$levels, CI_colors$values)
-    #   )
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")
   observeEvent(input$clear_models, {
