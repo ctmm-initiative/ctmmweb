@@ -1353,14 +1353,14 @@ server <- function(input, output, session) {
     model_names <- sort(unique(dt$model_name))
     datatable(dt,options = list(scrollX = TRUE,
                                 pageLength = 18, lengthMenu = c(6, 18, 36)),
-              class = 'table-bordered',
+              # class = 'table-bordered',
               rownames = FALSE) %>%
       # majority cells in color by model
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
                                      hue_pal()(length(model_names)))
-                  # ,
-                  # backgroundColor = "#FFFFFF"
+                  ,
+                  backgroundColor = "#FFFFFF"
                   # lineHeight = '70%'
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
@@ -1369,17 +1369,18 @@ server <- function(input, output, session) {
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
-      ) %>%
-      # override the low/high cols
-      formatStyle(
-        # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
-        'estimate',
-        target = 'row',
-        # valueColumns = 'estimate',
-        backgroundColor = styleEqual(c("CI low", "CI high"),
-                           c("#E3E3E3", "#CCCCCC"))
-        # color = styleEqual(CI_colors$levels, CI_colors$values)
       )
+    # %>%
+    #   # override the low/high cols
+    #   formatStyle(
+    #     # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
+    #     'estimate',
+    #     target = 'row',
+    #     # valueColumns = 'estimate',
+    #     backgroundColor = styleEqual(c("CI low", "CI high"),
+    #                        c("#E3E3E3", "#CCCCCC"))
+    #     # color = styleEqual(CI_colors$levels, CI_colors$values)
+    #   )
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")
   observeEvent(input$clear_models, {
