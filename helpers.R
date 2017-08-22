@@ -443,6 +443,7 @@ ctmm_obj_to_summary_dt <- function(model) {
 }
 # from ctmm.fit result model list to data table with models in list column
 model_select_res_to_model_list_dt <- function(model_select_res) {
+  browser()
   animal_names_dt <- data.table(identity = names(model_select_res))
   model_name_list <- lapply(model_select_res, names)
   # must use per row by to create list column, otherwise dt try to apply whole column to function
@@ -465,7 +466,7 @@ model_list_dt_to_model_summary_dt <- function(models_dt) {
   res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
                   model_summary_dt,
                   by = "model_no")
-  res_dt[, color_target := str_c(identity, " - " , estimate)]
+  # res_dt[, color_target := str_c(identity, " - " , estimate)]
 }
 # apply units format functions list to columns
 apply_format_f_list <- function(dt, format_f_list) {
@@ -505,6 +506,8 @@ format_model_summary_dt <- function(model_summary_dt) {
   # NA cells should have units removed or just empty values
   res_dt[str_detect(`tau velocity`, "^NA "),
          c("tau velocity", "speed") := ""]
+  res_dt[str_detect(estimate, "CI"),
+         c("DOF mean", "DOF area") := NA_real_]
 }
 # from akde result model list to data table with models in list column
 build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {

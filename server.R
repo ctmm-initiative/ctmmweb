@@ -1350,15 +1350,18 @@ server <- function(input, output, session) {
     # need the full info table to keep the color mapping when only a subset is selected
     # info_p <- values$data$merged$info
     CI_colors <- color_CI(values$data$merged$info$identity)
-    datatable(dt, options = list(scrollX = TRUE, pageLength = 10,
-                                 lengthMenu = c(5, 10, 25)),
+    datatable(dt, extensions = 'FixedColumns',
+              options = list(scrollX = TRUE,
+                             fixedColumns = list(leftColumns = 2),
+                             pageLength = 10,
+                             lengthMenu = c(5, 10, 25)),
               class = 'table-bordered',
               rownames = FALSE) %>%
       formatStyle('color_target', target = 'row',
                   backgroundColor = NULL,
-                  # color = styleEqual(info_p$identity,
-                  #                    hue_pal()(nrow(info_p)))
-                  color = styleEqual(CI_colors$levels, CI_colors$values)
+                  color = styleEqual(info_p$identity,
+                                     hue_pal()(nrow(info_p)))
+                  # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) # wanted to format NA values gray, but cannot format by string pattern.
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")
