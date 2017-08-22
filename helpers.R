@@ -1,5 +1,6 @@
 # helper functions that useful to shiny app. fold the functions in script so it's easier to copy. keep comments in code so it's easy to update code later as two versions are identical.
 # to be placed in same directory of app.r/server.r
+# unit formatting ----
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
 # need to round up digits otherwise DT is showing too many digits
@@ -11,6 +12,7 @@ unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
 }
 # km <- unit_format(unit = "km", scale = 1e-3, digits = 2)
 # km()
+# given a resprentative value and unit dimension, get the best unit then generate a format function to be used on a vector of similar values. other derived functions pick certain value from a vector and choose a dimension.
 # extra round option when really needed
 pick_best_unit_f <- function(test_value, dimension, concise, round = FALSE) {
   # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
@@ -31,6 +33,11 @@ format_distance_f <- function(v, round = FALSE){
   pick_best_unit_f(max(abs(v), na.rm = TRUE)/2, dimension = "length",
                    concise = TRUE, round = round)
 }
+# given a test value, pick unit, return scale and name. SI / scale get the new value
+pick_unit_distance <- function(v) {
+  ctmm:::unit(max(abs(v), na.rm = TRUE)/2, dimension = "length",
+                   concise = TRUE)
+}
 format_seconds_f <- function(secs, round = FALSE) {
   pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time",
                    concise = FALSE, round = round)
@@ -39,6 +46,10 @@ format_seconds_f <- function(secs, round = FALSE) {
 format_speed_f <- function(speed, round = FALSE) {
   pick_best_unit_f(median(speed, na.rm = TRUE), dimension = "speed",
                    concise = TRUE, round = round)
+}
+pick_unit_speed <- function(speed) {
+  ctmm:::unit(median(speed, na.rm = TRUE), dimension = "speed",
+                   concise = TRUE)
 }
 format_area_f <- function(area, round = FALSE) {
   pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area",
@@ -55,6 +66,7 @@ format_diff_time <- function(diff_t) {
 format_datetime <- function(datetime) {
   format(datetime, "%Y-%m-%d %H:%M")
 }
+# ctmm data processing ----
 # get single animal info in one row data frame
 single_tele_info <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL

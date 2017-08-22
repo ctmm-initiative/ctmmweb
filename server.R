@@ -525,13 +525,21 @@ server <- function(input, output, session) {
   })
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
+    unit_distance <- pick_unit_distance(animals_dt$distance_center)
+    unit_speed <- pick_unit_speed(animals_dt$speed)
     animal_selected_data[, .(id, row_no,
        timestamp = format_datetime(timestamp),
-       distance_center = format_distance_f(animals_dt[, distance_center])(
-         distance_center),
-       distance_center_SI = format(distance_center, digits = 3),
-       speed = format_speed_f(animals_dt[, speed])(speed),
-       speed_SI = format(speed, digits = 3))]
+       distance_center = format(distance_center / unit_distance$scale,
+                                digits = 3),
+       distance_unit = unit_distance$name,
+       speed = format(speed / unit_speed$scale, digits = 3),
+       speed_unit = unit_speed$name
+       # distance_center = format_distance_f(animals_dt[, distance_center])(
+       #   distance_center),
+       # distance_center_SI = format(distance_center, digits = 3),
+       # speed = format_speed_f(animals_dt[, speed])(speed)
+       # speed_SI = format(speed, digits = 3)
+       )]
   }
   # brush selection function
   select_range <- function(his_type){
