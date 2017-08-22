@@ -1336,7 +1336,7 @@ server <- function(input, output, session) {
     formated_summary_dt <- format_model_summary_dt(model_summary_dt)
     if (!input$show_ci_model) {
       formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
-      formated_summary_dt[, estimate := NULL]
+      # formated_summary_dt[, estimate := NULL]
     }
     return(list(models_dt = models_dt,
                 summary_dt = formated_summary_dt))
@@ -1360,7 +1360,7 @@ server <- function(input, output, session) {
                   color = styleEqual(model_names,
                                      hue_pal()(length(model_names)))
                   ,
-                  backgroundColor = "#FFFFFF",
+                  backgroundColor = "#FFFFFF"
                   # lineHeight = '70%'
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
@@ -1369,6 +1369,16 @@ server <- function(input, output, session) {
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
+      ) %>%
+      # override the low/high cols
+      formatStyle(
+        # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
+        'estimate',
+        target = 'row',
+        # valueColumns = 'estimate',
+        backgroundColor = styleEqual(c("CI low", "CI high"),
+                           c("#E3E3E3", "#CCCCCC"))
+        # color = styleEqual(CI_colors$levels, CI_colors$values)
       )
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")

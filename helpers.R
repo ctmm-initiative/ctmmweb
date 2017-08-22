@@ -529,14 +529,15 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   apply_format_f_list(dt, format_f_list)
 }
 # color_CI <- function(ids) {
-#   color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),
-#                                   paste, sep = " - "))
+#   # color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),
+#   #                                 paste, sep = " - "))
+#   color_levels <- c("CI low", "CI high")
 #   color_values <- c(
 #     # hue_pal(l = 50)(length(ids)),
-#     rep("#999999", length(ids)),
-#     hue_pal(l = 65)(length(ids)),
+#     rep("#B3B3B3", length(ids)),
+#     # hue_pal(l = 65)(length(ids)),
 #     # hue_pal(l = 80)(length(ids))
-#     rep("#999999", length(ids))
+#     rep("#4D4D4D", length(ids))
 #     )
 #   return(list(levels = color_levels, values = color_values))
 # }
