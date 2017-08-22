@@ -1353,13 +1353,14 @@ server <- function(input, output, session) {
     model_names <- sort(unique(dt$model_name))
     datatable(dt,options = list(scrollX = TRUE,
                                 pageLength = 18, lengthMenu = c(6, 18, 36)),
-              class = 'table-bordered',
+              # class = 'table-bordered',
               rownames = FALSE) %>%
       # majority cells in color by model
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
                                      hue_pal()(length(model_names)))
-                  # ,
+                  ,
+                  backgroundColor = "#FFFFFF",
                   # lineHeight = '70%'
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
