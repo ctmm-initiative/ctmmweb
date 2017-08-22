@@ -538,7 +538,9 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   })
   # not really used, but easier to debug
   # names(format_f_list) <- names(dt)
-  apply_format_f_list(dt, format_f_list)
+  res_dt <- apply_format_f_list(dt, format_f_list)
+  res_dt[str_detect(estimate, "CI"),
+         c("DOF area", "DOF bandwidth") := NA_real_]
 }
 # color_CI <- function(ids) {
 #   # color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),

@@ -1329,10 +1329,7 @@ server <- function(input, output, session) {
     names(values$model_select_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
-    dt <- copy(summary_models()$summary_dt)
-    dt[, row_no := .I]
-    dt[, row_no[1], by = identity]$V1
-    selectRows(proxy_model_dt, dt[, row_no[1], by = identity]$V1)
+    selectRows(proxy_model_dt, summary_models()$first_models)
   })
   # summary_models() ----
   # summary table and model dt with model as list column
@@ -1342,14 +1339,21 @@ server <- function(input, output, session) {
     # the model summary table
     model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     formated_summary_dt <- format_model_summary_dt(model_summary_dt)
-    if (!input$show_ci_model) {
+    if (input$hide_ci_model) {
       formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
     }
+    # calculate the first model row number depend on table mode (hide/show CI)
+    # we don't want the row number to show in the final table
+    dt <- copy(formated_summary_dt)
+    dt[, row_no := .I]
+    model_position <- if (input$hide_ci_model) 1 else 2
+    first_models <- dt[, row_no[model_position], by = identity]$V1
     return(list(models_dt = models_dt,
-                summary_dt = formated_summary_dt))
+                summary_dt = formated_summary_dt,
+                first_models = first_models))
   })
-  # model table ----
+  # model summary ----
   output$model_fit_summary <- DT::renderDataTable({
     # should not need to use req on reactive expression if that expression have req inside.
     dt <- summary_models()$summary_dt
@@ -1360,7 +1364,7 @@ server <- function(input, output, session) {
     # CI_colors <- color_CI(values$data$merged$info$identity)
     model_names <- sort(unique(dt$model_name))
     datatable(dt,options = list(scrollX = TRUE,
-                                pageLength = 18, lengthMenu = c(6, 18, 36)),
+                                pageLength = 18, lengthMenu = c(18, 36, 72)),
               # class = 'table-bordered',
               rownames = FALSE) %>%
       # majority cells in color by model
@@ -1440,20 +1444,45 @@ server <- function(input, output, session) {
                  message = "Calculating home range ...")
     return(res)
   })
+  # home range summary ----
   output$range_summary <- DT::renderDataTable({
     hrange_summary_dt <- model_list_dt_to_model_summary_dt(build_hrange_list_dt(
       select_models()$dt, selected_hrange_list()))
     dt <- format_hrange_summary_dt(hrange_summary_dt)
     dt[, model_no := NULL]
-    if (!input$show_ci_hrange) {
+    if (input$hide_ci_hrange) {
       dt <- dt[!str_detect(estimate, "CI")]
-      dt[, estimate := NULL]
+      # dt[, estimate := NULL]
     }
     info_p <- values$data$merged$info
-    datatable(dt, options = list(scrollX = TRUE), rownames = FALSE) %>%
-      formatStyle('identity', target = 'row',
+    model_names <- sort(unique(dt$model_name))
+    datatable(dt, options = list(scrollX = TRUE,
+                                 pageLength = 18, lengthMenu = c(18, 36, 72)),
+              rownames = FALSE) %>%
+      # majority cells in color by model
+      formatStyle('model_name', target = 'row',
+                  color = styleEqual(model_names,
+                                     hue_pal()(length(model_names)))
+                  # ,
+                  # backgroundColor = "#FFFFFF"
+                  # lineHeight = '70%'
+                  # color = styleEqual(CI_colors$levels, CI_colors$values)
+      ) %>%
+      # override the id col color
+      formatStyle('identity', target = 'cell',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
+                  # color = styleEqual(CI_colors$levels, CI_colors$values)
+      ) %>%
+      # override the low/high cols with background
+      formatStyle(
+        # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
+        'estimate',
+        target = 'row',
+        # valueColumns = 'estimate',
+        backgroundColor = styleEqual(c("CI low", "ML" , "CI high"),
+                                     c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
+        # color = styleEqual(CI_colors$levels, CI_colors$values)
       )
   })
   # function on input didn't update, need a reactive expression?
