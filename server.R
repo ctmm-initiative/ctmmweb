@@ -1348,21 +1348,30 @@ server <- function(input, output, session) {
     # delete extra col here so it will not be shown, but we can still use them in code because the reactive expression still have it.
     dt[, model_no := NULL]
     # need the full info table to keep the color mapping when only a subset is selected
-    # info_p <- values$data$merged$info
-    CI_colors <- color_CI(values$data$merged$info$identity)
+    info_p <- values$data$merged$info
+    # CI_colors <- color_CI(values$data$merged$info$identity)
+    model_names <- sort(unique(dt$model_name))
     datatable(dt, extensions = 'FixedColumns',
               options = list(scrollX = TRUE,
                              fixedColumns = list(leftColumns = 2),
-                             pageLength = 10,
-                             lengthMenu = c(5, 10, 25)),
+                             pageLength = 18,
+                             lengthMenu = c(6, 18, 36)),
               class = 'table-bordered',
               rownames = FALSE) %>%
-      formatStyle('color_target', target = 'row',
-                  backgroundColor = NULL,
+      # majority cells in color by model
+      formatStyle('model_name', target = 'row',
+                  color = styleEqual(model_names,
+                                     hue_pal()(length(model_names)))
+                  # ,
+                  # lineHeight = '70%'
+                  # color = styleEqual(CI_colors$levels, CI_colors$values)
+      ) %>%
+      # override the id col color
+      formatStyle('identity', target = 'cell',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
                   # color = styleEqual(CI_colors$levels, CI_colors$values)
-      ) # wanted to format NA values gray, but cannot format by string pattern.
+      )
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")
   observeEvent(input$clear_models, {

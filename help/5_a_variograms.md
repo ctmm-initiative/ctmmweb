@@ -14,3 +14,4 @@ Variograms of individuals in current subset are plotted here.
 - Clicking `Fit Models` will start to fit possible models for every individual in current subset. It could be time taking so it need to be manually activated.
     + Depend on platform (Windows/Mac/Linux), different parallel processes are used. There will be a time report in console when running app in local mode. 
     + If the app was terminated by force, there could be forked R sessions remained active. It's better to clean up all R sessions in your system's task manager after force quitting the app.
+    + `data.table` is known to have conflict with `mclapply` in Mac R 3.4 with openMP. The error is somewhat random, restart R session can often make it dissappear.

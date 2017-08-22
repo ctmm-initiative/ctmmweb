@@ -443,7 +443,6 @@ ctmm_obj_to_summary_dt <- function(model) {
 }
 # from ctmm.fit result model list to data table with models in list column
 model_select_res_to_model_list_dt <- function(model_select_res) {
-  browser()
   animal_names_dt <- data.table(identity = names(model_select_res))
   model_name_list <- lapply(model_select_res, names)
   # must use per row by to create list column, otherwise dt try to apply whole column to function
@@ -529,18 +528,18 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   # names(format_f_list) <- names(dt)
   apply_format_f_list(dt, format_f_list)
 }
-color_CI <- function(ids) {
-  color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),
-                                  paste, sep = " - "))
-  color_values <- c(
-    # hue_pal(l = 50)(length(ids)),
-    rep("#999999", length(ids)),
-    hue_pal(l = 65)(length(ids)),
-    # hue_pal(l = 80)(length(ids))
-    rep("#999999", length(ids))
-    )
-  return(list(levels = color_levels, values = color_values))
-}
+# color_CI <- function(ids) {
+#   color_levels <- as.vector(outer(ids, c("CI low", "ML", "CI high"),
+#                                   paste, sep = " - "))
+#   color_values <- c(
+#     # hue_pal(l = 50)(length(ids)),
+#     rep("#999999", length(ids)),
+#     hue_pal(l = 65)(length(ids)),
+#     # hue_pal(l = 80)(length(ids))
+#     rep("#999999", length(ids))
+#     )
+#   return(list(levels = color_levels, values = color_values))
+# }
 # occurrence ----
 # parse_CI_levels <- function(s) {
 #   if (s == "") {
