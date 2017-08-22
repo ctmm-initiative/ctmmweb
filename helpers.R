@@ -553,6 +553,14 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 #     )
 #   return(list(levels = color_levels, values = color_values))
 # }
+parse_CI_levels <- function(levels_text) {
+  if (str_trim(levels_text) == "") {
+    return(0.95)
+  } else {
+    items <- str_trim(str_split(levels_text, ",")[[1]])
+    as.numeric(items[items != ""]) / 100
+  }
+}
 # occurrence ----
 # parse_CI_levels <- function(s) {
 #   if (s == "") {

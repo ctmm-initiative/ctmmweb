@@ -430,7 +430,13 @@ model_selection_box <- box(title = "Model Selection", status = "info",
 #                               )
 range_plot_box <- box(title = "Home Range Estimation", status = "info",
                  solidHeader = TRUE, width = 12,
-   fluidRow(column(12, plotOutput("range_plot",
+   fluidRow(
+     column(6, offset = 1,
+            textInput("hr_level_text",
+                      "% Contour level of Home Range",
+                      value = 95)),
+     column(2, offset = 3, br(), help_button("home_range")),
+     column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))
 range_summary_box <- box(title = "Home Range Summary", status = "primary",
@@ -438,12 +444,11 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       fluidRow(
                         column(4, checkboxInput("show_ci_hrange",
                                                 "Show Confidence Intervals")),
-                        column(3, offset = 1,
+                        column(3, offset = 5,
                                downloadButton("export_hrange",
                                               "Export Shapefiles",
                                               icon = icon("save"),
                                               style = styles$page_action)),
-                        column(2, offset = 2, help_button("home_range")),
                         column(12, DT::dataTableOutput("range_summary"))
                         )
 )
@@ -451,19 +456,10 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
 occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
-                        # column(4, offset = 4,
-                        #        sliderInput("ud_level",
-                        #                    "Confidence level of contours",
-                        #                    min = 0.1, max = 1, value = 0.95,
-                        #                    step = 0.05,
-                        #                    width = "100%")),
-                        column(5, offset = 2,
-                               textInput("ud_level_text",
+                        column(6, offset = 1,
+                               textInput("oc_level_text",
                     "% Contour level of the Occurrence Distribution",
-                                         value = 95
-                                         # ,
-                                         # placeholder = "%"
-                                                        )),
+                                         value = 95)),
                         column(2, offset = 3, br(), help_button("occurrence")),
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))

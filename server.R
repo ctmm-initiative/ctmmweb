@@ -1456,13 +1456,18 @@ server <- function(input, output, session) {
                                      hue_pal()(nrow(info_p)))
       )
   })
+  # function on input didn't update, need a reactive expression?
+  get_hr_levels <- reactive({
+    parse_CI_levels(input$hr_level_text)
+  })
   output$range_plot <- renderPlot({
     selected_tele_list <- select_models()$tele_list
     def.par <- par(no.readonly = TRUE)
     par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(selected_tele_list), function(i) {
-      plot(selected_tele_list[[i]], UD = selected_hrange_list()[[i]])
+      plot(selected_tele_list[[i]], UD = selected_hrange_list()[[i]],
+           level.UD = get_hr_levels())
       title(select_models()$dt[i, paste0(identity, " - ", model_name)])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
@@ -1484,14 +1489,8 @@ server <- function(input, output, session) {
     selected_occurrences
   })
   # function on input didn't update, need a reactive expression?
-  parse_CI_levels <- reactive({
-    if (str_trim(input$ud_level_text) == "") {
-      return(NA)
-    }
-    else {
-      items <- str_trim(str_split(input$ud_level_text, ",")[[1]])
-      as.numeric(items[items != ""]) / 100
-    }
+  get_oc_levels <- reactive({
+    parse_CI_levels(input$oc_level_text)
   })
   output$occurrence_plot <- renderPlot({
     # plot
@@ -1501,7 +1500,7 @@ server <- function(input, output, session) {
     lapply(seq_along(select_occurrences()), function(i) {
       tryCatch({
         # plot(select_occurrences()[[i]], level.UD = input$ud_level)
-        plot(select_occurrences()[[i]], level.UD = parse_CI_levels())
+        plot(select_occurrences()[[i]], level.UD = get_oc_levels())
       }, error = function(e) {
         warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
