@@ -1351,11 +1351,8 @@ server <- function(input, output, session) {
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
     model_names <- sort(unique(dt$model_name))
-    datatable(dt, extensions = 'FixedColumns',
-              options = list(scrollX = TRUE,
-                             fixedColumns = list(leftColumns = 2),
-                             pageLength = 18,
-                             lengthMenu = c(6, 18, 36)),
+    datatable(dt,options = list(scrollX = TRUE,
+                                pageLength = 18, lengthMenu = c(6, 18, 36)),
               class = 'table-bordered',
               rownames = FALSE) %>%
       # majority cells in color by model
