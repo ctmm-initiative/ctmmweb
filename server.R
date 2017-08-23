@@ -1502,6 +1502,19 @@ server <- function(input, output, session) {
     })
     par(def.par)
   }, height = function() { select_models_layout()$height })
+  # export shapefiles ----
+  output$export_hrange <- downloadHandler(
+    filename = function() {
+      # up to min so it should be consistent with the folder name inside zip
+      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M_UTC",
+                             tz = "UTC")
+      paste0("Home Range ", current_time, ".zip")
+    },
+    content = function(file) {
+      hrange_list <- selected_hrange_list()
+      zip_shapefiles(file, hrange_list)
+    }
+  )
   # p7. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/7_occurrence.md")
