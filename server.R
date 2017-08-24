@@ -7,6 +7,7 @@ server <- function(input, output, session) {
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals.
+  # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
     if (debug_mode) {
       match_tele_merged(values$data$tele_list, values$data$merged)
