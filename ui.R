@@ -435,7 +435,11 @@ range_plot_box <- box(title = "Home Range Estimation", status = "info",
             textInput("hr_level_text",
                       "% Contour level of Home Range",
                       value = 95)),
-     column(2, offset = 3, br(), help_button("home_range")),
+     column(3, offset = 2, br(),
+            downloadButton("export_hrange",
+                           "Export Shapefiles",
+                           icon = icon("save"),
+                           style = styles$page_action)),
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))
@@ -444,11 +448,7 @@ range_summary_box <- box(title = "Home Range Summary", status = "primary",
                       fluidRow(
                         column(4, checkboxInput("hide_ci_hrange",
                                                 "Hide Confidence Intervals")),
-                        column(3, offset = 5,
-                               downloadButton("export_hrange",
-                                              "Export Shapefiles",
-                                              icon = icon("save"),
-                                              style = styles$page_action)),
+                        column(2, offset = 6, help_button("home_range")),
                         column(12, DT::dataTableOutput("range_summary"))
                         )
 )
