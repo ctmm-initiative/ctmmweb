@@ -1511,8 +1511,22 @@ server <- function(input, output, session) {
       paste0("Home Range ", current_time, ".zip")
     },
     content = function(file) {
+      # hrange_list <- selected_hrange_list()
+      # zip_shapefiles(file, hrange_list)
+      # create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
+      # functional::Curry is misnomer, and it's extra dependency.
+      save_shapefiles <- function(hrange_list, ud_levels) {
+        write_f <- function(folder_path) {
+          # unlist/flatten cannot preserve the real item name. have to write each item explicitly.
+          lapply(hrange_list, function(x) {
+            writeShapefile(x, folder_path, level.UD = ud_levels)
+          })
+        }
+        return(write_f)
+      }
       hrange_list <- selected_hrange_list()
-      zip_shapefiles(file, hrange_list)
+      ud_levels <- get_hr_levels()
+      build_zip(file, save_shapefiles(hrange_list, ud_levels))
     }
   )
   # p7. occurrence ----

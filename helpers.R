@@ -563,7 +563,8 @@ parse_CI_levels <- function(levels_text) {
     as.numeric(items[items != ""]) / 100
   }
 }
-zip_shapefiles <- function(file, hrange_list) {
+# file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
+build_zip <- function(file, write_f) {
   # timestamp as folder name, also part of zip name. this+file_name as relative path of files in creating zip
   build_time <- Sys.time()
   folder_name <- format(build_time, "%Y-%m-%d_%H-%M-%S_UTC",
@@ -574,10 +575,11 @@ zip_shapefiles <- function(file, hrange_list) {
   dir.create(folder_path)
   zip_name <- paste0("Home Range ", folder_name, ".zip")
   # write files: unlist/flatten cannot preserve the real item name. have to write each item explicitly.
-  lapply(hrange_list, function(x) {
-    # TODO need input levels ----
-    writeShapefile(x, folder_path, level.UD = 0.95)
-  })
+  # lapply(hrange_list, function(x) {
+  #   # TODO need input levels ----
+  #   writeShapefile(x, folder_path, level.UD = 0.95)
+  # })
+  write_f(folder_path)
   # write zip
   previous_wd <- getwd()
   setwd(temp_folder)
