@@ -1512,7 +1512,7 @@ server <- function(input, output, session) {
     content = function(file) {
       # hrange_list <- selected_hrange_list()
       # zip_shapefiles(file, hrange_list)
-      # create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
+      # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
       # functional::Curry is misnomer, and it's extra dependency.
       save_shapefiles <- function(hrange_list, ud_levels) {
         write_f <- function(folder_path) {
