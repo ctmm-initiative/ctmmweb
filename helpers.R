@@ -354,6 +354,32 @@ get_study_detail <- function(mb_id, user, pass) {
 get_study_data <- function(mb_id, user, pass){
   request(paste0("event&study_id=", mb_id), user, pass)
 }
+# divide x into interval_count intervals ----
+# Taken from https://github.com/wch/r-source/blob/trunk/src/library/base/R/cut.R
+divide <-
+  function (x, interval_count)
+  {
+    if (is.na(interval_count) || interval_count < 2L)
+      stop("invalid number of intervals")
+    nb <- as.integer(interval_count + 1) # one more than #{intervals}
+    dx <- diff(rx <- range(x, na.rm = TRUE))
+    if(dx == 0) {
+      dx <- abs(rx[1L])
+      breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
+                        length.out = nb)
+    } else {
+      breaks <- seq.int(rx[1L], rx[2L], length.out = nb)
+      breaks[c(1L, nb)] <- c(rx[1L] - dx/1000, rx[2L] + dx/1000)
+    }
+    return(breaks)
+  }
+cut_date_time <- function(x, interval_count) {
+  brks <- divide(as.numeric(x), interval_count)
+  return(cut(x, as_datetime(brks)))
+}
+divide_date_time <- function(x, interval_count) {
+  return(as_datetime(divide(as.numeric(x), interval_count)))
+}
 # outlier ----
 color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
   color_bin_breaks <- divide(animals_dt[[col_name]], bin_count)
