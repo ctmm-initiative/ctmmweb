@@ -595,9 +595,12 @@ build_zip <- function(file, write_f) {
   build_time <- Sys.time()
   folder_name <- format(build_time, "%Y-%m-%d_%H-%M-%S_UTC",
                         tz = "UTC")
-  temp_folder <- tempdir()
+  temp_folder <- normalizePath(tempdir())  # produced extra // in Mac
+  # all file operations are platform dependent, need extra test and care.
   # absolute path of folder under temp folder. this + file_name to write files
-  folder_path <- normalizePath(paste0(temp_folder, "/", folder_name))
+  # the folder is not exist yet, normalizePath will complain without mustWork.
+  folder_path <- normalizePath(paste0(temp_folder, "/", folder_name),
+                               mustWork = FALSE)
   dir.create(folder_path)
   zip_name <- paste0("Home Range ", folder_name, ".zip")
   write_f(folder_path)
