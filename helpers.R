@@ -602,6 +602,7 @@ build_zip <- function(file, write_f) {
   # folder_path <- normalizePath(paste0(temp_folder, "/", folder_name),
   #                              mustWork = FALSE)
   # avoid using file separtor specificlly since it may only work in one platform
+  # this only ensure the separators between terms, but tempdir get windows style separators already, which is not changed.
   folder_path <- file.path(temp_folder, folder_name)
   dir.create(folder_path)
   zip_name <- paste0("Home Range ", folder_name, ".zip")

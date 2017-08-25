@@ -31,6 +31,6 @@ You can run app in your local machine with these steps:
     ```
 
     The script above will install dependency packages and run app. Sometimes you may need to restart R in installing packages. 
-    Running in RStudio will use RStudio's embeded browser by default. In windows/Linux this has known compatibility problems(slider label not in log scale, download file name not formated automatically). You can click the `open in browser` button in the browser top bar to use system browser instead, Chrome is recommended.
+    Running in RStudio will use RStudio's embeded browser by default. In windows/Linux this has known compatibility problems(slider label not in log scale, download file name not formated automatically, download dialog lost response). You can click the `open in browser` button in the browser top bar to use system browser instead. Chrome is recommended.
   
   More details about installation, running specific version of app, or running app without Internet can be [found here.](README-install.md) 
