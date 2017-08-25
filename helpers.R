@@ -597,14 +597,9 @@ build_zip <- function(file, write_f) {
                         tz = "UTC")
   temp_folder <- tempdir()
   # absolute path of folder under temp folder. this + file_name to write files
-  folder_path <- paste0(temp_folder, "/", folder_name, "/")
+  folder_path <- normalizePath(paste0(temp_folder, "/", folder_name))
   dir.create(folder_path)
   zip_name <- paste0("Home Range ", folder_name, ".zip")
-  # write files: unlist/flatten cannot preserve the real item name. have to write each item explicitly.
-  # lapply(hrange_list, function(x) {
-  #   # TODO need input levels ----
-  #   writeShapefile(x, folder_path, level.UD = 0.95)
-  # })
   write_f(folder_path)
   # write zip
   previous_wd <- getwd()
