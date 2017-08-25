@@ -595,12 +595,14 @@ build_zip <- function(file, write_f) {
   build_time <- Sys.time()
   folder_name <- format(build_time, "%Y-%m-%d_%H-%M-%S_UTC",
                         tz = "UTC")
-  temp_folder <- normalizePath(tempdir())  # produced extra // in Mac
+  temp_folder <- tempdir() # produced extra // in Mac
   # all file operations are platform dependent, need extra test and care.
   # absolute path of folder under temp folder. this + file_name to write files
   # the folder is not exist yet, normalizePath will complain without mustWork.
-  folder_path <- normalizePath(paste0(temp_folder, "/", folder_name),
-                               mustWork = FALSE)
+  # folder_path <- normalizePath(paste0(temp_folder, "/", folder_name),
+  #                              mustWork = FALSE)
+  # avoid using file separtor specificlly since it may only work in one platform
+  folder_path <- file.path(temp_folder, folder_name)
   dir.create(folder_path)
   zip_name <- paste0("Home Range ", folder_name, ".zip")
   write_f(folder_path)
@@ -609,8 +611,10 @@ build_zip <- function(file, write_f) {
   setwd(temp_folder)
   files_in_zip <- list.files(folder_path)
   # this is the relative path inside zip, starting from current dir
-  paths_in_zip <- str_c(folder_name, "/", files_in_zip)
-  zip_full_path <- paste0(folder_path, zip_name)
+  # paths_in_zip <- str_c(folder_name, "/", files_in_zip)
+  paths_in_zip <- file.path(folder_name, files_in_zip)
+  # zip_full_path <- paste0(folder_path, "/" , zip_name)
+  zip_full_path <- file.path(folder_path, zip_name)
   zip::zip(zip_full_path, paths_in_zip,
            compression_level = 5)
   setwd(previous_wd)
