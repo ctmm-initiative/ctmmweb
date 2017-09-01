@@ -1,3 +1,8 @@
+### Limitations
+The Movebank interface in app used Movebank API, which has some limitations compare to the Movebank website:
+- The studies with data visible returned from API are not as accurate. It's quite possible some studies don't have data to view or download.
+- The downloaded data only have some core columns, not as complete as the csv downloaded from Movebank website.
+
 ### Table of all studies
 - In all Movebank studies, only a part of them have data visible to your account. Only these studies are listed.
 - The columns of `deployments`, `events` or `individuals` are obsolete and only kept for reference, do not rely on them. 
