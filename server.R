@@ -484,10 +484,12 @@ server <- function(input, output, session) {
   # calc_outlier() ----
   # take current subset, add distance and speed columns. everything in this page start from this data. The outlier removal need to apply to whole data then trickle down here
   calc_outlier <- reactive({
+    # exclude non-numeric input
+    req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data
     animals_dt <- calculate_distance(animals_dt)
-    animals_dt <- calculate_speed(animals_dt, input$device_error)
+    animals_dt <- calculate_speed(animals_dt, as.numeric(input$device_error))
     outlier_page_data$data <- animals_dt
     return(outlier_page_data)
   })
@@ -675,9 +677,17 @@ server <- function(input, output, session) {
     remove_outliers(points_to_remove)
   })
   # p3.b.1 speed histogram ----
+  # bin_by_speed() ----
   bin_by_speed <- reactive({
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
+    # too large UERE value will result calculated speed in 0
+    zero_speeds <- all(range(animals_dt$speed) == c(0,0))
+    if (zero_speeds) {
+      showNotification("Calculated Speed = 0, is device error too big?",
+                       type = "error")
+    }
+    req(!zero_speeds)
     return(color_break(input$speed_his_bins, animals_dt,
                        "speed", format_speed_f))
   })
