@@ -487,7 +487,7 @@ server <- function(input, output, session) {
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data
     animals_dt <- calculate_distance(animals_dt)
-    animals_dt <- calculate_speed(animals_dt)
+    animals_dt <- calculate_speed(animals_dt, input$device_error)
     outlier_page_data$data <- animals_dt
     return(outlier_page_data)
   })

@@ -226,10 +226,10 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
                               height = styles$height_outlier_hist))),
     fluidRow(column(4, offset = 1, sliderInput("speed_point_size",
                                                "Point Size for Selected Range",
-                          min = 0.1, max = 2, value = 1.5, step = 0.1))
-             # column(4, offset = 0, sliderInput("speed_alpha",
-             #                                   "Selected Point Alpha ",
-             #              min = 0.1, max = 1, value = 1, step = 0.1))
+                          min = 0.1, max = 2, value = 1.5, step = 0.1)),
+             column(5, offset = 1, numericInput("device_error",
+                                                "Standardized Device Error(meter)",
+                                                0, min = 0, step = 1 ))
              ),
     fluidRow(column(12, plotOutput("speed_outlier_plot",                                                      dblclick = "speed_outlier_plot_dblclick",
                            brush = brushOpts(

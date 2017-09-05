@@ -139,7 +139,7 @@ calculate_distance <- function(animals_dt) {
   return(animals_dt)
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
-calculate_speed_leaving <- function(animals_dt) {
+calculate_speed_leaving <- function(animals_dt, device_error) {
   # x[i] + inc[i] = x[i+1], note by id
   # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
   #                   inc_y = shift(y, 1L, type = "lead") - y,
@@ -154,7 +154,7 @@ calculate_speed_leaving <- function(animals_dt) {
   return(animals_dt)
 }
 # the pmin method
-calculate_speed_pmin <- function(animals_dt) {
+calculate_speed_pmin <- function(animals_dt, device_error) {
   # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
   #                   inc_y = shift(y, 1L, type = "lead") - y,
   #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]  # note by id
@@ -197,30 +197,30 @@ calculate_speed_pmin <- function(animals_dt) {
   return(animals_dt)
 }
 # using ctmm util functions
-calculate_speed_ctmm <- function(animals_dt) {
+calculate_speed_ctmm <- function(animals_dt, device_error) {
   setkey(animals_dt, row_no)
   animals_dt[, speed := ctmm:::assign_speeds(.SD,
                                              dt = ctmm:::time_res(.SD),
-                                             UERE = 0, method = "max"),
+                                             UERE = device_error, method = "max"),
              by = identity]
   return(animals_dt)
 }
 # all speed calculation except ctmm assume distance have been calculated. Since we always update two together, this is not problem.
-calculate_speed <- function(animals_dt) {
+calculate_speed <- function(animals_dt, device_error) {
   setkey(animals_dt, row_no)
   # animals_dt <- calculate_speed_ctmm(animals_dt)
   # animals_dt <- calculate_speed_pmin(animals_dt)
   # my speed calculation need distance columns
-  test_calc <- function(data, fun, fun_bak) {
-    res <- tryCatch(fun(data), error = function(e) "error")
+  test_calc <- function(data, device_error, fun, fun_bak) {
+    res <- tryCatch(fun(data, device_error), error = function(e) "error")
     if (identical(res, "error")) {
-      res <- fun_bak(data)
+      res <- fun_bak(data, device_error)
       cat("Had error with first speed definition, use alternative instead\n")
     }
     return(res)
   }
   # we didn't use the third fallback, pmin should be robust enough.
-  animals_dt <- test_calc(animals_dt,
+  animals_dt <- test_calc(animals_dt, device_error,
                           calculate_speed_ctmm, calculate_speed_pmin)
   # animals_dt <- calculate_speed_ctmm(animals_dt)
   return(animals_dt)
