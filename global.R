@@ -29,7 +29,7 @@ styles <- list(
   height_outlier_hist = "180px",
   # time subsetting
   # not setting the box height make arrange multiple items easier.
-  height_hist_subset_box = "310px",
+  # height_hist_subset_box = "380px",
   height_hist_subset_output = "150px",
   # height_selected_loc_box = "480px"
   # height_selected_loc = 480

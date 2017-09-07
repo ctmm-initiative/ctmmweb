@@ -273,7 +273,7 @@ all_removed_outliers_box <- box(title = "Removed Outliers",
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range", status = "info",
                                 solidHeader = TRUE, width = 12,
-                                height = styles$height_hist_subset_box,
+                                # height = styles$height_hist_subset_box,
       fluidRow(column(6, offset = 0,
                       sliderInput("time_color_bins", "Histogram Bins",
                                   min = 2, max = 20, value = 7, step = 1)),
@@ -287,16 +287,16 @@ histogram_subsetting_box <- box(title = "Select Time Range", status = "info",
                                        fill = "blue",
                                        resetOnNew = TRUE)
                                      # width = "99%", height = "100%"
-                                     ))))
+                                     )),
+               column(9, offset = 0, dateRangeInput('date_range',
+                                                    label = 'Set date range manually'
+               )),
+               column(2, offset = 1, br(), actionButton("set_date_range", "Set",
+                                                        icon = icon("arrow-down"),
+                                                        style = styles$page_action))))
 current_range_box <- box(title = "Current Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
        fluidRow(
-         column(8, offset = 1, dateRangeInput('dateRange',
-                                   label = 'Set range manually: yyyy-mm-dd'
-         )),
-         column(2, offset = 1, br(), actionButton("set_date_range", "Set",
-                                icon = icon("arrow-down"),
-                                style = styles$page_action)),
          column(10, DT::dataTableOutput("current_range")),
          column(2, br(), br(),
                  actionButton("add_time",

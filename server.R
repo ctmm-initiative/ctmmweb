@@ -870,6 +870,7 @@ server <- function(input, output, session) {
     datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # color_bin_animal() ----
+  values$selected_time_range <- NULL
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
   color_bin_animal <- reactive({
     # ensure time range table are cleared even there is no suitable single individual
@@ -888,6 +889,16 @@ server <- function(input, output, session) {
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
+    # initital selection is full range
+    # the manual set of date range triggered this whole expression to calculate again, and reset it to full range.
+    isolate({
+      values$selected_time_range <- list(
+        select_start = data_i[t == min(t), timestamp],
+        select_end = data_i[t == max(t), timestamp])
+      updateDateRangeInput(session, "date_range",
+                           start = values$selected_time_range$select_start,
+                           end = values$selected_time_range$select_end)
+    })
     # using id internally to make code shorter, in data frame id is factor
     return(list(identity = selected_id, data = data_i,
                 # single tele object, not list, other places use tele_list
@@ -908,25 +919,42 @@ server <- function(input, output, session) {
       ggtitle(animal_binned$data[1, identity]) + center_title +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
-  # selected time range ----
-  values$selected_time_range <- NULL
+  # select time range ----
   # brush selection and matching color bins
-  select_time_range <- reactive({
-    animal_binned <- color_bin_animal()
-    if (is.null(input$time_sub_his_brush)) {
-      select_start <- animal_binned$data[t == min(t), timestamp]
-      select_end <- animal_binned$data[t == max(t), timestamp]
+  observeEvent(input$time_sub_his_brush, {
+    # there will be event right after plot initialized. we need to verify if there is real input
+    values$selected_time_range <- list(
+      select_start = as_datetime(input$time_sub_his_brush$xmin),
+      select_end = as_datetime(input$time_sub_his_brush$xmax))
+  })
+  # select_time_range <- reactive({
+  #   animal_binned <- color_bin_animal()
+  #   if (is.null(input$time_sub_his_brush)) {
+  #     select_start <- animal_binned$data[t == min(t), timestamp]
+  #     select_end <- animal_binned$data[t == max(t), timestamp]
+  #   } else {
+  #     # brush value in seconds
+  #     select_start <- as_datetime(input$time_sub_his_brush$xmin)
+  #     select_end <- as_datetime(input$time_sub_his_brush$xmax)
+  #   }
+  #   select_length <- select_end - select_start
+  #   # use identity because id is factor. avoid surprises
+  #   return(list(
+  #     # identity = animal_binned$identity,
+  #               select_start = select_start, select_end = select_end,
+  #               select_length = select_length))
+  # })
+  observeEvent(input$set_date_range, {
+    start <- as_datetime(input$date_range[1])
+    end <- as_datetime(input$date_range[2])
+    if (end - start < 0) {
+      showNotification("Start date is later than end date",
+                       duration = 3, type = "error")
     } else {
-      # brush value in seconds
-      select_start <- as_datetime(input$time_sub_his_brush$xmin)
-      select_end <- as_datetime(input$time_sub_his_brush$xmax)
+      values$selected_time_range <- list(
+        select_start = start,
+        select_end = end)
     }
-    select_length <- select_end - select_start
-    # use identity because id is factor. avoid surprises
-    return(list(
-      # identity = animal_binned$identity,
-                select_start = select_start, select_end = select_end,
-                select_length = select_length))
   })
   # 4.2 current range ----
   # format a time range table. need to deal with NULL input since in the initialization and after all rows deleted, this is still called.
@@ -937,12 +965,13 @@ server <- function(input, output, session) {
       time_range_dt <- data.table(time_range_df)
       time_range_dt[, `:=`(start = format_datetime(select_start),
                            end = format_datetime(select_end),
-                           length = format_diff_time(select_length))]
+                           length = format_diff_time(select_end - select_start))]
       return(time_range_dt[, .(start, end, length)])
     }
   }
   output$current_range <- DT::renderDataTable({
-    dt <- format_time_range(as.data.frame(select_time_range()))
+    req(!is.null(values$selected_time_range))
+    dt <- format_time_range(as.data.frame(values$selected_time_range))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
@@ -951,7 +980,7 @@ server <- function(input, output, session) {
   selected_loc_ranges <- add_zoom("selected_loc")
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
-    time_range <- select_time_range()
+    time_range <- values$selected_time_range
     animal_selected_data <- animal_binned$data[
       (timestamp >= time_range$select_start) &
         (timestamp <= time_range$select_end)]
@@ -970,7 +999,7 @@ server <- function(input, output, session) {
   # 4.4 time range table ----
   # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, in color_bin_animal. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
   observeEvent(input$add_time, {
-    l <- list(values$time_ranges, as.data.frame(select_time_range()))
+    l <- list(values$time_ranges, as.data.frame(values$selected_time_range))
     values$time_ranges <- rbindlist(l)
   })
   observeEvent(input$delete_time_sub_rows, {
