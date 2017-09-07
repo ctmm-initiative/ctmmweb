@@ -330,7 +330,7 @@ selected_ranges_box <- box(title = "Selected Time Ranges",
                                        icon = icon("ban"),
                                        style = styles$page_action)),
                    column(3, offset = 3,
-                          actionButton("generate_time_sub", "Generate Subset",
+                          actionButton("generate_time_sub", "Combine to New",
                                        icon = icon("pie-chart"),
                                        style = styles$page_action))
                    ),
