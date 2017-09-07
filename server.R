@@ -1026,7 +1026,7 @@ server <- function(input, output, session) {
       res[[i]] <- dt[(timestamp >= values$time_ranges[i, select_start]) &
                        (timestamp <= values$time_ranges[i, select_end])]
     }
-    # organize
+    # note all ranges are combined. this is intended for a subset of non-overlapping sections. If need multiple subset, just generate several times.
     new_dt <- unique(rbindlist(res))
     setkey(new_dt, row_no)
     # new name
