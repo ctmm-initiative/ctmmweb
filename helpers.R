@@ -237,7 +237,8 @@ tele_list_to_dt <- function(tele_objs) {
     animal_data_list[[i]][, identity := tele_list[[i]]@info$identity]
     animal_data_list[[i]][, row_name := row.names(tele_list[[i]])]
   }
-  animals_data_dt <- rbindlist(animal_data_list)
+  # some animals could have different extra columns. need fill to maintain the data frame, but the telelist should be clean objs.
+  animals_data_dt <- rbindlist(animal_data_list, fill = TRUE)
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
   animals_data_dt[, row_no := .I]
@@ -254,6 +255,7 @@ merge_animals <- function(tele_objs) {
   return(list(data = tele_list_to_dt(tele_objs),
               info = tele_list_info(tele_objs)))
 }
+# this will not work when there are NA cols introduced by merge with different cols. need to clean those cols first
 match_tele_merged <- function(tele_list, merged) {
   req(!is.null(tele_list) | (!is.null(merged)))
   # verify info match dt, this is not garranted since sometimes they are processed separately
