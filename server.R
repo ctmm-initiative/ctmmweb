@@ -850,6 +850,7 @@ server <- function(input, output, session) {
     values$data$all_removed_outliers <- NULL
   })
   # p4. time subset ----
+  # want to observe page because we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
   observeEvent(input$tabs, {
     req(values$data)
     if (input$tabs == "subset") {
@@ -861,14 +862,6 @@ server <- function(input, output, session) {
   })
   callModule(click_help, "time_subsetting", title = "Subset data by time",
              size = "l", file = "help/4_time_subsetting.md")
-  # actually should not color by page 1 color because we will rainbow color by time
-  output$selected_summary <- DT::renderDataTable({
-    req(values$data)
-    req(length(input$individuals_rows_selected) == 1)
-    info <- values$data$merged$info
-    dt <- info[input$individuals_rows_selected]
-    datatable(dt, options = list(dom = 't', ordering = FALSE), rownames = FALSE)
-  })
   # color_bin_animal() ----
   values$selected_time_range <- NULL
   # when putting brush in same reactive value, every brush selection updated the whole value which update the histogram then reset brush.
@@ -877,12 +870,7 @@ server <- function(input, output, session) {
     values$time_ranges <- NULL
     req(values$data)
     req(length(input$individuals_rows_selected) == 1)
-    # selected_id <- values$data$merged$info$identity[
-    #   input$individuals_rows_selected]
     selected_id <- select_data()$info$identity
-    # tele_ids <- sapply(values$data$tele_list, function(x) x@info$identity)
-    # tele_i <- values$data$tele_list[tele_ids == selected_id][[1]]
-    # data_i <- values$data$merged$data[identity == selected_id]
     data_i <- select_data()$data
     data_i[, color_bin_start :=
              cut_date_time(timestamp, input$time_color_bins)]  # a factor
@@ -922,28 +910,10 @@ server <- function(input, output, session) {
   # select time range ----
   # brush selection and matching color bins
   observeEvent(input$time_sub_his_brush, {
-    # there will be event right after plot initialized. we need to verify if there is real input
     values$selected_time_range <- list(
       select_start = as_datetime(input$time_sub_his_brush$xmin),
       select_end = as_datetime(input$time_sub_his_brush$xmax))
   })
-  # select_time_range <- reactive({
-  #   animal_binned <- color_bin_animal()
-  #   if (is.null(input$time_sub_his_brush)) {
-  #     select_start <- animal_binned$data[t == min(t), timestamp]
-  #     select_end <- animal_binned$data[t == max(t), timestamp]
-  #   } else {
-  #     # brush value in seconds
-  #     select_start <- as_datetime(input$time_sub_his_brush$xmin)
-  #     select_end <- as_datetime(input$time_sub_his_brush$xmax)
-  #   }
-  #   select_length <- select_end - select_start
-  #   # use identity because id is factor. avoid surprises
-  #   return(list(
-  #     # identity = animal_binned$identity,
-  #               select_start = select_start, select_end = select_end,
-  #               select_length = select_length))
-  # })
   observeEvent(input$set_date_range, {
     start <- as_datetime(input$date_range[1])
     end <- as_datetime(input$date_range[2])
@@ -1042,8 +1012,6 @@ server <- function(input, output, session) {
     new_tele@info$identity <- new_id
     # update other columns
     new_dt[, row_name := paste0(row_name, new_suffix)]
-    # new_dt <- calculate_distance(new_dt)
-    # new_dt <- calculate_speed(new_dt)
     # update the row name in tele data frame by new row_name column
     row.names(new_tele) <- new_dt$row_name
     # update data
