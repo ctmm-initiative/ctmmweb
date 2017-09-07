@@ -909,6 +909,7 @@ server <- function(input, output, session) {
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
   # selected time range ----
+  values$selected_time_range <- NULL
   # brush selection and matching color bins
   select_time_range <- reactive({
     animal_binned <- color_bin_animal()

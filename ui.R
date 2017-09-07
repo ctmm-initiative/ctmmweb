@@ -290,11 +290,18 @@ histogram_subsetting_box <- box(title = "Select Time Range", status = "info",
                                      ))))
 current_range_box <- box(title = "Current Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
-       fluidRow(column(10, DT::dataTableOutput("current_range")),
-                column(2, br(), br(),
-                       actionButton("add_time",
-                          "Add", icon = icon("plus"),
-                          style = styles$page_action))))
+       fluidRow(
+         column(8, offset = 1, dateRangeInput('dateRange',
+                                   label = 'Set range manually: yyyy-mm-dd'
+         )),
+         column(2, offset = 1, br(), actionButton("set_date_range", "Set",
+                                icon = icon("arrow-down"),
+                                style = styles$page_action)),
+         column(10, DT::dataTableOutput("current_range")),
+         column(2, br(), br(),
+                 actionButton("add_time",
+                    "Add", icon = icon("plus"),
+                    style = styles$page_action))))
 selected_plot_box <- box(title = "Locations in Selected Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
                          # height = height_selected_loc_box,
