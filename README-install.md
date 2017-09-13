@@ -35,6 +35,7 @@ With R and dependency packages installed:
     shiny::runApp("<absolute path to your app folder>")
     ```
 
+
 ## Linux
 - Following instructions [here for installing R](https://cloud.r-project.org/bin/linux/ubuntu/) (assuming Ubuntu or Linux Mint). Make sure to install `r-base-dev` too.
 - RStudio have installer for Linux.
@@ -48,3 +49,13 @@ With R and dependency packages installed:
   
         sudo apt-get update && sudo apt-get install libgdal-dev libproj-dev
   
+## Known bugs
+
+- There is a [known bug](https://github.com/Rdatatable/data.table/issues/2137) caused by `data.table`, `openMP` and `mcapply` in R 3.4. So it's possible to see this error when fitting models in parallel under Mac/Linux:
+
+    ```r
+    Assertion failure at kmp_runtime.cpp(6480): __kmp_thread_pool == __null.
+    OMP: Error #13: Assertion failure at kmp_runtime.cpp(6480).
+    ```
+
+The error is pretty random and hard to reproduce, but usually you can restart R session and it should dissappear.  
