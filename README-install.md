@@ -32,6 +32,11 @@ With R and dependency packages installed:
 2. Unzip the zip to a folder, then run it with
 
     ```r
+    if (!require("devtools"))
+      install.packages("devtools")
+    devtools::install_github("rstudio/shiny")
+    devtools::install_github("ctmm-initiative/ctmm")
+    devtools::install_github("r-lib/crayon")
     shiny::runApp("<absolute path to your app folder>")
     ```
 
