@@ -3,8 +3,8 @@
 if (!require("pacman")) install.packages("pacman")
 # load_gh may fail if existing ctmm didn't get uninstalled properly in one run.
 # pacman::p_load_gh("ctmm-initiative/ctmm@a24eeab591c7b00a28406a9972a26878507a43a1")
-# packrat doesn't recognize p_load_gh so need to put ctmm in p_load again.
-pacman::p_load(shiny, shinydashboard, DT, markdown,
+# packrat doesn't recognize p_load_gh so need to put ctmm in p_load again. because deployment try to reproduce current environment, it will install ctmm github version even I only used p_load here since I have github version installed. and the run script will install github version first so it also work.
+pacman::p_load(shiny, shinydashboard, DT, markdown, crayon,
                ctmm, data.table, parallel,
                ggplot2, scales, grid, gridExtra, lubridate,
                httr, stringr, XML, xml2, zip)
