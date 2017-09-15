@@ -1432,6 +1432,8 @@ server <- function(input, output, session) {
     return(list(dt = selected_dt,
                 tele_list = selected_tele_list,
                 models = selected_models,
+                id_model =
+                  selected_models_dt[, str_c(identity, " - ", model_name)],
                 vg_list = selected_vg_list
                 ))
   })
@@ -1525,10 +1527,17 @@ server <- function(input, output, session) {
       # functional::Curry is misnomer, and it's extra dependency.
       save_shapefiles <- function(hrange_list, ud_levels) {
         write_f <- function(folder_path) {
-          # unlist/flatten cannot preserve the real item name. have to write each item explicitly.
-          lapply(hrange_list, function(x) {
-            writeShapefile(x, folder_path, level.UD = ud_levels)
-          })
+          # hrange_list came from select_models(), so the order should be synced
+          for (i in seq_along(hrange_list)) {
+            writeShapefile(hrange_list[[i]], level.UD = ud_levels,
+                           folder = folder_path,
+                           file = select_models()$id_model[i])
+          }
+          # lapply(hrange_list, function(x) {
+          #   # difficult to get item name in lapply, so use data slot instead
+          #   writeShapefile(x, level.UD = ud_levels,
+          #                  folder = folder_path)
+          # })
         }
         return(write_f)
       }
