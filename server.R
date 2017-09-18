@@ -1188,7 +1188,7 @@ server <- function(input, output, session) {
                             ))
     }
   })
-  # init sliders ----
+  # slider factory ----
   init_guess <- reactive({
     req(vg_list())
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
