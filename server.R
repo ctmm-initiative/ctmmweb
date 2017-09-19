@@ -1191,11 +1191,12 @@ server <- function(input, output, session) {
   # slider factory ----
   init_guess <- reactive({
     req(vg_list())
-    ids <- sapply(vg_list(), function(vario) vario@info$identity)
+    # ids <- sapply(vg_list(), function(vario) vario@info$identity)
+    ids <- names(vg_list())
     vario <- vg_list()[ids == input$fit_selected][[1]]
     CTMM <- values$guess_list[ids == input$fit_selected][[1]]
     res <- list()
-    # CTMM <- ctmm.guess(buffalo[[1]], interactive = FALSE)
+    # code below came from ctmm code, should replace with function. but need to process the dataframe instead of the list.
     fraction <- 0.5
     # rename this variable
     # variogram <- SVFS[[1]]
