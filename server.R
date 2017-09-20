@@ -1174,10 +1174,11 @@ server <- function(input, output, session) {
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
                                            input$fit_selected),
                             fluidRow(column(4, uiOutput("fit_sliders")),
-                                     column(8, plotOutput("fit_plot"))),
+                                     column(8, plotOutput("fit_plot")),
+                                     column(4, offset = 2, uiOutput("fit_zoom"))),
                             size = "l",
                             footer = fluidRow(
-        column(3, actionButton("center_slider", "Center current values",
+        column(3, actionButton("center_slider", "Center current sliders",
                                icon = icon("align-center"))),
         column(3, offset = 2,
                modalButton("Cancel", icon = icon("ban"))),
@@ -1200,16 +1201,11 @@ server <- function(input, output, session) {
                                           fraction = fraction, b = 10)
     dt <- data.table(STUFF$DF)
     dt[, name := row.names(STUFF$DF)]
-    # slider 1: zoom. use different base, and minus 1 from min,max,initial
+    # slider 1: zoom. use different base, and minus 1 from min,max.
     dt[name == "z", c("min", "max") := list(min - 1, max - 1)]
+    # initial is taken from last page control directly
     dt[name == "z", initial := input$zoom_lag_fraction]
-    return(list(vario = vario, dt = dt, STUFF = STUFF))
-  })
-  # init sliders
-  output$fit_sliders <- renderUI({
-    # start from reactive value of selected variogram, guess obj
-    dt <- req(init_slider_values()$dt)
-    # didn't use the step value, the initial value is log value in manipulate too
+    # didn't use the step value
     slider_list <- lapply(1:nrow(dt), function(i) {
       sliderInput(
         inputId = paste0("vfit_", dt[i, name]),
@@ -1217,12 +1213,23 @@ server <- function(input, output, session) {
         max = round(dt[i, max], 3), value = round(dt[i, initial], 3),
         step = 0.001)
     })
-    # TODO log slider not working now
-    return(list(tags$head(tags$script(HTML(JS.onload("vfit_z")))),
-                slider_list))
+    names(slider_list) <- dt$name
+    # zoom is for view only, separate it from others
+    return(list(vario = vario, STUFF = STUFF,
+                control_dt = dt[name != "z"],
+                control_sliders = slider_list[names(slider_list) != "z"],
+                zoom_slider = slider_list[names(slider_list) == "z"]))
+  })
+  # init control sliders
+  output$fit_sliders <- renderUI({
+    req(init_slider_values()$control_sliders)
+  })
+  output$fit_zoom <- renderUI({
+    list(tags$head(tags$script(HTML(JS.onload("vfit_z")))),
+         req(init_slider_values()$zoom_slider))
   })
   observeEvent(input$center_slider, {
-    extend_slider <- function(name) {
+    center_slider <- function(name) {
       # Shiny will complain for named vector
       id <- paste0("vfit_", name)
       # error slider usually have initial value of 0, double that will get 0.
@@ -1231,8 +1238,7 @@ server <- function(input, output, session) {
                           max = round(input[[id]] * 2, 2))
       }
     }
-    slider_names <- init_slider_values()$dt[name != "z", name]
-    lapply(slider_names, extend_slider)
+    lapply(init_slider_values()$control_dt$name, center_slider)
     # extend_slider("fit_2_sigma")
     # extend_slider("fit_3_tau_a")
     # extend_slider("fit_3_tau_b")
@@ -1249,18 +1255,12 @@ server <- function(input, output, session) {
     # browser()
     # all sliders in data frame, except the zoom slider
     dt <- init_slider_values()$dt
-    slider_names <- dt[name != "z", name]
-    slider_values <- lapply(slider_names, function(x) {
-      input[[paste0("vfit_", x)]]
+    slider_values <- lapply(init_slider_values()$control_dt$name,
+                            function(x) {
+                              input[[paste0("vfit_", x)]]
     })
-    names(slider_values) <- slider_names
+    names(slider_values) <- init_slider_values()$control_dt$name
     CTMM <- do.call(init_slider_values()$STUFF$storer, slider_values)
-    #   CTMM <- init_slider_values()$STUFF$storer(
-    #     sigma = input$vfit_sigma,
-    #     tau1 = input$vfit_tau1,
-    #     tau2 = input$vfit_tau2,
-    #     circle.period = input$vfit_circle.period,
-    #     error = input$vfit_error)
   })
   # update plot by sliders ----
   output$fit_plot <- renderPlot({
