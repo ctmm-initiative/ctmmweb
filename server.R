@@ -1192,7 +1192,6 @@ server <- function(input, output, session) {
   # init values of sliders ----
   init_slider_values <- reactive({
     req(vg_list())
-    # ids <- sapply(vg_list(), function(vario) vario@info$identity)
     ids <- names(vg_list())
     vario <- vg_list()[ids == input$fit_selected][[1]]
     CTMM <- values$guess_list[ids == input$fit_selected][[1]]
@@ -1201,7 +1200,7 @@ server <- function(input, output, session) {
                                           fraction = fraction, b = 10)
     dt <- data.table(STUFF$DF)
     dt[, name := row.names(STUFF$DF)]
-    # slider 1: zoom. use different base, and minus 1 from min,max.
+    # zoom slider used different base, and minus 1 from min,max.
     dt[name == "z", c("min", "max") := list(min - 1, max - 1)]
     # initial is taken from last page control directly
     dt[name == "z", initial := input$zoom_lag_fraction]
@@ -1229,7 +1228,7 @@ server <- function(input, output, session) {
          req(init_slider_values()$zoom_slider))
   })
   observeEvent(input$center_slider, {
-    center_slider <- function(name) {
+    adjust_slider <- function(name) {
       # Shiny will complain for named vector
       id <- paste0("vfit_", name)
       # error slider usually have initial value of 0, double that will get 0.
@@ -1238,23 +1237,12 @@ server <- function(input, output, session) {
                           max = round(input[[id]] * 2, 2))
       }
     }
-    lapply(init_slider_values()$control_dt$name, center_slider)
-    # extend_slider("fit_2_sigma")
-    # extend_slider("fit_3_tau_a")
-    # extend_slider("fit_3_tau_b")
-    # if (!is.null(init_guess()$slider_cir))
-    #   extend_slider("fit_opt_cir")
-    # extend_slider("fit_5_error")
+    lapply(init_slider_values()$control_dt$name, adjust_slider)
   })
-  # get CTMM from sliders
   # current CTMM according to sliders
   slider_to_CTMM <- reactive({
-    req(init_slider_values())
-    # variables need from reactive: b as log base, each unit, ctmm object
-    # Error in <-: replacement has length zero
-    # browser()
-    # all sliders in data frame, except the zoom slider
-    dt <- init_slider_values()$dt
+    # there is a time when sliders are initialized but without value, then later storer call get NULL parameters
+    req(!is.null(input$vfit_sigma))
     slider_values <- lapply(init_slider_values()$control_dt$name,
                             function(x) {
                               input[[paste0("vfit_", x)]]
@@ -1264,9 +1252,10 @@ server <- function(input, output, session) {
   })
   # update plot by sliders ----
   output$fit_plot <- renderPlot({
-    req(init_slider_values())
+    req(slider_to_CTMM())  # otherwise error: replacement of length zero
     fraction <- 10 ^ input$vfit_z
-    plot(init_slider_values()$vario,CTMM = slider_to_CTMM(),fraction=fraction)
+    plot(init_slider_values()$vario, CTMM = slider_to_CTMM(),
+         col.CTMM = "green", fraction = fraction)
   })
   observeEvent(input$tuned, {
     removeModal()
