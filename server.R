@@ -1195,9 +1195,10 @@ server <- function(input, output, session) {
     ids <- names(vg_list())
     vario <- vg_list()[ids == input$fit_selected][[1]]
     CTMM <- values$guess_list[ids == input$fit_selected][[1]]
+    fraction <- 10 ^ input$zoom_lag_fraction
     res <- list()
     # code below came from ctmm code, should replace with function. but need to process the dataframe instead of the list.
-    fraction <- 0.5
+    # fraction <- 0.5
     # rename this variable
     # variogram <- SVFS[[1]]
     # above should be from reactive

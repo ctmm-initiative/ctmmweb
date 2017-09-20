@@ -93,4 +93,4 @@ JS.onload <- function(slider_id_vec, sci = FALSE) {
                 paste0(lapply(slider_id_vec, slider_call), collapse = "\n"),
                 "}, 5)})"
                 ))
-                }
+}
