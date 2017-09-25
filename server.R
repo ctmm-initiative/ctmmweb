@@ -6,9 +6,10 @@ debug_mode <- FALSE
 source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
+  # LOG app start
   # p1. import ----
   values <- reactiveValues()
-  # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals.
+  # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
     if (debug_mode) {
@@ -36,6 +37,7 @@ server <- function(input, output, session) {
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
   data_import <- function(data) {
+    # LOG data import
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
@@ -56,6 +58,7 @@ server <- function(input, output, session) {
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   file_uploaded <- function(){
+    # LOG file upload
     data_import(input$file1$datapath)
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
@@ -145,6 +148,7 @@ server <- function(input, output, session) {
     values$move_bank_dt <- NULL
   }
   observeEvent(input$login, {
+    # LOG movebank login
     note_studies <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Downloading studies..."),
       type = "message", duration = NULL)
@@ -230,6 +234,7 @@ server <- function(input, output, session) {
   # 1.4 download data ----
   observeEvent(input$download, {
     req(input$studies_rows_selected)
+    # LOG download movebank data
     # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.
     # mb_id <- values$studies[owner == input$data_manager][
     #   input$studies_rows_selected, id]
@@ -281,11 +286,13 @@ server <- function(input, output, session) {
         },
     content = function(file) {
       req(values$move_bank_dt[, .N] > 0)
+      # LOG save movebank data
       fwrite(values$move_bank_dt, file)
     }
   )
   observeEvent(input$import, {
     req(values$move_bank_dt[, .N] > 0)
+    # LOG import movebank data
     data_import(values$move_bank_dt)
     updateTabItems(session, "tabs", "plots")
   })
@@ -323,6 +330,7 @@ server <- function(input, output, session) {
     req(input$individuals_rows_current)
     id_vec <- values$data$merged$info[, identity]
     if (length(input$individuals_rows_selected) > 0) {
+      # LOG delete inidividuals
       chosen_row_nos <- input$individuals_rows_selected
       chosen_ids <- id_vec[chosen_row_nos]
       # if all are deleted, will have error in plots. this is different from the req check, just diable this behavior
@@ -373,6 +381,7 @@ server <- function(input, output, session) {
     } else {
       chosen_row_nos <- input$individuals_rows_selected
     }
+    # LOG current selected individuals
     chosen_ids <- id_vec[chosen_row_nos]
     animals_dt <- values$data$merged$data[identity %in% chosen_ids]
     # cat("chosen animals:\n")
@@ -421,6 +430,7 @@ server <- function(input, output, session) {
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
+    # LOG save pic
   }
   # , height = 400, width = "auto"
   # , height = styles$height_plot_loc, width = "auto"
@@ -440,6 +450,7 @@ server <- function(input, output, session) {
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
+    # LOG save pic
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.4.3 individual plot ----
   output$location_plot_individual <- renderPlot({
@@ -467,6 +478,7 @@ server <- function(input, output, session) {
     grid.arrange(grobs = g_list, layout_matrix =
                    matrix(1:fig_count, nrow = fig_count / input$plot4_col,
                           ncol = input$plot4_col, byrow = TRUE))
+    # LOG save pic
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
@@ -477,6 +489,7 @@ server <- function(input, output, session) {
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
+    # LOG save pic
   }, height = styles$height_hist, width = "auto")
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
@@ -527,6 +540,7 @@ server <- function(input, output, session) {
       coord_cartesian(ylim = c(0, input$distance_his_y_limit)) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none")
+    # LOG save pic
   })
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
@@ -580,6 +594,7 @@ server <- function(input, output, session) {
         animal_selected_formatted <- format_outliers(animal_selected_data,
                                                      animals_dt)
       }
+      # LOG selection range, selected points count
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
            animal_selected_formatted = animal_selected_formatted)
@@ -620,11 +635,11 @@ server <- function(input, output, session) {
                   ylim = distance_outlier_plot_range$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
-
+  # LOG save pic
   })
   # points in selected distance range
   output$points_in_distance_range <- DT::renderDataTable({
-    # only render table when there is a selection. otherwise it will be all data.
+    # only render table when there is a selection. otherwise it will be all data
     req(input$distance_his_brush)
     # cols <- c("row_no", "timestamp", "id", "distance_center")
     # datatable(select_distance_range()$animal_selected_data[, cols, with = FALSE],
@@ -677,6 +692,7 @@ server <- function(input, output, session) {
     selectRows(proxy_points_in_distance_range, list())
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
+    # LOG points to remove
     remove_outliers(points_to_remove)
   })
   # p3.b.1 speed histogram ----
@@ -713,7 +729,7 @@ server <- function(input, output, session) {
       coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none")
-
+    # LOG save pic
   })
   # outputOptions(output, "speed_histogram", priority = 10)
   select_speed_range <- select_range("speed")
@@ -786,6 +802,7 @@ server <- function(input, output, session) {
         }
       }
     }
+    # LOG save pic
     g
   })
   # outputOptions(output, "speed_outlier_plot", priority = 1)
@@ -828,6 +845,7 @@ server <- function(input, output, session) {
     selectRows(proxy_points_in_speed_range, list())
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
+    # LOG points to remove
     remove_outliers(points_to_remove)
   })
   # all removed outliers ----
@@ -851,6 +869,7 @@ server <- function(input, output, session) {
     values$data$tele_list <- values$data$input_tele_list
     values$data$merged <- merge_animals(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
+    # LOG reset removal
   })
   # p4. time subset ----
   # want to observe page because we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
@@ -909,6 +928,7 @@ server <- function(input, output, session) {
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
       ggtitle(animal_binned$data[1, identity]) + center_title +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    # LOG save pic
   })
   # select time range ----
   # brush selection and matching color bins
@@ -945,6 +965,7 @@ server <- function(input, output, session) {
   output$current_range <- DT::renderDataTable({
     req(!is.null(values$selected_time_range))
     dt <- format_time_range(as.data.frame(values$selected_time_range))
+    # LOG selection
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
@@ -968,22 +989,26 @@ server <- function(input, output, session) {
       coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
+    # LOG save pic
   })
   # 4.4 time range table ----
   # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, in color_bin_animal. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
   observeEvent(input$add_time, {
     l <- list(values$time_ranges, as.data.frame(values$selected_time_range))
     values$time_ranges <- rbindlist(l)
+    # LOG add
   })
   observeEvent(input$delete_time_sub_rows, {
     if (!is.null(input$time_ranges_rows_selected)) {
       values$time_ranges <- values$time_ranges[
         -as.numeric(input$time_ranges_rows_selected)
       ]
+      # LOG delete
     }
   })
   observeEvent(input$reset_time_sub, {
     values$time_ranges <- NULL
+    # LOG clear
   })
   # generate time subset ----
   # need a explicit button because once applied, the data will change and the plot and histogram will change too. the result applied to values$data, not current select_data(). also clear time_ranges, move to the visualization page.
@@ -1037,6 +1062,7 @@ server <- function(input, output, session) {
     values$data$merged$info <- tele_list_info(values$data$tele_list)
     values$time_ranges <- NULL
     verify_global_data()
+    # LOG subset added
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
@@ -1079,19 +1105,6 @@ server <- function(input, output, session) {
            guesstimate = values$guess_list,
            modeled = select_models()$models
            )
-    # if (input$vario_mode == ) {
-    #   guess_list <- values$guess_list
-    #   # if ("error" %in% input$fit_vario) {
-    #   #   # need to assign result back to list. lapply didn't change reference
-    #   #   guess_list <- lapply(guess_list, function(x) {
-    #   #     x$error <- TRUE
-    #   #     x
-    #   #   })
-    #   # }
-    # } else {
-    #   guess_list <- NULL
-    # }
-    # return(guess_list)
   })
   # plot variograms ----
   output$vario_plot_zoom <- renderPlot({
@@ -1149,6 +1162,7 @@ server <- function(input, output, session) {
         # }
       }
     }
+    # LOG save pic
     par(def.par)
   }, height = function() {
       if (input$vario_mode != "modeled") {
@@ -1170,6 +1184,7 @@ server <- function(input, output, session) {
   # fine tune fit start ----
   observeEvent(input$fit_selected, {
     if (input$fit_selected != "") {
+      # LOG fine tune start
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
                                            input$fit_selected),
                             fluidRow(column(4, uiOutput("fit_sliders")),
@@ -1257,6 +1272,7 @@ server <- function(input, output, session) {
          col.CTMM = "green", fraction = fraction)
   })
   observeEvent(input$tuned, {
+    # LOG fine tune apply
     removeModal()
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
     values$guess_list[ids == input$fit_selected][[1]] <- slider_to_CTMM()
