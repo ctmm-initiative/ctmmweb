@@ -1,5 +1,7 @@
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
+# enable more debugging and messages
+debug_mode <- FALSE
 # all helper functions are for server side
 source("helpers.R", local = TRUE)
 
@@ -22,12 +24,13 @@ server <- function(input, output, session) {
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
+  # current_model_fit_res is updated in model fitting stage, need to be cleared when input change too.
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
     values$data$merged <- merge_animals(tele_list)
     values$data$all_removed_outliers <- NULL
-    values$model_select_res <- NULL
+    values$current_model_fit_res <- NULL
     updateTabItems(session, "tabs", "plots")
   }
   # 1.1 csv to telemetry ----
@@ -1074,10 +1077,6 @@ server <- function(input, output, session) {
     switch(input$vario_mode,
            empirical = NULL,
            guesstimate = values$guess_list,
-           # the plot will not shown when models are not fitted yet
-           # modeled = lapply(req(values$model_select_res), function(x) {
-           #   x[[1]]
-           # })
            modeled = select_models()$models
            )
     # if (input$vario_mode == ) {
@@ -1266,16 +1265,18 @@ server <- function(input, output, session) {
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
-  # $model_select_res ----
-  values$model_select_res <- NULL  # need to clear this at input change too
+  # $current_model_fit_res ----
+  # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
+  # this is the model fit(model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
+  values$current_model_fit_res <- NULL  # need to clear this at input change too
   # fit models ----
   observeEvent(input$fit_models, {
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
     withProgress(print(system.time(
-      values$model_select_res <- para_ll(tele_guess_list, model_select))),
+      values$current_model_fit_res <- para_ll(tele_guess_list, fit_models))),
       message = "Fitting models to find the best ...")
-    names(values$model_select_res) <- names(select_data()$tele_list)
+    names(values$current_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
     selectRows(proxy_model_dt, summary_models()$first_models)
@@ -1284,7 +1285,7 @@ server <- function(input, output, session) {
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- model_select_res_to_model_list_dt(req(values$model_select_res))
+    models_dt <- model_fit_res_to_model_list_dt(req(values$current_model_fit_res))
     # the model summary table
     model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     formated_summary_dt <- format_model_summary_dt(model_summary_dt)
@@ -1314,32 +1315,23 @@ server <- function(input, output, session) {
     model_names <- sort(unique(dt$model_name))
     datatable(dt,options = list(scrollX = TRUE,
                                 pageLength = 18, lengthMenu = c(18, 36, 72)),
-              # class = 'table-bordered',
               rownames = FALSE) %>%
       # majority cells in color by model
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
                                      hue_pal()(length(model_names)))
-                  # ,
-                  # backgroundColor = "#FFFFFF"
-                  # lineHeight = '70%'
-                  # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
       # override the id col color
       formatStyle('identity', target = 'cell',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
-                  # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
       # override the low/high cols with background
       formatStyle(
-        # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
         'estimate',
         target = 'row',
-        # valueColumns = 'estimate',
         backgroundColor = styleEqual(c("CI low", "ML" , "CI high"),
                            c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-        # color = styleEqual(CI_colors$levels, CI_colors$values)
       )
   })
   proxy_model_dt <- dataTableProxy("model_fit_summary")
@@ -1352,14 +1344,6 @@ server <- function(input, output, session) {
   select_models <- reactive({
     req(length(input$model_fit_summary_rows_selected) > 0)
     model_summary_dt <- summary_models()$summary_dt
-    # if (length(input$model_fit_summary_rows_selected) > 0) {
-    #   # unique is to remove duplicate selection in CI mode
-    #   selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
-    #                                          .(identity, model_name)])
-    # } else {
-    #   selected_dt <- model_summary_dt[, .(model_name = model_name[1]),
-    #                                   by = identity]
-    # }
     selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
                                            .(identity, model_name)])
     # selections can be any order, need to avoid sort to keep the proper model order
@@ -1414,26 +1398,19 @@ server <- function(input, output, session) {
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
                                      hue_pal()(length(model_names)))
-                  # ,
-                  # backgroundColor = "#FFFFFF"
-                  # lineHeight = '70%'
-                  # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
       # override the id col color
       formatStyle('identity', target = 'cell',
                   color = styleEqual(info_p$identity,
                                      hue_pal()(nrow(info_p)))
-                  # color = styleEqual(CI_colors$levels, CI_colors$values)
       ) %>%
       # override the low/high cols with background
       formatStyle(
-        # c('estimate', 'area', 'tau position', 'tau velocity', 'speed'),
         'estimate',
         target = 'row',
         # valueColumns = 'estimate',
         backgroundColor = styleEqual(c("CI low", "ML" , "CI high"),
                                      c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-        # color = styleEqual(CI_colors$levels, CI_colors$values)
       )
   })
   # function on input didn't update, need a reactive expression?

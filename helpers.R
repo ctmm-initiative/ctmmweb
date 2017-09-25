@@ -425,7 +425,8 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
-model_select <- function(tele_guess) {
+# cannot use select_models since that was a reactive expression to select model results
+fit_models <- function(tele_guess) {
   ctmm.select(tele_guess$a, CTMM = tele_guess$b,
               trace = TRUE, verbose = TRUE)
 }
@@ -482,15 +483,15 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt[, item := NULL]
 }
 # from ctmm.fit result model list to data table with models in list column
-model_select_res_to_model_list_dt <- function(model_select_res) {
-  animal_names_dt <- data.table(identity = names(model_select_res))
-  model_name_list <- lapply(model_select_res, names)
+model_fit_res_to_model_list_dt <- function(model_fit_res) {
+  animal_names_dt <- data.table(identity = names(model_fit_res))
+  model_name_list <- lapply(model_fit_res, names)
   # must use per row by to create list column, otherwise dt try to apply whole column to function
   animal_names_dt[, model_name_list := list(list(model_name_list[[identity]])),
                   by = 1:nrow(animal_names_dt)]
   models_dt <- animal_names_dt[, .(model_name = unlist(model_name_list)),
                                by = identity]
-  models_dt[, model := list(list(model_select_res[[identity]][[model_name]])),
+  models_dt[, model := list(list(model_fit_res[[identity]][[model_name]])),
             by = 1:nrow(models_dt)]
   models_dt[, model_no := .I]
 }
