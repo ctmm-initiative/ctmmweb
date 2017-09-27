@@ -7,7 +7,7 @@ source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
   # work report ----
-  # initialize in app beginning for log
+  # log functions ----
   # global config variables
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
@@ -41,6 +41,20 @@ server <- function(input, output, session) {
     log_msg("plot saved as", pic_name)
     return(g)
   }
+  # save dt into markdown table or csv. msg: table a:
+  log_dt_md <- function(dt, msg) {
+    # need the extra \t because log_msg put \t before first line of detail
+    log_msg(msg, str_c(capture.output(dt), collapse = "\n\t"))
+    LOG_markdown_vec <<- c(LOG_markdown_vec,
+                           knitr::kable(dt, format = "markdown"))
+  }
+  # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message. msg: saving table f_name:
+  log_dt_csv <- function(dt, msg, f_name) {
+    csv_name <- str_c(f_name, "_", current_timestamp(), ".csv")
+    fwrite(dt, file = file.path(LOG_folder, csv_name))
+    log_msg(msg, detail = csv_name)
+  }
+  # initialize in beginning ----
   # global variable that hold the markdown strings.
   LOG_markdown_vec <- vector(mode = "character")
   LOG_folder <- create_temp()
@@ -321,6 +335,7 @@ server <- function(input, output, session) {
       values$move_bank_dt <- move_bank_dt
       # LOG download movebank data
       log_msg("Movebank data downloaded:", mb_id())
+      log_dt_md(values$study_detail, "Downloaded study details:")
     }
   })
   callModule(click_help, "download", title = "Download Movebank data",
@@ -438,16 +453,18 @@ server <- function(input, output, session) {
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    # LOG current selected individuals
-    log_msg("Current selected individuals: ",
-            str_c(chosen_ids, collapse = ", "))
+    # log_msg("Current selected individuals: ",
+    #         str_c(chosen_ids, collapse = ", "))
     animals_dt <- values$data$merged$data[identity %in% chosen_ids]
-    # cat("chosen animals:\n")
-    # print(animals_dt[, .N, by = identity])
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
+    info <- values$data$merged$info[subset_indice]
+    # LOG current selected individuals
+    log_dt_md(info[,
+                   .(identity, start, end, interval, duration, points)],
+              "Current selected individuals:")
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data = animals_dt,
-                info = values$data$merged$info[subset_indice],
+                info = info,
                 tele_list = values$data$tele_list[subset_indice]
                 ))
   })
