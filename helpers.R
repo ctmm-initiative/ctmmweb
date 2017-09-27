@@ -592,12 +592,15 @@ parse_CI_levels <- function(levels_text) {
     as.numeric(items[items != ""]) / 100
   }
 }
+# used in build_zip, creating temp folder for log
+current_timestamp <- function() {
+  format(Sys.time(), "%Y-%m-%d_%H-%M-%S_UTC",
+         tz = "UTC")
+}
 # file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
 build_zip <- function(file, write_f) {
   # timestamp as folder name, also part of zip name. this+file_name as relative path of files in creating zip
-  build_time <- Sys.time()
-  folder_name <- format(build_time, "%Y-%m-%d_%H-%M-%S_UTC",
-                        tz = "UTC")
+  folder_name <- current_timestamp()
   temp_folder <- tempdir() # produced extra // in Mac
   # all file operations are platform dependent, need extra test and care.
   # absolute path of folder under temp folder. this + file_name to write files
@@ -624,13 +627,4 @@ build_zip <- function(file, write_f) {
   setwd(previous_wd)
   file.copy(zip_full_path, file)
 }
-# occurrence ----
-# parse_CI_levels <- function(s) {
-#   if (s == "") {
-#     return(95)
-#   }
-#   else {
-#     items <- str_trim(str_split(s, ",")[[1]])
-#     as.numeric(items[items != ""])
-#   }
-# }
+

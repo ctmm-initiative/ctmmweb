@@ -6,7 +6,46 @@ debug_mode <- FALSE
 source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
+  # work report ----
+  # initialize in app beginning for log
+  # global config variables
+  LOG_console <- TRUE
+  LOG_color_mappings <- list(time_stamp = crayon::cyan,
+                             msg = crayon::green,
+                             detail = crayon::blue)
+  # functions need to access global log variables which should be per session, so reside in server call instead of global.R. to access variables inside server call, these functions cannot be put in helpers.R
+  create_temp <- function() {
+    folder_path <- file.path(tempdir(), current_timestamp())
+    dir.create(folder_path)
+    return(folder_path)
+  }
+  log_msg <- function(msg, detail = "") {
+    time_stamp <- str_c("[", Sys.time(), "]")
+    if (detail != "") {
+      detail <- str_c("\n\t", detail)
+    }
+    if (LOG_console) {
+      cat(LOG_color_mappings$time_stamp(time_stamp),
+          LOG_color_mappings$msg(msg),
+          LOG_color_mappings$detail(detail), "\n")
+    }
+    # need extra new line for markdown
+    LOG_markdown_vec <<- c(LOG_markdown_vec,
+                           str_c("`", time_stamp, "` ", msg, "\n", detail))
+  }
+  # also return the ggplot object so it can be the last line of renderPlot
+  log_save_ggplot <- function(g, name) {
+    pic_name <- str_c(name, "_", current_timestamp(), ".png")
+    ggsave(filename = file.path(LOG_folder, pic_name),
+           plot = g)
+    log_msg("plot saved as", pic_name)
+    return(g)
+  }
+  # global variable that hold the markdown strings.
+  LOG_markdown_vec <- vector(mode = "character")
+  LOG_folder <- create_temp()
   # LOG app start
+  log_msg("App started")
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -33,11 +72,12 @@ server <- function(input, output, session) {
     values$data$all_removed_outliers <- NULL
     values$current_model_fit_res <- NULL
     updateTabItems(session, "tabs", "plots")
+    # LOG input data updated
+    log_msg("Input data updated")
   }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
   data_import <- function(data) {
-    # LOG data import
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
@@ -58,13 +98,14 @@ server <- function(input, output, session) {
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   file_uploaded <- function(){
-    # LOG file upload
     data_import(input$file1$datapath)
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
   }
   observeEvent(input$file1, {
     req(input$file1)
+    # LOG file upload.
+    log_msg("Importing file: ", input$file1$name)
     file_uploaded()
   })
   # observe radio button changes
@@ -72,14 +113,19 @@ server <- function(input, output, session) {
     switch(input$load_option,
            ctmm = {
              data("buffalo")
+             # LOG use buffalo
+             log_msg("Using data:", "buffalo from ctmm")
              update_input_data(buffalo)
            },
            ctmm_sample = {
              data("buffalo")
              sample_data <- pick_m_tele_list(buffalo, input$sample_size)
+             # LOG use sample
+             log_msg("Using data:", "buffalo sample from ctmm")
              update_input_data(sample_data)
            },
            upload = {
+             # this doesn't do anything by itself so no log msg
              # need to check NULL input from source, stop error in downstream
              req(input$file1)
              file_uploaded()
@@ -148,7 +194,6 @@ server <- function(input, output, session) {
     values$move_bank_dt <- NULL
   }
   observeEvent(input$login, {
-    # LOG movebank login
     note_studies <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Downloading studies..."),
       type = "message", duration = NULL)
@@ -163,6 +208,8 @@ server <- function(input, output, session) {
       values$studies <- NULL
       values$study_detail <- NULL
       clear_mb_download()
+      # LOG movebank login
+      log_msg("Movebank login failed")
     } else {
       studies_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
@@ -183,10 +230,12 @@ server <- function(input, output, session) {
           ";\nYou are data manager of ", values$studies[(owner), .N])
       values$study_detail <- NULL
       clear_mb_download()
+      # LOG movebank login
+      log_msg("Logged in Movebank as:", input$user)
     }
   })
   # 1.4 selected details ----
-  # save file name need different column so didn't use this reactive
+  # save file name need study name, so need to duplicate code here.
   mb_id <- reactive({
     req(input$studies_rows_selected)
     values$studies[owner == input$data_manager][input$studies_rows_selected, id]
@@ -234,7 +283,6 @@ server <- function(input, output, session) {
   # 1.4 download data ----
   observeEvent(input$download, {
     req(input$studies_rows_selected)
-    # LOG download movebank data
     # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.
     # mb_id <- values$studies[owner == input$data_manager][
     #   input$studies_rows_selected, id]
@@ -255,6 +303,8 @@ server <- function(input, output, session) {
         type = "warning", duration = 5)
       msg <- html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
+      # LOG download movebank data failed
+      log_msg("Movebank data download failed:", mb_id())
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
       note_parse <- showNotification(
@@ -269,6 +319,8 @@ server <- function(input, output, session) {
           individual_count, " individuals. ", "Preview:")
       values$study_preview <- movebank_dt_preview
       values$move_bank_dt <- move_bank_dt
+      # LOG download movebank data
+      log_msg("Movebank data downloaded:", mb_id())
     }
   })
   callModule(click_help, "download", title = "Download Movebank data",
@@ -286,20 +338,22 @@ server <- function(input, output, session) {
         },
     content = function(file) {
       req(values$move_bank_dt[, .N] > 0)
-      # LOG save movebank data
       fwrite(values$move_bank_dt, file)
+      # LOG save movebank data. we don't know what's the final file name. file is temp file path
+      log_msg("Movebank data saved:", mb_id())
     }
   )
   observeEvent(input$import, {
     req(values$move_bank_dt[, .N] > 0)
-    # LOG import movebank data
     data_import(values$move_bank_dt)
+    # LOG import movebank data
+    log_msg("Movebank data imported:", mb_id())
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
   # input (upload, movebank, buffalo) -> current -> chose animal in table
   # current: merge telemetry to df, remove outliers if in quene, return df, info table, removed outliers full data
-  # 2.3 data summary ----
+  # 2.1 data summary ----
   output$outlier_report <- renderUI({
     if (!is.null(values$data$all_removed_outliers)) {
       h4(style = "color: #F44336;font-weight: bold;text-decoration: underline;",
@@ -330,7 +384,6 @@ server <- function(input, output, session) {
     req(input$individuals_rows_current)
     id_vec <- values$data$merged$info[, identity]
     if (length(input$individuals_rows_selected) > 0) {
-      # LOG delete inidividuals
       chosen_row_nos <- input$individuals_rows_selected
       chosen_ids <- id_vec[chosen_row_nos]
       # if all are deleted, will have error in plots. this is different from the req check, just diable this behavior
@@ -353,6 +406,9 @@ server <- function(input, output, session) {
       values$data$merged$info <- values$data$merged$info[remaining_indice]
       values$data$tele_list <- values$data$tele_list[remaining_indice]
       verify_global_data()
+      # LOG delete inidividuals
+      log_msg("Individuals deleted from data: ",
+              str_c(chosen_ids, collapse = ", "))
     }
   })
   proxy_individuals <- dataTableProxy("individuals")
@@ -381,8 +437,10 @@ server <- function(input, output, session) {
     } else {
       chosen_row_nos <- input$individuals_rows_selected
     }
-    # LOG current selected individuals
     chosen_ids <- id_vec[chosen_row_nos]
+    # LOG current selected individuals
+    log_msg("Current selected individuals: ",
+            str_c(chosen_ids, collapse = ", "))
     animals_dt <- values$data$merged$data[identity %in% chosen_ids]
     # cat("chosen animals:\n")
     # print(animals_dt[, .N, by = identity])
@@ -393,7 +451,7 @@ server <- function(input, output, session) {
                 tele_list = values$data$tele_list[subset_indice]
                 ))
   })
-  # 2.4.1 overview plot ----
+  # 2.2 overview plot ----
   # to add zoom in for a non-arranged plot, seem more in add_zoom.R and google group discussion
   # 1. add event id in ui, always use same naming pattern with plotid.
   # 2. call function to create reactive value of range
@@ -415,7 +473,7 @@ server <- function(input, output, session) {
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
     animals_dt <- req(select_data()$data)
-    ggplot() +
+    g <- ggplot() +
       {if (input$overlay_all) {
         geom_point(data = values$data$merged$data, aes(x, y),
                    size = input$point_size_1, alpha = 0.6, colour = "gray")
@@ -431,17 +489,18 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
     # LOG save pic
+    log_save_ggplot(g, "plot_2_overview")
   }
   # , height = 400, width = "auto"
   # , height = styles$height_plot_loc, width = "auto"
   , height = function() { input$canvas_height }
     , width = "auto"
   )
-  # 2.4.2 facet ----
+  # 2.3 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
     animals_dt <- req(select_data()$data)
-    ggplot(data = animals_dt, aes(x, y)) +
+    g <- ggplot(data = animals_dt, aes(x, y)) +
       geom_point(size = 0.1, aes(colour = id)) +
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
@@ -451,8 +510,9 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
     # LOG save pic
+    log_save_ggplot(g, "plot_3_facet")
   }, height = function() { input$canvas_height }, width = "auto")
-  # 2.4.3 individual plot ----
+  # 2.4 individual plot ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(select_data()$data)
     new_ranges <- get_ranges_quantile_dt(animals_dt, input$include_level)
@@ -475,21 +535,23 @@ server <- function(input, output, session) {
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     fig_count <- length(id_vector)
-    grid.arrange(grobs = g_list, layout_matrix =
+    gr <- grid.arrange(grobs = g_list, layout_matrix =
                    matrix(1:fig_count, nrow = fig_count / input$plot4_col,
                           ncol = input$plot4_col, byrow = TRUE))
     # LOG save pic
+    log_save_ggplot(gr, "plot_4_individual")
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(select_data()$data)
-    ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
+    g <- ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
       factor_fill(animals_dt$id) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
     # LOG save pic
+    log_save_ggplot(g, "plot_5_histogram")
   }, height = styles$height_hist, width = "auto")
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
