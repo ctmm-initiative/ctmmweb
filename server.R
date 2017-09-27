@@ -6,19 +6,27 @@ debug_mode <- FALSE
 source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
-  # work report ----
-  # log functions ----
-  # global config variables
+  # global LOG variables ----
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
                              msg = crayon::green,
                              detail = crayon::blue)
-  # functions need to access global log variables which should be per session, so reside in server call instead of global.R. to access variables inside server call, these functions cannot be put in helpers.R
+  # global variable that hold the markdown strings.
+  LOG_markdown_vec <- vector(mode = "character")
+  # log functions ----
+  # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector
+  log_add_md <- function(vec) {
+    # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
+    LOG_markdown_vec <<- c(LOG_markdown_vec, vec)
+  }
+  # global variable that hold the temp directory
   create_temp <- function() {
     folder_path <- file.path(tempdir(), current_timestamp())
     dir.create(folder_path)
     return(folder_path)
   }
+  # rely on several global variables. do side effect of console msg, and write string to global vector.
+  # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown.
   log_msg_console <- function(msg, detail = "") {
     time_stamp <- str_c("[", Sys.time(), "]")
     if (detail != "") {
@@ -34,37 +42,33 @@ server <- function(input, output, session) {
   log_msg <- function(msg, detail = "") {
     time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
-    LOG_markdown_vec <<- c(LOG_markdown_vec,
-                           str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
+    log_add_md(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
   }
-  # also return the ggplot object so it can be the last line of renderPlot. all these customized log function should take data as first parameter
   log_save_ggplot <- function(g, f_name) {
     pic_name <- str_c(f_name, "_", current_timestamp(), ".png")
     ggsave(filename = file.path(LOG_folder, pic_name),
            plot = g)
     log_msg("plot saved as", pic_name)
+    log_add_md(str_c("![plot](", pic_name, ")"))
     return(g)
   }
-  # save dt into markdown table or csv. msg: table a:
+  # save dt into markdown table or csv. note the msg could be in different format
   log_dt_md <- function(dt, msg) {
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
                                   str_c(capture.output(dt), collapse = "\n\t"))
-    LOG_markdown_vec <<- c(LOG_markdown_vec,
-                           str_c("`", time_stamp, "` ", msg, "\n"),
-                           knitr::kable(dt, format = "markdown"))
+    log_add_md(c(str_c("`", time_stamp, "` ", msg, "\n"),
+                 knitr::kable(dt, format = "markdown")))
   }
-  # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message. msg: saving table f_name:
+  # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
   log_dt_csv <- function(dt, msg, f_name) {
     csv_name <- str_c(f_name, "_", current_timestamp(), ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
+    log_add_md(str_c("[", csv_name, "](", csv_name, ")"))
   }
-  # initialize in beginning ----
-  # global variable that hold the markdown strings.
-  LOG_markdown_vec <- vector(mode = "character")
-  LOG_folder <- create_temp()
   # LOG app start
+  LOG_folder <- create_temp()
   log_msg("App started")
   # p1. import ----
   values <- reactiveValues()
