@@ -33,9 +33,9 @@ server <- function(input, output, session) {
     LOG_markdown_vec <<- c(LOG_markdown_vec,
                            str_c("`", time_stamp, "` ", msg, "\n", detail))
   }
-  # also return the ggplot object so it can be the last line of renderPlot
-  log_save_ggplot <- function(g, name) {
-    pic_name <- str_c(name, "_", current_timestamp(), ".png")
+  # also return the ggplot object so it can be the last line of renderPlot. all these customized log function should take data as first parameter
+  log_save_ggplot <- function(g, f_name) {
+    pic_name <- str_c(f_name, "_", current_timestamp(), ".png")
     ggsave(filename = file.path(LOG_folder, pic_name),
            plot = g)
     log_msg("plot saved as", pic_name)
