@@ -19,7 +19,7 @@ server <- function(input, output, session) {
     dir.create(folder_path)
     return(folder_path)
   }
-  log_msg <- function(msg, detail = "") {
+  log_msg_console <- function(msg, detail = "") {
     time_stamp <- str_c("[", Sys.time(), "]")
     if (detail != "") {
       detail <- str_c("\n\t", detail)
@@ -29,9 +29,13 @@ server <- function(input, output, session) {
           LOG_color_mappings$msg(msg),
           LOG_color_mappings$detail(detail), "\n")
     }
+    return(time_stamp)
+  }
+  log_msg <- function(msg, detail = "") {
+    time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
     LOG_markdown_vec <<- c(LOG_markdown_vec,
-                           str_c("`", time_stamp, "` ", msg, "\n", detail))
+                           str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
   }
   # also return the ggplot object so it can be the last line of renderPlot. all these customized log function should take data as first parameter
   log_save_ggplot <- function(g, f_name) {
@@ -44,8 +48,10 @@ server <- function(input, output, session) {
   # save dt into markdown table or csv. msg: table a:
   log_dt_md <- function(dt, msg) {
     # need the extra \t because log_msg put \t before first line of detail
-    log_msg(msg, str_c(capture.output(dt), collapse = "\n\t"))
+    time_stamp <- log_msg_console(msg,
+                                  str_c(capture.output(dt), collapse = "\n\t"))
     LOG_markdown_vec <<- c(LOG_markdown_vec,
+                           str_c("`", time_stamp, "` ", msg, "\n"),
                            knitr::kable(dt, format = "markdown"))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message. msg: saving table f_name:
