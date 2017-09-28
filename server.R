@@ -20,7 +20,7 @@ server <- function(input, output, session) {
     # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
     LOG_markdown_vec <<- c(LOG_markdown_vec, vec)
   }
-  # always do no matter what on switch
+  # always do even switch is off. each session need to have individual folder.
   create_temp <- function() {
     folder_path <- file.path(tempdir(), current_timestamp())
     dir.create(folder_path)
@@ -74,6 +74,7 @@ server <- function(input, output, session) {
   }
   # LOG app start
   LOG_folder <- create_temp()
+  log_add_md("## Work Report of ctmm web-app")
   log_msg("App started", on = isolate(input$record_switch))
   # p1. import ----
   values <- reactiveValues()
@@ -1625,6 +1626,14 @@ server <- function(input, output, session) {
     # this call doesn't use the switch to turn off itself
     log_msg(str_c("Recording is ", input$record_switch))
   })
-
-
+  observeEvent(input$generate_report, {
+    # write markdown file
+    markdown_path <- file.path(LOG_folder, "report.md")
+    writeLines(LOG_markdown_vec, con = markdown_path)
+    # render markdown to html
+    html_path <- file.path(LOG_folder, "report.html")
+    rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
+    browseURL(html_path)
+  })
+  # output$download_all <- downloadHandler()
 }
