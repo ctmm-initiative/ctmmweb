@@ -480,6 +480,7 @@ report_control_box <- box(title = "Report Options", status = "info",
   fluidRow(
     column(8, radioButtons("record_switch", "Record actions and save plots",
                            c("On", "Off"), inline = TRUE)),
+    # column(8, checkboxInput("record_on", "Record actions and save plots")),
     column(2, offset = 2, help_button("report")),
     column(12, br()),
     column(3, actionButton("generate_report", "Generate Report",

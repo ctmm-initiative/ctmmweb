@@ -15,11 +15,12 @@ server <- function(input, output, session) {
   LOG_markdown_vec <- vector(mode = "character")
   # log functions ----
   # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector
-  log_add_md <- function(vec) {
+  log_add_md <- function(vec, on = "On") {
+    if (on == "Off") return()
     # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
     LOG_markdown_vec <<- c(LOG_markdown_vec, vec)
   }
-  # global variable that hold the temp directory
+  # always do no matter what on switch
   create_temp <- function() {
     folder_path <- file.path(tempdir(), current_timestamp())
     dir.create(folder_path)
@@ -39,12 +40,14 @@ server <- function(input, output, session) {
     }
     return(time_stamp)
   }
-  log_msg <- function(msg, detail = "") {
+  log_msg <- function(msg, detail = "", on = "On") {
+    if (on == "Off") return()
     time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
     log_add_md(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
   }
-  log_save_ggplot <- function(g, f_name) {
+  log_save_ggplot <- function(g, f_name, on = "On") {
+    if (on == "Off") return(g)
     pic_name <- str_c(f_name, "_", current_timestamp(), ".png")
     ggsave(filename = file.path(LOG_folder, pic_name),
            plot = g)
@@ -53,7 +56,8 @@ server <- function(input, output, session) {
     return(g)
   }
   # save dt into markdown table or csv. note the msg could be in different format
-  log_dt_md <- function(dt, msg) {
+  log_dt_md <- function(dt, msg, on = "On") {
+    if (on == "Off") return()
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
                                   str_c(capture.output(dt), collapse = "\n\t"))
@@ -61,7 +65,8 @@ server <- function(input, output, session) {
                  knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
-  log_dt_csv <- function(dt, msg, f_name) {
+  log_dt_csv <- function(dt, msg, f_name, on = "On") {
+    if (on == "Off") return()
     csv_name <- str_c(f_name, "_", current_timestamp(), ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
@@ -69,7 +74,7 @@ server <- function(input, output, session) {
   }
   # LOG app start
   LOG_folder <- create_temp()
-  log_msg("App started")
+  log_msg("App started", on = isolate(input$record_switch))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -97,7 +102,7 @@ server <- function(input, output, session) {
     values$current_model_fit_res <- NULL
     updateTabItems(session, "tabs", "plots")
     # LOG input data updated
-    log_msg("Input data updated")
+    log_msg("Input data updated", on = isolate(input$record_switch))
   }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
@@ -129,7 +134,8 @@ server <- function(input, output, session) {
   observeEvent(input$file1, {
     req(input$file1)
     # LOG file upload.
-    log_msg("Importing file: ", input$file1$name)
+    log_msg("Importing file: ", input$file1$name,
+            on = isolate(input$record_switch))
     file_uploaded()
   })
   # observe radio button changes
@@ -138,14 +144,16 @@ server <- function(input, output, session) {
            ctmm = {
              data("buffalo")
              # LOG use buffalo
-             log_msg("Using data:", "buffalo from ctmm")
+             log_msg("Using data:", "buffalo from ctmm",
+                     on = isolate(input$record_switch))
              update_input_data(buffalo)
            },
            ctmm_sample = {
              data("buffalo")
              sample_data <- pick_m_tele_list(buffalo, input$sample_size)
              # LOG use sample
-             log_msg("Using data:", "buffalo sample from ctmm")
+             log_msg("Using data:", "buffalo sample from ctmm",
+                     on = isolate(input$record_switch))
              update_input_data(sample_data)
            },
            upload = {
@@ -233,7 +241,7 @@ server <- function(input, output, session) {
       values$study_detail <- NULL
       clear_mb_download()
       # LOG movebank login
-      log_msg("Movebank login failed")
+      log_msg("Movebank login failed", on = isolate(input$record_switch))
     } else {
       studies_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
@@ -255,7 +263,8 @@ server <- function(input, output, session) {
       values$study_detail <- NULL
       clear_mb_download()
       # LOG movebank login
-      log_msg("Logged in Movebank as:", input$user)
+      log_msg("Logged in Movebank as:", input$user,
+              on = isolate(input$record_switch))
     }
   })
   # 1.4 selected details ----
@@ -328,7 +337,8 @@ server <- function(input, output, session) {
       msg <- html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
       # LOG download movebank data failed
-      log_msg("Movebank data download failed:", mb_id())
+      log_msg("Movebank data download failed:", mb_id(),
+              on = isolate(input$record_switch))
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
       note_parse <- showNotification(
@@ -344,8 +354,10 @@ server <- function(input, output, session) {
       values$study_preview <- movebank_dt_preview
       values$move_bank_dt <- move_bank_dt
       # LOG download movebank data
-      log_msg("Movebank data downloaded:", mb_id())
-      log_dt_md(values$study_detail, "Downloaded study details:")
+      log_msg("Movebank data downloaded:", mb_id(),
+              on = isolate(input$record_switch))
+      log_dt_md(values$study_detail, "Downloaded study details:",
+                on = isolate(input$record_switch))
     }
   })
   callModule(click_help, "download", title = "Download Movebank data",
@@ -365,14 +377,16 @@ server <- function(input, output, session) {
       req(values$move_bank_dt[, .N] > 0)
       fwrite(values$move_bank_dt, file)
       # LOG save movebank data. we don't know what's the final file name. file is temp file path
-      log_msg("Movebank data saved:", mb_id())
+      log_msg("Movebank data saved:", mb_id(),
+              on = isolate(input$record_switch))
     }
   )
   observeEvent(input$import, {
     req(values$move_bank_dt[, .N] > 0)
     data_import(values$move_bank_dt)
     # LOG import movebank data
-    log_msg("Movebank data imported:", mb_id())
+    log_msg("Movebank data imported:", mb_id(),
+            on = isolate(input$record_switch))
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
@@ -433,7 +447,8 @@ server <- function(input, output, session) {
       verify_global_data()
       # LOG delete inidividuals
       log_msg("Individuals deleted from data: ",
-              str_c(chosen_ids, collapse = ", "))
+              str_c(chosen_ids, collapse = ", "),
+              on = isolate(input$record_switch))
     }
   })
   proxy_individuals <- dataTableProxy("individuals")
@@ -463,15 +478,14 @@ server <- function(input, output, session) {
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    # log_msg("Current selected individuals: ",
-    #         str_c(chosen_ids, collapse = ", "))
     animals_dt <- values$data$merged$data[identity %in% chosen_ids]
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
     info <- values$data$merged$info[subset_indice]
     # LOG current selected individuals
     log_dt_md(info[,
                    .(identity, start, end, interval, duration, points)],
-              "Current selected individuals:")
+              "Current selected individuals:",
+              on = isolate(input$record_switch))
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data = animals_dt,
                 info = info,
@@ -516,7 +530,7 @@ server <- function(input, output, session) {
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
     # LOG save pic
-    log_save_ggplot(g, "plot_2_overview")
+    log_save_ggplot(g, "plot_2_overview", on = isolate(input$record_switch))
   }
   # , height = 400, width = "auto"
   # , height = styles$height_plot_loc, width = "auto"
@@ -537,7 +551,7 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
     # LOG save pic
-    log_save_ggplot(g, "plot_3_facet")
+    log_save_ggplot(g, "plot_3_facet", on = isolate(input$record_switch))
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.4 individual plot ----
   output$location_plot_individual <- renderPlot({
@@ -566,7 +580,7 @@ server <- function(input, output, session) {
                    matrix(1:fig_count, nrow = fig_count / input$plot4_col,
                           ncol = input$plot4_col, byrow = TRUE))
     # LOG save pic
-    log_save_ggplot(gr, "plot_4_individual")
+    log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_switch))
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
@@ -578,7 +592,7 @@ server <- function(input, output, session) {
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
     # LOG save pic
-    log_save_ggplot(g, "plot_5_histogram")
+    log_save_ggplot(g, "plot_5_histogram", on = isolate(input$record_switch))
   }, height = styles$height_hist, width = "auto")
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
@@ -1605,4 +1619,12 @@ server <- function(input, output, session) {
     })
     par(def.par)
   }, height = function() { select_models_layout()$height })
+  # p8. map ----
+  # p9. report ----
+  observeEvent(input$record_switch, {
+    # this call doesn't use the switch to turn off itself
+    log_msg(str_c("Recording is ", input$record_switch))
+  })
+
+
 }
