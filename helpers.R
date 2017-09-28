@@ -600,7 +600,6 @@ current_timestamp <- function() {
 }
 # file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
 build_shapefile_zip <- function(file, write_f) {
-  # cat("build function running")
   # timestamp as folder name, also part of zip name. this+file_name as relative path of files in creating zip
   # differentiate between shapefile and report folder
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
@@ -622,9 +621,9 @@ build_shapefile_zip <- function(file, write_f) {
   previous_wd <- getwd()
   # so we can use relative path in zip
   setwd(temp_folder)
+  # we want the relative path otherwise file path inside zip will be too deep. so this only list file names.
   files_in_zip <- list.files(folder_path)
-  # this is the relative path inside zip, starting from current dir
-  # paths_in_zip <- str_c(folder_name, "/", files_in_zip)
+  # construct the relative path inside zip
   paths_in_zip <- file.path(folder_name, files_in_zip)
   # zip_full_path <- paste0(folder_path, "/" , zip_name)
   zip_full_path <- file.path(folder_path, zip_name)

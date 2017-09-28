@@ -1577,7 +1577,9 @@ server <- function(input, output, session) {
       hrange_list <- selected_hrange_list()
       ud_levels <- get_hr_levels()
       # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
+      # log_msg("Building shapefiles")
       build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels))
+      log_msg("Shapefiles built and downloaded")
     }
   )
   # p7. occurrence ----
@@ -1637,7 +1639,7 @@ server <- function(input, output, session) {
   })
   output$download_all <- downloadHandler(
     filename = function() {
-      paste0("Work Report ", current_timestamp(), ".zip")
+      paste0("Report_", current_timestamp(), ".zip")
     },
     content = function(file) {
       # this name doesn't matter, since it will be copied
@@ -1647,12 +1649,10 @@ server <- function(input, output, session) {
       # so we can use relative path in zip
       setwd(dirname(LOG_folder))
       generate_report(preview = FALSE)
-      files_in_zip <- list.files(LOG_folder)
-      # this is the relative path inside zip, starting from current dir
-      # paths_in_zip <- str_c(folder_name, "/", files_in_zip)
-      paths_in_zip <- file.path(folder_name, files_in_zip)
-      # zip_full_path <- paste0(folder_path, "/" , zip_name)
-      zip_full_path <- file.path(folder_path, zip_name)
+      files_in_zip <- list.files(LOG_folder)  # file name only
+      # construct the relative path inside zip
+      paths_in_zip <- file.path(basename(LOG_folder), files_in_zip)
+      zip_full_path <- file.path(LOG_folder, zip_name)
       zip::zip(zip_full_path, paths_in_zip,
                compression_level = 5)
       setwd(previous_wd)
