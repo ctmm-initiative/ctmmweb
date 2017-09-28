@@ -14,16 +14,18 @@ server <- function(input, output, session) {
   # global variable that hold the markdown strings.
   LOG_markdown_vec <- vector(mode = "character")
   # log functions ----
-  # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector
+  # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector. all appends to global variable happen here, easier to manage.
   log_add_md <- function(vec, on = "On") {
     if (on == "Off") return()
     # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
     LOG_markdown_vec <<- c(LOG_markdown_vec, vec)
   }
   # always do even switch is off. each session need to have individual folder.
-  create_temp <- function() {
-    folder_path <- file.path(tempdir(), current_timestamp())
-    dir.create(folder_path)
+  # use token as folder name, still create the timestamp folder as subfolder, so that the zip will have the timestamped folder
+  create_temp <- function(token) {
+    folder_path <- file.path(tempdir(), token,
+                             str_c("Report_", current_timestamp()))
+    dir.create(folder_path, recursive = TRUE)
     return(folder_path)
   }
   # rely on several global variables. do side effect of console msg, and write string to global vector.
@@ -52,7 +54,7 @@ server <- function(input, output, session) {
     ggsave(filename = file.path(LOG_folder, pic_name),
            plot = g)
     log_msg("plot saved as", pic_name)
-    log_add_md(str_c("![plot](", pic_name, ")"))
+    log_add_md(str_c("![](", pic_name, ")"))
     return(g)
   }
   # save dt into markdown table or csv. note the msg could be in different format
@@ -73,7 +75,7 @@ server <- function(input, output, session) {
     log_add_md(str_c("[", csv_name, "](", csv_name, ")"))
   }
   # LOG app start
-  LOG_folder <- create_temp()
+  LOG_folder <- create_temp(session$token)
   log_add_md("## Work Report of ctmm web-app")
   log_msg("App started", on = isolate(input$record_switch))
   # p1. import ----
@@ -1559,8 +1561,6 @@ server <- function(input, output, session) {
       paste0("Home Range ", current_time, ".zip")
     },
     content = function(file) {
-      # hrange_list <- selected_hrange_list()
-      # zip_shapefiles(file, hrange_list)
       # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
       # functional::Curry is misnomer, and it's extra dependency.
       save_shapefiles <- function(hrange_list, ud_levels) {
@@ -1571,17 +1571,13 @@ server <- function(input, output, session) {
                            folder = folder_path,
                            file = select_models()$id_model[i])
           }
-          # lapply(hrange_list, function(x) {
-          #   # difficult to get item name in lapply, so use data slot instead
-          #   writeShapefile(x, level.UD = ud_levels,
-          #                  folder = folder_path)
-          # })
         }
         return(write_f)
       }
       hrange_list <- selected_hrange_list()
       ud_levels <- get_hr_levels()
-      build_zip(file, save_shapefiles(hrange_list, ud_levels))
+      # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
+      build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels))
     }
   )
   # p7. occurrence ----
@@ -1626,14 +1622,41 @@ server <- function(input, output, session) {
     # this call doesn't use the switch to turn off itself
     log_msg(str_c("Recording is ", input$record_switch))
   })
-  observeEvent(input$generate_report, {
+  generate_report <- function(preview = FALSE) {
     # write markdown file
     markdown_path <- file.path(LOG_folder, "report.md")
     writeLines(LOG_markdown_vec, con = markdown_path)
     # render markdown to html
     html_path <- file.path(LOG_folder, "report.html")
     rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
-    browseURL(html_path)
+    # non-encoded file path cannot have white space for browserURL
+    if (preview) browseURL(html_path)
+  }
+  observeEvent(input$preview_report, {
+    generate_report(preview = TRUE)
   })
-  # output$download_all <- downloadHandler()
+  output$download_all <- downloadHandler(
+    filename = function() {
+      paste0("Work Report ", current_timestamp(), ".zip")
+    },
+    content = function(file) {
+      # this name doesn't matter, since it will be copied
+      zip_name <- "report.zip"
+      # write zip
+      previous_wd <- getwd()
+      # so we can use relative path in zip
+      setwd(dirname(LOG_folder))
+      generate_report(preview = FALSE)
+      files_in_zip <- list.files(LOG_folder)
+      # this is the relative path inside zip, starting from current dir
+      # paths_in_zip <- str_c(folder_name, "/", files_in_zip)
+      paths_in_zip <- file.path(folder_name, files_in_zip)
+      # zip_full_path <- paste0(folder_path, "/" , zip_name)
+      zip_full_path <- file.path(folder_path, zip_name)
+      zip::zip(zip_full_path, paths_in_zip,
+               compression_level = 5)
+      setwd(previous_wd)
+      file.copy(zip_full_path, file)
+    }
+  )
 }

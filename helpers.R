@@ -584,6 +584,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 #     )
 #   return(list(levels = color_levels, values = color_values))
 # }
+# home range ----
 parse_CI_levels <- function(levels_text) {
   if (str_trim(levels_text) == "") {
     return(0.95)
@@ -598,9 +599,13 @@ current_timestamp <- function() {
          tz = "UTC")
 }
 # file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
-build_zip <- function(file, write_f) {
+build_shapefile_zip <- function(file, write_f) {
+  # cat("build function running")
   # timestamp as folder name, also part of zip name. this+file_name as relative path of files in creating zip
-  folder_name <- current_timestamp()
+  # differentiate between shapefile and report folder
+  # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
+  # adding token make folder inside zip too long.
+  folder_name <- str_c("HomeRange_", current_timestamp())
   temp_folder <- tempdir() # produced extra // in Mac
   # all file operations are platform dependent, need extra test and care.
   # absolute path of folder under temp folder. this + file_name to write files
@@ -615,6 +620,7 @@ build_zip <- function(file, write_f) {
   write_f(folder_path)
   # write zip
   previous_wd <- getwd()
+  # so we can use relative path in zip
   setwd(temp_folder)
   files_in_zip <- list.files(folder_path)
   # this is the relative path inside zip, starting from current dir
