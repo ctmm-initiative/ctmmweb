@@ -8,16 +8,12 @@ sidebar <- dashboardSidebar(
     menuItem("Import Data", tabName = "import", icon = icon("upload"),
              selected = TRUE),
     menuItem("Visualization", tabName = "plots", icon = icon("line-chart")),
-    # menuItem("Filter and Subset", tabName = "subset_filter", icon = icon("database"),
-    #          menuSubItem("Filter Outliers", tabName = "filter", icon = icon("filter")),
-    #          menuSubItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart"))
-    #          ),
     menuItem("Filter Outliers", tabName = "filter", icon = icon("filter")),
     menuItem("Time Subsetting", tabName = "subset", icon = icon("pie-chart")),
     menuItem("Model Selection", tabName = "model", icon = icon("hourglass-start")),
-    # menuItem("Model Fitting", tabName = "model", icon = icon("hourglass-start")),
     menuItem("Home Range", tabName = "homerange", icon = icon("map-o")),
     menuItem("Occurrence", tabName = "occurrence", icon = icon("map-marker")),
+    menuItem("Map", tabName = "map", icon = icon("globe")),
     menuItem("Work Report", tabName = "report", icon = icon("file-text-o"))
   )
   # ,
@@ -33,8 +29,9 @@ upload_box <- box(title = "Local Data Import",
                                   c("Use Bufflo Data in ctmm" = 'ctmm',
                                     "Use Sample of Buffalo Data" = 'ctmm_sample',
                                     "Upload Movebank format file" = 'upload'),
-                                  selected = "upload"),
-      tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}")
+                                  selected = "upload")
+      #             ,
+      # tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}")
                   ),
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
@@ -44,15 +41,18 @@ upload_box <- box(title = "Local Data Import",
     )
 movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6,
-                          height = styles$height_movebank_login_box,
-                          fluidRow(column(12,
-                                    textInput("user", "User Name"),
-                                    passwordInput("pass", label = "Password")),
-                                   column(5, actionButton("login", "Login",
-                                                  icon = icon("sign-in"),
-                                                  style = styles$page_action)),
-                                   column(5, offset = 2,
-                                          help_button("login")
+                          # height = styles$height_movebank_login_box,
+                          fluidRow(
+                            column(12, br()),
+                            column(12,
+                                  textInput("user", "User Name"),
+                                  passwordInput("pass", label = "Password")),
+                            column(12, br()),
+                            column(5, actionButton("login", "Login",
+                                          icon = icon("sign-in"),
+                                          style = styles$page_action)),
+                            column(5, offset = 2,
+                                  help_button("login")
                                           )))
 movebank_studies_box <- box(title = "Movebank Studies", collapsible = TRUE,
                             status = "primary", solidHeader = TRUE, width = 12,
@@ -471,6 +471,27 @@ occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                         column(2, offset = 3, br(), help_button("occurrence")),
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
+# p8. map ----
+map_box <- box(title = "Map", status = "info",
+                           solidHeader = TRUE, width = 12)
+# p9. work report ----
+report_control_box <- box(title = "Report Options", status = "info",
+                          solidHeader = TRUE, width = 12,
+  fluidRow(
+    column(8, radioButtons("record_switch", "Record actions and save plots",
+                           c("On", "Off"), inline = TRUE)),
+    column(2, offset = 2, help_button("report")),
+    column(12, br()),
+    column(3, actionButton("generate_report", "Generate Report",
+                           icon = icon("file-text-o"),
+                           style = styles$page_action)),
+    column(3, offset = 6,
+           downloadButton("download_all",
+                          "Download All",
+                          icon = icon("save"),
+                          style = styles$page_action))
+  )
+                          )
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
@@ -508,7 +529,10 @@ body <- dashboardBody(
             ),
     tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
-    tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
+    tabItem(tabName = "map",
+            fluidRow(map_box)),
+    # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
+    tabItem(tabName = "report", fluidRow(report_control_box))
   )
 )
 # assemble UI
