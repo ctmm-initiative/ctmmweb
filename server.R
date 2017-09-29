@@ -1612,7 +1612,8 @@ output:
       ud_levels <- get_hr_levels()
       # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
       # log_msg("Building shapefiles")
-      build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels))
+      build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels),
+                          session$token)
       log_msg("Shapefiles built and downloaded")
     }
   )
@@ -1683,14 +1684,14 @@ output:
       # so we can use relative path in zip
       setwd(dirname(LOG_folder))
       generate_report(preview = FALSE)
-      files_in_zip <- list.files(LOG_folder)  # file name only
+      files_to_zip <- list.files(LOG_folder)  # file name only
       # construct the relative path inside zip
-      paths_in_zip <- file.path(basename(LOG_folder), files_in_zip)
-      zip_full_path <- file.path(LOG_folder, zip_name)
-      zip::zip(zip_full_path, paths_in_zip,
+      relative_paths <- file.path(basename(LOG_folder), files_to_zip)
+      zip_path <- file.path(LOG_folder, zip_name)
+      zip::zip(zip_path, relative_paths,
                compression_level = 5)
       setwd(previous_wd)
-      file.copy(zip_full_path, file)
+      file.copy(zip_path, file)
     }
   )
 }

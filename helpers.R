@@ -595,41 +595,33 @@ parse_CI_levels <- function(levels_text) {
 }
 # used in build_zip, creating temp folder for log
 current_timestamp <- function() {
-  format(Sys.time(), "%Y-%m-%d_%H-%M-%S_UTC",
-         tz = "UTC")
+  # format(Sys.time(), "%Y-%m-%d_%H-%M-%S_UTC",
+  #        tz = "UTC")
+  format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 }
 # file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
-build_shapefile_zip <- function(file, write_f) {
+build_shapefile_zip <- function(file, write_f, token) {
   # timestamp as folder name, also part of zip name. this+file_name as relative path of files in creating zip
   # differentiate between shapefile and report folder
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
-  # adding token make folder inside zip too long.
-  folder_name <- str_c("HomeRange_", current_timestamp())
   temp_folder <- tempdir() # produced extra // in Mac
-  # all file operations are platform dependent, need extra test and care.
-  # absolute path of folder under temp folder. this + file_name to write files
-  # the folder is not exist yet, normalizePath will complain without mustWork.
-  # folder_path <- normalizePath(paste0(temp_folder, "/", folder_name),
-  #                              mustWork = FALSE)
-  # avoid using file separtor specificlly since it may only work in one platform
-  # this only ensure the separators between terms, but tempdir get windows style separators already, which is not changed.
-  folder_path <- file.path(temp_folder, folder_name)
-  dir.create(folder_path)
-  zip_name <- paste0("Home Range ", folder_name, ".zip")
+  current_time <- current_timestamp()
+  folder_name <- str_c("Range_", current_time)
+  # each session have a folder named by token. various folders are created under it.
+  folder_path <- file.path(temp_folder, token, folder_name)
+  dir.create(folder_path, recursive = TRUE)
+  zip_name <- paste0("Home Range ", current_time, ".zip")
   write_f(folder_path)
-  # write zip
   previous_wd <- getwd()
-  # so we can use relative path in zip
-  setwd(temp_folder)
+  # one level up from Range folder, which is the session folder. use relative path for files in zip.
+  setwd(dirname(folder_path))
   # we want the relative path otherwise file path inside zip will be too deep. so this only list file names.
-  files_in_zip <- list.files(folder_path)
-  # construct the relative path inside zip
-  paths_in_zip <- file.path(folder_name, files_in_zip)
-  # zip_full_path <- paste0(folder_path, "/" , zip_name)
-  zip_full_path <- file.path(folder_path, zip_name)
-  zip::zip(zip_full_path, paths_in_zip,
+  files_to_zip <- list.files(folder_path)
+  relative_paths <- file.path(folder_name, files_to_zip)
+  zip_path <- file.path(temp_folder, token, zip_name)
+  zip::zip(zip_path, relative_paths,
            compression_level = 5)
   setwd(previous_wd)
-  file.copy(zip_full_path, file)
+  file.copy(zip_path, file)
 }
 
