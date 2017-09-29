@@ -12,13 +12,13 @@ server <- function(input, output, session) {
                              msg = crayon::green,
                              detail = crayon::blue)
   # global variable that hold the markdown strings.
-  LOG_markdown_vec <- vector(mode = "character")
+  LOG_rmd_vec <- vector(mode = "character")
   # log functions ----
   # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector. all appends to global variable happen here, easier to manage.
-  log_add_md <- function(vec, on = "On") {
+  log_add_rmd <- function(vec, on = "On") {
     if (on == "Off") return()
     # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
-    LOG_markdown_vec <<- c(LOG_markdown_vec, vec)
+    LOG_rmd_vec <<- c(LOG_rmd_vec, vec)
   }
   # always do even switch is off. each session need to have individual folder.
   # use token as folder name, still create the timestamp folder as subfolder, so that the zip will have the timestamped folder
@@ -46,7 +46,7 @@ server <- function(input, output, session) {
     if (on == "Off") return()
     time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
-    log_add_md(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
+    log_add_rmd(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
   }
   log_save_ggplot <- function(g, f_name, on = "On") {
     if (on == "Off") return(g)
@@ -54,7 +54,7 @@ server <- function(input, output, session) {
     ggsave(filename = file.path(LOG_folder, pic_name),
            plot = g)
     log_msg("plot saved as", pic_name)
-    log_add_md(str_c("![](", pic_name, ")"))
+    log_add_rmd(str_c("![](", pic_name, ")"))
     return(g)
   }
   # save dt into markdown table or csv. note the msg could be in different format
@@ -63,7 +63,7 @@ server <- function(input, output, session) {
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
                                   str_c(capture.output(dt), collapse = "\n\t"))
-    log_add_md(c(str_c("`", time_stamp, "` ", msg, "\n"),
+    log_add_rmd(c(str_c("`", time_stamp, "` ", msg, "\n"),
                  knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
@@ -72,11 +72,22 @@ server <- function(input, output, session) {
     csv_name <- str_c(f_name, "_", current_timestamp(), ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
-    log_add_md(str_c("[", csv_name, "](", csv_name, ")"))
+    log_add_rmd(str_c("[", csv_name, "](", csv_name, ")"))
   }
   # LOG app start
   LOG_folder <- create_temp(session$token)
-  log_add_md("## Work Report of ctmm web-app")
+  # rmd header
+  rmd_header <-
+'---
+title: "Work Report of ctmm web-app"
+output:
+  prettydoc::html_pretty:
+  theme: cayman
+  highlight: github
+---
+
+'
+  log_add_rmd(rmd_header)
   log_msg("App started", on = isolate(input$record_switch))
   # p1. import ----
   values <- reactiveValues()
@@ -1626,8 +1637,8 @@ server <- function(input, output, session) {
   })
   generate_report <- function(preview = FALSE) {
     # write markdown file
-    markdown_path <- file.path(LOG_folder, "report.md")
-    writeLines(LOG_markdown_vec, con = markdown_path)
+    markdown_path <- file.path(LOG_folder, "report.rmd")
+    writeLines(LOG_rmd_vec, con = markdown_path)
     # render markdown to html
     html_path <- file.path(LOG_folder, "report.html")
     rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
