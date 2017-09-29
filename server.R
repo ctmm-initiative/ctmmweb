@@ -109,8 +109,8 @@ output:
   # also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
   observeEvent(input$tabs, {
     req(values$data)
-    # log_add_rmd(str_c("\n## ", page_title[[input$tabs]], "\n"))
-    log_page(page_title[[input$tabs]])
+    # since we req data, so it will not record pages without data. This is good.
+    log_page(page_title[[input$tabs]], on = input$record_switch)
     if (input$tabs == "subset") {
       # must select single animal to proceed
       if (length(input$individuals_rows_selected) != 1) {
@@ -118,10 +118,10 @@ output:
       }
     }
   })
+  # call outside of reactive context need isolate, they are also one time call only run when app started.
   log_msg("App started", on = isolate(input$record_switch))
   # first page need to be added manually since no page switching event fired
-  # log_add_rmd(str_c("\n## ", page_title$import, "\n"))
-  log_page(page_title$import)
+  log_page(page_title$import, on = isolate(input$record_switch))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
