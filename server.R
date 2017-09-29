@@ -1590,9 +1590,8 @@ output:
   output$export_hrange <- downloadHandler(
     filename = function() {
       # up to min so it should be consistent with the folder name inside zip
-      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M_UTC",
-                             tz = "UTC")
-      paste0("Home Range ", current_time, ".zip")
+      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+      paste0("Home_Range_", current_time, ".zip")
     },
     content = function(file) {
       # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
@@ -1687,7 +1686,7 @@ output:
       files_to_zip <- list.files(LOG_folder)  # file name only
       # construct the relative path inside zip
       relative_paths <- file.path(basename(LOG_folder), files_to_zip)
-      zip_path <- file.path(LOG_folder, zip_name)
+      zip_path <- file.path(dirname(LOG_folder), zip_name)
       zip::zip(zip_path, relative_paths,
                compression_level = 5)
       setwd(previous_wd)

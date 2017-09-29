@@ -613,12 +613,13 @@ build_shapefile_zip <- function(file, write_f, token) {
   zip_name <- paste0("Home Range ", current_time, ".zip")
   write_f(folder_path)
   previous_wd <- getwd()
-  # one level up from Range folder, which is the session folder. use relative path for files in zip.
+  # one level up from Range folder, which is the session folder. so we can use relative path for files in zip.
   setwd(dirname(folder_path))
   # we want the relative path otherwise file path inside zip will be too deep. so this only list file names.
   files_to_zip <- list.files(folder_path)
   relative_paths <- file.path(folder_name, files_to_zip)
-  zip_path <- file.path(temp_folder, token, zip_name)
+  # save zip one level up, otherwise it get mixed with target files, which can create infinite loop sometimes
+  zip_path <- file.path(dirname(folder_path), zip_name)
   zip::zip(zip_path, relative_paths,
            compression_level = 5)
   setwd(previous_wd)
