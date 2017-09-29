@@ -76,19 +76,52 @@ server <- function(input, output, session) {
   }
   # LOG app start
   LOG_folder <- create_temp(session$token)
-  # rmd header
+  # initialize RMarkdown ----
+  # note rstudio will format after paste, need to keep indent right.
   rmd_header <-
 '---
 title: "Work Report of ctmm web-app"
 output:
-  prettydoc::html_pretty:
-  theme: cayman
-  highlight: github
+  html_document:
+    theme: yeti
+    toc: yes
+    toc_float: yes
 ---
 
 '
   log_add_rmd(rmd_header)
+  # page observer ----
+  # add subtitle in log for every page. need to sync with ui.R for this.
+  page_title <- list(import = "Import Data",
+                     plots = "Visualization",
+                     filter = "Filter Outliers",
+                     subset = "Time Subsetting",
+                     model = "Model Selection",
+                     homerange = "Home Range",
+                     occurrence = "Occurrence",
+                     map = "Map",
+                     report = "Work Report")
+  log_page <- function(title, on = "On") {
+    if (on == "Off") return()
+    log_msg_console(str_c("## ", title))
+    log_add_rmd(str_c("\n## ", title, "\n"))
+  }
+  # also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
+  observeEvent(input$tabs, {
+    req(values$data)
+    # log_add_rmd(str_c("\n## ", page_title[[input$tabs]], "\n"))
+    log_page(page_title[[input$tabs]])
+    if (input$tabs == "subset") {
+      # must select single animal to proceed
+      if (length(input$individuals_rows_selected) != 1) {
+        showNotification("Please select single Animal", type = "error")
+      }
+    }
+  })
   log_msg("App started", on = isolate(input$record_switch))
+  # first page need to be added manually since no page switching event fired
+  # log_add_rmd(str_c("\n## ", page_title$import, "\n"))
+  log_page(page_title$import)
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -989,16 +1022,6 @@ output:
     # LOG reset removal
   })
   # p4. time subset ----
-  # want to observe page because we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
-  observeEvent(input$tabs, {
-    req(values$data)
-    if (input$tabs == "subset") {
-      # must select single animal to proceed
-      if (length(input$individuals_rows_selected) != 1) {
-        showNotification("Please select single Animal", type = "error")
-      }
-    }
-  })
   callModule(click_help, "time_subsetting", title = "Subset data by time",
              size = "l", file = "help/4_time_subsetting.md")
   # color_bin_animal() ----
