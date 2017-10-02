@@ -6,6 +6,7 @@ debug_mode <- FALSE
 source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
+  # to copy from 07_report_save_load
   # global LOG variables ----
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
@@ -48,14 +49,28 @@ server <- function(input, output, session) {
     # need extra new line for markdown
     log_add_rmd(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
   }
-  log_save_ggplot <- function(g, f_name, on = "On") {
-    if (on == "Off") return(g)
-    pic_name <- str_c(f_name, "_", current_timestamp(), ".png")
-    ggsave(filename = file.path(LOG_folder, pic_name),
-           plot = g)
+  # common process for saving a plot
+  log_prepare_plot <- function(f_name, f_ext = ".png") {
+    pic_name <- str_c(f_name, "_", current_timestamp(), f_ext)
     log_msg("plot saved as", pic_name)
     log_add_rmd(str_c("![](", pic_name, ")"))
+    return(file.path(LOG_folder, pic_name))
+  }
+  log_save_ggplot <- function(g, f_name, on = "On") {
+    if (on == "Off") return(g)
+    ggsave(filename = log_prepare_plot(f_name), plot = g)
     return(g)
+  }
+  # only used for variogram, with specific format and parameters, some came from input
+  log_save_vario <- function(f_name, rows, cols, on = "On") {
+    if (on == "Off") return()
+    dev.print(png, file = log_prepare_plot(f_name), units = "in", res = 220,
+              width = cols * 4, height = rows * 3)
+  }
+  # pdf is better for home range, occurrence
+  log_save_UD <- function(f_name, on = "On") {
+    if (on == "Off") return()
+    dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
   }
   # save dt into markdown table or csv. note the msg could be in different format
   log_dt_md <- function(dt, msg, on = "On") {
@@ -64,7 +79,7 @@ server <- function(input, output, session) {
     time_stamp <- log_msg_console(msg,
                                   str_c(capture.output(dt), collapse = "\n\t"))
     log_add_rmd(c(str_c("`", time_stamp, "` ", msg, "\n"),
-                 knitr::kable(dt, format = "markdown")))
+                  knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
   log_dt_csv <- function(dt, msg, f_name, on = "On") {
@@ -74,6 +89,7 @@ server <- function(input, output, session) {
     log_msg(msg, detail = csv_name)
     log_add_rmd(str_c("[", csv_name, "](", csv_name, ")"))
   }
+  # copy end ----
   # LOG app start
   LOG_folder <- create_temp(session$token)
   # initialize RMarkdown ----
@@ -1303,8 +1319,8 @@ output:
       }
     }
     # LOG save pic
-    dev.print(png, file = "vario.png", units = "in", res = 220,
-              width = input$vario_columns * 4, height = row_count * 3)
+    log_save_vario("vario", row_count, input$vario_columns,
+                   on = isolate(input$record_switch))
     par(def.par)
   }, height = function() {
       if (input$vario_mode != "modeled") {
