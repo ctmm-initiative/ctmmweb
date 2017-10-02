@@ -1303,6 +1303,8 @@ output:
       }
     }
     # LOG save pic
+    dev.print(png, file = "vario.png", units = "in", res = 220,
+              width = input$vario_columns * 4, height = row_count * 3)
     par(def.par)
   }, height = function() {
       if (input$vario_mode != "modeled") {
