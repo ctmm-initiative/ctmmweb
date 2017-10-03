@@ -52,7 +52,7 @@ server <- function(input, output, session) {
   # common process for saving a plot
   log_prepare_plot <- function(f_name, f_ext = ".png") {
     pic_name <- str_c(f_name, "_", current_timestamp(), f_ext)
-    log_msg("plot saved as", pic_name)
+    log_msg("saving plot as", pic_name)
     log_add_rmd(str_c("![](", pic_name, ")"))
     return(file.path(LOG_folder, pic_name))
   }
@@ -690,7 +690,7 @@ output:
     # use this to check if distance and speed data is synced
     # cat("dataset in distance page\n")
     # print(animals_dt[, .N, by = id])
-    ggplot(animals_dt, aes(x = distance_center)) +
+    g <- ggplot(animals_dt, aes(x = distance_center)) +
       geom_histogram(breaks = distance_binned$color_bin_breaks,
                      # fill = hue_pal()(input$distance_his_bins),
                      aes(fill = distance_center_color_factor,
@@ -707,6 +707,8 @@ output:
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none")
     # LOG save pic
+    log_save_ggplot(g, "plot_distance_outlier_histogram",
+                    on = isolate(input$record_switch))
   })
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
@@ -773,7 +775,7 @@ output:
     animals_dt <- req(bin_by_distance()$animals_dt)
     animal_selected_data <- select_distance_range()$animal_selected_data
     # browser()
-    ggplot(animals_dt, aes(x, y)) +
+    g <- ggplot(animals_dt, aes(x, y)) +
       geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       geom_point(data = animal_selected_data,
                  size = ifelse(is.null(input$distance_his_brush),
@@ -801,7 +803,9 @@ output:
                   ylim = distance_outlier_plot_range$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
-  # LOG save pic
+    # LOG save pic
+    log_save_ggplot(g, "plot_distance_outlier_plot",
+                    on = isolate(input$record_switch))
   })
   # points in selected distance range
   output$points_in_distance_range <- DT::renderDataTable({
@@ -881,7 +885,7 @@ output:
     animals_dt <- speed_binned$animals_dt
     # cat("dataset in speed page\n")
     # print(animals_dt[, .N, by = id])
-    ggplot(animals_dt, aes(x = speed)) +
+    g <- ggplot(animals_dt, aes(x = speed)) +
       geom_histogram(breaks = speed_binned$color_bin_breaks,
                      aes(fill = speed_color_factor,
                          alpha = speed_color_factor)) +
@@ -896,6 +900,8 @@ output:
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "none")
     # LOG save pic
+    log_save_ggplot(g, "plot_speed_outlier_histogram",
+                    on = isolate(input$record_switch))
   })
   # outputOptions(output, "speed_histogram", priority = 10)
   select_speed_range <- select_range("speed")
@@ -969,7 +975,8 @@ output:
       }
     }
     # LOG save pic
-    g
+    log_save_ggplot(g, "plot_speed_outlier_plot",
+                    on = isolate(input$record_switch))
   })
   # outputOptions(output, "speed_outlier_plot", priority = 1)
   # points without valid speed values
@@ -1077,7 +1084,7 @@ output:
   # histogram cut by color bins. default with less groups since color difference is limited.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
-    ggplot(data = animal_binned$data, aes(x = timestamp)) +
+    g <- ggplot(data = animal_binned$data, aes(x = timestamp)) +
       geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
                      fill = hue_pal()(input$time_color_bins)) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks,
@@ -1085,6 +1092,8 @@ output:
       ggtitle(animal_binned$data[1, identity]) + center_title +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
     # LOG save pic
+    log_save_ggplot(g, "plot_time_subsetting_histogram",
+                    on = isolate(input$record_switch))
   })
   # select time range ----
   # brush selection and matching color bins
@@ -1134,7 +1143,7 @@ output:
     animal_selected_data <- animal_binned$data[
       (timestamp >= time_range$select_start) &
         (timestamp <= time_range$select_end)]
-    ggplot(data = animal_binned$data, aes(x, y)) +
+    g <- ggplot(data = animal_binned$data, aes(x, y)) +
       geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       geom_point(size = input$point_size_time_loc, alpha = 0.9,
                  data = animal_selected_data,
@@ -1146,6 +1155,8 @@ output:
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
     # LOG save pic
+    log_save_ggplot(g, "plot_time_subsetting_plot",
+                    on = isolate(input$record_switch))
   })
   # 4.4 time range table ----
   # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, in color_bin_animal. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
