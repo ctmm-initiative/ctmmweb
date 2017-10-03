@@ -1072,6 +1072,7 @@ output:
     values$data$merged <- merge_animals(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
     # LOG reset removal
+    log_msg("All Removed Outliers Restored", on = isolate(input$record_switch))
   })
   # p4. time subset ----
   callModule(click_help, "time_subsetting", title = "Subset data by time",
@@ -1160,6 +1161,8 @@ output:
     req(!is.null(values$selected_time_range))
     dt <- format_time_range(as.data.frame(values$selected_time_range))
     # LOG selection
+    log_dt_md(dt, "Current Selected Time Range:",
+              on = isolate(input$record_switch))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
@@ -1193,18 +1196,28 @@ output:
     l <- list(values$time_ranges, as.data.frame(values$selected_time_range))
     values$time_ranges <- rbindlist(l)
     # LOG add
+    log_dt_md(format_time_range(as.data.frame(values$selected_time_range)),
+              "Time Range Added to List:", on = isolate(input$record_switch))
   })
   observeEvent(input$delete_time_sub_rows, {
     if (!is.null(input$time_ranges_rows_selected)) {
+      # LOG delete
+      log_dt_md(values$time_ranges[
+          as.numeric(input$time_ranges_rows_selected)],
+        "Time Range Deleted:", on = isolate(input$record_switch))
       values$time_ranges <- values$time_ranges[
         -as.numeric(input$time_ranges_rows_selected)
       ]
-      # LOG delete
+      # LOG clear if empty
+      if (nrow(values$time_ranges) == 0) {
+        log_msg("Time Range List Cleared")
+      }
     }
   })
   observeEvent(input$reset_time_sub, {
     values$time_ranges <- NULL
     # LOG clear
+    log_msg("Time Range List Cleared")
   })
   # generate time subset ----
   # need a explicit button because once applied, the data will change and the plot and histogram will change too. the result applied to values$data, not current select_data(). also clear time_ranges, move to the visualization page.
@@ -1259,13 +1272,20 @@ output:
     values$time_ranges <- NULL
     verify_global_data()
     # LOG subset added
+    log_msg("New Time Range Subset Added:", new_id,
+            on = isolate(input$record_switch))
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
   })
   output$time_ranges <- DT::renderDataTable({
-    # NULL is valid input when all rows removed, no need for req here.
-    datatable(format_time_range(values$time_ranges), options =
+    # it could be NULL from clear, or empty data.table from delete
+    req(values$time_ranges)
+    req(nrow(values$time_ranges) > 0)
+    dt <- format_time_range(values$time_ranges)
+    # LOG time range list
+    log_dt_md(dt, "Time Range List", on = isolate(input$record_switch))
+    datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----

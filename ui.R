@@ -318,7 +318,8 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
                   # ,
                   # width = "99%", height = "100%"
                   ))
-selected_ranges_box <- box(title = "Selected Time Ranges",
+# this is called selected_ranges/time_ranges everywhere, difficult to change as too many places involved, also some implict names.
+selected_ranges_box <- box(title = "Time Range List",
                            status = "primary", solidHeader = TRUE, width = 12,
           fluidRow(column(3, offset = 0,
                           actionButton("delete_time_sub_rows",
