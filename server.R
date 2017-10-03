@@ -197,7 +197,7 @@ output:
   observeEvent(input$file1, {
     req(input$file1)
     # LOG file upload.
-    log_msg("Importing file: ", input$file1$name,
+    log_msg("Importing file", input$file1$name,
             on = isolate(input$record_switch))
     file_uploaded()
   })
@@ -207,7 +207,7 @@ output:
            ctmm = {
              data("buffalo")
              # LOG use buffalo
-             log_msg("Using data:", "buffalo from ctmm",
+             log_msg("Using data", "buffalo from ctmm",
                      on = isolate(input$record_switch))
              update_input_data(buffalo)
            },
@@ -215,7 +215,7 @@ output:
              data("buffalo")
              sample_data <- pick_m_tele_list(buffalo, input$sample_size)
              # LOG use sample
-             log_msg("Using data:", "buffalo sample from ctmm",
+             log_msg("Using data", "buffalo sample from ctmm",
                      on = isolate(input$record_switch))
              update_input_data(sample_data)
            },
@@ -326,7 +326,7 @@ output:
       values$study_detail <- NULL
       clear_mb_download()
       # LOG movebank login
-      log_msg("Logged in Movebank as:", input$user,
+      log_msg("Logged in Movebank as", input$user,
               on = isolate(input$record_switch))
     }
   })
@@ -400,7 +400,7 @@ output:
       msg <- html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
       # LOG download movebank data failed
-      log_msg("Movebank data download failed:", mb_id(),
+      log_msg("Movebank data download failed", mb_id(),
               on = isolate(input$record_switch))
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
@@ -417,9 +417,9 @@ output:
       values$study_preview <- movebank_dt_preview
       values$move_bank_dt <- move_bank_dt
       # LOG download movebank data
-      log_msg("Movebank data downloaded:", mb_id(),
+      log_msg("Movebank data downloaded", mb_id(),
               on = isolate(input$record_switch))
-      log_dt_md(values$study_detail, "Downloaded study details:",
+      log_dt_md(values$study_detail, "Downloaded study details",
                 on = isolate(input$record_switch))
     }
   })
@@ -440,7 +440,7 @@ output:
       req(values$move_bank_dt[, .N] > 0)
       fwrite(values$move_bank_dt, file)
       # LOG save movebank data. we don't know what's the final file name. file is temp file path
-      log_msg("Movebank data saved:", mb_id(),
+      log_msg("Movebank data saved", mb_id(),
               on = isolate(input$record_switch))
     }
   )
@@ -448,7 +448,7 @@ output:
     req(values$move_bank_dt[, .N] > 0)
     data_import(values$move_bank_dt)
     # LOG import movebank data
-    log_msg("Movebank data imported:", mb_id(),
+    log_msg("Movebank data imported", mb_id(),
             on = isolate(input$record_switch))
     updateTabItems(session, "tabs", "plots")
   })
@@ -509,7 +509,7 @@ output:
       values$data$tele_list <- values$data$tele_list[remaining_indice]
       verify_global_data()
       # LOG delete inidividuals
-      log_msg("Individuals deleted from data: ",
+      log_msg("Individuals deleted from data ",
               str_c(chosen_ids, collapse = ", "),
               on = isolate(input$record_switch))
     }
@@ -547,7 +547,7 @@ output:
     # LOG current selected individuals
     log_dt_md(info[,
                    .(identity, start, end, interval, duration, points)],
-              "Current selected individuals:",
+              "Current selected individuals",
               on = isolate(input$record_switch))
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data = animals_dt,
@@ -777,9 +777,9 @@ output:
         End = c(format_f_value(select_end),
                 format_raw(select_end, unit_name)))
       log_dt_md(dt,
-                "Range Selected:",
+                "Range Selected",
                 on = isolate(input$record_switch))
-      log_msg("Points in Selected Range:", nrow(animal_selected_data),
+      log_msg("Points in Selected Range", nrow(animal_selected_data),
                 on = isolate(input$record_switch))
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
@@ -884,7 +884,7 @@ output:
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
     # LOG points to remove
-    log_dt_md(points_to_remove_formated, "Points to be Removed by Distance:",
+    log_dt_md(points_to_remove_formated, "Points to be Removed by Distance",
       on = isolate(input$record_switch))
     remove_outliers(points_to_remove)
   })
@@ -1045,7 +1045,7 @@ output:
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
     # LOG points to remove
-    log_dt_md(points_to_remove_formated, "Points to be Removed by Speed:",
+    log_dt_md(points_to_remove_formated, "Points to be Removed by Speed",
               on = isolate(input$record_switch))
     remove_outliers(points_to_remove)
   })
@@ -1056,7 +1056,7 @@ output:
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
     dt <- format_outliers(values$data$all_removed_outliers, animals_dt)
-    log_dt_md(dt, "All Removed Outliers:", on = isolate(input$record_switch))
+    log_dt_md(dt, "All Removed Outliers", on = isolate(input$record_switch))
     datatable(dt,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
@@ -1161,7 +1161,7 @@ output:
     req(!is.null(values$selected_time_range))
     dt <- format_time_range(as.data.frame(values$selected_time_range))
     # LOG selection
-    log_dt_md(dt, "Current Selected Time Range:",
+    log_dt_md(dt, "Current Selected Time Range",
               on = isolate(input$record_switch))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
@@ -1197,14 +1197,16 @@ output:
     values$time_ranges <- rbindlist(l)
     # LOG add
     log_dt_md(format_time_range(as.data.frame(values$selected_time_range)),
-              "Time Range Added to List:", on = isolate(input$record_switch))
+              "Time Range Added to List", on = isolate(input$record_switch))
   })
   observeEvent(input$delete_time_sub_rows, {
-    if (!is.null(input$time_ranges_rows_selected)) {
+    # with empty table the previous selected value is still there, need to check table too
+    if (!is.null(input$time_ranges_rows_selected) &&
+        (nrow(values$time_ranges) > 0)) {
       # LOG delete
       log_dt_md(values$time_ranges[
           as.numeric(input$time_ranges_rows_selected)],
-        "Time Range Deleted:", on = isolate(input$record_switch))
+        "Time Range Deleted", on = isolate(input$record_switch))
       values$time_ranges <- values$time_ranges[
         -as.numeric(input$time_ranges_rows_selected)
       ]
@@ -1272,7 +1274,7 @@ output:
     values$time_ranges <- NULL
     verify_global_data()
     # LOG subset added
-    log_msg("New Time Range Subset Added:", new_id,
+    log_msg("New Time Range Subset Added", new_id,
             on = isolate(input$record_switch))
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
@@ -1403,6 +1405,8 @@ output:
   observeEvent(input$fit_selected, {
     if (input$fit_selected != "") {
       # LOG fine tune start
+      log_msg("Fine-tune Parameters for", input$fit_selected,
+              on = isolate(input$record_switch))
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
                                            input$fit_selected),
                             fluidRow(column(4, uiOutput("fit_sliders")),
@@ -1491,6 +1495,7 @@ output:
   })
   observeEvent(input$tuned, {
     # LOG fine tune apply
+    log_msg("Apply Fine-tuned Parameters", on = isolate(input$record_switch))
     removeModal()
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
     values$guess_list[ids == input$fit_selected][[1]] <- slider_to_CTMM()
@@ -1507,6 +1512,8 @@ output:
   observeEvent(input$fit_models, {
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
+    # LOG fit models
+    log_msg("Fitting models", on = isolate(input$record_switch))
     withProgress(print(system.time(
       values$current_model_fit_res <- para_ll(tele_guess_list, fit_models))),
       message = "Fitting models to find the best ...")
@@ -1543,6 +1550,8 @@ output:
     dt <- summary_models()$summary_dt
     # delete extra col here so it will not be shown, but we can still use them in code because the reactive expression still have it.
     dt[, model_no := NULL]
+    # LOG fitted models
+    log_dt_md(dt, "Fitted Models", on = isolate(input$record_switch))
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
@@ -1587,6 +1596,9 @@ output:
     selected_tele_list <- select_data()$tele_list[selected_dt$identity]
     selected_models <- selected_models_dt$model
     selected_vg_list <- vg_list()[selected_dt$identity]
+    # LOG selected models
+    log_dt_md(selected_dt, "Selected Models",
+              on = isolate(input$record_switch))
     # must make sure all items in same order
     return(list(dt = selected_dt,
                 tele_list = selected_tele_list,
@@ -1615,10 +1627,12 @@ output:
   })
   # home range summary ----
   output$range_summary <- DT::renderDataTable({
-    hrange_summary_dt <- model_list_dt_to_model_summary_dt(build_hrange_list_dt(
-      select_models()$dt, selected_hrange_list()))
+    hrange_summary_dt <- model_list_dt_to_model_summary_dt(
+      build_hrange_list_dt(select_models()$dt, selected_hrange_list()))
     dt <- format_hrange_summary_dt(hrange_summary_dt)
     dt[, model_no := NULL]
+    # LOG home range summary
+    log_dt_md(dt, "Home Range Summary")
     if (input$hide_ci_hrange) {
       dt <- dt[!str_detect(estimate, "CI")]
       # dt[, estimate := NULL]
