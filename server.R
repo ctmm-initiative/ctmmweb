@@ -736,10 +736,14 @@ output:
       switch(his_type,
              distance = {
                col_name = quote(distance_center)
+               format_f <- format_distance_f
+               unit_name <- " m"
                animals_dt <- req(bin_by_distance()$animals_dt)
              },
              speed = {
                col_name = quote(speed)
+               format_f <- format_speed_f
+               unit_name <- " m/s"
                animals_dt <- req(bin_by_speed()$animals_dt)
              })
       brush <- input[[paste0(his_type, "_his_brush")]]
@@ -763,6 +767,20 @@ output:
                                                      animals_dt)
       }
       # LOG selection range, selected points count
+      format_f_value <- format_f(c(select_start, select_end))
+      format_raw <- function(value, unit_name) {
+        str_c(format(value, digits = 3), unit_name)
+      }
+      dt <- data.table(Unit = c("Formated", "SI"),
+        Start = c(format_f_value(select_start),
+                  format_raw(select_start, unit_name)),
+        End = c(format_f_value(select_end),
+                format_raw(select_end, unit_name)))
+      log_dt_md(dt,
+                "Range Selected:",
+                on = isolate(input$record_switch))
+      log_msg("Points in Selected Range:", nrow(animal_selected_data),
+                on = isolate(input$record_switch))
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
            animal_selected_formatted = animal_selected_formatted)
@@ -858,11 +876,16 @@ output:
     #   input$points_in_distance_range_rows_selected, row_name]
     points_to_remove <- select_distance_range()$animal_selected_data[
       input$points_in_distance_range_rows_selected]
+    points_to_remove_formated <-
+      select_distance_range()$animal_selected_formatted[
+        input$points_in_distance_range_rows_selected]
     freezeReactiveValue(input, "points_in_distance_range_rows_selected")
     selectRows(proxy_points_in_distance_range, list())
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
     # LOG points to remove
+    log_dt_md(points_to_remove_formated, "Points to be Removed by Distance:",
+      on = isolate(input$record_switch))
     remove_outliers(points_to_remove)
   })
   # p3.b.1 speed histogram ----
@@ -1012,6 +1035,9 @@ output:
     #   input$points_in_speed_range_rows_selected, row_name]
     points_to_remove <- select_speed_range()$animal_selected_data[
       input$points_in_speed_range_rows_selected]
+    points_to_remove_formated <-
+      select_speed_range()$animal_selected_formatted[
+        input$points_in_speed_range_rows_selected]
     # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
     # freeze it so all expression accessing it will be put on hold until update finish, because the reset here just send message to client, didn't update immediately
     freezeReactiveValue(input, "points_in_speed_range_rows_selected")
@@ -1019,6 +1045,8 @@ output:
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
     # LOG points to remove
+    log_dt_md(points_to_remove_formated, "Points to be Removed by Speed:",
+              on = isolate(input$record_switch))
     remove_outliers(points_to_remove)
   })
   # all removed outliers ----
@@ -1027,8 +1055,9 @@ output:
     req(values$data$all_removed_outliers)
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
-    datatable(format_outliers(values$data$all_removed_outliers,
-                              animals_dt),
+    dt <- format_outliers(values$data$all_removed_outliers, animals_dt)
+    log_dt_md(dt, "All Removed Outliers:", on = isolate(input$record_switch))
+    datatable(dt,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              searching = FALSE),
@@ -1613,6 +1642,10 @@ output:
       title(select_models()$dt[i, paste0(identity, " - ", model_name)])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
+    # LOG save pic
+    log_save_vario("home_range", select_models_layout()$row_count,
+                   input$vario_columns,
+                   on = isolate(input$record_switch))
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # export shapefiles ----
@@ -1639,7 +1672,7 @@ output:
       hrange_list <- selected_hrange_list()
       ud_levels <- get_hr_levels()
       # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
-      # log_msg("Building shapefiles")
+      # LOG build shapefiles
       build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels),
                           session$token)
       log_msg("Shapefiles built and downloaded")
@@ -1679,6 +1712,10 @@ output:
       })
       title(select_models()$dt[i, paste0(identity, " - ", model_name)])
     })
+    # LOG save pic
+    log_save_vario("occurrence", select_models_layout()$row_count,
+                   input$vario_columns,
+                   on = isolate(input$record_switch))
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
