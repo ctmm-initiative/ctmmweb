@@ -491,8 +491,7 @@ report_control_box <- box(title = "Report Options", status = "info",
            downloadButton("download_all",
                           "Download All",
                           icon = icon("save"),
-                          style = styles$page_action)),
-    column(12, htmlOutput("html_report"))
+                          style = styles$page_action))
   )
                           )
 # body ----
