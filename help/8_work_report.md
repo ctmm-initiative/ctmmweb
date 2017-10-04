@@ -1,0 +1,2 @@
+- This will record every meaningful actions by user into a html report. It can be turned off when not needed.
+- Report can be previewed anytime, or you can download report and other saved files as a zip.

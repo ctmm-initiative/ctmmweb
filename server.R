@@ -1754,11 +1754,15 @@ output:
   }, height = function() { select_models_layout()$height })
   # p8. map ----
   # p9. report ----
+  callModule(click_help, "report", title = "Work Report",
+             size = "l", file = "help/8_work_report.md")
   observeEvent(input$record_switch, {
     # this call doesn't use the switch to turn off itself
     log_msg(str_c("Recording is ", input$record_switch))
   })
   generate_report <- function(preview = FALSE) {
+    # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
+    log_msg("Work Report Generated")
     # write markdown file
     markdown_path <- file.path(LOG_folder, "report.rmd")
     writeLines(LOG_rmd_vec, con = markdown_path)
