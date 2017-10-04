@@ -1,2 +1,3 @@
 - This will record every meaningful actions by user into a html report. It can be turned off when not needed.
-- Report can be previewed anytime, or you can download report and other saved files as a zip.
+- Report can be previewed anytime (this will not work in shinyapps.io hosted version since the browser variable is not configured in server), or you can download report and other saved files as a zip.
+- Note the shinyapps.io server probably have a different timezone from your local time, so the timestamp inside report and the file names could have different time.
