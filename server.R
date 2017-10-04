@@ -1774,6 +1774,11 @@ output:
   }
   observeEvent(input$preview_report, {
     generate_report(preview = TRUE)
+    browser()
+    values$report_text <- readLines(file.path(LOG_folder, "report.html"))
+  })
+  output$html_report <- renderText({
+    req(values$report_text)
   })
   output$download_all <- downloadHandler(
     filename = function() {
