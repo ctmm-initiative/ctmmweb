@@ -1680,6 +1680,7 @@ output:
     log_save_vario("home_range", select_models_layout()$row_count,
                    input$vario_columns,
                    on = isolate(input$record_switch))
+    log_save_UD("home_range", on = isolate(input$record_switch))
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # export shapefiles ----
@@ -1750,6 +1751,7 @@ output:
     log_save_vario("occurrence", select_models_layout()$row_count,
                    input$vario_columns,
                    on = isolate(input$record_switch))
+    log_save_UD("occurrence", on = isolate(input$record_switch))
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
