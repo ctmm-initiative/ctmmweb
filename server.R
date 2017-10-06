@@ -1772,13 +1772,7 @@ output:
     html_path <- file.path(LOG_folder, "report.html")
     rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
     # non-encoded file path cannot have white space for browserURL
-    if (preview) {
-      res <- tryCatch(browseURL(html_path), error = function(e) "error")
-      if (identical(res, "error")) {
-        showNotification("Error on opening report. Check help for more details",
-                         duration = 5, type = "error")
-    }
-    }
+    if (preview) browseURL(html_path)
   }
   observeEvent(input$preview_report, {
     generate_report(preview = TRUE)
