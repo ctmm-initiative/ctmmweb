@@ -1755,6 +1755,17 @@ output:
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
+  output$map <- renderLeaflet({
+    # TODO LOG map
+    idpal <- colorFactor(hue_pal()(length(select_data()$info$identity)),
+                         select_data()$data$id)
+    provider_tiles <- list(topo = "OpenTopoMap", sat = "Esri.WorldImagery")
+    # slow but clear
+    leaflet(select_data()$data) %>%
+      addProviderTiles(provider_tiles$sat) %>%
+      addCircles(lng = ~longitude, lat = ~latitude, radius = 0.1,
+                 color = ~idpal(id), fillOpacity = 0.05)
+  })
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/8_work_report.md")

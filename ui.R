@@ -474,7 +474,8 @@ occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                                 width = "99%", height = "98%"))))
 # p8. map ----
 map_box <- box(title = "Map", status = "info",
-                           solidHeader = TRUE, width = 12)
+                           solidHeader = TRUE, width = 12,
+               column(12, leafletOutput("map")))
 # p9. work report ----
 report_control_box <- box(title = "Report Options", status = "info",
                           solidHeader = TRUE, width = 12,
