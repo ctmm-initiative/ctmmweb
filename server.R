@@ -16,8 +16,8 @@ server <- function(input, output, session) {
   LOG_rmd_vec <- vector(mode = "character")
   # log functions ----
   # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector. all appends to global variable happen here, easier to manage.
-  log_add_rmd <- function(vec, on = "On") {
-    if (on == "Off") return()
+  log_add_rmd <- function(vec, on = TRUE) {
+    if (!on) return()
     # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
     LOG_rmd_vec <<- c(LOG_rmd_vec, vec)
   }
@@ -43,8 +43,8 @@ server <- function(input, output, session) {
     }
     return(time_stamp)
   }
-  log_msg <- function(msg, detail = "", on = "On") {
-    if (on == "Off") return()
+  log_msg <- function(msg, detail = "", on = TRUE) {
+    if (!on) return()
     time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
     log_add_rmd(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
@@ -56,25 +56,25 @@ server <- function(input, output, session) {
     log_add_rmd(str_c("![](", pic_name, ")"))
     return(file.path(LOG_folder, pic_name))
   }
-  log_save_ggplot <- function(g, f_name, on = "On") {
-    if (on == "Off") return(g)
+  log_save_ggplot <- function(g, f_name, on = TRUE) {
+    if (!on) return(g)
     ggsave(filename = log_prepare_plot(f_name), plot = g)
     return(g)
   }
   # only used for variogram, with specific format and parameters, some came from input
-  log_save_vario <- function(f_name, rows, cols, on = "On") {
-    if (on == "Off") return()
+  log_save_vario <- function(f_name, rows, cols, on = TRUE) {
+    if (!on) return()
     dev.print(png, file = log_prepare_plot(f_name), units = "in", res = 220,
               width = cols * 4, height = rows * 3)
   }
   # pdf is better for home range, occurrence
-  log_save_UD <- function(f_name, on = "On") {
-    if (on == "Off") return()
+  log_save_UD <- function(f_name, on = TRUE) {
+    if (!on) return()
     dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
   }
   # save dt into markdown table or csv. note the msg could be in different format
-  log_dt_md <- function(dt, msg, on = "On") {
-    if (on == "Off") return()
+  log_dt_md <- function(dt, msg, on = TRUE) {
+    if (!on) return()
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
                                   str_c(capture.output(dt), collapse = "\n\t"))
@@ -82,8 +82,8 @@ server <- function(input, output, session) {
                   knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
-  log_dt_csv <- function(dt, msg, f_name, on = "On") {
-    if (on == "Off") return()
+  log_dt_csv <- function(dt, msg, f_name, on = TRUE) {
+    if (!on) return()
     csv_name <- str_c(f_name, "_", current_timestamp(), ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
@@ -117,8 +117,8 @@ output:
                      occurrence = "Occurrence",
                      map = "Map",
                      report = "Work Report")
-  log_page <- function(title, on = "On") {
-    if (on == "Off") return()
+  log_page <- function(title, on = TRUE) {
+    if (!on) return()
     log_msg_console(str_c("## ", title))
     log_add_rmd(str_c("\n## ", title, "\n"))
   }
@@ -126,7 +126,7 @@ output:
   observeEvent(input$tabs, {
     req(values$data)
     # since we req data, so it will not record pages without data. This is good.
-    log_page(page_title[[input$tabs]], on = input$record_switch)
+    log_page(page_title[[input$tabs]], on = input$record_on)
     if (input$tabs == "subset") {
       # must select single animal to proceed
       if (length(input$individuals_rows_selected) != 1) {
@@ -135,9 +135,13 @@ output:
     }
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
-  log_msg("App started", on = isolate(input$record_switch))
+  log_msg("App started", on = isolate(input$record_on))
   # first page need to be added manually since no page switching event fired
-  log_page(page_title$import, on = isolate(input$record_switch))
+  log_page(page_title$import, on = isolate(input$record_on))
+  observeEvent(input$record_on, {
+    # this call doesn't use the switch to turn off itself
+    log_msg(str_c("Recording is ", if (input$record_on) "On" else "Off"))
+  })
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -165,7 +169,7 @@ output:
     values$current_model_fit_res <- NULL
     updateTabItems(session, "tabs", "plots")
     # LOG input data updated
-    log_msg("Input data updated", on = isolate(input$record_switch))
+    log_msg("Input data updated", on = isolate(input$record_on))
   }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
@@ -198,7 +202,7 @@ output:
     req(input$file1)
     # LOG file upload.
     log_msg("Importing file", input$file1$name,
-            on = isolate(input$record_switch))
+            on = isolate(input$record_on))
     file_uploaded()
   })
   # observe radio button changes
@@ -208,7 +212,7 @@ output:
              data("buffalo")
              # LOG use buffalo
              log_msg("Using data", "buffalo from ctmm",
-                     on = isolate(input$record_switch))
+                     on = isolate(input$record_on))
              update_input_data(buffalo)
            },
            ctmm_sample = {
@@ -216,7 +220,7 @@ output:
              sample_data <- pick_m_tele_list(buffalo, input$sample_size)
              # LOG use sample
              log_msg("Using data", "buffalo sample from ctmm",
-                     on = isolate(input$record_switch))
+                     on = isolate(input$record_on))
              update_input_data(sample_data)
            },
            upload = {
@@ -304,7 +308,7 @@ output:
       values$study_detail <- NULL
       clear_mb_download()
       # LOG movebank login
-      log_msg("Movebank login failed", on = isolate(input$record_switch))
+      log_msg("Movebank login failed", on = isolate(input$record_on))
     } else {
       studies_cols <- c("id", "name", "study_objective",
                            "number_of_deployments", "number_of_events",
@@ -327,7 +331,7 @@ output:
       clear_mb_download()
       # LOG movebank login
       log_msg("Logged in Movebank as", input$user,
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     }
   })
   # 1.4 selected details ----
@@ -401,7 +405,7 @@ output:
       clear_mb_download(paste0(msg, collapse = "\n"))
       # LOG download movebank data failed
       log_msg("Movebank data download failed", mb_id(),
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
       note_parse <- showNotification(
@@ -418,9 +422,9 @@ output:
       values$move_bank_dt <- move_bank_dt
       # LOG download movebank data
       log_msg("Movebank data downloaded", mb_id(),
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
       log_dt_md(values$study_detail, "Downloaded study details",
-                on = isolate(input$record_switch))
+                on = isolate(input$record_on))
     }
   })
   callModule(click_help, "download", title = "Download Movebank data",
@@ -441,7 +445,7 @@ output:
       fwrite(values$move_bank_dt, file)
       # LOG save movebank data. we don't know what's the final file name. file is temp file path
       log_msg("Movebank data saved", mb_id(),
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     }
   )
   observeEvent(input$import, {
@@ -449,7 +453,7 @@ output:
     data_import(values$move_bank_dt)
     # LOG import movebank data
     log_msg("Movebank data imported", mb_id(),
-            on = isolate(input$record_switch))
+            on = isolate(input$record_on))
     updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
@@ -511,7 +515,7 @@ output:
       # LOG delete inidividuals
       log_msg("Individuals deleted from data ",
               str_c(chosen_ids, collapse = ", "),
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     }
   })
   proxy_individuals <- dataTableProxy("individuals")
@@ -548,7 +552,7 @@ output:
     log_dt_md(info[,
                    .(identity, start, end, interval, duration, points)],
               "Current selected individuals",
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data = animals_dt,
                 info = info,
@@ -593,7 +597,7 @@ output:
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
     # LOG save pic
-    log_save_ggplot(g, "plot_2_overview", on = isolate(input$record_switch))
+    log_save_ggplot(g, "plot_2_overview", on = isolate(input$record_on))
   }
   # , height = 400, width = "auto"
   # , height = styles$height_plot_loc, width = "auto"
@@ -614,7 +618,7 @@ output:
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
     # LOG save pic
-    log_save_ggplot(g, "plot_3_facet", on = isolate(input$record_switch))
+    log_save_ggplot(g, "plot_3_facet", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.4 individual plot ----
   output$location_plot_individual <- renderPlot({
@@ -643,7 +647,7 @@ output:
                    matrix(1:fig_count, nrow = fig_count / input$plot4_col,
                           ncol = input$plot4_col, byrow = TRUE))
     # LOG save pic
-    log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_switch))
+    log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
@@ -655,7 +659,7 @@ output:
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
     # LOG save pic
-    log_save_ggplot(g, "plot_5_histogram", on = isolate(input$record_switch))
+    log_save_ggplot(g, "plot_5_histogram", on = isolate(input$record_on))
   }, height = styles$height_hist, width = "auto")
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
@@ -708,7 +712,7 @@ output:
             legend.position = "none")
     # LOG save pic
     log_save_ggplot(g, "plot_distance_outlier_histogram",
-                    on = isolate(input$record_switch))
+                    on = isolate(input$record_on))
   })
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
@@ -778,9 +782,9 @@ output:
                 format_raw(select_end, unit_name)))
       log_dt_md(dt,
                 "Range Selected",
-                on = isolate(input$record_switch))
+                on = isolate(input$record_on))
       log_msg("Points in Selected Range", nrow(animal_selected_data),
-                on = isolate(input$record_switch))
+                on = isolate(input$record_on))
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
            animal_selected_formatted = animal_selected_formatted)
@@ -823,7 +827,7 @@ output:
             legend.direction = "horizontal") + bigger_key
     # LOG save pic
     log_save_ggplot(g, "plot_distance_outlier_plot",
-                    on = isolate(input$record_switch))
+                    on = isolate(input$record_on))
   })
   # points in selected distance range
   output$points_in_distance_range <- DT::renderDataTable({
@@ -885,7 +889,7 @@ output:
     session$resetBrush("distance_his_brush")
     # LOG points to remove
     log_dt_md(points_to_remove_formated, "Points to be Removed by Distance",
-      on = isolate(input$record_switch))
+      on = isolate(input$record_on))
     remove_outliers(points_to_remove)
   })
   # p3.b.1 speed histogram ----
@@ -924,7 +928,7 @@ output:
             legend.position = "none")
     # LOG save pic
     log_save_ggplot(g, "plot_speed_outlier_histogram",
-                    on = isolate(input$record_switch))
+                    on = isolate(input$record_on))
   })
   # outputOptions(output, "speed_histogram", priority = 10)
   select_speed_range <- select_range("speed")
@@ -999,7 +1003,7 @@ output:
     }
     # LOG save pic
     log_save_ggplot(g, "plot_speed_outlier_plot",
-                    on = isolate(input$record_switch))
+                    on = isolate(input$record_on))
   })
   # outputOptions(output, "speed_outlier_plot", priority = 1)
   # points without valid speed values
@@ -1046,7 +1050,7 @@ output:
     session$resetBrush("speed_his_brush")
     # LOG points to remove
     log_dt_md(points_to_remove_formated, "Points to be Removed by Speed",
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     remove_outliers(points_to_remove)
   })
   # all removed outliers ----
@@ -1056,7 +1060,7 @@ output:
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
     dt <- format_outliers(values$data$all_removed_outliers, animals_dt)
-    log_dt_md(dt, "All Removed Outliers", on = isolate(input$record_switch))
+    log_dt_md(dt, "All Removed Outliers", on = isolate(input$record_on))
     datatable(dt,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
@@ -1072,7 +1076,7 @@ output:
     values$data$merged <- merge_animals(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
     # LOG reset removal
-    log_msg("All Removed Outliers Restored", on = isolate(input$record_switch))
+    log_msg("All Removed Outliers Restored", on = isolate(input$record_on))
   })
   # p4. time subset ----
   callModule(click_help, "time_subsetting", title = "Subset data by time",
@@ -1123,7 +1127,7 @@ output:
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_histogram",
-                    on = isolate(input$record_switch))
+                    on = isolate(input$record_on))
   })
   # select time range ----
   # brush selection and matching color bins
@@ -1162,7 +1166,7 @@ output:
     dt <- format_time_range(as.data.frame(values$selected_time_range))
     # LOG selection
     log_dt_md(dt, "Current Selected Time Range",
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
       formatStyle(1, target = 'row', color = "#00c0ef")
@@ -1188,7 +1192,7 @@ output:
             legend.direction = "horizontal") + bigger_key
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_plot",
-                    on = isolate(input$record_switch))
+                    on = isolate(input$record_on))
   })
   # 4.4 time range table ----
   # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, in color_bin_animal. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
@@ -1197,7 +1201,7 @@ output:
     values$time_ranges <- rbindlist(l)
     # LOG add
     log_dt_md(format_time_range(as.data.frame(values$selected_time_range)),
-              "Time Range Added to List", on = isolate(input$record_switch))
+              "Time Range Added to List", on = isolate(input$record_on))
   })
   observeEvent(input$delete_time_sub_rows, {
     # with empty table the previous selected value is still there, need to check table too
@@ -1206,7 +1210,7 @@ output:
       # LOG delete
       log_dt_md(values$time_ranges[
           as.numeric(input$time_ranges_rows_selected)],
-        "Time Range Deleted", on = isolate(input$record_switch))
+        "Time Range Deleted", on = isolate(input$record_on))
       values$time_ranges <- values$time_ranges[
         -as.numeric(input$time_ranges_rows_selected)
       ]
@@ -1275,7 +1279,7 @@ output:
     verify_global_data()
     # LOG subset added
     log_msg("New Time Range Subset Added", new_id,
-            on = isolate(input$record_switch))
+            on = isolate(input$record_on))
     updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
@@ -1286,7 +1290,7 @@ output:
     req(nrow(values$time_ranges) > 0)
     dt <- format_time_range(values$time_ranges)
     # LOG time range list
-    log_dt_md(dt, "Time Range List", on = isolate(input$record_switch))
+    log_dt_md(dt, "Time Range List", on = isolate(input$record_on))
     datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
@@ -1382,7 +1386,7 @@ output:
     }
     # LOG save pic
     log_save_vario("vario", row_count, input$vario_columns,
-                   on = isolate(input$record_switch))
+                   on = isolate(input$record_on))
     par(def.par)
   }, height = function() {
       if (input$vario_mode != "modeled") {
@@ -1406,7 +1410,7 @@ output:
     if (input$fit_selected != "") {
       # LOG fine tune start
       log_msg("Fine-tune Parameters for", input$fit_selected,
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
                                            input$fit_selected),
                             fluidRow(column(4, uiOutput("fit_sliders")),
@@ -1495,7 +1499,7 @@ output:
   })
   observeEvent(input$tuned, {
     # LOG fine tune apply
-    log_msg("Apply Fine-tuned Parameters", on = isolate(input$record_switch))
+    log_msg("Apply Fine-tuned Parameters", on = isolate(input$record_on))
     removeModal()
     ids <- sapply(vg_list(), function(vario) vario@info$identity)
     values$guess_list[ids == input$fit_selected][[1]] <- slider_to_CTMM()
@@ -1513,7 +1517,7 @@ output:
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
     # LOG fit models
-    log_msg("Fitting models", on = isolate(input$record_switch))
+    log_msg("Fitting models", on = isolate(input$record_on))
     withProgress(print(system.time(
       values$current_model_fit_res <- para_ll(tele_guess_list, fit_models))),
       message = "Fitting models to find the best ...")
@@ -1551,7 +1555,7 @@ output:
     # delete extra col here so it will not be shown, but we can still use them in code because the reactive expression still have it.
     dt[, model_no := NULL]
     # LOG fitted models
-    log_dt_md(dt, "Fitted Models", on = isolate(input$record_switch))
+    log_dt_md(dt, "Fitted Models", on = isolate(input$record_on))
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
@@ -1598,7 +1602,7 @@ output:
     selected_vg_list <- vg_list()[selected_dt$identity]
     # LOG selected models
     log_dt_md(selected_dt, "Selected Models",
-              on = isolate(input$record_switch))
+              on = isolate(input$record_on))
     # must make sure all items in same order
     return(list(dt = selected_dt,
                 tele_list = selected_tele_list,
@@ -1679,8 +1683,8 @@ output:
     # LOG save pic
     log_save_vario("home_range", select_models_layout()$row_count,
                    input$vario_columns,
-                   on = isolate(input$record_switch))
-    log_save_UD("home_range", on = isolate(input$record_switch))
+                   on = isolate(input$record_on))
+    log_save_UD("home_range", on = isolate(input$record_on))
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # export shapefiles ----
@@ -1750,8 +1754,8 @@ output:
     # LOG save pic
     log_save_vario("occurrence", select_models_layout()$row_count,
                    input$vario_columns,
-                   on = isolate(input$record_switch))
-    log_save_UD("occurrence", on = isolate(input$record_switch))
+                   on = isolate(input$record_on))
+    log_save_UD("occurrence", on = isolate(input$record_on))
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
@@ -1769,10 +1773,6 @@ output:
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/8_work_report.md")
-  observeEvent(input$record_switch, {
-    # this call doesn't use the switch to turn off itself
-    log_msg(str_c("Recording is ", input$record_switch))
-  })
   generate_report <- function(preview = FALSE) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
     log_msg("Work Report Generated")

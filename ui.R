@@ -36,7 +36,8 @@ upload_box <- box(title = "Local Data Import",
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
           column(12, fileInput('file1', label = "")),
-          column(5, offset = 7, help_button("import"))
+      column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
+          column(5, offset = 0, help_button("import"))
            )
     )
 movebank_login_box <- box(title = "Movebank Login",
@@ -480,19 +481,20 @@ map_box <- box(title = "Map", status = "info",
 report_control_box <- box(title = "Report Options", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
-    column(8, radioButtons("record_switch", "Record actions and save plots",
-                           c("On", "Off"), inline = TRUE)),
+    # column(8, radioButtons("record_switch", "Record actions and save plots",
+    #                        c("On", "Off"), inline = TRUE)),
     # column(8, checkboxInput("record_on", "Record actions and save plots")),
-    column(2, offset = 2, help_button("report")),
-    column(12, br()),
-    column(3, actionButton("preview_report", "Preview Report",
+    # ,
+    # column(12, br()),
+    column(3, actionButton("generate_report", "Generate Report",
                            icon = icon("file-text-o"),
                            style = styles$page_action)),
-    column(3, offset = 6,
+    column(3, offset = 2,
            downloadButton("download_all",
                           "Download All",
                           icon = icon("save"),
-                          style = styles$page_action))
+                          style = styles$page_action)),
+    column(2, offset = 2, help_button("report"))
   )
                           )
 # body ----

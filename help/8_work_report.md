@@ -1,4 +1,3 @@
-- This will record every meaningful actions by user into a html report. It can be turned off when not needed.
-- Report can be previewed anytime, or you can download report and other saved files as a zip.
-  - If option `browser` is not configured correctly in your system, or the app is running in hosted mode from `shinyapps.io`, the preview feature will not work.
+- `Generate Report` will compile current recordings into a html report. Clicking on the link to view it.
+- You can download report and other saved files as a zip.
 - Note the shinyapps.io server probably have a different timezone from your local time, so the timestamp inside report and the file names could have different time.
