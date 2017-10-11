@@ -37,6 +37,7 @@ styles <- list(
   # using similar color with first box in each page.
   page_switch = "background-color: #7ad0f7;font-weight: 500;width:100%;",
   external_link = "background-color: #a7c1fc;font-weight: 500;width:100%;",
+  link_button = "color: #2196F3;",
   help_button = "background-color: #8bc34a;width:100%;"
   # info box blue #00c0ef
 )

@@ -1773,7 +1773,7 @@ output:
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/8_work_report.md")
-  generate_report <- function() {
+  generate_report <- function(preview) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
     log_msg("Work Report Generated")
     # write markdown file
@@ -1782,13 +1782,36 @@ output:
     # render markdown to html
     html_path <- file.path(LOG_folder, "report.html")
     rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
-    file.copy(html_path, "www/report.html", overwrite = TRUE)
+    # file.copy(html_path, "www/report.html", overwrite = TRUE)
     # non-encoded file path cannot have white space for browserURL
-    # if (preview) browseURL(html_path)
+    if (preview) browseURL(html_path)
+    values$html_path <- html_path
   }
-  observeEvent(input$update_report, {
-    generate_report()
+  observeEvent(input$generate_report, {
+    if (session$clientData$url_hostname != "127.0.0.1") {
+      generate_report(preview = TRUE)
+    } else {
+      generate_report(preview = FALSE)
+      # output$download_report_ui <- renderUI({
+      #   downloadButton("download_report",
+      #                  "Download Current Report",
+      #                  icon = icon("save"),
+      #                  style = styles$link_button)
+      # })
+    }
   })
+  output$download_report <- downloadHandler(
+    filename = function() {
+      paste0("Report_", current_timestamp(), ".html")
+    },
+    content = function(file) {
+      # req(values$html_path)
+      if (is.null(values$html_path)) {
+        showNotification("Report not generated yet", duration = 7, type = "error")
+      }
+      file.copy(values$html_path, file)
+    }
+  )
   output$download_all <- downloadHandler(
     filename = function() {
       paste0("Report_", current_timestamp(), ".zip")
@@ -1800,7 +1823,7 @@ output:
       previous_wd <- getwd()
       # so we can use relative path in zip
       setwd(dirname(LOG_folder))
-      generate_report()
+      generate_report(preview = FALSE)
       files_to_zip <- list.files(LOG_folder)  # file name only
       # construct the relative path inside zip
       relative_paths <- file.path(basename(LOG_folder), files_to_zip)

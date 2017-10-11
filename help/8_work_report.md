@@ -1,3 +1,5 @@
-- `Generate Report` will compile current recordings into a html report. Clicking on the link to view it.
-- You can download report and other saved files as a zip.
+- `Generate Report` will compile current recordings into a html report. 
+  - The html will be opened in a new browser window if the app is running locally and the browser is configured correctly in R setup.
+  - If the app is running in hosted server, you have to save the html file locally then open it.
+- You can download report and other saved files as a zip with `Download All` button.
 - Note the shinyapps.io server probably have a different timezone from your local time, so the timestamp inside report and the file names could have different time.
