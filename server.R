@@ -1788,7 +1788,7 @@ output:
     values$html_path <- html_path
   }
   observeEvent(input$generate_report, {
-    if (session$clientData$url_hostname != "127.0.0.1") {
+    if (session$clientData$url_hostname == "127.0.0.1") {
       generate_report(preview = TRUE)
     } else {
       generate_report(preview = FALSE)
@@ -1807,9 +1807,11 @@ output:
     content = function(file) {
       # req(values$html_path)
       if (is.null(values$html_path)) {
-        showNotification("Report not generated yet", duration = 7, type = "error")
+        showNotification("Report not generated yet", duration = 7,
+                         type = "error")
+      } else {
+        file.copy(values$html_path, file)
       }
-      file.copy(values$html_path, file)
     }
   )
   output$download_all <- downloadHandler(

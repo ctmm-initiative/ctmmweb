@@ -9,4 +9,4 @@
 - Starting from shiny 1.0.4, you can drag and drop file into the file uploader.
 
 ### Record Actions
-- Every meaningful actions by user can be recorded and compiled into a html report. All plots and most tables are also saved. The option can be turned off to improve performance.
+- Every meaningful actions by user can be recorded and compiled into a html work report in `Work Report` page. All plots and most tables are also saved. The option can be turned off to improve performance.

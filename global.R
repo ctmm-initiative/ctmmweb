@@ -18,7 +18,7 @@ options(shiny.maxRequestSize = 200*1024^2)
 # box height will expand by content, just set plotOutput width and height to percentages (99% width, need to keep it inside the box), then also need to set fixed value in renderPlot (otherwise it didn't show). We set height on histogram to make it shorter, setting box height is easier (no need to set in server part).
 styles <- list(
   # height_data_import_box = "244px",
-  height_movebank_login_box = "285px",
+  # height_movebank_login_box = "390px",
   # height_location_box = "900px",
   # height_plot_loc = 730,
   # height_plot_3 = 640,
@@ -37,7 +37,7 @@ styles <- list(
   # using similar color with first box in each page.
   page_switch = "background-color: #7ad0f7;font-weight: 500;width:100%;",
   external_link = "background-color: #a7c1fc;font-weight: 500;width:100%;",
-  link_button = "color: #2196F3;",
+  download_button = "color: #2196F3;width:100%;",
   help_button = "background-color: #8bc34a;width:100%;"
   # info box blue #00c0ef
 )

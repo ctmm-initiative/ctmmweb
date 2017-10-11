@@ -81,7 +81,7 @@ movebank_study_preview_box <- box(title = "Selected Study Data", width = 12,
                                   collapsible = TRUE,
       fluidRow(column(3, downloadButton("save", "Save",
                                         icon = icon("floppy-o"),
-                                        style = styles$page_action)),
+                                        style = styles$download_button)),
                column(3, offset = 6,
                       actionButton("import", "Import",
                                    icon = icon("arrow-right"),
@@ -449,7 +449,7 @@ range_plot_box <- box(title = "Home Range Estimation", status = "info",
             downloadButton("export_hrange",
                            "Export Shapefiles",
                            icon = icon("save"),
-                           style = styles$page_action)),
+                           style = styles$download_button)),
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))
@@ -492,15 +492,15 @@ report_control_box <- box(title = "Report Options", status = "info",
     column(3, offset = 6,
            downloadButton("download_all",
                           "Download All",
-                          style = styles$page_action)),
+                          style = styles$download_button)),
     column(12, br()),
-    column(4, offset = 0,
+    column(3, offset = 0,
            # uiOutput("download_report_ui")
            downloadButton("download_report",
                           "Download Report",
-                          style = styles$link_button)
+                          style = styles$download_button)
     ),
-    column(3, offset = 5, help_button("report"))
+    column(3, offset = 6, help_button("report"))
     # column(12, br()),
     # column(5, offset = 0, tags$a(href = 'report.html', target = 'blank',
     #                  h4('Current Report'))),
