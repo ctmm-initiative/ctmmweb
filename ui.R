@@ -486,15 +486,19 @@ report_control_box <- box(title = "Report Options", status = "info",
     # column(8, checkboxInput("record_on", "Record actions and save plots")),
     # ,
     # column(12, br()),
-    column(3, actionButton("generate_report", "Generate Report",
+    column(3, actionButton("update_report", "Update Report",
                            icon = icon("file-text-o"),
                            style = styles$page_action)),
-    column(3, offset = 2,
+    column(3, offset = 6,
            downloadButton("download_all",
                           "Download All",
                           icon = icon("save"),
                           style = styles$page_action)),
-    column(2, offset = 2, help_button("report"))
+    column(12, br()),
+    column(5, offset = 0, tags$a(href = 'report.html', target = 'blank',
+                     h4('Current Report'))),
+
+    column(3, offset = 4, help_button("report"))
   )
                           )
 # body ----
