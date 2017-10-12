@@ -151,7 +151,7 @@ output:
       match_tele_merged(values$data$tele_list, values$data$merged)
     }
   })
-  # values$ <----
+  # values$ ----
   values$data <- NULL  # 4 items need to be synced
   # important reactive value and expressions need special comments, use <--. the design need to well thought
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. Once it's used, no need to keep the copy. thus add it with the new time subset. We don't need to keep the dt version because we can often just use existing dt and other info. do need to verify tele and dt is synced.
