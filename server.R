@@ -1805,7 +1805,6 @@ output:
       paste0("Report_", current_timestamp(), ".html")
     },
     content = function(file) {
-      # req(values$html_path)
       if (is.null(values$html_path)) {
         showNotification("Report not generated yet", duration = 7,
                          type = "error")
