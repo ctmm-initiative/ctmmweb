@@ -584,6 +584,30 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 #     )
 #   return(list(levels = color_levels, values = color_values))
 # }
+# folder and timestamp ----
+# used in build_zip, creating temp folder for log
+current_timestamp <- function() {
+  # format(Sys.time(), "%Y-%m-%d_%H-%M-%S_UTC",
+  #        tz = "UTC")
+  format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+}
+create_folder <- function(folder_path) {
+  dir.create(folder_path, recursive = TRUE)
+  return(folder_path)
+}
+create_zip <- function(folder_path, zip_name) {
+  previous_wd <- getwd()
+  # one level up folder, so we can use relative path in zip
+  setwd(dirname(folder_path))
+  file_names <- list.files(folder_path)  # file name only
+  # construct the relative path inside zip
+  relative_paths <- file.path(basename(folder_path), file_names)
+  zip_path <- file.path(dirname(folder_path), zip_name)
+  zip::zip(zip_path, relative_paths,
+           compression_level = 5)
+  setwd(previous_wd)
+  return(zip_path)
+}
 # home range ----
 parse_CI_levels <- function(levels_text) {
   if (str_trim(levels_text) == "") {
@@ -593,36 +617,30 @@ parse_CI_levels <- function(levels_text) {
     as.numeric(items[items != ""]) / 100
   }
 }
-# used in build_zip, creating temp folder for log
-current_timestamp <- function() {
-  # format(Sys.time(), "%Y-%m-%d_%H-%M-%S_UTC",
-  #        tz = "UTC")
-  format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-}
+
 # file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
 build_shapefile_zip <- function(file, write_f, token) {
   # timestamp as folder name, also part of zip name. this+file_name as relative path of files in creating zip
   # differentiate between shapefile and report folder
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
-  temp_folder <- tempdir() # produced extra // in Mac
-  current_time <- current_timestamp()
-  folder_name <- str_c("Range_", current_time)
-  # each session have a folder named by token. various folders are created under it.
-  folder_path <- file.path(temp_folder, token, folder_name)
-  dir.create(folder_path, recursive = TRUE)
-  zip_name <- paste0("Home Range ", current_time, ".zip")
+  # temp_folder <- tempdir() # produced extra // in Mac
+  current_time <- current_timestamp()  # need this in zip name so save it
+  folder_path <- file.path(tempdir(), token, str_c("Range_", current_time))
+  create_folder(folder_path)
   write_f(folder_path)
-  previous_wd <- getwd()
-  # one level up from Range folder, which is the session folder. so we can use relative path for files in zip.
-  setwd(dirname(folder_path))
-  # we want the relative path otherwise file path inside zip will be too deep. so this only list file names.
-  files_to_zip <- list.files(folder_path)
-  relative_paths <- file.path(folder_name, files_to_zip)
-  # save zip one level up, otherwise it get mixed with target files, which can create infinite loop sometimes
-  zip_path <- file.path(dirname(folder_path), zip_name)
-  zip::zip(zip_path, relative_paths,
-           compression_level = 5)
-  setwd(previous_wd)
+  zip_path <- create_zip(folder_path,
+                         paste0("Home Range ", current_time, ".zip"))
+  # previous_wd <- getwd()
+  # # one level up from Range folder, which is the session folder. so we can use relative path for files in zip.
+  # setwd(dirname(folder_path))
+  # # we want the relative path otherwise file path inside zip will be too deep. so this only list file names.
+  # files_to_zip <- list.files(folder_path)
+  # relative_paths <- file.path(folder_name, files_to_zip)
+  # # save zip one level up, otherwise it get mixed with target files, which can create infinite loop sometimes
+  # zip_path <- file.path(dirname(folder_path), zip_name)
+  # zip::zip(zip_path, relative_paths,
+  #          compression_level = 5)
+  # setwd(previous_wd)
   file.copy(zip_path, file)
 }
 

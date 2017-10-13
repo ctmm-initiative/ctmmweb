@@ -1819,20 +1819,8 @@ output:
       paste0("Report_", current_timestamp(), ".zip")
     },
     content = function(file) {
-      # this name doesn't matter, since it will be copied
-      zip_name <- "report.zip"
-      # write zip
-      previous_wd <- getwd()
-      # so we can use relative path in zip
-      setwd(dirname(LOG_folder))
       generate_report(preview = FALSE)
-      files_to_zip <- list.files(LOG_folder)  # file name only
-      # construct the relative path inside zip
-      relative_paths <- file.path(basename(LOG_folder), files_to_zip)
-      zip_path <- file.path(dirname(LOG_folder), zip_name)
-      zip::zip(zip_path, relative_paths,
-               compression_level = 5)
-      setwd(previous_wd)
+      zip_path <- create_zip(LOG_folder, "report.zip")
       file.copy(zip_path, file)
     }
   )
