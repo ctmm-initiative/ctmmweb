@@ -478,14 +478,22 @@ map_box <- box(title = "Map", status = "info",
                            solidHeader = TRUE, width = 12,
                column(12, leafletOutput("map")))
 # p9. work report ----
+session_box <- box(title = "Session", status = "primary",
+                   solidHeader = TRUE, width = 12,
+                   fluidRow(
+                     column(3,
+                            downloadButton("save_session",
+                                           "Save Session",
+                                           style = styles$download_button)),
+                     column(3,  offset = 1,
+                            actionButton("load_session", "Load Session",
+                                            icon = icon("folder-open-o"),
+                                            style = styles$page_action)),
+                     column(3, offset = 2, help_button("session"))
+                     ))
 report_control_box <- box(title = "Report Options", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
-    # column(8, radioButtons("record_switch", "Record actions and save plots",
-    #                        c("On", "Off"), inline = TRUE)),
-    # column(8, checkboxInput("record_on", "Record actions and save plots")),
-    # ,
-    # column(12, br()),
     column(3, actionButton("generate_report", "Generate Report",
                            icon = icon("file-text-o"),
                            style = styles$page_action)),
@@ -495,11 +503,9 @@ report_control_box <- box(title = "Report Options", status = "info",
                           style = styles$download_button)),
     column(12, br()),
     column(3, offset = 0,
-           # uiOutput("download_report_ui")
            downloadButton("download_report",
                           "Download Report",
-                          style = styles$download_button)
-    ),
+                          style = styles$download_button)),
     column(3, offset = 6, help_button("report"))
     # column(12, br()),
     # column(5, offset = 0, tags$a(href = 'report.html', target = 'blank',
@@ -548,7 +554,7 @@ body <- dashboardBody(
     tabItem(tabName = "map",
             fluidRow(map_box)),
     # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
-    tabItem(tabName = "report", fluidRow(report_control_box))
+    tabItem(tabName = "report", fluidRow(session_box, report_control_box))
   )
 )
 # assemble UI

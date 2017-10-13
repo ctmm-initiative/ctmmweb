@@ -582,7 +582,7 @@ create_folder <- function(folder_path) {
   dir.create(folder_path, recursive = TRUE)
   return(folder_path)
 }
-create_zip <- function(folder_path, zip_name) {
+compress_folder <- function(folder_path, zip_name) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip
   setwd(dirname(folder_path))
@@ -611,7 +611,7 @@ build_shapefile_zip <- function(file, write_f, token) {
   folder_path <- file.path(tempdir(), token, str_c("Range_", current_time))
   create_folder(folder_path)
   write_f(folder_path)
-  zip_path <- create_zip(folder_path,
+  zip_path <- compress_folder(folder_path,
                          paste0("Home Range ", current_time, ".zip"))
   file.copy(zip_path, file)
 }

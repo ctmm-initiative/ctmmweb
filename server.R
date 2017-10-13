@@ -24,10 +24,8 @@ server <- function(input, output, session) {
   # always do even switch is off. each session need to have individual folder.
   # use token as folder name, still create the timestamp folder as subfolder, so that the zip will have the timestamped folder
   create_temp <- function(token) {
-    folder_path <- file.path(tempdir(), token,
-                             str_c("Report_", current_timestamp()))
-    dir.create(folder_path, recursive = TRUE)
-    return(folder_path)
+    create_folder(file.path(tempdir(), token,
+                            str_c("Report_", current_timestamp())))
   }
   # rely on several global variables. do side effect of console msg, and write string to global vector.
   # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown.
@@ -1819,7 +1817,7 @@ output:
     },
     content = function(file) {
       generate_report(preview = FALSE)
-      zip_path <- create_zip(LOG_folder, "report.zip")
+      zip_path <- compress_folder(LOG_folder, "report.zip")
       file.copy(zip_path, file)
     }
   )
