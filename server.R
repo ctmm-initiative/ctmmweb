@@ -140,6 +140,13 @@ output:
     # this call doesn't use the switch to turn off itself
     log_msg(str_c("Recording is ", if (input$record_on) "On" else "Off"))
   })
+  # cache setup ----
+  create_cache <- function(token) {
+    create_folder(file.path(tempdir(), token, "cache"))
+  }
+  cache_path <- create_cache(session$token)
+  para_ll_mem <- memoise(para_ll, cache = cache_filesystem(cache_path))
+  akde_mem <- memoise(akde, cache = cache_filesystem(cache_path))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -1509,11 +1516,23 @@ output:
   # $current_model_fit_res ----
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the model fit(model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
+  # observeEvent(input$test_digest, {
+  #   # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
+  #   print(fit_models)
+  #   cat("fit_models: ", digest::digest(fit_models), "\n")
+  # })
   values$current_model_fit_res <- NULL  # need to clear this at input change too
   # fit models ----
+  test_fun <- function() {
+    cat("a test function")
+  }
   observeEvent(input$fit_models, {
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
+    # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
+    print(fit_models)
+    cat("fit_models: ", digest::digest(fit_models), "\n")
+    cat("test fun:", digest::digest(test_fun), "\n")
     # LOG fit models
     log_msg("Fitting models", on = isolate(input$record_on))
     withProgress(print(system.time(
@@ -1622,7 +1641,7 @@ output:
              size = "l", file = "help/6_home_range.md")
   # selected_hrange_list ----
   selected_hrange_list <- reactive({
-    withProgress(res <- akde(select_models()$tele_list,
+    withProgress(res <- akde_mem(select_models()$tele_list,
                              CTMM = select_models()$models),
                  message = "Calculating home range ...")
     return(res)
@@ -1726,7 +1745,7 @@ output:
       occurrence(ud_para_list$a, ud_para_list$b)
     }
     withProgress(print(system.time(selected_occurrences <-
-                                     para_ll(ud_para_list, ud_calc))),
+                                     para_ll_mem(ud_para_list, ud_calc))),
                  message = "Calculating Occurrence ...")
     selected_occurrences
   })

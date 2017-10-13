@@ -6,7 +6,7 @@ if (!require("pacman")) install.packages("pacman")
 # packrat doesn't recognize p_load_gh so need to put ctmm in p_load again. because deployment try to reproduce current environment, it will install ctmm github version even I only used p_load here since I have github version installed. and the run script will install github version first so it also work.
 pacman::p_load(shiny, shinydashboard, DT,
                markdown, crayon, rmarkdown, knitr,
-               ctmm, data.table, parallel,
+               ctmm, data.table, parallel, memoise,
                ggplot2, scales, grid, gridExtra, lubridate, leaflet, mapview,
                httr, stringr, XML, xml2, zip)
 # increase the uploading file size limit to 200M

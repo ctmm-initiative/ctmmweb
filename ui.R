@@ -410,6 +410,7 @@ variograms_box <- box(title = "Variograms", status = "primary",
       column(3, br(), actionButton("fit_models", "Fit Models",
                              icon = icon("hourglass-start"),
                              style = styles$page_action)),
+      # column(3, actionButton("test_digest", "test")),
       column(2, offset = 0, br(), help_button("variogram")),
       column(12, plotOutput("vario_plot_zoom",
                          # less than 100%, otherwise out of boundary because we updated figure size by parameter
