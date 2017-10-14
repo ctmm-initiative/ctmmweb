@@ -425,11 +425,6 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
-# cannot use select_models since that was a reactive expression to select model results
-fit_models <- function(tele_guess) {
-  ctmm.select(tele_guess$a, CTMM = tele_guess$b,
-              trace = TRUE, verbose = TRUE)
-}
 # cannot transfer cluster size as parameter, because of environment?
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()
@@ -449,7 +444,22 @@ para_ll <- function(ll, fun) {
   }
   return(res)
 }
-# memo_para_ll <- memoise(para_ll)
+# cannot use select_models since that was a reactive expression to select model results
+fit_models <- function(tele_guess) {
+  ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+              trace = TRUE, verbose = TRUE)
+}
+# wrapper to avoid function object as parameter
+para_ll_fit <- function(tele_list) {
+  para_ll(tele_list, fit_models)
+}
+# occurrence
+ud_calc <- function(ud_para_list) {
+  occurrence(ud_para_list$a, ud_para_list$b)
+}
+para_ll_ud <- function(ud_para_list) {
+  para_ll(ud_para_list, ud_calc)
+}
 # sample buffalo data ----
 pick_m_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]

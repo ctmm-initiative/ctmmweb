@@ -145,8 +145,9 @@ output:
     create_folder(file.path(tempdir(), token, "cache"))
   }
   cache_path <- create_cache(session$token)
-  para_ll_mem <- memoise(para_ll, cache = cache_filesystem(cache_path))
+  para_ll_fit_mem <- memoise(para_ll_fit, cache = cache_filesystem(cache_path))
   akde_mem <- memoise(akde, cache = cache_filesystem(cache_path))
+  para_ll_ud_mem <- memoise(para_ll_ud, cache = cache_filesystem(cache_path))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -553,6 +554,9 @@ output:
     animals_dt <- values$data$merged$data[identity %in% chosen_ids]
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
     info <- values$data$merged$info[subset_indice]
+    # need to clear model fit result, change to original mode instead of modeled mode
+    values$current_model_fit_res <- NULL
+    updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
     log_dt_md(info[,
                    .(identity, start, end, interval, duration, points)],
@@ -1308,6 +1312,7 @@ output:
   values$guess_list <- NULL
   # vg_list() ----
   vg_list <- reactive({
+    cat("vg_list updating\n")
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$guess_list <- lapply(tele_list,
@@ -1523,20 +1528,18 @@ output:
   # })
   values$current_model_fit_res <- NULL  # need to clear this at input change too
   # fit models ----
-  test_fun <- function() {
-    cat("a test function")
-  }
   observeEvent(input$fit_models, {
+    # guess_list is updated inside vg_list, but vg_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
     # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
-    print(fit_models)
-    cat("fit_models: ", digest::digest(fit_models), "\n")
-    cat("test fun:", digest::digest(test_fun), "\n")
+    # print(fit_models)
+    # cat("fit_models: ", digest::digest(fit_models), "\n")
+    # cat("test fun:", digest::digest(test_fun), "\n")
     # LOG fit models
     log_msg("Fitting models", on = isolate(input$record_on))
     withProgress(print(system.time(
-      values$current_model_fit_res <- para_ll(tele_guess_list, fit_models))),
+      values$current_model_fit_res <- para_ll_fit_mem(tele_guess_list))),
       message = "Fitting models to find the best ...")
     names(values$current_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
@@ -1741,11 +1744,11 @@ output:
   select_occurrences <- reactive({
     selected_tele_list <- select_models()$tele_list
     ud_para_list <- align_list(selected_tele_list, select_models()$models)
-    ud_calc <- function(ud_para_list) {
-      occurrence(ud_para_list$a, ud_para_list$b)
-    }
-    withProgress(print(system.time(selected_occurrences <-
-                                     para_ll_mem(ud_para_list, ud_calc))),
+    # ud_calc <- function(ud_para_list) {
+    #   occurrence(ud_para_list$a, ud_para_list$b)
+    # }
+    withProgress(print(system.time(
+      selected_occurrences <- para_ll_ud_mem(ud_para_list))),
                  message = "Calculating Occurrence ...")
     selected_occurrences
   })
