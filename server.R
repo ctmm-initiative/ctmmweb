@@ -1312,7 +1312,6 @@ output:
   values$guess_list <- NULL
   # vg_list() ----
   vg_list <- reactive({
-    cat("vg_list updating\n")
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$guess_list <- lapply(tele_list,
@@ -1529,6 +1528,8 @@ output:
   values$current_model_fit_res <- NULL  # need to clear this at input change too
   # fit models ----
   observeEvent(input$fit_models, {
+    # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
+    freezeReactiveValue(input, "model_fit_summary_rows_selected")
     # guess_list is updated inside vg_list, but vg_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$guess_list)
@@ -1609,7 +1610,9 @@ output:
   # select_models() ----
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this.
   select_models <- reactive({
+    # req(!is.null(values$current_model_fit_res))
     req(length(input$model_fit_summary_rows_selected) > 0)
+    # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
     selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
                                            .(identity, model_name)])
