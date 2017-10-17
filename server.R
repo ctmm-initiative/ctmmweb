@@ -1310,9 +1310,9 @@ output:
              size = "l", file = "help/5_b_irregular_data.md")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
-  # selected_data_vg_list() ----
-  # selected_data_vg_list is variogram for current data.
-  selected_data_vg_list <- reactive({
+  # select_data_vg_list() ----
+  # select_data_vg_list is variogram for current data.
+  select_data_vg_list <- reactive({
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
@@ -1321,10 +1321,10 @@ output:
     names(res) <- names(tele_list)
     return(res)
   })
-  # vg_layout() ----
+  # select_data_vg_layout() ----
   # modeled mode and home range etc share same layout, which could coexist with variograms. so we cannot use one layout for all of them.
-  vg_layout <- reactive({
-    fig_count <- length(selected_data_vg_list())
+  select_data_vg_layout <- reactive({
+    fig_count <- length(select_data_vg_list())
     row_count <- ceiling(fig_count / input$vario_columns)
     height <- input$vario_height * row_count
     # return(list(layout_matrix = layout_matrix, height = height))
@@ -1340,10 +1340,10 @@ output:
   })
   # plot variograms ----
   output$vario_plot_zoom <- renderPlot({
-    # in modeled mode, draw selected subset of selected_data_vg_list and selected models, using select_models_layout
+    # in modeled mode, draw selected subset of select_data_vg_list and selected models, using select_models_layout
     if (input$vario_mode != "modeled") {
-      vg_lst <- selected_data_vg_list()
-      row_count <- vg_layout()$row_count
+      vg_lst <- select_data_vg_list()
+      row_count <- select_data_vg_layout()$row_count
       title_vec <- names(select_data()$tele_list)
     } else {
       vg_lst <- select_models()$vg_list
@@ -1400,7 +1400,7 @@ output:
     par(def.par)
   }, height = function() {
       if (input$vario_mode != "modeled") {
-        vg_layout()$height
+        select_data_vg_layout()$height
       } else {
         select_models_layout()$height
       }
@@ -1441,9 +1441,9 @@ output:
   })
   # init values of sliders ----
   init_slider_values <- reactive({
-    req(selected_data_vg_list())
-    ids <- names(selected_data_vg_list())
-    vario <- selected_data_vg_list()[ids == input$fit_selected][[1]]
+    req(select_data_vg_list())
+    ids <- names(select_data_vg_list())
+    vario <- select_data_vg_list()[ids == input$fit_selected][[1]]
     CTMM <- values$selected_data_guess_list[ids == input$fit_selected][[1]]
     fraction <- 10 ^ input$zoom_lag_fraction
     STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = CTMM,
@@ -1511,14 +1511,14 @@ output:
     # LOG fine tune apply
     log_msg("Apply Fine-tuned Parameters", on = isolate(input$record_on))
     removeModal()
-    ids <- sapply(selected_data_vg_list(), function(vario) vario@info$identity)
+    ids <- sapply(select_data_vg_list(), function(vario) vario@info$identity)
     values$selected_data_guess_list[ids == input$fit_selected][[1]] <- slider_to_CTMM()
   })
   # fine tune fit end ----
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
-  # $current_model_fit_res ----
+  # $selected_model_fit_res ----
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the model fit(model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   # observeEvent(input$test_digest, {
@@ -1531,7 +1531,7 @@ output:
   observeEvent(input$fit_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
     freezeReactiveValue(input, "model_fit_summary_rows_selected")
-    # guess_list is updated inside selected_data_vg_list, but selected_data_vg_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
+    # guess_list is updated inside select_data_vg_list, but select_data_vg_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
     tele_guess_list <- align_list(select_data()$tele_list,
                                   values$selected_data_guess_list)
     # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
@@ -1623,7 +1623,7 @@ output:
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_dt$identity]
     selected_models <- selected_models_dt$model
-    selected_vg_list <- selected_data_vg_list()[selected_dt$identity]
+    selected_vg_list <- select_data_vg_list()[selected_dt$identity]
     # LOG selected models
     log_dt_md(selected_dt, "Selected Models",
               on = isolate(input$record_on))
@@ -1636,6 +1636,7 @@ output:
                 vg_list = selected_vg_list
                 ))
   })
+  # select_models_layout() ----
   select_models_layout <- reactive({
     fig_count <- length(select_models()$models)
     row_count <- ceiling(fig_count / input$vario_columns)
@@ -1646,8 +1647,8 @@ output:
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
-  # selected_hrange_list ----
-  selected_hrange_list <- reactive({
+  # select_models_hranges ----
+  select_models_hranges <- reactive({
     withProgress(res <- akde_mem(select_models()$tele_list,
                              CTMM = select_models()$models),
                  message = "Calculating home range ...")
@@ -1656,7 +1657,7 @@ output:
   # home range summary ----
   output$range_summary <- DT::renderDataTable({
     hrange_summary_dt <- model_list_dt_to_model_summary_dt(
-      build_hrange_list_dt(select_models()$dt, selected_hrange_list()))
+      build_hrange_list_dt(select_models()$dt, select_models_hranges()))
     dt <- format_hrange_summary_dt(hrange_summary_dt)
     dt[, model_no := NULL]
     # LOG home range summary
@@ -1699,7 +1700,7 @@ output:
     par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(selected_tele_list), function(i) {
-      plot(selected_tele_list[[i]], UD = selected_hrange_list()[[i]],
+      plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
            level.UD = get_hr_levels())
       title(select_models()$dt[i, paste0(identity, " - ", model_name)])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
@@ -1732,7 +1733,7 @@ output:
         }
         return(write_f)
       }
-      hrange_list <- selected_hrange_list()
+      hrange_list <- select_models_hranges()
       ud_levels <- get_hr_levels()
       # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
       # LOG build shapefiles
@@ -1744,17 +1745,17 @@ output:
   # p7. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/7_occurrence.md")
-  # selected_occurrence() ----
-  select_occurrences <- reactive({
+  # select_models_occurrences() ----
+  select_models_occurrences <- reactive({
     selected_tele_list <- select_models()$tele_list
     ud_para_list <- align_list(selected_tele_list, select_models()$models)
     # ud_calc <- function(ud_para_list) {
     #   occurrence(ud_para_list$a, ud_para_list$b)
     # }
     withProgress(print(system.time(
-      selected_occurrences <- para_ll_ud_mem(ud_para_list))),
+      res <- para_ll_ud_mem(ud_para_list))),
                  message = "Calculating Occurrence ...")
-    selected_occurrences
+    res
   })
   # function on input didn't update, need a reactive expression?
   get_oc_levels <- reactive({
@@ -1765,10 +1766,10 @@ output:
     def.par <- par(no.readonly = TRUE)
     par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    lapply(seq_along(select_occurrences()), function(i) {
+    lapply(seq_along(select_models_occurrences()), function(i) {
       tryCatch({
-        # plot(select_occurrences()[[i]], level.UD = input$ud_level)
-        plot(select_occurrences()[[i]], level.UD = get_oc_levels())
+        # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
+        plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
       }, error = function(e) {
         warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
