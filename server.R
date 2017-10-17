@@ -172,7 +172,7 @@ output:
     values$data$tele_list <- tele_list
     values$data$merged <- merge_animals(tele_list)
     values$data$all_removed_outliers <- NULL
-    values$selected_model_fit_res <- NULL
+    values$selected_data_model_fit_res <- NULL
     updateTabItems(session, "tabs", "plots")
     # LOG input data updated
     log_msg("Input data updated", on = isolate(input$record_on))
@@ -555,7 +555,7 @@ output:
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
     info <- values$data$merged$info[subset_indice]
     # need to clear model fit result, change to original mode instead of modeled mode
-    values$selected_model_fit_res <- NULL
+    values$selected_data_model_fit_res <- NULL
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
     log_dt_md(info[,
@@ -1526,7 +1526,7 @@ output:
   #   print(fit_models)
   #   cat("fit_models: ", digest::digest(fit_models), "\n")
   # })
-  values$selected_model_fit_res <- NULL  # need to clear this at input change too
+  values$selected_data_model_fit_res <- NULL  # need to clear this at input change too
   # fit models ----
   observeEvent(input$fit_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
@@ -1541,9 +1541,9 @@ output:
     # LOG fit models
     log_msg("Fitting models", on = isolate(input$record_on))
     withProgress(print(system.time(
-      values$selected_model_fit_res <- para_ll_fit_mem(tele_guess_list))),
+      values$selected_data_model_fit_res <- para_ll_fit_mem(tele_guess_list))),
       message = "Fitting models to find the best ...")
-    names(values$selected_model_fit_res) <- names(select_data()$tele_list)
+    names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
     selectRows(proxy_model_dt, summary_models()$first_models)
@@ -1552,7 +1552,7 @@ output:
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- model_fit_res_to_model_list_dt(req(values$selected_model_fit_res))
+    models_dt <- model_fit_res_to_model_list_dt(req(values$selected_data_model_fit_res))
     # the model summary table
     model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     formated_summary_dt <- format_model_summary_dt(model_summary_dt)
@@ -1611,7 +1611,7 @@ output:
   # select_models() ----
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this.
   select_models <- reactive({
-    # req(!is.null(values$selected_model_fit_res))
+    # req(!is.null(values$selected_data_model_fit_res))
     req(length(input$model_fit_summary_rows_selected) > 0)
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
@@ -1637,6 +1637,7 @@ output:
                 ))
   })
   # select_models_layout() ----
+  # even the control parameter is same with variogram, the total number could be different
   select_models_layout <- reactive({
     fig_count <- length(select_models()$models)
     row_count <- ceiling(fig_count / input$vario_columns)
