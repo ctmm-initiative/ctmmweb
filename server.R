@@ -14,6 +14,8 @@ server <- function(input, output, session) {
                              detail = crayon::blue)
   # global variable that hold the markdown strings.
   LOG_rmd_vec <- vector(mode = "character")
+  # session temp folder
+  session_tmpdir <- file.path(tempdir(), session$token)
   # log functions ----
   # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector. all appends to global variable happen here, easier to manage.
   log_add_rmd <- function(vec, on = TRUE) {
@@ -23,8 +25,8 @@ server <- function(input, output, session) {
   }
   # always do even switch is off. each session need to have individual folder.
   # use token as folder name, still create the timestamp folder as subfolder, so that the zip will have the timestamped folder
-  create_temp <- function(token) {
-    create_folder(file.path(tempdir(), token,
+  create_log_folder <- function() {
+    create_folder(file.path(session_tmpdir,
                             str_c("Report_", current_timestamp())))
   }
   # rely on several global variables. do side effect of console msg, and write string to global vector.
@@ -89,7 +91,7 @@ server <- function(input, output, session) {
   }
   # copy end ----
   # LOG app start
-  LOG_folder <- create_temp(session$token)
+  LOG_folder <- create_log_folder()
   # initialize RMarkdown ----
   # note rstudio will format after paste, need to keep indent right.
   rmd_header <-
@@ -141,14 +143,14 @@ output:
     log_msg(str_c("Recording is ", if (input$record_on) "On" else "Off"))
   })
   # cache setup ----
-  create_cache <- function(token) {
-    create_folder(file.path(tempdir(), token, "cache"))
+  create_cache <- function() {
+    create_folder(file.path(session_tmpdir, "cache"))
   }
   reset_cache <- function(cache_path) {
     cache_files <- list.files(cache_path, full.names = TRUE)
     file.remove(cache_files)
   }
-  cache_path <- create_cache(session$token)
+  cache_path <- create_cache()
   para_ll_fit_mem <- memoise(para_ll_fit, cache = cache_filesystem(cache_path))
   akde_mem <- memoise(akde, cache = cache_filesystem(cache_path))
   para_ll_ud_mem <- memoise(para_ll_ud, cache = cache_filesystem(cache_path))
@@ -569,6 +571,7 @@ output:
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data = animals_dt,
                 info = info,
+                chosen_row_nos = chosen_row_nos,
                 tele_list = values$data$tele_list[subset_indice]
                 ))
   })
@@ -1743,7 +1746,7 @@ output:
       # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
       # LOG build shapefiles
       build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels),
-                          session$token)
+                          session_tmpdir)
       log_msg("Shapefiles built and downloaded")
     }
   )
@@ -1806,15 +1809,35 @@ output:
   # save session ----
   output$save_session <- downloadHandler(
     filename = function() {
-      paste0("Session_", current_timestamp(), ".zip")
+      paste0("Saved_", current_timestamp(), ".zip")
     },
     content = function(file) {
       # pack and save cache
       cache_zip_path <- compress_folder(cache_path, "cache.zip")
       # data in .rds format, pack multiple variables into list first.
-
+      saved <- list(data = values$data,
+                    chosen_row_nos = select_data()$chosen_row_nos,
+                    selected_data_model_fit_res =
+                      values$selected_data_model_fit_res,
+                    selected_data_guess_list =
+                      values$selected_data_guess_list,
+                    model_fit_summary_rows_selected =
+                      input$model_fit_summary_rows_selected
+                    # ,
+                    # below is for R command line only, not restored to app
+                    # select_data_ = select_data(),
+                    # select_data_vg_list_ = select_data_vg_list(),
+                    # select_models_ = select_models(),
+                    # select_models_hranges_ = select_models_hranges(),
+                    # select_models_occurrences_ = select_models_occurrences()
+                    )
+      saved_rds_path <- file.path(session_tmpdir, "saved.rds")
+      saveRDS(saved, file = saved_rds_path)
       # pack to session.zip, this is a temp name anyway.
-      session_zip_path <- compress_folder(session_folder, "session.zip")
+      session_zip_path <- file.path(session_tmpdir, "saved.zip")
+      zip::zip(session_zip_path, c(cache_zip_path, saved_rds_path),
+               compression_level = 5)
+      browser()
       file.copy(session_zip_path, file)
     }
   )

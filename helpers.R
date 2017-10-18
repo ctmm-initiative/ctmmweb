@@ -615,10 +615,10 @@ parse_CI_levels <- function(levels_text) {
   }
 }
 # file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
-build_shapefile_zip <- function(file, write_f, token) {
+build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
   current_time <- current_timestamp()  # need this in zip name so save it
-  folder_path <- file.path(tempdir(), token, str_c("Range_", current_time))
+  folder_path <- file.path(session_tmpdir, str_c("Range_", current_time))
   create_folder(folder_path)
   write_f(folder_path)
   zip_path <- compress_folder(folder_path,

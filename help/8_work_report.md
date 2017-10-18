@@ -1,6 +1,6 @@
 - The recording for report can be turned off in `Local Data Import` box of `Import Data` page.
 - `Generate Report` will compile current recordings into a html report. 
   - The html will be opened in a new browser window if the app is running locally and the browser is configured correctly in R setup.
-  - If the app is running in hosted server, you have to save the html file locally then open it.
+  - If the app is running in hosted server, you have to download the html file then open it.
 - You can download report file itself, or with other saved files as a zip.
 - Note the shinyapps.io server probably have a different timezone from your local time, so the timestamp inside report and the file names could have different time.
