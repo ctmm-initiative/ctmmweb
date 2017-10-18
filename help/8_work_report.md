@@ -4,3 +4,4 @@
   - If the app is running in hosted server, you have to download the html file then open it.
 - You can download report file itself, or with other saved files as a zip.
 - Note the shinyapps.io server probably have a different timezone from your local time, so the timestamp inside report and the file names could have different time.
+- RStudio Mac have a known bug that caused file download function executed twice, so there may be 2 entries of download in report.

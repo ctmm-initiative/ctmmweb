@@ -1741,12 +1741,10 @@ output:
         }
         return(write_f)
       }
-      hrange_list <- select_models_hranges()
-      ud_levels <- get_hr_levels()
-      # the function run twice, so generating files twice. could be related to this content function evaluated once then again.
-      # LOG build shapefiles
-      build_shapefile_zip(file, save_shapefiles(hrange_list, ud_levels),
+      build_shapefile_zip(file, save_shapefiles(select_models_hranges(),
+                                                get_hr_levels()),
                           session_tmpdir)
+      # LOG build shapefiles
       log_msg("Shapefiles built and downloaded")
     }
   )
@@ -1809,12 +1807,13 @@ output:
   # save session ----
   output$save_session <- downloadHandler(
     filename = function() {
-      paste0("Saved_", current_timestamp(), ".zip")
+      paste0("Session_", current_timestamp(), ".zip")
     },
     content = function(file) {
       # pack and save cache
       cache_zip_path <- compress_folder(cache_path, "cache.zip")
       # data in .rds format, pack multiple variables into list first.
+      # TODO need to check if value if available yet
       saved <- list(data = values$data,
                     chosen_row_nos = select_data()$chosen_row_nos,
                     selected_data_model_fit_res =
@@ -1834,10 +1833,8 @@ output:
       saved_rds_path <- file.path(session_tmpdir, "saved.rds")
       saveRDS(saved, file = saved_rds_path)
       # pack to session.zip, this is a temp name anyway.
-      session_zip_path <- file.path(session_tmpdir, "saved.zip")
-      zip::zip(session_zip_path, c(cache_zip_path, saved_rds_path),
-               compression_level = 5)
-      browser()
+      session_zip_path <- compress_relative_files(
+        session_tmpdir, c("cache.zip", "saved.rds"), "session.zip")
       file.copy(session_zip_path, file)
     }
   )

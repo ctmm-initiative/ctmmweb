@@ -592,14 +592,28 @@ create_folder <- function(folder_path) {
   dir.create(folder_path, recursive = TRUE)
   return(folder_path)
 }
+# zip will be saved to one level up folder_path.
 compress_folder <- function(folder_path, zip_name) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip
   setwd(dirname(folder_path))
-  file_names <- list.files(folder_path)  # file name only
-  # construct the relative path inside zip
-  relative_paths <- file.path(basename(folder_path), file_names)
+  # zip example show that zip can take a folder as file list, it just need to be relative paths
+  # relative_paths_under_folder <- list.files(folder_path, recursive = TRUE)
+  # # construct the relative path inside zip
+  # relative_paths <- file.path(basename(folder_path),
+  #                             relative_paths_under_folder)
   zip_path <- file.path(dirname(folder_path), zip_name)
+  zip::zip(zip_path, basename(folder_path),
+           compression_level = 5, recurse = TRUE)
+  setwd(previous_wd)
+  return(zip_path)
+}
+# compress select files under one folder with relative path. zip will be put in same folder
+compress_relative_files <- function(base_folder, relative_paths, zip_name) {
+  previous_wd <- getwd()
+  # one level up folder, so we can use relative path in zip
+  setwd(base_folder)
+  zip_path <- file.path(base_folder, zip_name)
   zip::zip(zip_path, relative_paths,
            compression_level = 5)
   setwd(previous_wd)
