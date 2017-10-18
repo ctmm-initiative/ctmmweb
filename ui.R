@@ -35,7 +35,7 @@ upload_box <- box(title = "Local Data Import",
                   ),
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
-          column(12, fileInput('file1', label = "")),
+          column(12, fileInput('tele_file', label = NULL)),
       column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
           column(5, offset = 0, help_button("import"))
            )
@@ -479,40 +479,41 @@ map_box <- box(title = "Map", status = "info",
                            solidHeader = TRUE, width = 12,
                column(12, leafletOutput("map")))
 # p9. work report ----
-session_box <- box(title = "Session", status = "primary",
-                   solidHeader = TRUE, width = 12,
-                   fluidRow(
-                     column(3,
-                            downloadButton("save_session",
-                                           "Save Session",
-                                           style = styles$download_button)),
-                     column(3,  offset = 1,
-                            actionButton("load_session", "Load Session",
-                                            icon = icon("folder-open-o"),
-                                            style = styles$page_action)),
-                     column(3, offset = 2, help_button("session"))
-                     ))
-report_control_box <- box(title = "Report Options", status = "info",
+# session_box <- box(title = "Session", status = "primary",
+#                    solidHeader = TRUE, width = 12,
+#                    fluidRow(
+#                      column(3,
+#                             downloadButton("save_session",
+#                                            "Save Session",
+#                                            style = styles$download_button)),
+#                      column(3, offset = 6, help_button("session")),
+#                      column(12, br()),
+#                      column(3, fileInput("load_session", "Load Session"))
+#                      ))
+report_box <- box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
-    column(3, actionButton("generate_report", "Generate Report",
+    column(3,
+           downloadButton("save_session",
+                          "Save Session",
+                          style = styles$download_button),
+           br(), br(),
+           fileInput("load_session", label = NULL, placeholder = "",
+                     buttonLabel = "Load Session ...")),
+    column(3, offset = 1, actionButton("generate_report", "Generate Report",
                            icon = icon("file-text-o"),
-                           style = styles$page_action)),
-    column(3, offset = 6,
-           downloadButton("download_all",
-                          "Download All",
-                          style = styles$download_button)),
-    column(12, br()),
-    column(3, offset = 0,
+                           style = styles$page_action),
+           br(), br(),
            downloadButton("download_report",
                           "Download Report",
-                          style = styles$download_button)),
-    column(3, offset = 6, help_button("report"))
-    # column(12, br()),
-    # column(5, offset = 0, tags$a(href = 'report.html', target = 'blank',
-    #                  h4('Current Report'))),
-
-
+                          style = styles$download_button)
+           ),
+    column(4, offset = 1,
+           downloadButton("download_report_zip",
+                          "Download Report zip",
+                          style = styles$download_button),
+           br(), br(),
+           help_button("report"))
   )
                           )
 # body ----
@@ -555,7 +556,7 @@ body <- dashboardBody(
     tabItem(tabName = "map",
             fluidRow(map_box)),
     # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
-    tabItem(tabName = "report", fluidRow(session_box, report_control_box))
+    tabItem(tabName = "report", fluidRow(report_box))
   )
 )
 # assemble UI

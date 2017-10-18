@@ -144,6 +144,10 @@ output:
   create_cache <- function(token) {
     create_folder(file.path(tempdir(), token, "cache"))
   }
+  reset_cache <- function(cache_path) {
+    cache_files <- list.files(cache_path, full.names = TRUE)
+    file.remove(cache_files)
+  }
   cache_path <- create_cache(session$token)
   para_ll_fit_mem <- memoise(para_ll_fit, cache = cache_filesystem(cache_path))
   akde_mem <- memoise(akde, cache = cache_filesystem(cache_path))
@@ -200,14 +204,14 @@ output:
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   file_uploaded <- function(){
-    data_import(input$file1$datapath)
+    data_import(input$tele_file$datapath)
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
   }
-  observeEvent(input$file1, {
-    req(input$file1)
+  observeEvent(input$tele_file, {
+    req(input$tele_file)
     # LOG file upload.
-    log_msg("Importing file", input$file1$name,
+    log_msg("Importing file", input$tele_file$name,
             on = isolate(input$record_on))
     file_uploaded()
   })
@@ -232,7 +236,7 @@ output:
            upload = {
              # this doesn't do anything by itself so no log msg
              # need to check NULL input from source, stop error in downstream
-             req(input$file1)
+             req(input$tele_file)
              file_uploaded()
            })
   })
@@ -1807,7 +1811,7 @@ output:
     content = function(file) {
       # pack and save cache
       cache_zip_path <- compress_folder(cache_path, "cache.zip")
-      # data in .rds format
+      # data in .rds format, pack multiple variables into list first.
 
       # pack to session.zip, this is a temp name anyway.
       session_zip_path <- compress_folder(session_folder, "session.zip")
@@ -1816,8 +1820,8 @@ output:
   )
   # load session ----
   observeEvent(input$load_session, {
-    # load cache, first clear current cache. forget will clear cache folder
-    forget(para_ll_mem)
+    # load cache, first clear current cache.
+    reset_cache(cache_path)
     # this should update cache content
     unzip(zip_path, exdir = dirname(cache_path))
     # restore variables in order, may need to freeze some
@@ -1856,7 +1860,7 @@ output:
       }
     }
   )
-  output$download_all <- downloadHandler(
+  output$download_report_zip <- downloadHandler(
     filename = function() {
       paste0("Report_", current_timestamp(), ".zip")
     },
