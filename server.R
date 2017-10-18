@@ -1800,10 +1800,27 @@ output:
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/8_work_report.md")
   # save session ----
-  output$save_session <- downloadHandler()
+  output$save_session <- downloadHandler(
+    filename = function() {
+      paste0("Session_", current_timestamp(), ".zip")
+    },
+    content = function(file) {
+      # pack and save cache
+      cache_zip_path <- compress_folder(cache_path, "cache.zip")
+      # data in .rds format
+
+      # pack to session.zip, this is a temp name anyway.
+      session_zip_path <- compress_folder(session_folder, "session.zip")
+      file.copy(session_zip_path, file)
+    }
+  )
   # load session ----
   observeEvent(input$load_session, {
-
+    # load cache, first clear current cache. forget will clear cache folder
+    forget(para_ll_mem)
+    # this should update cache content
+    unzip(zip_path, exdir = dirname(cache_path))
+    # restore variables in order, may need to freeze some
   })
   generate_report <- function(preview) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
