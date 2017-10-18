@@ -236,7 +236,7 @@ output:
              file_uploaded()
            })
   })
-  callModule(click_help, "import", title = "Data Import Options", size = "m",
+  callModule(click_help, "import", title = "Data Import Options", size = "l",
              file = "help/1_import_options.md")
   # 1.2 movebank login ----
   # look up user R environment for movebank login
@@ -387,7 +387,7 @@ output:
     }
   })
   # 1.4 download data ----
-  observeEvent(input$download, {
+  observeEvent(input$download_movebank, {
     req(input$studies_rows_selected)
     # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.
     # mb_id <- values$studies[owner == input$data_manager][
@@ -433,10 +433,10 @@ output:
                 on = isolate(input$record_on))
     }
   })
-  callModule(click_help, "download", title = "Download Movebank data",
+  callModule(click_help, "download_movebank", title = "Download Movebank data",
              size = "l", file = "help/1_movebank_download.md")
   # 1.5 save, import data ----
-  output$save <- downloadHandler(
+  output$save_movebank <- downloadHandler(
     filename = function() {
         # mb_id <- values$studies[input$studies_rows_selected, id]
         # avoid special characters that invalid for file name
@@ -454,7 +454,7 @@ output:
               on = isolate(input$record_on))
     }
   )
-  observeEvent(input$import, {
+  observeEvent(input$import_movebank, {
     req(values$move_bank_dt[, .N] > 0)
     data_import(values$move_bank_dt)
     # LOG import movebank data
@@ -1799,6 +1799,12 @@ output:
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/8_work_report.md")
+  # save session ----
+  output$save_session <- downloadHandler()
+  # load session ----
+  observeEvent(input$load_session, {
+
+  })
   generate_report <- function(preview) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
     log_msg("Work Report Generated")
@@ -1818,12 +1824,6 @@ output:
       generate_report(preview = TRUE)
     } else {
       generate_report(preview = FALSE)
-      # output$download_report_ui <- renderUI({
-      #   downloadButton("download_report",
-      #                  "Download Current Report",
-      #                  icon = icon("save"),
-      #                  style = styles$link_button)
-      # })
     }
   })
   output$download_report <- downloadHandler(
