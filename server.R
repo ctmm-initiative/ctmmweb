@@ -43,6 +43,7 @@ server <- function(input, output, session) {
     }
     return(time_stamp)
   }
+  # setting default value of on because sometimes it was used internally. Make sure to assign on for every outside log call
   log_msg <- function(msg, detail = "", on = TRUE) {
     if (!on) return()
     time_stamp <- log_msg_console(msg, detail)
@@ -1815,6 +1816,8 @@ output:
         showNotification("No data to save", duration = 7,
                          type = "error")
       } else {
+        # LOG save session
+        log_msg("Saving session data", on = isolate(input$record_on))
         # pack and save cache
         cache_zip_path <- compress_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
@@ -1830,17 +1833,28 @@ output:
                       )
         saved_rds_path <- file.path(session_tmpdir, "saved.rds")
         saveRDS(saved, file = saved_rds_path)
+        # also save report for reference
+        generate_report(preview = FALSE)
+        # move to same directory for easier packing. use rename to reduce effort
+        # file.copy(values$html_path, file.path(session_tmpdir, "report.html"),
+        #           overwrite = TRUE)
+        file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # pack to session.zip, this is a temp name anyway.
         session_zip_path <- compress_relative_files(
-          session_tmpdir, c("cache.zip", "saved.rds"), "session.zip")
+          session_tmpdir, c("cache.zip", "saved.rds", "report.html"),
+          "session.zip")
         file.copy(session_zip_path, file)
       }
     }
   )
   # load session ----
   observeEvent(input$load_session, {
-    # session.zip -> cache.zip, saved.rds
+    # LOG load session
+    log_msg("Loading session data", input$load_session$name,
+            on = isolate(input$record_on))
+    # session.zip -> cache.zip, saved.rds, report.html
     unzip(input$load_session$datapath, exdir = session_tmpdir)
+    browseURL(file.path(session_tmpdir, "report.html"))
     # first clear current cache.
     reset_cache(cache_path)
     # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up
@@ -1859,7 +1873,7 @@ output:
   })
   generate_report <- function(preview) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
-    log_msg("Work Report Generated")
+    log_msg("Work Report Generated", on = isolate(input$record_on))
     # write markdown file
     markdown_path <- file.path(LOG_folder, "report.rmd")
     writeLines(LOG_rmd_vec, con = markdown_path)
@@ -1883,6 +1897,8 @@ output:
       paste0("Report_", current_timestamp(), ".html")
     },
     content = function(file) {
+      # LOG download report
+      log_msg("Downloading work report", on = isolate(input$record_on))
       generate_report(preview = FALSE)
       file.copy(values$html_path, file)
       # if (is.null(values$html_path)) {
@@ -1898,6 +1914,8 @@ output:
       paste0("Report_", current_timestamp(), ".zip")
     },
     content = function(file) {
+      # LOG download report zip
+      log_msg("Downloading work report zip", on = isolate(input$record_on))
       generate_report(preview = FALSE)
       zip_path <- compress_folder(LOG_folder, "report.zip")
       file.copy(zip_path, file)
