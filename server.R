@@ -1810,41 +1810,52 @@ output:
       paste0("Session_", current_timestamp(), ".zip")
     },
     content = function(file) {
-      # pack and save cache
-      cache_zip_path <- compress_folder(cache_path, "cache.zip")
-      # data in .rds format, pack multiple variables into list first.
-      # TODO need to check if value if available yet
-      saved <- list(data = values$data,
-                    chosen_row_nos = select_data()$chosen_row_nos,
-                    selected_data_model_fit_res =
-                      values$selected_data_model_fit_res,
-                    selected_data_guess_list =
-                      values$selected_data_guess_list,
-                    model_fit_summary_rows_selected =
-                      input$model_fit_summary_rows_selected
-                    # ,
-                    # below is for R command line only, not restored to app
-                    # select_data_ = select_data(),
-                    # select_data_vg_list_ = select_data_vg_list(),
-                    # select_models_ = select_models(),
-                    # select_models_hranges_ = select_models_hranges(),
-                    # select_models_occurrences_ = select_models_occurrences()
-                    )
-      saved_rds_path <- file.path(session_tmpdir, "saved.rds")
-      saveRDS(saved, file = saved_rds_path)
-      # pack to session.zip, this is a temp name anyway.
-      session_zip_path <- compress_relative_files(
-        session_tmpdir, c("cache.zip", "saved.rds"), "session.zip")
-      file.copy(session_zip_path, file)
+      # we are checking input data instead of select_data, which is the real condition that can cause error, because it's easier to check and should be in same status
+      if (is.null(values$data$input_tele_list)) {
+        showNotification("No data to save", duration = 7,
+                         type = "error")
+      } else {
+        # pack and save cache
+        cache_zip_path <- compress_folder(cache_path, "cache.zip")
+        # data in .rds format, pack multiple variables into list first.
+        # TODO need to check if value if available yet
+        saved <- list(data = values$data,
+                      chosen_row_nos = select_data()$chosen_row_nos,
+                      selected_data_model_fit_res =
+                        values$selected_data_model_fit_res,
+                      selected_data_guess_list =
+                        values$selected_data_guess_list,
+                      model_fit_summary_rows_selected =
+                        input$model_fit_summary_rows_selected
+                      )
+        saved_rds_path <- file.path(session_tmpdir, "saved.rds")
+        saveRDS(saved, file = saved_rds_path)
+        # pack to session.zip, this is a temp name anyway.
+        session_zip_path <- compress_relative_files(
+          session_tmpdir, c("cache.zip", "saved.rds"), "session.zip")
+        file.copy(session_zip_path, file)
+      }
     }
   )
   # load session ----
   observeEvent(input$load_session, {
-    # load cache, first clear current cache.
+    # session.zip -> cache.zip, saved.rds
+    unzip(input$load_session$datapath, exdir = session_tmpdir)
+    # first clear current cache.
     reset_cache(cache_path)
-    # this should update cache content
-    unzip(zip_path, exdir = dirname(cache_path))
+    # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up
+    unzip(file.path(session_tmpdir, "cache.zip"), exdir = session_tmpdir)
+    loaded <- readRDS(file.path(session_tmpdir, "saved.rds"))
     # restore variables in order, may need to freeze some
+    values$data <- loaded$data
+    values$selected_data_model_fit_res <- loaded$selected_data_model_fit_res
+    values$selected_data_guess_list <- loaded$selected_data_guess_list
+    # freezeReactiveValue(input, "model_fit_summary_rows_selected")
+    # selectRows(proxy_model_dt, loaded$model_fit_summary_rows_selected)
+    updateTabItems(session, "tabs", "plots")
+    # freezeReactiveValue(input, "individuals_rows_selected")
+    # cat("selecting rows\n")
+    # selectRows(proxy_individuals, loaded$chosen_row_nos)
   })
   generate_report <- function(preview) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
@@ -1872,12 +1883,14 @@ output:
       paste0("Report_", current_timestamp(), ".html")
     },
     content = function(file) {
-      if (is.null(values$html_path)) {
-        showNotification("Report not generated yet", duration = 7,
-                         type = "error")
-      } else {
-        file.copy(values$html_path, file)
-      }
+      generate_report(preview = FALSE)
+      file.copy(values$html_path, file)
+      # if (is.null(values$html_path)) {
+      #   showNotification("Report not generated yet", duration = 7,
+      #                    type = "error")
+      # } else {
+      #   file.copy(values$html_path, file)
+      # }
     }
   )
   output$download_report_zip <- downloadHandler(
