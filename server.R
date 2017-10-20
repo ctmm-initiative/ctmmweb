@@ -1658,9 +1658,14 @@ output:
              size = "l", file = "help/6_home_range.md")
   # select_models_hranges ----
   select_models_hranges <- reactive({
-    withProgress(res <- akde_mem(select_models()$tele_list,
-                             CTMM = select_models()$models),
-                 message = "Calculating home range ...")
+    withProgress(print(system.time(
+      res <- akde_mem(select_models()$tele_list,
+                      CTMM = select_models()$models))),
+      message = "Calculating Home Range ...")
+    # res
+    # withProgress(res <- akde_mem(select_models()$tele_list,
+    #                          CTMM = select_models()$models),
+    #              message = "Calculating home range ...")
     return(res)
   })
   # home range summary ----

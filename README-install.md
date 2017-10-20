@@ -55,7 +55,10 @@ With R and dependency packages installed:
         sudo apt-get update && sudo apt-get install libgdal-dev libproj-dev
   
 ## Known bugs
-
+- When you start the app in RStudio, it was opened with embeded browser in RStudio, which has these known limitations:
+  - Windows: log scale slider not shown properly; download dialog don't prompt proper file name by default.
+  - Mac: download file will open a blank page, and the dowload function was executed twice so there will be two entries in report.
+  - Linux: download dialog do not respond.
 - There is a [known bug](https://github.com/Rdatatable/data.table/issues/2137) caused by `data.table`, `openMP` and `mcapply` in R 3.4. So it's possible to see this error when fitting models in parallel under Mac/Linux:
 
     ```r
