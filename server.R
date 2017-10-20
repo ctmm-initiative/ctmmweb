@@ -1826,7 +1826,6 @@ output:
         # pack and save cache
         cache_zip_path <- compress_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
-        # TODO need to check if value if available yet
         saved <- list(data = values$data,
                       chosen_row_nos = select_data()$chosen_row_nos,
                       selected_data_model_fit_res =
