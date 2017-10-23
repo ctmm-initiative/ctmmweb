@@ -660,9 +660,13 @@ output:
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     fig_count <- length(id_vector)
-    gr <- grid.arrange(grobs = g_list, layout_matrix =
-                   matrix(1:fig_count, nrow = fig_count / input$plot4_col,
-                          ncol = input$plot4_col, byrow = TRUE))
+    # if the figure count is smaller than col count, like 1 for 2 columns, matrix become empty and cause problem. if the figure count is not multiply of cols, it also messed up. Just use ncol solve all the problems.
+    # gr <- grid.arrange(grobs = g_list, layout_matrix =
+    #                      matrix(1:fig_count,
+    #                             nrow = fig_count / input$plot4_col,
+    #                             ncol = input$plot4_col, byrow = TRUE))
+    gr <- grid.arrange(grobs = g_list, ncol = input$plot4_col)
+
     # LOG save pic
     log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
