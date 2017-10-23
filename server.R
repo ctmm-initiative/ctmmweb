@@ -218,6 +218,15 @@ output:
             on = isolate(input$record_on))
     file_uploaded()
   })
+  # abstract because need to do this in 2 places
+  set_sample_data <- function() {
+    data("buffalo")
+    sample_data <- pick_m_tele_list(buffalo, input$sample_size)
+    # LOG use sample
+    log_msg("Using data", "buffalo sample from ctmm",
+            on = isolate(input$record_on))
+    update_input_data(sample_data)
+  }
   # observe radio button changes
   observeEvent(input$load_option, {
     switch(input$load_option,
@@ -229,12 +238,13 @@ output:
              update_input_data(buffalo)
            },
            ctmm_sample = {
-             data("buffalo")
-             sample_data <- pick_m_tele_list(buffalo, input$sample_size)
-             # LOG use sample
-             log_msg("Using data", "buffalo sample from ctmm",
-                     on = isolate(input$record_on))
-             update_input_data(sample_data)
+             # data("buffalo")
+             # sample_data <- pick_m_tele_list(buffalo, input$sample_size)
+             # # LOG use sample
+             # log_msg("Using data", "buffalo sample from ctmm",
+             #         on = isolate(input$record_on))
+             # update_input_data(sample_data)
+             set_sample_data()
            },
            upload = {
              # this doesn't do anything by itself so no log msg
@@ -242,6 +252,12 @@ output:
              req(input$tele_file)
              file_uploaded()
            })
+  })
+  # also update the app when sample size changed and is already in sample mode
+  observeEvent(input$sample_size, {
+    if (input$load_option == "ctmm_sample") {
+      set_sample_data()
+    }
   })
   callModule(click_help, "import", title = "Data Import Options", size = "l",
              file = "help/1_import_options.md")
