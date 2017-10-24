@@ -132,8 +132,9 @@ output:
       # must select single animal to proceed
       updateTabItems(session, "tabs", "plots")
       if (length(input$individuals_rows_selected) != 1) {
-        showNotification("Please select single individual first before time subsetting",
-                         type = "error", duration = 6)
+        showNotification(
+          "Please select single individual first before time subsetting",
+          type = "error", duration = 6)
       }
     }
   })
