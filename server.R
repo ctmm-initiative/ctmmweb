@@ -130,8 +130,8 @@ output:
     log_page(page_title[[input$tabs]], on = input$record_on)
     if (input$tabs == "subset") {
       # must select single animal to proceed
-      updateTabItems(session, "tabs", "plots")
       if (length(input$individuals_rows_selected) != 1) {
+        updateTabItems(session, "tabs", "plots")
         showNotification(
           "Please select single individual first before time subsetting",
           type = "error", duration = 6)
