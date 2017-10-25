@@ -6,6 +6,7 @@ debug_mode <- FALSE
 source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
+  APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # to copy from 07_report_save_load
   # global LOG variables ----
   LOG_console <- TRUE
@@ -1898,6 +1899,7 @@ output:
     # cat("selecting rows\n")
     # selectRows(proxy_individuals, loaded$chosen_row_nos)
   })
+  # view_report ----
   generate_report <- function(preview) {
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
     log_msg("Work Report Generated", on = isolate(input$record_on))
@@ -1912,13 +1914,28 @@ output:
     if (preview) browseURL(html_path)
     values$html_path <- html_path
   }
-  observeEvent(input$generate_report, {
-    if (session$clientData$url_hostname == "127.0.0.1") {
-      generate_report(preview = TRUE)
+  # preview in local mode, download in host mode
+  output$view_report <- renderUI(
+    if (APP_local) {
+      actionButton("preview_report", "Preview Report",
+                   icon = icon("file-text-o"),
+                   style = styles$page_action)
     } else {
-      generate_report(preview = FALSE)
+      downloadButton("download_report",
+                     "Download Report",
+                     style = styles$download_button)
     }
+  )
+  observeEvent(input$preview_report, {
+    generate_report(preview = TRUE)
   })
+  # observeEvent(input$generate_report, {
+  #   if (session$clientData$url_hostname == "127.0.0.1") {
+  #     generate_report(preview = TRUE)
+  #   } else {
+  #     generate_report(preview = FALSE)
+  #   }
+  # })
   output$download_report <- downloadHandler(
     filename = function() {
       paste0("Report_", current_timestamp(), ".html")

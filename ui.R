@@ -36,19 +36,24 @@ upload_box <- box(title = "Local Data Import",
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
           column(12, fileInput('tele_file', label = NULL)),
-      column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
+          column(12, fileInput("load_session", label = "Load Saved Session"
+                           #     ,
+                           #     placeholder = "",
+                           # buttonLabel = "Load Session ..."
+                           )),
+          column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
           column(5, offset = 0, help_button("import"))
            )
     )
 movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6,
-                          # height = styles$height_movebank_login_box,
+                          height = styles$height_movebank_login_box,
                           fluidRow(
-                            column(12, br()),
+                            column(12, br(), br()),
                             column(12,
-                                  textInput("user", "User Name"),
+                                  textInput("user", "User Name"), br(),
                                   passwordInput("pass", label = "Password")),
-                            column(12, br()),
+                            column(12, br(), br(), br()),
                             column(5, actionButton("login", "Login",
                                           icon = icon("sign-in"),
                                           style = styles$page_action)),
@@ -479,17 +484,6 @@ map_box <- box(title = "Map", status = "info",
                            solidHeader = TRUE, width = 12,
                column(12, leafletOutput("map")))
 # p9. work report ----
-# session_box <- box(title = "Session", status = "primary",
-#                    solidHeader = TRUE, width = 12,
-#                    fluidRow(
-#                      column(3,
-#                             downloadButton("save_session",
-#                                            "Save Session",
-#                                            style = styles$download_button)),
-#                      column(3, offset = 6, help_button("session")),
-#                      column(12, br()),
-#                      column(3, fileInput("load_session", "Load Session"))
-#                      ))
 report_box <- box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
@@ -498,17 +492,17 @@ report_box <- box(title = "Report", status = "info",
                           "Save Session",
                           style = styles$download_button),
            br(), br(),
-           fileInput("load_session", label = NULL, placeholder = "",
-                     buttonLabel = "Load Session ...")),
-    column(3, offset = 1, actionButton("generate_report", "Generate Report",
-                           icon = icon("file-text-o"),
-                           style = styles$page_action),
-           br(), br(),
-           downloadButton("download_report",
-                          "Download Report",
-                          style = styles$download_button)
+           uiOutput("view_report")
            ),
-    column(4, offset = 1,
+    # column(3, offset = 1, actionButton("generate_report", "Generate Report",
+    #                        icon = icon("file-text-o"),
+    #                        style = styles$page_action),
+    #        br(), br(),
+    #        downloadButton("download_report",
+    #                       "Download Report",
+    #                       style = styles$download_button)
+    #        ),
+    column(4, offset = 5,
            downloadButton("download_report_zip",
                           "Download Report zip",
                           style = styles$download_button),
