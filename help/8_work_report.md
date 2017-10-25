@@ -1,8 +1,12 @@
-- `Save Session` will save input data, cached calculation results into a zip. `Load Session` will restore them, and the cached calculation can be executed instantly (it need to have exactly same input, such as same individuals/models selected). 
-- `Generate Report` will compile current recordings into a html report. 
-  - The html will be opened in a new browser window if the app is running locally and the browser is configured correctly in R setup. In `Load Session` the report of loaded session will also be opened automatically for reference.
-  - If the app is running in hosted server, you have to download the html file then open it.
-- You can download report file itself, or with other saved files as a zip.
+### Session
+- `Save Session` will save input data, cached calculation results into a zip. The zip can be uploaded by `Load Session` button in `import` page.
+
+### Report
+- If app is running locally, `Preview Report` will compile current recordings into a html report, and open it in a new browser window.
+- If app is running in hosted server, report cannot be opened automatically because of security settings. It has to be downloaded with `Download Report` then you can open it.
+- `Download Report zip` will download report and other data files as a zip.
 - The recording for report can be turned off in `Local Data Import` box of `Import Data` page.
+
+### Known limitations
 - Note the shinyapps.io server probably have a different timezone from your local time, so the timestamp inside report and the file names could have different time.
 - RStudio Mac have a known bug that caused file download function executed twice, so there may be 2 entries of report generation/download in report.

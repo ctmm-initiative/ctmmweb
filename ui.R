@@ -37,8 +37,8 @@ upload_box <- box(title = "Local Data Import",
                                  value = 100, step = 50)),
           column(12, fileInput('tele_file', label = NULL)),
           column(12, fileInput("load_session", label = "Load Saved Session"
-                           #     ,
-                           #     placeholder = "",
+                               # ,
+                               # placeholder = "Session zip"
                            # buttonLabel = "Load Session ..."
                            )),
           column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),

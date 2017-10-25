@@ -1882,7 +1882,9 @@ output:
             on = isolate(input$record_on))
     # session.zip -> cache.zip, saved.rds, report.html
     unzip(input$load_session$datapath, exdir = session_tmpdir)
-    browseURL(file.path(session_tmpdir, "report.html"))
+    if (APP_local) {
+      browseURL(file.path(session_tmpdir, "report.html"))
+    }
     # first clear current cache.
     reset_cache(cache_path)
     # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up

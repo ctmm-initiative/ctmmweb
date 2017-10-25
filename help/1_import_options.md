@@ -10,3 +10,8 @@
 
 ### Record Actions
 - Every meaningful actions by user can be recorded and compiled into a html work report in `Work Report` page. All plots and most tables are also saved. The option can be turned off to improve performance.
+
+### Load Session
+- Using `Save Session` button in `Work Report` page, input data and cached calculation results can be saved.
+- Uploading the session data zip with `Load Session` will restore them. Exactly same calculation can be executed instantly because of cache. The work report of that session is also opened for reference if app is running in local mode.
+
