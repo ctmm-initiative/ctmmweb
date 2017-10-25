@@ -47,19 +47,20 @@ upload_box <- box(title = "Local Data Import",
     )
 movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6,
-                          height = styles$height_movebank_login_box,
+                          # height = styles$height_movebank_login_box,
                           fluidRow(
                             column(12, br(), br()),
                             column(12,
                                   textInput("user", "User Name"), br(),
                                   passwordInput("pass", label = "Password")),
-                            column(12, br(), br(), br()),
+                            column(12, br(), br()),
                             column(5, actionButton("login", "Login",
                                           icon = icon("sign-in"),
                                           style = styles$page_action)),
                             column(5, offset = 2,
-                                  help_button("login")
-                                          )))
+                                  help_button("login")),
+                            column(12, br())
+                            ))
 movebank_studies_box <- box(title = "Movebank Studies", collapsible = TRUE,
                             status = "primary", solidHeader = TRUE, width = 12,
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
@@ -494,14 +495,6 @@ report_box <- box(title = "Report", status = "info",
            br(), br(),
            uiOutput("view_report")
            ),
-    # column(3, offset = 1, actionButton("generate_report", "Generate Report",
-    #                        icon = icon("file-text-o"),
-    #                        style = styles$page_action),
-    #        br(), br(),
-    #        downloadButton("download_report",
-    #                       "Download Report",
-    #                       style = styles$download_button)
-    #        ),
     column(4, offset = 5,
            downloadButton("download_report_zip",
                           "Download Report zip",

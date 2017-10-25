@@ -1923,8 +1923,7 @@ output:
                    icon = icon("file-text-o"),
                    style = styles$page_action)
     } else {
-      downloadButton("download_report",
-                     "Download Report",
+      downloadButton("download_report", "Download Report",
                      style = styles$download_button)
     }
   )

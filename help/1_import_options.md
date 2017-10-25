@@ -13,5 +13,6 @@
 
 ### Load Session
 - Using `Save Session` button in `Work Report` page, input data and cached calculation results can be saved.
-- Uploading the session data zip with `Load Session` will restore them. Exactly same calculation can be executed instantly because of cache. The work report of that session is also opened for reference if app is running in local mode.
+- Uploading the session data zip with `Load Session` will restore them. Exactly same calculation can be executed instantly because of cache. The cache also helps in same session if some calculations have bee run before.
+- The work report of that session is also opened for reference if app is running in local mode.
 

@@ -1,5 +1,5 @@
 # Video demos
-Below are some screen recordings showing some features, please choose highest resolution for best result:
+Below are some screen recordings showing some features, please choose highest resolution and enable CC/subtitle for best result:
 
 - Import data locally, plots, time subsetting
 
@@ -16,3 +16,7 @@ Below are some screen recordings showing some features, please choose highest re
 - Model Selection, Home Range and Occurrence.
 
 [![demo 4](http://img.youtube.com/vi/eLmVFkkUMAE/0.jpg)](https://www.youtube.com/watch?v=eLmVFkkUMAE "Model Selection, Home Range and Occurrence")
+
+- Work Report, Save/Load Session.
+
+[![demo 5](http://img.youtube.com/vi/7A8O5yFbMLc/0.jpg)](https://www.youtube.com/watch?v=7A8O5yFbMLc "Work Report, Save/Load Session")
