@@ -456,8 +456,9 @@ output:
       # LOG download movebank data
       log_msg("Movebank data downloaded", mb_id(),
               on = isolate(input$record_on))
-      log_dt_md(values$study_detail, "Downloaded study details",
-                on = isolate(input$record_on))
+      # some detail table may have invalid characters that crash kable. disable this now.
+      # log_dt_md(values$study_detail, "Downloaded study details",
+      #           on = isolate(input$record_on))
     }
   })
   callModule(click_help, "download_movebank", title = "Download Movebank data",
