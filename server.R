@@ -1831,9 +1831,9 @@ output:
     id_pal <- colorFactor(hue_pal()(length(info$identity)), dt$id)
     withProgress(leaf <- base_map %>% add_points(dt, info, id_pal),
                  message = "Building maps...")
-    # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead.
+    # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (reactive_validated(select_models_hranges())) {
-      hr_pal <- colorFactor(brewer_pal("div")(length(select_models()$id_model)),
+      hr_pal <- colorFactor(hue_pal(l = 40)(length(select_models()$id_model)),
                             select_models()$id_model)
       leaf <- leaf %>%
         add_home_range_list(select_models_hranges(),
