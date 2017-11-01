@@ -484,10 +484,9 @@ map_control_box <- box(title = "Map Controls", status = "info",
                            solidHeader = TRUE, width = 12,
   fluidRow(column(3, offset = 1,
                   numericInput("map_height", "Map Height", 600,
-                                              min = 400, max = 2000, step = 100))
-  )
-  )
-
+                               min = 400, max = 2000, step = 100)),
+           column(2, offset = 5, br(), help_button("map"))
+  ))
 map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
                   height = styles$height_map_box,
 # p8.a points ----

@@ -1818,6 +1818,8 @@ output:
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
+  callModule(click_help, "map", title = "Map",
+             size = "l", file = "help/8_map.md")
   # shared basemap
   base_map <- init_base_maps()
   output$point_map_holder <- renderUI(
@@ -1856,7 +1858,7 @@ output:
   })
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
-             size = "l", file = "help/8_work_report.md")
+             size = "l", file = "help/9_work_report.md")
   # save session ----
   output$save_session <- downloadHandler(
     filename = function() {
