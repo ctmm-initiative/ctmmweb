@@ -639,4 +639,48 @@ build_shapefile_zip <- function(file, write_f, session_tmpdir) {
                          paste0("Home Range ", current_time, ".zip"))
   file.copy(zip_path, file)
 }
-
+# map ----
+# rely on global constants: provider_names, here_app etc
+init_base_maps <- function() {
+  leaf <- leaflet(options = leafletOptions(attributionControl = FALSE))
+  for (prov in here_provider_names) {
+    leaf <- leaf %>% addProviderTiles(providers[[prov]], group = prov,
+                                      options = providerTileOptions(
+                                        detectRetina = TRUE,
+                                        app_id = here_app_id,
+                                        app_code = here_app_code))
+  }
+  for (prov in open_provider_names) {
+    leaf <- leaf %>% addProviderTiles(providers[[prov]], group = prov)
+  }
+  return(leaf)
+}
+# rely on global constants, providernames
+add_points <- function(leaf, dt, info, id_pal) {
+  # add each individual as a layer
+  # for loop is better than lapply since we don't need to use <<-
+  for (current_id in info$identity) {
+    leaf <- leaf %>%
+      addCircles(data = dt[identity == current_id], group = current_id,
+                 lng = ~longitude, lat = ~latitude, radius = 0.3, weight = 2,
+                 color = ~id_pal(id), opacity = 0.4, fillOpacity = 0.05)
+  }
+  leaf %>% addLegend(pal = id_pal, values = info$identity)
+}
+reactive_validated <- function(reactive_value) {
+  res <- try(reactive_value, silent = TRUE)
+  return(!("try-error" %in% class(res)))
+}
+add_home_range <- function(map, hrange, hr_color, group_name){
+  hrange_spdf <- spTransform(SpatialPolygonsDataFrame.UD(hrange),
+                             CRS("+proj=longlat +datum=WGS84"))
+  addPolygons(map, data = hrange_spdf, weight = 2, fillOpacity = 0.05,
+              color = hr_color, group = group_name)
+}
+add_home_range_list <- function(map, hrange_list, color_list, group_vec) {
+  for (i in seq_along(hrange_list)) {
+    map <- map %>% add_home_range(hrange_list[[i]],
+                                  color_list[[i]], group_vec[i])
+  }
+  return(map)
+}

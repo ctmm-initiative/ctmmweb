@@ -1679,6 +1679,7 @@ output:
              size = "l", file = "help/6_home_range.md")
   # select_models_hranges ----
   select_models_hranges <- reactive({
+    req(select_models())
     withProgress(print(system.time(
       res <- akde_mem(select_models()$tele_list,
                       CTMM = select_models()$models))),
@@ -1817,20 +1818,41 @@ output:
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
+  # shared basemap
+  base_map <- init_base_maps()
   output$point_map_holder <- renderUI(
     leafletOutput("point_map",
                   height = input$map_height)
   )
   output$point_map <- renderLeaflet({
     # TODO LOG map
-    idpal <- colorFactor(hue_pal()(length(select_data()$info$identity)),
-                         select_data()$data$id)
-    provider_tiles <- list(topo = "OpenTopoMap", sat = "Esri.WorldImagery")
-    # slow but clear
-    leaflet(select_data()$data) %>%
-      addProviderTiles(provider_tiles$sat) %>%
-      addCircles(lng = ~longitude, lat = ~latitude, radius = 0.1,
-                 color = ~idpal(id), fillOpacity = 0.05)
+    dt <- select_data()$data
+    info <- select_data()$info
+    id_pal <- colorFactor(hue_pal()(length(info$identity)), dt$id)
+    withProgress(leaf <- base_map %>% add_points(dt, info, id_pal),
+                 message = "Building maps...")
+    # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead.
+    if (reactive_validated(select_models_hranges())) {
+      hr_pal <- colorFactor(brewer_pal("div")(length(select_models()$id_model)),
+                            select_models()$id_model)
+      leaf <- leaf %>%
+        add_home_range_list(select_models_hranges(),
+                            hr_pal(select_models()$id_model),
+                            select_models()$id_model) %>%
+        addLayersControl(
+          baseGroups = c(here_provider_names, open_provider_names),
+          overlayGroups = c(info$identity, select_models()$id_model),
+          options = layersControlOptions(collapsed = FALSE)
+        )
+    } else {
+      leaf <- leaf %>%
+          addLayersControl(
+            baseGroups = c(here_provider_names, open_provider_names),
+            overlayGroups = info$identity,
+            options = layersControlOptions(collapsed = FALSE)
+          )
+    }
+    return(leaf)
   })
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
