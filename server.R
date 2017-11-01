@@ -636,11 +636,7 @@ output:
       bigger_theme + bigger_key
     # LOG save pic
     log_save_ggplot(g, "plot_2_overview", on = isolate(input$record_on))
-  }
-  # , height = 400, width = "auto"
-  # , height = styles$height_plot_loc, width = "auto"
-  , height = function() { input$canvas_height }
-    , width = "auto"
+  }, height = function() { input$canvas_height }, width = "auto"
   )
   # 2.3 facet ----
   output$location_plot_facet_fixed <- renderPlot({
@@ -1821,7 +1817,11 @@ output:
     par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
-  output$map <- renderLeaflet({
+  output$point_map_holder <- renderUI(
+    leafletOutput("point_map",
+                  height = input$map_height)
+  )
+  output$point_map <- renderLeaflet({
     # TODO LOG map
     idpal <- colorFactor(hue_pal()(length(select_data()$info$identity)),
                          select_data()$data$id)

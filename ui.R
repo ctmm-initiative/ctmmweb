@@ -124,7 +124,6 @@ location_plot_box <- tabBox(title = "Animal Locations",
                             width = 12,
   tabPanel("2. Overview",
    fluidRow(
-
      column(3, offset = 1, numericInput("canvas_height", "Canvas Height", 600,
                             min = 400, max = 1200, step = 200),
             checkboxInput("overlay_all",
@@ -481,9 +480,26 @@ occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
 # p8. map ----
-map_box <- box(title = "Map", status = "info",
+map_control_box <- box(title = "Map Controls", status = "info",
                            solidHeader = TRUE, width = 12,
-               column(12, leafletOutput("map")))
+  fluidRow(column(3, offset = 1,
+                  numericInput("map_height", "Map Height", 600,
+                                              min = 400, max = 2000, step = 100))
+  )
+  )
+
+map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
+                  height = styles$height_map_box,
+# p8.a points ----
+  tabPanel("Point",
+           # use uiOutput because the height is determined in leafletOutput, so we need to move it to server side.
+           fluidRow(column(12, uiOutput("point_map_holder")))),
+  tabPanel("Heatmap",
+           fluidRow(column(12, uiOutput("heat_map_holder")))),
+  tabPanel("Cluster",
+           fluidRow(column(12, uiOutput("cluster_map_holder"))))
+)
+
 # p9. work report ----
 report_box <- box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
@@ -541,7 +557,7 @@ body <- dashboardBody(
     tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
     tabItem(tabName = "map",
-            fluidRow(map_box)),
+            fluidRow(map_control_box, map_box)),
     # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
     tabItem(tabName = "report", fluidRow(report_box))
   )
