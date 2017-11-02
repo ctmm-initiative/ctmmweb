@@ -1835,9 +1835,10 @@ output:
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (reactive_validated(select_models_hranges())) {
-      hr_pal <- colorFactor(hue_pal(l = 40)(
-        length(select_models()$names_dt$full_name)),
-                            select_models()$names_dt$full_name)
+      hr_pal <- model_pal(select_models()$names_dt, id_pal)
+      # hr_pal <- colorFactor(hue_pal(l = 40)(
+      #   length(select_models()$names_dt$full_name)),
+      #                       select_models()$names_dt$full_name)
       leaf <- leaf %>%
         add_home_range_list(select_models_hranges(),
                             hr_pal(select_models()$names_dt$full_name),

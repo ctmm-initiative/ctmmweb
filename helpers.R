@@ -665,7 +665,8 @@ add_points <- function(leaf, dt, info, id_pal) {
                  lng = ~longitude, lat = ~latitude, radius = 0.3, weight = 2,
                  color = ~id_pal(id), opacity = 0.4, fillOpacity = 0.05)
   }
-  leaf %>% addLegend(pal = id_pal, values = info$identity)
+  leaf %>% addLegend(pal = id_pal, values = info$identity,
+                     position = "topleft")
 }
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
@@ -683,4 +684,22 @@ add_home_range_list <- function(map, hrange_list, color_list, group_vec) {
                                   color_list[[i]], group_vec[i])
   }
   return(map)
+}
+# take and return rgb strings
+vary_color <- function(base_color, count) {
+  if (count == 1) {
+    return(base_color)
+  } else {
+    hsv_vec <- rgb2hsv(col2rgb(base_color))[, 1]
+    return(hsv(hsv_vec[1], hsv_vec[2], seq(0.5, 1, length.out = count)))
+  }
+}
+# get the color mapping function for models. names_dt: identity, model_name
+model_pal <- function(names_dt, id_pal) {
+  current_dt <- copy(names_dt)
+  current_dt[, base_color := id_pal(identity)]
+  current_dt[, variation_number := seq_len(.N), by = identity]
+  current_dt[, color := vary_color(base_color, .N)[variation_number],
+             by = identity]
+  colorFactor(current_dt$color, current_dt$full_name)
 }
