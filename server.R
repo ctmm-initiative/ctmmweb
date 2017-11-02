@@ -1821,7 +1821,14 @@ output:
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/8_map.md")
   # shared basemap
-  base_map <- init_base_maps()
+  tiles_info <- list(open = c("OpenTopoMap",
+                              "Esri.WorldTopoMap", "Esri.WorldImagery"),
+                     here = c("HERE.hybridDay", "HERE.satelliteDay",
+                              "HERE.terrainDay"),
+                     here_app_id = 'ehftALetcOLjvopsXsZP',
+                     here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
+  )
+  base_map <- init_base_maps(tiles_info)
   output$point_map_holder <- renderUI(
     leafletOutput("point_map",
                   height = input$map_height)
@@ -1844,19 +1851,39 @@ output:
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
-          baseGroups = c(here_provider_names, open_provider_names),
+          baseGroups = c(tiles_info$here, tiles_info$open),
           overlayGroups = c(info$identity, select_models()$names_dt$full_name),
           options = layersControlOptions(collapsed = FALSE)
         )
     } else {
       leaf <- leaf %>%
           addLayersControl(
-            baseGroups = c(here_provider_names, open_provider_names),
+            baseGroups = c(tiles_info$here, tiles_info$open),
             overlayGroups = info$identity,
             options = layersControlOptions(collapsed = FALSE)
           )
     }
     return(leaf)
+  })
+  output$heat_map_holder <- renderUI(
+    leafletOutput("heat_map",
+                  height = input$map_height)
+  )
+  output$heat_map <- renderLeaflet({
+    # TODO LOG map
+    dt <- select_data()$data
+    base_map %>% add_heat(dt, tiles_info)
+  })
+  output$cluster_map_holder <- renderUI(
+    leafletOutput("cluster_map",
+                  height = input$map_height)
+  )
+  output$cluster_map <- renderLeaflet({
+    # TODO LOG map
+    dt <- select_data()$data
+    info <- select_data()$info
+    id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
+    base_map %>% add_cluster(dt, info, id_pal, tiles_info)
   })
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",

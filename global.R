@@ -96,11 +96,3 @@ JS.onload <- function(slider_id_vec, sci = FALSE) {
                 "}, 5)})"
                 ))
 }
-# map constants ----
-here_app_id <- 'ehftALetcOLjvopsXsZP'
-here_app_code <- 'a5oE5ewb0eH9ojahDBLUzQ'
-# need to be global because both base map and later layer control need them. They should be constant so not a problem.
-open_provider_names <- c("OpenTopoMap",
-                         "Esri.WorldTopoMap", "Esri.WorldImagery")
-here_provider_names <- c("HERE.hybridDay", "HERE.satelliteDay",
-                         "HERE.terrainDay")

@@ -640,22 +640,21 @@ build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   file.copy(zip_path, file)
 }
 # map ----
-# rely on global constants: provider_names, here_app etc
-init_base_maps <- function() {
+init_base_maps <- function(tiles_info) {
   leaf <- leaflet(options = leafletOptions(attributionControl = FALSE))
-  for (prov in here_provider_names) {
+  for (prov in tiles_info$here) {
     leaf <- leaf %>% addProviderTiles(providers[[prov]], group = prov,
                                       options = providerTileOptions(
                                         detectRetina = TRUE,
-                                        app_id = here_app_id,
-                                        app_code = here_app_code))
+                                        app_id = tiles_info$here_app_id,
+                                        app_code = tiles_info$here_app_code))
   }
-  for (prov in open_provider_names) {
+  for (prov in tiles_info$open) {
     leaf <- leaf %>% addProviderTiles(providers[[prov]], group = prov)
   }
   return(leaf)
 }
-# rely on global constants, providernames
+# the layer control need to wait home range, so not added here.
 add_points <- function(leaf, dt, info, id_pal) {
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
@@ -672,18 +671,18 @@ reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
   return(!("try-error" %in% class(res)))
 }
-add_home_range <- function(map, hrange, hr_color, group_name){
-  hrange_spdf <- sp::spTransform(SpatialPolygonsDataFrame.UD(hrange),
+add_home_range <- function(leaf, hrange, hr_color, group_name){
+  hrange_spdf <- spTransform(SpatialPolygonsDataFrame.UD(hrange),
                              CRS("+proj=longlat +datum=WGS84"))
-  addPolygons(map, data = hrange_spdf, weight = 2, fillOpacity = 0.05,
+  addPolygons(leaf, data = hrange_spdf, weight = 2, fillOpacity = 0.05,
               color = hr_color, group = group_name)
 }
-add_home_range_list <- function(map, hrange_list, color_list, group_vec) {
+add_home_range_list <- function(leaf, hrange_list, color_list, group_vec) {
   for (i in seq_along(hrange_list)) {
-    map <- map %>% add_home_range(hrange_list[[i]],
-                                  color_list[[i]], group_vec[i])
+    leaf <- leaf %>% add_home_range(hrange_list[[i]],
+                                    color_list[[i]], group_vec[i])
   }
-  return(map)
+  return(leaf)
 }
 # take and return rgb strings
 vary_color <- function(base_color, count) {
@@ -702,4 +701,28 @@ model_pal <- function(names_dt, id_pal) {
   current_dt[, color := vary_color(base_color, .N)[variation_number],
              by = identity]
   colorFactor(current_dt$color, current_dt$full_name)
+}
+# added base map layer control
+add_heat <- function(leaf, dt, tiles_info) {
+  leaf %>%
+    addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
+               blur = 8, max = 1, radius = 5) %>%
+    addLayersControl(
+      baseGroups = c(tiles_info$here, tiles_info$open),
+      options = layersControlOptions(collapsed = FALSE))
+}
+# legend can be determined so it was added. no point to add individual by layer so no individual layer control
+add_cluster <- function(leaf, dt, info, id_pal, tiles_info) {
+  leaf %>%
+    addCircleMarkers(data = dt, lng = ~longitude, lat = ~latitude,
+                     radius = 0.3, color = ~id_pal(id),
+                     clusterOptions = markerClusterOptions(
+                       maxClusterRadius = 10,
+                       disableClusteringAtZoom = 10)) %>%
+    addLegend(pal = id_pal, values = info$identity,
+              position = "topleft") %>%
+    addLayersControl(
+      baseGroups = c(tiles_info$here, tiles_info$open),
+      options = layersControlOptions(collapsed = FALSE)
+    )
 }
