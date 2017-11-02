@@ -672,7 +672,7 @@ reactive_validated <- function(reactive_value) {
   return(!("try-error" %in% class(res)))
 }
 add_home_range <- function(map, hrange, hr_color, group_name){
-  hrange_spdf <- spTransform(SpatialPolygonsDataFrame.UD(hrange),
+  hrange_spdf <- sp::spTransform(SpatialPolygonsDataFrame.UD(hrange),
                              CRS("+proj=longlat +datum=WGS84"))
   addPolygons(map, data = hrange_spdf, weight = 2, fillOpacity = 0.05,
               color = hr_color, group = group_name)
