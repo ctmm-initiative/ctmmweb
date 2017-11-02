@@ -1377,7 +1377,7 @@ output:
     } else {
       vg_lst <- select_models()$vg_list
       row_count <- select_models_layout()$row_count
-      title_vec <- select_models()$id_model
+      title_vec <- select_models()$names_dt$full_name
     }
     ctmm_list <- get_vario_ctmm_list()  # this adjust to selected models by self
     ctmm_color <- switch(input$vario_mode,
@@ -1655,6 +1655,7 @@ output:
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     selected_models_list <- selected_models_dt$model
     selected_vg_list <- select_data_vg_list()[selected_names_dt$identity]
+    selected_names_dt[, full_name := str_c(identity, " - ", model_name)]
     # LOG selected models
     log_dt_md(selected_names_dt, "Selected Models",
               on = isolate(input$record_on))
@@ -1662,8 +1663,8 @@ output:
     return(list(names_dt = selected_names_dt,
                 tele_list = selected_tele_list,
                 models_list = selected_models_list,
-                id_model =
-                  selected_names_dt[, str_c(identity, " - ", model_name)],
+                # id_model =
+                #   selected_names_dt[, str_c(identity, " - ", model_name)],
                 vg_list = selected_vg_list
                 ))
   })
@@ -1740,7 +1741,7 @@ output:
     lapply(seq_along(selected_tele_list), function(i) {
       plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
            level.UD = get_hr_levels())
-      title(select_models()$id_model[i])
+      title(select_models()$names_dt$full_name[i])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
     # LOG save pic
@@ -1766,7 +1767,7 @@ output:
           for (i in seq_along(hrange_list)) {
             writeShapefile(hrange_list[[i]], level.UD = ud_levels,
                            folder = folder_path,
-                           file = select_models()$id_model[i])
+                           file = select_models()$names_dt$full_name[i])
           }
         }
         return(write_f)
@@ -1783,11 +1784,8 @@ output:
              size = "l", file = "help/7_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
-    selected_tele_list <- select_models()$tele_list
-    ud_para_list <- align_list(selected_tele_list, select_models()$models_list)
-    # ud_calc <- function(ud_para_list) {
-    #   occurrence(ud_para_list$a, ud_para_list$b)
-    # }
+    ud_para_list <- align_list(select_models()$tele_list,
+                               select_models()$models_list)
     withProgress(print(system.time(
       res <- para_ll_ud_mem(ud_para_list))),
                  message = "Calculating Occurrence ...")
@@ -1807,10 +1805,10 @@ output:
         # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
         plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
       }, error = function(e) {
-        warning(select_models()$id_model[i], ": ", e)
+        warning(select_models()$names_dt$full_name[i], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
       })
-      title(select_models()$id_model[i])
+      title(select_models()$names_dt$full_name[i])
     })
     # LOG save pic
     log_save_vario("occurrence", select_models_layout()$row_count,
@@ -1832,20 +1830,21 @@ output:
     # TODO LOG map
     dt <- select_data()$data
     info <- select_data()$info
-    id_pal <- colorFactor(hue_pal()(length(info$identity)), dt$id)
+    id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
     withProgress(leaf <- base_map %>% add_points(dt, info, id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (reactive_validated(select_models_hranges())) {
-      hr_pal <- colorFactor(hue_pal(l = 40)(length(select_models()$id_model)),
-                            select_models()$id_model)
+      hr_pal <- colorFactor(hue_pal(l = 40)(
+        length(select_models()$names_dt$full_name)),
+                            select_models()$names_dt$full_name)
       leaf <- leaf %>%
         add_home_range_list(select_models_hranges(),
-                            hr_pal(select_models()$id_model),
-                            select_models()$id_model) %>%
+                            hr_pal(select_models()$names_dt$full_name),
+                            select_models()$names_dt$full_name) %>%
         addLayersControl(
           baseGroups = c(here_provider_names, open_provider_names),
-          overlayGroups = c(info$identity, select_models()$id_model),
+          overlayGroups = c(info$identity, select_models()$names_dt$full_name),
           options = layersControlOptions(collapsed = FALSE)
         )
     } else {
