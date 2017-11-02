@@ -1364,7 +1364,7 @@ output:
     switch(input$vario_mode,
            empirical = NULL,
            guesstimate = values$selected_data_guess_list,
-           modeled = select_models()$models
+           modeled = select_models()$models_list
            )
   })
   # plot variograms ----
@@ -1377,7 +1377,7 @@ output:
     } else {
       vg_lst <- select_models()$vg_list
       row_count <- select_models_layout()$row_count
-      title_vec <- select_models()$dt[, paste0(identity, " - ", model_name)]
+      title_vec <- select_models()$id_model
     }
     ctmm_list <- get_vario_ctmm_list()  # this adjust to selected models by self
     ctmm_color <- switch(input$vario_mode,
@@ -1642,33 +1642,35 @@ output:
   select_models <- reactive({
     # req(!is.null(values$selected_data_model_fit_res))
     req(length(input$model_fit_summary_rows_selected) > 0)
+    # sort the rows selected so same individual models are together
+    rows_selected_sorted <- sort(input$model_fit_summary_rows_selected)
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
-    selected_dt <- unique(model_summary_dt[input$model_fit_summary_rows_selected,
+    selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
                                            .(identity, model_name)])
     # selections can be any order, need to avoid sort to keep the proper model order
-    selected_models_dt <- merge(selected_dt, summary_models()$models_dt,
+    selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
                                 by = c("identity", "model_name"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
-    selected_tele_list <- select_data()$tele_list[selected_dt$identity]
-    selected_models <- selected_models_dt$model
-    selected_vg_list <- select_data_vg_list()[selected_dt$identity]
+    selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
+    selected_models_list <- selected_models_dt$model
+    selected_vg_list <- select_data_vg_list()[selected_names_dt$identity]
     # LOG selected models
-    log_dt_md(selected_dt, "Selected Models",
+    log_dt_md(selected_names_dt, "Selected Models",
               on = isolate(input$record_on))
     # must make sure all items in same order
-    return(list(dt = selected_dt,
+    return(list(names_dt = selected_names_dt,
                 tele_list = selected_tele_list,
-                models = selected_models,
+                models_list = selected_models_list,
                 id_model =
-                  selected_models_dt[, str_c(identity, " - ", model_name)],
+                  selected_names_dt[, str_c(identity, " - ", model_name)],
                 vg_list = selected_vg_list
                 ))
   })
   # select_models_layout() ----
   # even the control parameter is same with variogram, the total number could be different
   select_models_layout <- reactive({
-    fig_count <- length(select_models()$models)
+    fig_count <- length(select_models()$models_list)
     row_count <- ceiling(fig_count / input$vario_columns)
     height <- input$vario_height * row_count
     # return(list(layout_matrix = layout_matrix, height = height))
@@ -1682,18 +1684,18 @@ output:
     req(select_models())
     withProgress(print(system.time(
       res <- akde_mem(select_models()$tele_list,
-                      CTMM = select_models()$models))),
+                      CTMM = select_models()$models_list))),
       message = "Calculating Home Range ...")
     # res
     # withProgress(res <- akde_mem(select_models()$tele_list,
-    #                          CTMM = select_models()$models),
+    #                          CTMM = select_models()$models_list),
     #              message = "Calculating home range ...")
     return(res)
   })
   # home range summary ----
   output$range_summary <- DT::renderDataTable({
     hrange_summary_dt <- model_list_dt_to_model_summary_dt(
-      build_hrange_list_dt(select_models()$dt, select_models_hranges()))
+      build_hrange_list_dt(select_models()$names_dt, select_models_hranges()))
     dt <- format_hrange_summary_dt(hrange_summary_dt)
     dt[, model_no := NULL]
     # LOG home range summary
@@ -1738,7 +1740,7 @@ output:
     lapply(seq_along(selected_tele_list), function(i) {
       plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
            level.UD = get_hr_levels())
-      title(select_models()$dt[i, paste0(identity, " - ", model_name)])
+      title(select_models()$id_model[i])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
     # LOG save pic
@@ -1782,7 +1784,7 @@ output:
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
     selected_tele_list <- select_models()$tele_list
-    ud_para_list <- align_list(selected_tele_list, select_models()$models)
+    ud_para_list <- align_list(selected_tele_list, select_models()$models_list)
     # ud_calc <- function(ud_para_list) {
     #   occurrence(ud_para_list$a, ud_para_list$b)
     # }
@@ -1805,10 +1807,10 @@ output:
         # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
         plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
       }, error = function(e) {
-        warning(select_models()$dt[i, paste0(identity, " - ", model_name)], ": ", e)
+        warning(select_models()$id_model[i], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
       })
-      title(select_models()$dt[i, paste0(identity, " - ", model_name)])
+      title(select_models()$id_model[i])
     })
     # LOG save pic
     log_save_vario("occurrence", select_models_layout()$row_count,
@@ -1881,6 +1883,7 @@ output:
                         values$selected_data_model_fit_res,
                       selected_data_guess_list =
                         values$selected_data_guess_list,
+                      # didn't sort this, need to sort it when restoring
                       model_fit_summary_rows_selected =
                         input$model_fit_summary_rows_selected
                       )
