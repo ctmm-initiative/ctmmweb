@@ -60,7 +60,7 @@ server <- function(input, output, session) {
   }
   log_save_ggplot <- function(g, f_name, on = TRUE) {
     if (!on) return(g)
-    ggsave(filename = log_prepare_plot(f_name), plot = g)
+    print(system.time(ggsave(filename = log_prepare_plot(f_name), plot = g)))
     return(g)
   }
   # only used for variogram, with specific format and parameters, some came from input
@@ -683,7 +683,6 @@ output:
     #                             nrow = fig_count / input$plot4_col,
     #                             ncol = input$plot4_col, byrow = TRUE))
     gr <- grid.arrange(grobs = g_list, ncol = input$plot4_col)
-
     # LOG save pic
     log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
@@ -1885,6 +1884,36 @@ output:
     id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
     base_map %>% add_cluster(dt, info, id_pal, tiles_info)
   })
+  # need a history list of tabs, from tab switching and page switching
+  values$map_tab_history <- NULL
+  # first map page view ----
+  # check data size, switch to heatmap if too big. this only happen when moving into map page. Later there is no limit
+  observeEvent(input$tabs, {
+    if (input$tabs == "map") {
+      values$map_tab_history <- list(previous = NULL,
+                                     current = input$map_tabs)
+      # print(values$map_tab_history)
+      # the point map bounds may still hold previous values and cause heatmap to update bounds? 1. small map with both tab updated, keep in heatmap tab 2. change to bigger data, switch to map page.
+      cat("pointmap: ", unlist(input$point_map_bounds), "\n")
+    }
+  })
+  # map tab switching ----
+  # set new tab map bounds/zoom to value of previous tab
+
+  observeEvent(input$map_tabs, {
+    values$map_tab_history$previous <- values$map_tab_history$current
+    values$map_tab_history$current <- input$map_tabs
+    # print(values$map_tab_history)
+    cat(input$map_tabs, "\n")
+    # the map bounds may not be updated yet in map initialization
+    cat("heatmap: ", unlist(input$heat_map_bounds), "\n")
+    cat("pointmap: ", unlist(input$point_map_bounds), "\n")
+
+  })
+  # reset map view ----
+
+  # save map ----
+
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/9_work_report.md")
