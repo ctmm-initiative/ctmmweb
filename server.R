@@ -1905,7 +1905,7 @@ output:
     values$map_tab_history$current <- input$map_tabs
     # print(values$map_tab_history)
     cat(input$map_tabs, "\n")
-    # the map bounds may not be updated yet in map initialization
+    # the map bounds may not be updated yet in map initialization. only access the previous map bounds after switching, that should be up to date.
     cat("heatmap: ", unlist(input$heat_map_bounds), "\n")
     cat("pointmap: ", unlist(input$point_map_bounds), "\n")
 
