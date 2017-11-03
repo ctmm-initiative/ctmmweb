@@ -671,16 +671,24 @@ reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
   return(!("try-error" %in% class(res)))
 }
-add_home_range <- function(leaf, hrange, level.UD, hr_color, group_name){
+add_home_range <- function(leaf, hrange, hr_levels, hr_color, group_name){
   hrange_spdf <- spTransform(SpatialPolygonsDataFrame.UD(hrange,
-                                                         level.UD = level.UD),
+                                                         level.UD = hr_levels),
                              CRS("+proj=longlat +datum=WGS84"))
-  addPolygons(leaf, data = hrange_spdf, weight = 2, fillOpacity = 0.05,
-              color = hr_color, group = group_name)
+  ML_indice <- seq(2, length(hrange_spdf), by = 3)
+  hrange_spdf_ML <- hrange_spdf[ML_indice, ]
+  hrange_spdf_other <- hrange_spdf[-ML_indice, ]
+  leaf %>%
+    addPolygons(data = hrange_spdf_ML, weight = 2.2, opacity = 0.7,
+                fillOpacity = 0.05, color = hr_color, group = group_name) %>%
+    addPolygons(data = hrange_spdf_other, weight = 1.2, opacity = 0.4,
+                fillOpacity = 0.05, color = hr_color, group = group_name)
 }
-add_home_range_list <- function(leaf, hrange_list, level.UD, color_list, group_vec) {
+# given a map object, add layers and return the map object
+add_home_range_list <- function(leaf, hrange_list, hr_levels,
+                                color_list, group_vec) {
   for (i in seq_along(hrange_list)) {
-    leaf <- leaf %>% add_home_range(hrange_list[[i]], level.UD,
+    leaf <- leaf %>% add_home_range(hrange_list[[i]], hr_levels,
                                     color_list[[i]], group_vec[i])
   }
   return(leaf)
