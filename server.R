@@ -1846,7 +1846,7 @@ output:
       #   length(select_models()$names_dt$full_name)),
       #                       select_models()$names_dt$full_name)
       leaf <- leaf %>%
-        add_home_range_list(select_models_hranges(),
+        add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
@@ -1890,24 +1890,24 @@ output:
   # check data size, switch to heatmap if too big. this only happen when moving into map page. Later there is no limit
   observeEvent(input$tabs, {
     if (input$tabs == "map") {
-      values$map_tab_history <- list(previous = NULL,
-                                     current = input$map_tabs)
+      # values$map_tab_history <- list(previous = NULL,
+      #                                current = input$map_tabs)
       # print(values$map_tab_history)
       # the point map bounds may still hold previous values and cause heatmap to update bounds? 1. small map with both tab updated, keep in heatmap tab 2. change to bigger data, switch to map page.
-      cat("pointmap: ", unlist(input$point_map_bounds), "\n")
+      # cat("pointmap: ", unlist(input$point_map_bounds), "\n")
     }
   })
   # map tab switching ----
   # set new tab map bounds/zoom to value of previous tab
 
   observeEvent(input$map_tabs, {
-    values$map_tab_history$previous <- values$map_tab_history$current
-    values$map_tab_history$current <- input$map_tabs
-    # print(values$map_tab_history)
-    cat(input$map_tabs, "\n")
+    # values$map_tab_history$previous <- values$map_tab_history$current
+    # values$map_tab_history$current <- input$map_tabs
+    # # print(values$map_tab_history)
+    # cat(input$map_tabs, "\n")
     # the map bounds may not be updated yet in map initialization. only access the previous map bounds after switching, that should be up to date.
-    cat("heatmap: ", unlist(input$heat_map_bounds), "\n")
-    cat("pointmap: ", unlist(input$point_map_bounds), "\n")
+    # cat("heatmap: ", unlist(input$heat_map_bounds), "\n")
+    # cat("pointmap: ", unlist(input$point_map_bounds), "\n")
 
   })
   # reset map view ----
