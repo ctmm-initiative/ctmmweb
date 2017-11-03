@@ -1885,11 +1885,16 @@ output:
     base_map %>% add_cluster(dt, info, id_pal, tiles_info)
   })
   # need a history list of tabs, from tab switching and page switching
-  values$map_tab_history <- NULL
+  # values$map_tab_history <- NULL
   # first map page view ----
   # check data size, switch to heatmap if too big. this only happen when moving into map page. Later there is no limit
   observeEvent(input$tabs, {
     if (input$tabs == "map") {
+      # buffalo 17k, gulls 32k start to be slow. set threshold to 25k.
+      # cat(nrow(select_data()$data), "\n")
+      if (nrow(select_data()$data) > 25000) {
+        updateTabsetPanel(session, "map_tabs", selected = "heat_map")
+      }
       # values$map_tab_history <- list(previous = NULL,
       #                                current = input$map_tabs)
       # print(values$map_tab_history)
