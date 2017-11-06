@@ -565,6 +565,8 @@ format_model_summary_dt <- function(model_summary_dt) {
          c("tau velocity", "speed") := ""]
   res_dt[str_detect(estimate, "CI"),
          c("DOF mean", "DOF area") := NA_real_]
+  # add model full name col so it can be used to create model color palette
+  res_dt[, full_name := str_c(identity, " - ", model_name)]
 }
 # from akde result model list to data table with models in list column
 build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {
@@ -706,18 +708,27 @@ vary_color <- function(base_color, count) {
     return(base_color)
   } else {
     hsv_vec <- rgb2hsv(col2rgb(base_color))[, 1]
-    return(hsv(hsv_vec[1], hsv_vec[2], seq(0.5, 1, length.out = count)))
+    return(hsv(hsv_vec[1], hsv_vec[2], seq(1, 0.5, length.out = count)))
   }
 }
 # get the color mapping function for models. names_dt: identity, model_name
-model_pal <- function(names_dt, id_pal) {
-  current_dt <- copy(names_dt)
-  current_dt[, base_color := id_pal(identity)]
-  current_dt[, variation_number := seq_len(.N), by = identity]
-  current_dt[, color := vary_color(base_color, .N)[variation_number],
-             by = identity]
-  colorFactor(current_dt$color, current_dt$full_name)
-}
+# let's prepare model color right after all models calculated, also prepare id_pal function
+# model_colors <- function(model_full_names_dt, id_pal) {
+#   current_dt <- copy(model_full_names_dt)
+#   current_dt[, base_color := id_pal(identity)]
+#   current_dt[, variation_number := seq_len(.N), by = identity]
+#   current_dt[, color := vary_color(base_color, .N)[variation_number],
+#              by = identity]
+#   colorFactor(current_dt$color, current_dt$full_name)
+# }
+# model_pal <- function(names_dt, id_pal) {
+#   current_dt <- copy(names_dt)
+#   current_dt[, base_color := id_pal(identity)]
+#   current_dt[, variation_number := seq_len(.N), by = identity]
+#   current_dt[, color := vary_color(base_color, .N)[variation_number],
+#              by = identity]
+#   colorFactor(current_dt$color, current_dt$full_name)
+# }
 # added base map layer control
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%

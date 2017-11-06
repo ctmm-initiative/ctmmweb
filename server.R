@@ -628,7 +628,7 @@ output:
                  size = input$point_size_1, alpha = 0.7) +
       coord_fixed(xlim = location_plot_gg_range$x,
                   ylim = location_plot_gg_range$y) +
-      factor_color(animals_dt$id) +
+      factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
       scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
       scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
       theme(legend.position = "top",
@@ -1588,6 +1588,19 @@ output:
       formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
     }
+    # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table
+    model_full_names_dt <- unique(formated_summary_dt[,
+                            .(identity, model_name, full_name)])
+    # prepare model color, identity color function
+    id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
+                          unique(values$data$merged$data$id))
+    model_full_names_dt[, base_color := id_pal(identity)]
+    model_full_names_dt[, variation_number := seq_len(.N), by = identity]
+    model_full_names_dt[, color := vary_color(base_color, .N)[variation_number],
+                        by = identity]
+    # need ordered = TRUE for character vector not being factor yet.
+    hr_pal <- colorFactor(model_full_names_dt$color,
+                          model_full_names_dt$full_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # we don't want the row number to show in the final table
     dt <- copy(formated_summary_dt)
@@ -1596,14 +1609,17 @@ output:
     first_models <- dt[, row_no[model_position], by = identity]$V1
     return(list(models_dt = models_dt,
                 summary_dt = formated_summary_dt,
+                id_pal = id_pal,
+                hr_pal = hr_pal,
                 first_models = first_models))
   })
   # model summary ----
   output$model_fit_summary <- DT::renderDataTable({
     # should not need to use req on reactive expression if that expression have req inside.
-    dt <- summary_models()$summary_dt
-    # delete extra col here so it will not be shown, but we can still use them in code because the reactive expression still have it.
+    dt <- copy(summary_models()$summary_dt)
+    # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
     dt[, model_no := NULL]
+    dt[, full_name := NULL]
     # LOG fitted models
     log_dt_md(dt, "Fitted Models", on = isolate(input$record_on))
     # need the full info table to keep the color mapping when only a subset is selected
@@ -1646,7 +1662,7 @@ output:
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
-                                           .(identity, model_name)])
+                                           .(identity, model_name, full_name)])
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
                                 by = c("identity", "model_name"), sort = FALSE)
@@ -1654,7 +1670,7 @@ output:
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     selected_models_list <- selected_models_dt$model
     selected_vg_list <- select_data_vg_list()[selected_names_dt$identity]
-    selected_names_dt[, full_name := str_c(identity, " - ", model_name)]
+    # selected_names_dt[, full_name := str_c(identity, " - ", model_name)]
     # LOG selected models
     log_dt_md(selected_names_dt, "Selected Models",
               on = isolate(input$record_on))
@@ -1836,15 +1852,17 @@ output:
     # TODO LOG map
     dt <- select_data()$data
     info <- select_data()$info
-    id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
+    # the color pallete need to be built upon full data set, not current subset
+    # id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
+    #                       values$data$merged$data$identity)
+    id_pal <- summary_models()$id_pal
     withProgress(leaf <- base_map %>% add_points(dt, info, id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (reactive_validated(select_models_hranges())) {
-      hr_pal <- model_pal(select_models()$names_dt, id_pal)
-      # hr_pal <- colorFactor(hue_pal(l = 40)(
-      #   length(select_models()$names_dt$full_name)),
-      #                       select_models()$names_dt$full_name)
+      # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
+      # hr_pal <- model_pal(summary_models()$model_full_names_dt, id_pal)
+      hr_pal <- summary_models()$hr_pal
       leaf <- leaf %>%
         add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
