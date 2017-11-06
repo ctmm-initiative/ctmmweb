@@ -683,7 +683,7 @@ add_points <- function(leaf, dt, info, id_pal) {
       primaryLengthUnit = "meters",
       primaryAreaUnit = "sqmeters",
       activeColor = "#3D535D",
-      completedColor = "#7D4479")
+      completedColor = "#e74c3c")
 }
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
