@@ -1870,14 +1870,15 @@ output:
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
-          overlayGroups = c(info$identity, select_models()$names_dt$full_name),
+          overlayGroups = c("_Graticule_", info$identity,
+                            select_models()$names_dt$full_name),
           options = layersControlOptions(collapsed = FALSE)
         )
     } else {
       leaf <- leaf %>%
           addLayersControl(
             baseGroups = c(tiles_info$here, tiles_info$open),
-            overlayGroups = info$identity,
+            overlayGroups = c("_Graticule_", info$identity),
             options = layersControlOptions(collapsed = FALSE)
           )
     }

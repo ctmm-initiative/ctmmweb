@@ -665,6 +665,7 @@ init_base_maps <- function(tiles_info) {
 }
 # the layer control need to wait home range, so not added here.
 add_points <- function(leaf, dt, info, id_pal) {
+  leaf <- leaf %>% addGraticule(interval = 1, group = "_Graticule_")
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
   for (current_id in info$identity) {
@@ -676,7 +677,13 @@ add_points <- function(leaf, dt, info, id_pal) {
   leaf %>%
     addLegend(pal = id_pal, values = info$identity,
                      position = "topleft") %>%
-    addScaleBar(position = "bottomleft")
+    addScaleBar(position = "bottomleft") %>%
+    addMeasure(
+      position = "bottomright",
+      primaryLengthUnit = "meters",
+      primaryAreaUnit = "sqmeters",
+      activeColor = "#3D535D",
+      completedColor = "#7D4479")
 }
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
@@ -734,12 +741,20 @@ vary_color <- function(base_color, count) {
 # added base map layer control
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%
+    addGraticule(interval = 1, group = "_Graticule_") %>%
     addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
-               blur = 8, max = 1, radius = 5) %>%
+               blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
+    addScaleBar(position = "bottomleft") %>%
+    addMeasure(
+      position = "bottomright",
+      primaryLengthUnit = "meters",
+      primaryAreaUnit = "sqmeters",
+      activeColor = "#3D535D",
+      completedColor = "#7D4479") %>%
     addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
-      options = layersControlOptions(collapsed = FALSE)) %>%
-    addScaleBar(position = "bottomleft")
+      overlayGroups = c("_Graticule_", "Heatmap"),
+      options = layersControlOptions(collapsed = FALSE))
 }
 # legend can be determined so it was added. no point to add individual by layer so no individual layer control
 # add_cluster <- function(leaf, dt, info, id_pal, tiles_info) {
