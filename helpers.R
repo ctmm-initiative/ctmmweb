@@ -504,6 +504,12 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
   models_dt[, model := list(list(model_fit_res[[identity]][[model_name]])),
             by = 1:nrow(models_dt)]
   models_dt[, model_no := .I]
+  # also add the AICc col
+  get_aicc_col <- function(model_list) {
+    res <- summary(model_list, units = FALSE)
+    data.frame(res)$dAICc
+  }
+  models_dt[, dAICc := get_aicc_col(model), by = identity]
 }
 model_list_dt_to_model_summary_dt <- function(models_dt) {
   # make copy first because we will remove column later
@@ -513,7 +519,7 @@ model_list_dt_to_model_summary_dt <- function(models_dt) {
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
+  res_dt <- merge(models_dt[, .(identity, model_name, model_no, dAICc)],
                   model_summary_dt,
                   by = "model_no")
   # res_dt[, color_target := str_c(identity, " - " , estimate)]
@@ -541,6 +547,7 @@ format_model_summary_dt <- function(model_summary_dt) {
   # round up dof mean, area
   dt[, `DOF mean` := round(`DOF mean`, 3)]
   dt[, `DOF area` := round(`DOF area`, 3)]
+  dt[, dAICc := round(dAICc, 3)]
   format_f_list <- lapply(names(dt), function(col_name) {
     switch(col_name,
        area = format_area_f(dt[[col_name]], round = TRUE),
