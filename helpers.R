@@ -673,8 +673,10 @@ add_points <- function(leaf, dt, info, id_pal) {
                  lng = ~longitude, lat = ~latitude, radius = 0.3, weight = 2,
                  color = ~id_pal(id), opacity = 0.4, fillOpacity = 0.05)
   }
-  leaf %>% addLegend(pal = id_pal, values = info$identity,
-                     position = "topleft")
+  leaf %>%
+    addLegend(pal = id_pal, values = info$identity,
+                     position = "topleft") %>%
+    addScaleBar(position = "bottomleft")
 }
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
@@ -736,7 +738,8 @@ add_heat <- function(leaf, dt, tiles_info) {
                blur = 8, max = 1, radius = 5) %>%
     addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
-      options = layersControlOptions(collapsed = FALSE))
+      options = layersControlOptions(collapsed = FALSE)) %>%
+    addScaleBar(position = "bottomleft")
 }
 # legend can be determined so it was added. no point to add individual by layer so no individual layer control
 # add_cluster <- function(leaf, dt, info, id_pal, tiles_info) {
