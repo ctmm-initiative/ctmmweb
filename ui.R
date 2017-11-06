@@ -480,7 +480,7 @@ occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
 # p8. map ----
-map_control_box <- box(title = "Map Controls", status = "info",
+map_control_box <- box(title = "Map Controls", status = "primary",
                            solidHeader = TRUE, width = 12,
   fluidRow(column(3, offset = 1,
                   numericInput("map_height", "Map Height", 600,
@@ -488,16 +488,31 @@ map_control_box <- box(title = "Map Controls", status = "info",
            column(2, offset = 5, br(), help_button("map"))
   ))
 map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
-                  height = styles$height_map_box,
-# p8.a points ----
   tabPanel("Point",
            # use uiOutput because the height is determined in leafletOutput, so we need to move it to server side.
            fluidRow(column(12, uiOutput("point_map_holder")))),
   tabPanel("Heatmap",
-           fluidRow(column(12, uiOutput("heat_map_holder")))),
-  tabPanel("Cluster",
-           fluidRow(column(12, uiOutput("cluster_map_holder"))))
+           fluidRow(column(12, uiOutput("heat_map_holder"))))
+  # ,
+  # tabPanel("Cluster",
+  #          fluidRow(column(12, uiOutput("cluster_map_holder"))))
 )
+# map_box <- uiOutput("map_box")
+# tabsetpanel
+# map_box <- box(title = "Maps", status = "info",
+#                solidHeader = TRUE, width = 12,
+#                tabsetPanel(
+#                  tabPanel("Point",
+#                           # use uiOutput because the height is determined in leafletOutput, so we need to move it to server side.
+#                           fluidRow(column(12, uiOutput("point_map_holder")))),
+#                  tabPanel("Heatmap",
+#                           fluidRow(column(12, uiOutput("heat_map_holder")))),
+#                  tabPanel("Cluster",
+#                           fluidRow(column(12, uiOutput("cluster_map_holder")))),
+#                  id = "map_tabs"
+#                )
+#
+# )
 
 # p9. work report ----
 report_box <- box(title = "Report", status = "info",

@@ -1820,10 +1820,10 @@ output:
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/8_map.md")
   # shared basemap
-  tiles_info <- list(open = c("OpenTopoMap",
+  tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
+                              "HERE.hybridDay"),
+                     open = c("OpenTopoMap",
                               "Esri.WorldTopoMap", "Esri.WorldImagery"),
-                     here = c("HERE.hybridDay", "HERE.satelliteDay",
-                              "HERE.terrainDay"),
                      here_app_id = 'ehftALetcOLjvopsXsZP',
                      here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
   )
@@ -1877,13 +1877,13 @@ output:
     leafletOutput("cluster_map",
                   height = input$map_height)
   )
-  output$cluster_map <- renderLeaflet({
-    # TODO LOG map
-    dt <- select_data()$data
-    info <- select_data()$info
-    id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
-    base_map %>% add_cluster(dt, info, id_pal, tiles_info)
-  })
+  # output$cluster_map <- renderLeaflet({
+  #   # TODO LOG map
+  #   dt <- select_data()$data
+  #   info <- select_data()$info
+  #   id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
+  #   base_map %>% add_cluster(dt, info, id_pal, tiles_info)
+  # })
   # need a history list of tabs, from tab switching and page switching
   # values$map_tab_history <- NULL
   # first map page view ----
@@ -1893,7 +1893,8 @@ output:
       # buffalo 17k, gulls 32k start to be slow. set threshold to 25k.
       # cat(nrow(select_data()$data), "\n")
       if (nrow(select_data()$data) > 25000) {
-        updateTabsetPanel(session, "map_tabs", selected = "heat_map")
+        # need the tab title to identify tab
+        updateTabsetPanel(session, "map_tabs", selected = "Heatmap")
       }
       # values$map_tab_history <- list(previous = NULL,
       #                                current = input$map_tabs)

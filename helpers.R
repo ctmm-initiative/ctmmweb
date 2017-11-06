@@ -721,17 +721,17 @@ add_heat <- function(leaf, dt, tiles_info) {
       options = layersControlOptions(collapsed = FALSE))
 }
 # legend can be determined so it was added. no point to add individual by layer so no individual layer control
-add_cluster <- function(leaf, dt, info, id_pal, tiles_info) {
-  leaf %>%
-    addCircleMarkers(data = dt, lng = ~longitude, lat = ~latitude,
-                     radius = 0.3, color = ~id_pal(id),
-                     clusterOptions = markerClusterOptions(
-                       maxClusterRadius = 10,
-                       disableClusteringAtZoom = 10)) %>%
-    addLegend(pal = id_pal, values = info$identity,
-              position = "topleft") %>%
-    addLayersControl(
-      baseGroups = c(tiles_info$here, tiles_info$open),
-      options = layersControlOptions(collapsed = FALSE)
-    )
-}
+# add_cluster <- function(leaf, dt, info, id_pal, tiles_info) {
+#   leaf %>%
+#     addCircleMarkers(data = dt, lng = ~longitude, lat = ~latitude,
+#                      radius = 0.3, color = ~id_pal(id),
+#                      clusterOptions = markerClusterOptions(
+#                        maxClusterRadius = 10,
+#                        disableClusteringAtZoom = 10)) %>%
+#     addLegend(pal = id_pal, values = info$identity,
+#               position = "topleft") %>%
+#     addLayersControl(
+#       baseGroups = c(tiles_info$here, tiles_info$open),
+#       options = layersControlOptions(collapsed = FALSE)
+#     )
+# }
