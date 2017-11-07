@@ -491,7 +491,7 @@ map_control_box <- box(title = "Map Controls", status = "primary",
            column(3, offset = 1, br(), help_button("map"))),
   fluidRow(
     column(3, actionButton("reset_view", "Reset Map View",
-                           icon = icon("pie-chart"),
+                           icon = icon("ban"),
                            style = styles$page_action)),
     column(3, offset = 6, downloadButton("save_map",
                                          "Save Current Map",

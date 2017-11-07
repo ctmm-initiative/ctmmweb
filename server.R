@@ -1929,8 +1929,18 @@ output:
     }
   })
   # map tab switching ----
-  # set new tab map bounds/zoom to value of previous tab
-
+  # for debug: print current values when clicked on map
+  # observeEvent(input$heat_map_click, {
+  #   cat("heatmap\n")
+  #   print(input$heat_map_zoom)
+  #   print(unlist(input$heat_map_bounds))
+  # })
+  # observeEvent(input$point_map_click, {
+  #   cat("points\n")
+  #   print(input$point_map_zoom)
+  #   print(unlist(input$point_map_bounds))
+  # })
+  # ~set new tab map bounds/zoom to value of previous tab~ just apply heatmap bounds to point if enabled
   observeEvent(input$map_tabs, {
     # values$map_tab_history$previous <- values$map_tab_history$current
     # values$map_tab_history$current <- input$map_tabs
@@ -1939,7 +1949,18 @@ output:
     # the map bounds may not be updated yet in map initialization. only access the previous map bounds after switching, that should be up to date.
     # cat("heatmap: ", unlist(input$heat_map_bounds), "\n")
     # cat("pointmap: ", unlist(input$point_map_bounds), "\n")
-
+    if (input$apply_heat_to_point && (input$map_tabs == "Point")) {
+      # browser()
+      # center_lng <- mean(input$heat_map_bounds$east, input$heat_map_bounds$west)
+      # center_lat <- mean(input$heat_map_bounds$north,
+      #                    input$heat_map_bounds$south)
+      leafletProxy("point_map", session) %>%
+        # fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
+        #           input$heat_map_bounds$west, input$heat_map_bounds$south)
+        # setView(NULL, NULL, zoom = input$heat_map_zoom) %>%
+        fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
+                  input$heat_map_bounds$west, input$heat_map_bounds$south)
+    }
   })
   # reset map view ----
 
