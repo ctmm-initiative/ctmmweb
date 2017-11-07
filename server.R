@@ -1965,8 +1965,10 @@ output:
   })
   # reset map view ----
   observeEvent(input$reset_map_view, {
+    # fitBounds will have some allowance so no need to add padding here.
+    bounds <- get_bounds(select_data()$data)
     leafletProxy(map_name_by_tab[[input$map_tabs]], session) %>%
-      clearBounds()
+      fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
   })
   # save map ----
 

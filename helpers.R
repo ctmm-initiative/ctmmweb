@@ -750,3 +750,7 @@ add_heat <- function(leaf, dt, tiles_info) {
       overlayGroups = c(grid_group, "Heatmap"),
       options = layersControlOptions(collapsed = FALSE))
 }
+get_bounds <- function(dt) {
+  return(list(lng1 = min(dt$longitude), lat1 = min(dt$latitude),
+              lng2 = max(dt$longitude), lat2 = max(dt$latitude)))
+}
