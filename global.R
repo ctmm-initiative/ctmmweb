@@ -44,6 +44,7 @@ styles <- list(
   # info box blue #00c0ef
 )
 grid_group <- "_graticule_"
+draw_group <- "_draw with measure_"
 # UI modules ----
 help_button <- function(module_id) {
   prefix <- NS(module_id)

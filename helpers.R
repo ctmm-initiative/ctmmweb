@@ -680,12 +680,18 @@ add_points <- function(leaf, dt, info, id_pal) {
     addLegend(pal = id_pal, values = info$identity,
                      position = "topleft") %>%
     addScaleBar(position = "bottomleft") %>%
-    addMeasure(
-      position = "bottomright",
-      primaryLengthUnit = "meters",
-      primaryAreaUnit = "sqmeters",
-      activeColor = "#3D535D",
-      completedColor = "#e74c3c")
+    addDrawToolbar(targetGroup = draw_group,
+                   editOptions = editToolbarOptions(
+                     selectedPathOptions = selectedPathOptions())) %>%
+    addMeasurePathToolbar(options =
+                            measurePathOptions(showOnHover = FALSE,
+                                               minPixelDistance = 100))
+    # addMeasure(
+    #   position = "bottomright",
+    #   primaryLengthUnit = "meters",
+    #   primaryAreaUnit = "sqmeters",
+    #   activeColor = "#3D535D",
+    #   completedColor = "#e74c3c")
 }
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
@@ -722,24 +728,6 @@ vary_color <- function(base_color, count) {
     return(hsv(hsv_vec[1], hsv_vec[2], seq(1, 0.5, length.out = count)))
   }
 }
-# get the color mapping function for models. names_dt: identity, model_name
-# let's prepare model color right after all models calculated, also prepare id_pal function
-# model_colors <- function(model_full_names_dt, id_pal) {
-#   current_dt <- copy(model_full_names_dt)
-#   current_dt[, base_color := id_pal(identity)]
-#   current_dt[, variation_number := seq_len(.N), by = identity]
-#   current_dt[, color := vary_color(base_color, .N)[variation_number],
-#              by = identity]
-#   colorFactor(current_dt$color, current_dt$full_name)
-# }
-# model_pal <- function(names_dt, id_pal) {
-#   current_dt <- copy(names_dt)
-#   current_dt[, base_color := id_pal(identity)]
-#   current_dt[, variation_number := seq_len(.N), by = identity]
-#   current_dt[, color := vary_color(base_color, .N)[variation_number],
-#              by = identity]
-#   colorFactor(current_dt$color, current_dt$full_name)
-# }
 # added base map layer control
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%
@@ -759,18 +747,3 @@ add_heat <- function(leaf, dt, tiles_info) {
       overlayGroups = c(grid_group, "Heatmap"),
       options = layersControlOptions(collapsed = FALSE))
 }
-# legend can be determined so it was added. no point to add individual by layer so no individual layer control
-# add_cluster <- function(leaf, dt, info, id_pal, tiles_info) {
-#   leaf %>%
-#     addCircleMarkers(data = dt, lng = ~longitude, lat = ~latitude,
-#                      radius = 0.3, color = ~id_pal(id),
-#                      clusterOptions = markerClusterOptions(
-#                        maxClusterRadius = 10,
-#                        disableClusteringAtZoom = 10)) %>%
-#     addLegend(pal = id_pal, values = info$identity,
-#               position = "topleft") %>%
-#     addLayersControl(
-#       baseGroups = c(tiles_info$here, tiles_info$open),
-#       options = layersControlOptions(collapsed = FALSE)
-#     )
-# }
