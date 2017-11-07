@@ -1849,6 +1849,7 @@ output:
     leafletOutput("point_map",
                   height = input$map_height)
   )
+  # point map ----
   output$point_map <- renderLeaflet({
     # TODO LOG map
     dt <- select_data()$data
@@ -1963,7 +1964,10 @@ output:
     }
   })
   # reset map view ----
-
+  observeEvent(input$reset_map_view, {
+    leafletProxy(map_name_by_tab[[input$map_tabs]], session) %>%
+      clearBounds()
+  })
   # save map ----
 
   # p9. report ----
