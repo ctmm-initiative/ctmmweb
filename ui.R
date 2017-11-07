@@ -482,10 +482,20 @@ occurrence_plot_box <- box(title = "Occurrence Distribution", status = "info",
 # p8. map ----
 map_control_box <- box(title = "Map Controls", status = "primary",
                            solidHeader = TRUE, width = 12,
-  fluidRow(column(3, offset = 1,
+  fluidRow(column(2, offset = 0,
                   numericInput("map_height", "Map Height", 600,
                                min = 400, max = 2000, step = 100)),
-           column(2, offset = 5, br(), help_button("map"))
+           column(5, offset = 1, br(), checkboxInput("apply_heat_to_point",
+                                   "Apply Heatmap Range to Point Map",
+                                   value = TRUE)),
+           column(3, offset = 1, br(), help_button("map"))),
+  fluidRow(
+    column(3, actionButton("reset_view", "Reset Map View",
+                           icon = icon("pie-chart"),
+                           style = styles$page_action)),
+    column(3, offset = 6, downloadButton("save_map",
+                                         "Save Current Map",
+                                         style = styles$download_button))
   ))
 map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
   tabPanel("Point",
