@@ -1871,15 +1871,19 @@ output:
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
           overlayGroups = c(grid_group, info$identity,
-                            select_models()$names_dt$full_name,
-                            draw_group),
+                            select_models()$names_dt$full_name
+                            # ,
+                            # draw_group
+                            ),
           options = layersControlOptions(collapsed = FALSE)
         )
     } else {
       leaf <- leaf %>%
           addLayersControl(
             baseGroups = c(tiles_info$here, tiles_info$open),
-            overlayGroups = c(grid_group, info$identity, draw_group),
+            overlayGroups = c(grid_group, info$identity
+                              # , draw_group
+                              ),
             options = layersControlOptions(collapsed = FALSE)
           )
     }

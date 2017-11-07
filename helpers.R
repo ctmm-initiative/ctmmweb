@@ -663,6 +663,17 @@ init_base_maps <- function(tiles_info) {
   }
   return(leaf)
 }
+add_measure <- function(leaf) {
+  leaf %>%
+    addMeasure(
+      position = "bottomright",
+      primaryLengthUnit = "meters",
+      secondaryLengthUnit = "kilometers",
+      primaryAreaUnit = "sqmeters",
+      secondaryAreaUnit = "hectares",
+      activeColor = "#3D535D",
+      completedColor = "#e74c3c")
+}
 # the layer control need to wait home range, so not added here.
 add_points <- function(leaf, dt, info, id_pal) {
   leaf <- leaf %>%
@@ -680,18 +691,15 @@ add_points <- function(leaf, dt, info, id_pal) {
     addLegend(pal = id_pal, values = info$identity,
                      position = "topleft") %>%
     addScaleBar(position = "bottomleft") %>%
-    addDrawToolbar(targetGroup = draw_group,
-                   editOptions = editToolbarOptions(
-                     selectedPathOptions = selectedPathOptions())) %>%
-    addMeasurePathToolbar(options =
-                            measurePathOptions(showOnHover = FALSE,
-                                               minPixelDistance = 100))
-    # addMeasure(
-    #   position = "bottomright",
-    #   primaryLengthUnit = "meters",
-    #   primaryAreaUnit = "sqmeters",
-    #   activeColor = "#3D535D",
-    #   completedColor = "#e74c3c")
+    # draw with measure, but it show measure on markers
+    # addDrawToolbar(targetGroup = draw_group,
+    #                editOptions = editToolbarOptions(
+    #                  selectedPathOptions = selectedPathOptions())) %>%
+    # addMeasurePathToolbar(options =
+    #                         measurePathOptions(showOnHover = FALSE,
+    #                                            minPixelDistance = 100))
+    # simple measure
+    add_measure()
 }
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
@@ -736,12 +744,7 @@ add_heat <- function(leaf, dt, tiles_info) {
     addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
     addScaleBar(position = "bottomleft") %>%
-    addMeasure(
-      position = "bottomright",
-      primaryLengthUnit = "meters",
-      primaryAreaUnit = "sqmeters",
-      activeColor = "#3D535D",
-      completedColor = "#7D4479") %>%
+    add_measure() %>%
     addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
       overlayGroups = c(grid_group, "Heatmap"),
