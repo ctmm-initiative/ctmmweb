@@ -1870,7 +1870,7 @@ output:
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
-          overlayGroups = c("_Graticule_", info$identity,
+          overlayGroups = c(grid_group, info$identity,
                             select_models()$names_dt$full_name),
           options = layersControlOptions(collapsed = FALSE)
         )
@@ -1878,7 +1878,7 @@ output:
       leaf <- leaf %>%
           addLayersControl(
             baseGroups = c(tiles_info$here, tiles_info$open),
-            overlayGroups = c("_Graticule_", info$identity),
+            overlayGroups = c(grid_group, info$identity),
             options = layersControlOptions(collapsed = FALSE)
           )
     }

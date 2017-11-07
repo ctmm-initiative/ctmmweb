@@ -665,7 +665,9 @@ init_base_maps <- function(tiles_info) {
 }
 # the layer control need to wait home range, so not added here.
 add_points <- function(leaf, dt, info, id_pal) {
-  leaf <- leaf %>% addGraticule(interval = 1, group = "_Graticule_")
+  leaf <- leaf %>%
+    addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
+                       redraw = "moveend", group = grid_group)
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
   for (current_id in info$identity) {
@@ -741,7 +743,8 @@ vary_color <- function(base_color, count) {
 # added base map layer control
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%
-    addGraticule(interval = 1, group = "_Graticule_") %>%
+    addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
+                       redraw = "moveend", group = grid_group) %>%
     addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
     addScaleBar(position = "bottomleft") %>%
@@ -753,7 +756,7 @@ add_heat <- function(leaf, dt, tiles_info) {
       completedColor = "#7D4479") %>%
     addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
-      overlayGroups = c("_Graticule_", "Heatmap"),
+      overlayGroups = c(grid_group, "Heatmap"),
       options = layersControlOptions(collapsed = FALSE))
 }
 # legend can be determined so it was added. no point to add individual by layer so no individual layer control
