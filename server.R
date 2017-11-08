@@ -1837,14 +1837,19 @@ output:
   # p8. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/8_map.md")
-  CURRENT_map_path <- NULL
+  CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
   # save map to html
   save_map <- function(leaf, map_type) {
-    map_path <- file.path(LOG_folder,
-                          str_c(map_type, "_", current_timestamp(), ".html"))
-    saveWidget(leaf, file = map_path)
+    map_file_name <- str_c(map_type, "_", current_timestamp(), ".html")
+    # LOG saving map
+    log_msg(str_c("Saving map: ", map_type),
+              on = isolate(input$record_on))
+    map_path <- file.path(LOG_folder, map_file_name)
+    saveWidget(leaf, file = map_path, selfcontained = TRUE)
+    # add link in rmd, difficult to embed map itself.
+    log_add_rmd(str_c("\n[", map_type, "](", map_file_name, ")\n"))
     # record the latest file path
-    CURRENT_map_path <<- map_path
+    CURRENT_map_path[[map_type]] <<- map_path
   }
   # shared basemap
   tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
@@ -1861,7 +1866,6 @@ output:
   )
   # point map ----
   output$point_map <- renderLeaflet({
-    # TODO LOG map
     dt <- select_data()$data
     info <- select_data()$info
     # the color pallete need to be built upon full data set, not current subset
@@ -1898,6 +1902,10 @@ output:
             options = layersControlOptions(collapsed = FALSE)
           )
     }
+    # TODO LOG map
+    print(system.time(
+      save_map(leaf, "Point")
+    ))
     return(leaf)
   })
   output$heat_map_holder <- renderUI(
@@ -1995,7 +2003,8 @@ output:
     },
     content = function(file) {
       # LOG download map
-      file.copy(CURRENT_map_path, file)
+      log_msg("Downloading map", on = isolate(input$record_on))
+      file.copy(CURRENT_map_path[[input$map_tabs]], file)
     }
   )
   # p9. report ----
