@@ -26,6 +26,7 @@ server <- function(input, output, session) {
   }
   # always do even switch is off. each session need to have individual folder.
   # use token as folder name, still create the timestamp folder as subfolder, so that the zip will have the timestamped folder
+  # LOG_folder is session specific global variable inside server function, many functions need this as global variable and need to defined inside server instead of helpers.R
   create_log_folder <- function() {
     create_folder(file.path(session_tmpdir,
                             str_c("Report_", current_timestamp())))
@@ -1836,6 +1837,15 @@ output:
   # p8. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/8_map.md")
+  CURRENT_map_path <- NULL
+  # save map to html
+  save_map <- function(leaf, map_type) {
+    map_path <- file.path(LOG_folder,
+                          str_c(map_type, "_", current_timestamp(), ".html"))
+    saveWidget(leaf, file = map_path)
+    # record the latest file path
+    CURRENT_map_path <<- map_path
+  }
   # shared basemap
   tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
                               "HERE.hybridDay"),
@@ -1894,10 +1904,18 @@ output:
     leafletOutput("heat_map",
                   height = input$map_height)
   )
+  # heatmap ----
+  # get_heat_map <- reactive({
+  #   base_map %>% add_heat(select_data()$data, tiles_info)
+  # })
   output$heat_map <- renderLeaflet({
-    # TODO LOG map
+    # TODO LOG map, may also save map and count time for it.
     dt <- select_data()$data
-    base_map %>% add_heat(dt, tiles_info)
+    leaf <- base_map %>% add_heat(dt, tiles_info)
+    print(system.time(
+      save_map(leaf, "Heatmap")
+    ))
+    leaf
   })
   output$cluster_map_holder <- renderUI(
     leafletOutput("cluster_map",
@@ -1970,8 +1988,16 @@ output:
     leafletProxy(map_name_by_tab[[input$map_tabs]], session) %>%
       fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
   })
-  # save map ----
-
+  # download map ----
+  output$download_map <- downloadHandler(
+    filename = function() {
+      paste0(input$map_tabs, "_", current_timestamp(), ".html")
+    },
+    content = function(file) {
+      # LOG download map
+      file.copy(CURRENT_map_path, file)
+    }
+  )
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/9_work_report.md")

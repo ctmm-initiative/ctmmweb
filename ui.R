@@ -493,8 +493,8 @@ map_control_box <- box(title = "Map Controls", status = "primary",
     column(3, actionButton("reset_map_view", "Reset Map View",
                            icon = icon("ban"),
                            style = styles$page_action)),
-    column(3, offset = 3, downloadButton("save_map",
-                                         "Save Current Map",
+    column(4, offset = 5, downloadButton("download_map",
+                                         "Download Current Map",
                                          style = styles$download_button))
   ))
 map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
