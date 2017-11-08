@@ -1865,7 +1865,7 @@ output:
                   height = input$map_height)
   )
   # point map ----
-  output$point_map <- renderLeaflet({
+  get_point_map <- reactive({
     dt <- select_data()$data
     info <- select_data()$info
     # the color pallete need to be built upon full data set, not current subset
@@ -1889,20 +1889,24 @@ output:
                             select_models()$names_dt$full_name
                             # ,
                             # draw_group
-                            ),
+          ),
           options = layersControlOptions(collapsed = FALSE)
         )
     } else {
       leaf <- leaf %>%
-          addLayersControl(
-            baseGroups = c(tiles_info$here, tiles_info$open),
-            overlayGroups = c(grid_group, info$identity
-                              # , draw_group
-                              ),
-            options = layersControlOptions(collapsed = FALSE)
-          )
+        addLayersControl(
+          baseGroups = c(tiles_info$here, tiles_info$open),
+          overlayGroups = c(grid_group, info$identity
+                            # , draw_group
+          ),
+          options = layersControlOptions(collapsed = FALSE)
+        )
     }
-    # TODO LOG map
+    return(leaf)
+  })
+  # reactive get map, render function save map and count time
+  output$point_map <- renderLeaflet({
+    leaf <- get_point_map()
     print(system.time(
       save_map(leaf, "Point")
     ))
@@ -1913,29 +1917,22 @@ output:
                   height = input$map_height)
   )
   # heatmap ----
-  # get_heat_map <- reactive({
-  #   base_map %>% add_heat(select_data()$data, tiles_info)
-  # })
+  get_heat_map <- reactive({
+    base_map %>% add_heat(select_data()$data, tiles_info)
+  })
   output$heat_map <- renderLeaflet({
-    # TODO LOG map, may also save map and count time for it.
-    dt <- select_data()$data
-    leaf <- base_map %>% add_heat(dt, tiles_info)
+    # dt <- select_data()$data
+    # leaf <- base_map %>% add_heat(dt, tiles_info)
+    leaf <- get_heat_map()
     print(system.time(
       save_map(leaf, "Heatmap")
     ))
-    leaf
+    return(leaf)
   })
   output$cluster_map_holder <- renderUI(
     leafletOutput("cluster_map",
                   height = input$map_height)
   )
-  # output$cluster_map <- renderLeaflet({
-  #   # TODO LOG map
-  #   dt <- select_data()$data
-  #   info <- select_data()$info
-  #   id_pal <- colorFactor(hue_pal()(length(info$identity)), info$identity)
-  #   base_map %>% add_cluster(dt, info, id_pal, tiles_info)
-  # })
   # need a history list of tabs, from tab switching and page switching
   # values$map_tab_history <- NULL
   # first map page view ----
@@ -1985,8 +1982,9 @@ output:
         # fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
         #           input$heat_map_bounds$west, input$heat_map_bounds$south)
         # setView(NULL, NULL, zoom = input$heat_map_zoom) %>%
-        fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
-                  input$heat_map_bounds$west, input$heat_map_bounds$south)
+        apply_bounds(input$heat_map_bounds)
+        # fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
+        #           input$heat_map_bounds$west, input$heat_map_bounds$south)
     }
   })
   # reset map view ----
@@ -2004,6 +2002,17 @@ output:
     content = function(file) {
       # LOG download map
       log_msg("Downloading map", on = isolate(input$record_on))
+      # to save map with current view, update the map object with current bounds. the proxy only updated the in memory structure, not the map objec itself
+      if (input$map_tabs == "Point") {
+        leaf <- get_point_map() %>% apply_bounds(input$point_map_bounds)
+        save_map(leaf, "Point")
+      } else {
+        leaf <- get_heat_map() %>% apply_bounds(input$heat_map_bounds)
+        save_map(leaf, "Heatmap")
+      }
+      # leaf <- get_heat_map() %>%
+      #   fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
+      #             input$heat_map_bounds$west, input$heat_map_bounds$south)
       file.copy(CURRENT_map_path[[input$map_tabs]], file)
     }
   )

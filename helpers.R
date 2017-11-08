@@ -754,3 +754,6 @@ get_bounds <- function(dt) {
   return(list(lng1 = min(dt$longitude), lat1 = min(dt$latitude),
               lng2 = max(dt$longitude), lat2 = max(dt$latitude)))
 }
+apply_bounds <- function(leaf, bounds) {
+  fitBounds(leaf, bounds$east, bounds$north, bounds$west, bounds$south)
+}
