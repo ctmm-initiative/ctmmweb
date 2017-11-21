@@ -1,10 +1,14 @@
-# Introduction
+## Intro
 
-This is a Shiny web application for [ctmm](https://github.com/ctmm-initiative/ctmm) [R package](https://cran.r-project.org/web/packages/ctmm/index.html). 
+This is the R package of Shiny web application for [ctmm](https://github.com/ctmm-initiative/ctmm) [R package](https://cran.r-project.org/web/packages/ctmm/index.html). 
 
 Check [the videos here](README-demo.md) for feature demonstrations. The `help` buttons in each page also have detailed documentations for the specific feature.
 
 # Running the app
+
+## Bundled with package
+
+The web app is bundled as part of package distribution, so you can launch the app with `ctmmweb::app()` after package was installed.
 
 ## Hosted app
 Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 
