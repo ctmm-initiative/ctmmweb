@@ -2,9 +2,9 @@
 - Interactive maps will be built with **current subset of individuals**.
   - You can use the base map layer selector to switche among terrain, satelite, hybrid etc.
   - The data layer selector can turn on/off
-    - `_graticule_` aka the grid lines
-    - each individual. The color of individuals are consistent with the color in other plots.
-    - the home range polygons of each selected model, if models are available. Note selected models are independent from individuals thus can have multiple models of same individual.
+      - `_graticule_` aka the grid lines
+      - each individual. The color of individuals are consistent with the color in other plots.
+      - the home range polygons of each selected model, if models are available. Note selected models are independent from individuals thus can have multiple models of same individual.
       - The model with smaller `AICc` value will have brighter color.
   - The measure tool can add lines or polygons and their measurements.
   - `Reset Map View` button will reset current map to a view that cover all points and some edges.

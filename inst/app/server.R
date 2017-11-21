@@ -194,14 +194,14 @@ output:
   }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
-  data_import <- function(data) {
+  import_file <- function(data_path) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # wrap it so even single individual will return a list with one item
-    tele_list <- tryCatch(wrap_single_telemetry(as.telemetry(data)),
+    tele_list <- tryCatch(wrap_single_telemetry(as.telemetry(data_path)),
         error = function(e) {
           showNotification("Import error, check data again",
                            duration = 4, type = "error")
@@ -214,17 +214,41 @@ output:
     update_input_data(tele_list)
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
-  file_uploaded <- function(){
-    data_import(input$tele_file$datapath)
+  # using parameter because launching app with path also use this function
+  file_uploaded <- function(data_path){
+    import_file(data_path)
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
   }
+  # data from app() ----
+  # app can work without data parameter, or launched with data parameter, so need to check if data parameter exist first.
+  # checking the parent environment, which is the app() environment so there will not be naming conflict from user environment. if parameter is NULL, no condition will match and nothing is done
+  if (exists("shiny_app_data", where = parent.env(environment()))) {
+    # ensure no naming conflict possible
+    app_input_data <- get("shiny_app_data", envir = parent.env(environment()))
+    if (is.character(app_input_data)) {
+      # LOG file loaded from app()
+      log_msg("Importing file from app(shiny_app_data)", app_input_data,
+              on = isolate(input$record_on))
+      # accessed reactive values so need to isolate
+      isolate(file_uploaded(app_input_data))
+    } else if (("telemetry" %in% class(app_input_data)) ||
+               (is.list(shiny_app_data) &&
+                "telemetry" %in% class(shiny_app_data[[1]]))
+              ) {
+      # LOG data loaded from app()
+      log_msg("Loading telemetry data from app(shiny_app_data)",
+              on = isolate(input$record_on))
+      isolate(update_input_data(app_input_data))
+    }
+  }
+  # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
     # LOG file upload.
     log_msg("Importing file", input$tele_file$name,
             on = isolate(input$record_on))
-    file_uploaded()
+    file_uploaded(input$tele_file$datapath)
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
@@ -255,10 +279,13 @@ output:
              set_sample_data()
            },
            upload = {
-             # this doesn't do anything by itself so no log msg
+             # the radiobutton itself doesn't upload, just reuse previously uploaded file if switched back.
              # need to check NULL input from source, stop error in downstream
              req(input$tele_file)
-             file_uploaded()
+             # LOG file upload.
+             log_msg("Importing file", input$tele_file$name,
+                     on = isolate(input$record_on))
+             file_uploaded(input$tele_file$datapath)
            })
   })
   # also update the app when sample size changed and is already in sample mode
