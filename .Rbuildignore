@@ -1,1 +1,3 @@
 ^NEWS\.md$
+^.*\.Rproj$
+^\.Rproj\.user$

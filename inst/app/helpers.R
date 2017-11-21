@@ -10,12 +10,9 @@ unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
     paste(scales::comma(round(x * scale, 4), ...), unit, sep = sep)
   }
 }
-# km <- unit_format(unit = "km", scale = 1e-3, digits = 2)
-# km()
 # given a resprentative value and unit dimension, get the best unit then generate a format function to be used on a vector of similar values. other derived functions pick certain value from a vector and choose a dimension.
 # extra round option when really needed
 pick_best_unit_f <- function(test_value, dimension, concise, round = FALSE) {
-  # best_unit <- by_best_unit(test_value, dimension, concise = TRUE)
   best_unit <- ctmm:::unit(test_value, dimension, thresh = 1, concise = concise)
   if (round) {
     unit_format_round(unit = best_unit$name, scale = 1 / best_unit$scale,
@@ -109,23 +106,15 @@ tele_list_info <- function(tele_objs){
   animal_info_list <- lapply(tele_list, single_tele_info)
   rbindlist(animal_info_list)
 }
-
-# distance and speed values need to be updated after outlier removal
-# calculate_distance_all <- function(animals_dt) {
-#   animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
-#              by = identity]
-#   animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
-#                                          (y - median_y) ** 2)]
-#   return(animals_dt)
-# }
 # calculate median center based on time clusters
 calculate_distance <- function(animals_dt) {
   find_boundary <- function(data) {
-    time_gap_threshold <- quantile((diff(data$t)), 0.8) * 100
+    time_gap_threshold <- stats::quantile((diff(data$t)), 0.8) * 100
     # increase 1 sec because interval boundry is right open [ )
     data[inc_t > time_gap_threshold, t + 1]
   }
   # need inc_t, so get these column first. always calculate distance then speed
+  # x[i] + inc[i] = x[i+1], note by id
   animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
                     inc_y = shift(y, 1L, type = "lead") - y,
                     inc_t = shift(t, 1L, type = "lead") - t), by = id]
@@ -140,10 +129,6 @@ calculate_distance <- function(animals_dt) {
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
 calculate_speed_leaving <- function(animals_dt, device_error) {
-  # x[i] + inc[i] = x[i+1], note by id
-  # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
-  #                   inc_y = shift(y, 1L, type = "lead") - y,
-  #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]
   animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
   animals_dt[is.infinite(speed), speed := NaN]
   # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
@@ -155,9 +140,6 @@ calculate_speed_leaving <- function(animals_dt, device_error) {
 }
 # the pmin method
 calculate_speed_pmin <- function(animals_dt, device_error) {
-  # animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
-  #                   inc_y = shift(y, 1L, type = "lead") - y,
-  #                   inc_t = shift(t, 1L, type = "lead") - t), by = id]  # note by id
   # TODO deal with dt==0 cases
   # dt == 0, use the sampling resolution to estimate the time difference
   # animals_dt[inc_t == 0]
@@ -208,8 +190,6 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
 # all speed calculation except ctmm assume distance have been calculated. Since we always update two together, this is not problem.
 calculate_speed <- function(animals_dt, device_error) {
   setkey(animals_dt, row_no)
-  # animals_dt <- calculate_speed_ctmm(animals_dt)
-  # animals_dt <- calculate_speed_pmin(animals_dt)
   # my speed calculation need distance columns
   test_calc <- function(data, device_error, fun, fun_bak) {
     res <- tryCatch(fun(data, device_error), error = function(e) "error")
