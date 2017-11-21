@@ -230,7 +230,15 @@ tele_list_to_dt <- function(tele_objs) {
   # animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)
 }
-# tele objs to data.table and info
+#' Generate merged data.table and info table from telemetry object/list
+#'
+#' @param tele_objs telemetry object/list
+#'
+#' @return list of `data`: all animals merged in one data.table, `info`: animal
+#'   information table
+#' @export
+#'
+#' @examples merge_animals(buffalo)
 merge_animals <- function(tele_objs) {
   return(list(data = tele_list_to_dt(tele_objs),
               info = tele_list_info(tele_objs)))
@@ -277,13 +285,13 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
   return(dt)
 }
 # ggplot ----
-bigger_theme <- theme(legend.key.size = unit(8, "mm"),
-                      legend.key.height = unit(8, "mm"),
+bigger_theme <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
+                      legend.key.height = grid::unit(8, "mm"),
                       legend.text = element_text(size = 12),
                       axis.title = element_text(size = 14),
                       axis.text = element_text(size = 12))
 bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
-center_title <- theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+center_title <- ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
 # note need to use dt$id format. note the mapping is provided in aes(color/fill = xx) already, this is to override some options.
 factor_mapper <- function(fac, FUN) {
