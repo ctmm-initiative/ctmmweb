@@ -407,6 +407,14 @@ exp_init <<- expression({
   requireNamespace("ctmm", quietly = TRUE)
 })
 # generate a new list, each item have two item from list a and b. use a b because we want to name the item, but difficult to use original name of input
+#' Title
+#'
+#' @param list_a
+#' @param list_b
+#'
+#' @return
+#' @export
+#'
 align_list <- function(list_a, list_b) {
   stopifnot(length(list_a) == length(list_b))
   # use lapply instead of for only because we can get a list without initialization
@@ -454,7 +462,7 @@ fit_models <- function(tele_guess) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples para_ll_fit(buffalo)
 para_ll_fit <- function(tele_list) {
   para_ll(tele_list, fit_models)
 }
@@ -469,7 +477,7 @@ ud_calc <- function(ud_para_list) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples para_ll_ud(align_list(buffalo, models_list))
 para_ll_ud <- function(ud_para_list) {
   para_ll(ud_para_list, ud_calc)
 }
@@ -482,7 +490,7 @@ para_ll_ud <- function(ud_para_list) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples pick_m_tele(buffalo[[1]], 100)
 pick_m_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
@@ -494,7 +502,7 @@ pick_m_tele <- function(tele, m) {
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples pick_m_tele_list(buffalo, 100)
 pick_m_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
     pick_m_tele(x, m)
@@ -531,7 +539,6 @@ ctmm_obj_to_summary_dt <- function(model) {
 #' @return
 #' @export
 #'
-#' @examples
 model_fit_res_to_model_list_dt <- function(model_fit_res) {
   animal_names_dt <- data.table(identity = names(model_fit_res))
   model_name_list <- lapply(model_fit_res, names)
@@ -558,7 +565,6 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
 #' @return
 #' @export
 #'
-#' @examples
 model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -631,7 +637,6 @@ format_model_summary_dt <- function(model_summary_dt) {
 #' @return
 #' @export
 #'
-#' @examples
 model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
   model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt,
                                                         hrange = FALSE)
@@ -646,7 +651,6 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 #' @return
 #' @export
 #'
-#' @examples
 build_hrange_list_dt <- function(selected_model_names_dt, selected_hrange_list) {
   dt <- copy(selected_model_names_dt)
   dt[, model := list(selected_hrange_list)]
@@ -675,7 +679,6 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 #' @return
 #' @export
 #'
-#' @examples
 hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
   hrange_summary_dt <- model_list_dt_to_model_summary_dt(hrange_list_dt,
                                                         hrange = TRUE)
