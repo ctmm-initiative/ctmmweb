@@ -272,7 +272,7 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
   x_max_diff_half <- max(ranges[, max_x - min_x]) / 2
   y_max_diff_half <- max(ranges[, max_y - min_y]) / 2
   # need to filter data frame too otherwise the middle point is off. merging limits to every row make the filtering is easier.
-  animals_dt_with_range <- merge(animals_dt, ranges, by = "identity")
+  animals_dt_with_range <- data.table::merge(animals_dt, ranges, by = "identity")
   animals_updated <- animals_dt_with_range[x >= min_x & x <= max_x &
                                              y >= min_y & y <= max_y]
   dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2,
@@ -512,15 +512,15 @@ ctmm_obj_to_summary_dt <- function(model) {
   # need literal treatment by item name because every case is different
   # we need row name of CI, but not dof
   dof_dt[, rn := NULL]
-  setnames(dof_dt, names(dof_dt), str_c("DOF ", names(dof_dt)))
+  setnames(dof_dt, names(dof_dt), stringr::str_c("DOF ", names(dof_dt)))
   setnames(ci_dt, "rn", "estimate")
-  ci_dt[estimate %in% c("low", "high"), estimate := str_c("CI ", estimate)]
+  ci_dt[estimate %in% c("low", "high"), estimate := stringr::str_c("CI ", estimate)]
   # with SI units, we only need to know which type of unit. the actual format need to happen after the whole table is built. so we only need a mapping from col name to proper unit function later.
-  setnames(ci_dt, names(ci_dt), str_replace_all(names(ci_dt), "\\s\\(.*", ""))
+  setnames(ci_dt, names(ci_dt), stringr::str_replace_all(names(ci_dt), "\\s\\(.*", ""))
   # two part need to bind together, add model name col, then add animal name col in last step. because of row number difference, it's easier to use merge, add common col first.
   dof_dt[, item := 1]
   ci_dt[, item := 1]
-  res_dt <- merge(dof_dt, ci_dt, by = "item")
+  res_dt <- data.table::merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
 # from ctmm.fit result model list to data table with models in list column
@@ -550,10 +550,10 @@ model_list_dt_to_model_summary_dt <- function(models_dt) {
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  res_dt <- merge(models_dt[, .(identity, model_name, model_no, dAICc)],
+  res_dt <- data.table::merge(models_dt[, .(identity, model_name, model_no, dAICc)],
                   model_summary_dt,
                   by = "model_no")
-  # res_dt[, color_target := str_c(identity, " - " , estimate)]
+  # res_dt[, color_target := stringr::str_c(identity, " - " , estimate)]
 }
 # apply units format functions list to columns
 apply_format_f_list <- function(dt, format_f_list) {
@@ -565,8 +565,8 @@ apply_format_f_list <- function(dt, format_f_list) {
       dt[, paste0(names(dt)[i], "_units") := format_f_list[[i]](dt[[names(dt)[i]]])]
     }
   }
-  new_cols <- names(dt)[str_detect(names(dt), "_units")]
-  old_cols <- str_replace_all(new_cols, "_units", "")
+  new_cols <- names(dt)[stringr::str_detect(names(dt), "_units")]
+  old_cols <- stringr::str_replace_all(new_cols, "_units", "")
   dt[, (old_cols) := NULL]
   setnames(dt, new_cols, old_cols)
 }
@@ -592,12 +592,12 @@ format_model_summary_dt <- function(model_summary_dt) {
   names(format_f_list) <- names(dt)
   res_dt <- apply_format_f_list(dt, format_f_list)
   # NA cells should have units removed or just empty values
-  res_dt[str_detect(`tau velocity`, "^NA "),
+  res_dt[stringr::str_detect(`tau velocity`, "^NA "),
          c("tau velocity", "speed") := ""]
-  res_dt[str_detect(estimate, "CI"),
+  res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF mean", "DOF area") := NA_real_]
   # add model full name col so it can be used to create model color palette
-  res_dt[, full_name := str_c(identity, " - ", model_name)]
+  res_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
 }
 # from akde result model list to data table with models in list column
 build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {
@@ -618,7 +618,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   # not really used, but easier to debug
   # names(format_f_list) <- names(dt)
   res_dt <- apply_format_f_list(dt, format_f_list)
-  res_dt[str_detect(estimate, "CI"),
+  res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF area", "DOF bandwidth") := NA_real_]
 }
 # folder and timestamp ----
@@ -661,10 +661,10 @@ compress_relative_files <- function(base_folder, relative_paths, zip_name) {
 }
 # home range ----
 parse_CI_levels <- function(levels_text) {
-  if (str_trim(levels_text) == "") {
+  if (stringr::str_trim(levels_text) == "") {
     return(0.95)
   } else {
-    items <- str_trim(str_split(levels_text, ",")[[1]])
+    items <- stringr::str_trim(stringr::str_split(levels_text, ",")[[1]])
     as.numeric(items[items != ""]) / 100
   }
 }
@@ -672,7 +672,7 @@ parse_CI_levels <- function(levels_text) {
 build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
   current_time <- current_timestamp()  # need this in zip name so save it
-  folder_path <- file.path(session_tmpdir, str_c("Range_", current_time))
+  folder_path <- file.path(session_tmpdir, stringr::str_c("Range_", current_time))
   create_folder(folder_path)
   write_f(folder_path)
   zip_path <- compress_folder(folder_path,
