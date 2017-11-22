@@ -287,11 +287,11 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
 # ggplot ----
 bigger_theme <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                       legend.key.height = grid::unit(8, "mm"),
-                      legend.text = element_text(size = 12),
-                      axis.title = element_text(size = 14),
-                      axis.text = element_text(size = 12))
-bigger_key <- guides(colour = guide_legend(override.aes = list(size = 4)))
-center_title <- ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+                      legend.text = ggplot2::element_text(size = 12),
+                      axis.title = ggplot2::element_text(size = 14),
+                      axis.text = ggplot2::element_text(size = 12))
+bigger_key <- ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 4)))
+center_title <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
 # note need to use dt$id format. note the mapping is provided in aes(color/fill = xx) already, this is to override some options.
 factor_mapper <- function(fac, FUN) {
@@ -299,26 +299,26 @@ factor_mapper <- function(fac, FUN) {
 }
 factor_color <- function(fac) {
   # scale_colour_hue(drop = FALSE, breaks = levels(droplevels(fac)))
-  factor_mapper(fac, scale_colour_hue)
+  factor_mapper(fac, ggplot2::scale_colour_hue)
 }
 # note for fill colors we need different function
 factor_fill <- function(fac) {
   # scale_fill_hue(drop = FALSE, breaks = levels(droplevels(fac)))
-  factor_mapper(fac, scale_fill_hue)
+  factor_mapper(fac, ggplot2::scale_fill_hue)
 }
 factor_alpha <- function(fac) {
   # scale_alpha_discrete(drop = FALSE, breaks = levels(droplevels(fac)))
-  factor_mapper(fac, scale_alpha_discrete)
+  factor_mapper(fac, ggplot2::scale_alpha_discrete)
 }
 # movebank download ----
 # always need the response content in text, also need response status
 request <- function(entity_type, user, pass){
   base_url <- "https://www.movebank.org/movebank/service/direct-read?entity_type="
   url <- paste0(base_url, entity_type)
-  res <- httr::GET(url, config = add_headers(user = user, password = pass))
-  status <- http_status(res)$category
+  res <- httr::GET(url, config = httr::add_headers(user = user, password = pass))
+  status <- httr::http_status(res)$category
   if (status != "Success") {
-    showNotification(paste0(http_status(res)$message, "\nCheck console for more information"),
+    shiny::showNotification(paste0(httr::http_status(res)$message, "\nCheck console for more information"),
                      duration = 6, type = "error")
     # will use xml2::read_html
     res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
@@ -334,8 +334,8 @@ get_all_studies <- function(user, pass) {
 }
 # [blog post](https://tonybreyal.wordpress.com/2011/11/18/htmltotext-extracting-text-from-html-via-xpath/), [code](https://github.com/tonybreyal/Blog-Reference-Functions/blob/master/R/htmlToText/htmlToText.R)
 html_to_text <- function(html) {
-  doc <- htmlParse(html, asText = TRUE)
-  text <- xpathSApply(doc, "//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)][not(ancestor::form)]", xmlValue)
+  doc <- XML::htmlParse(html, asText = TRUE)
+  text <- XML::xpathSApply(doc, "//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)][not(ancestor::form)]", xmlValue)
   return(text)
 }
 get_study_detail <- function(mb_id, user, pass) {
@@ -347,13 +347,13 @@ get_study_data <- function(mb_id, user, pass){
 # divide x into interval_count intervals ----
 # Taken from https://github.com/wch/r-source/blob/trunk/src/library/base/R/cut.R
 divide <-
-  function (x, interval_count)
+  function(x, interval_count)
   {
     if (is.na(interval_count) || interval_count < 2L)
       stop("invalid number of intervals")
     nb <- as.integer(interval_count + 1) # one more than #{intervals}
     dx <- diff(rx <- range(x, na.rm = TRUE))
-    if(dx == 0) {
+    if (dx == 0) {
       dx <- abs(rx[1L])
       breaks <- seq.int(rx[1L] - dx/1000, rx[2L] + dx/1000,
                         length.out = nb)
@@ -365,10 +365,10 @@ divide <-
   }
 cut_date_time <- function(x, interval_count) {
   brks <- divide(as.numeric(x), interval_count)
-  return(cut(x, as_datetime(brks)))
+  return(cut(x, lubridate::as_datetime(brks)))
 }
 divide_date_time <- function(x, interval_count) {
-  return(as_datetime(divide(as.numeric(x), interval_count)))
+  return(lubridate::as_datetime(divide(as.numeric(x), interval_count)))
 }
 # outlier ----
 color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
@@ -381,12 +381,12 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
   # format label to include unit. difficult to separate unit with value, could only include left side though.
   vec_formatter <- unit_formatter(color_bin_breaks)
   color_bin_breaks_units <- vec_formatter(color_bin_breaks)
-  color_bin_labels <- paste0(">= ", head(color_bin_breaks_units, -1L))
+  color_bin_labels <- paste0(">= ", utils::head(color_bin_breaks_units, -1L))
   animals_dt[, paste0(col_name, "_color_factor") :=
                cut(animals_dt[[col_name]], breaks = color_bin_breaks,
                    labels = color_bin_labels, right = FALSE)]  # closed on left to include 0
   # remove empty bins in labels
-  his <- hist(animals_dt[[col_name]], breaks = color_bin_breaks, plot = FALSE)
+  his <- graphics::hist(animals_dt[[col_name]], breaks = color_bin_breaks, plot = FALSE)
   # with n+1 breaks for n interval/bin count, using count index on breaks will get the left side for each break
   non_empty_indice <- which(his$counts != 0)
   # need both side to label the plot properly. this only works when 2 vectors have same length. but I don't like the other method of recyling index new_vec[c(TRUE, FALSE)]
