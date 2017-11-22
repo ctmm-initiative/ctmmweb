@@ -403,7 +403,8 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 # try to include all variables in the lapply list so fun only take one parameter. that means exp_init usually only init libraries.
 # export take from global env, so need to assign in global
 exp_init <<- expression({
-  library(ctmm)
+  # library(ctmm)
+  requireNamespace("ctmm", quietly = TRUE)
 })
 # generate a new list, each item have two item from list a and b. use a b because we want to name the item, but difficult to use original name of input
 align_list <- function(list_a, list_b) {
@@ -414,19 +415,27 @@ align_list <- function(list_a, list_b) {
   })
 }
 # cannot transfer cluster size as parameter, because of environment?
+#' Parallel Apply Function To List In All Platforms
+#'
+#' @param ll
+#' @param fun
+#'
+#' @return
+#' @export
+#'
 para_ll <- function(ll, fun) {
   sysinfo <- Sys.info()
   if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-    win_cluster_size <- min(length(ll), detectCores())
+    win_cluster_size <- min(length(ll), parallel::detectCores())
     cat(crayon::inverse("running parallel in SOCKET cluster of", win_cluster_size, "\n"))
     cl <- parallel::makeCluster(win_cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
-    clusterExport(cl, c("exp_init"))
-    clusterEvalQ(cl, eval(exp_init))
-    res <- parLapplyLB(cl, ll, fun)
-    stopCluster(cl)
+    parallel::clusterExport(cl, c("exp_init"))
+    parallel::clusterEvalQ(cl, eval(exp_init))
+    res <- parallel::parLapplyLB(cl, ll, fun)
+    parallel::stopCluster(cl)
   } else {
-    cluster_size <- min(length(ll), detectCores(logical = FALSE) * 4)
+    cluster_size <- min(length(ll), parallel::detectCores(logical = FALSE) * 4)
     cat(crayon::inverse("running parallel with mclapply in cluster of", cluster_size, "\n"))
     res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
   }
@@ -434,26 +443,60 @@ para_ll <- function(ll, fun) {
 }
 # cannot use select_models since that was a reactive expression to select model results
 fit_models <- function(tele_guess) {
-  ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+  ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
               trace = TRUE, verbose = TRUE)
 }
 # wrapper to avoid function object as parameter
+#' Title
+#'
+#' @param tele_list
+#'
+#' @return
+#' @export
+#'
+#' @examples
 para_ll_fit <- function(tele_list) {
   para_ll(tele_list, fit_models)
 }
 # occurrence
 ud_calc <- function(ud_para_list) {
-  occurrence(ud_para_list$a, ud_para_list$b)
+  ctmm::occurrence(ud_para_list$a, ud_para_list$b)
 }
+#' Title
+#'
+#' @param ud_para_list
+#'
+#' @return
+#' @export
+#'
+#' @examples
 para_ll_ud <- function(ud_para_list) {
   para_ll(ud_para_list, ud_calc)
 }
 # sample buffalo data ----
+#' Title
+#'
+#' @param tele
+#' @param m
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pick_m_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
+#' Title
+#'
+#' @param tele_list
+#' @param m
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pick_m_tele_list <- function(tele_list, m) {
-  lapply(buffalo, function(x) {
+  lapply(tele_list, function(x) {
     pick_m_tele(x, m)
   })
 }
