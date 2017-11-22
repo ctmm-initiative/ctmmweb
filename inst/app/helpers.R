@@ -524,6 +524,14 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt[, item := NULL]
 }
 # from ctmm.fit result model list to data table with models in list column
+#' Title
+#'
+#' @param model_fit_res
+#'
+#' @return
+#' @export
+#'
+#' @examples
 model_fit_res_to_model_list_dt <- function(model_fit_res) {
   animal_names_dt <- data.table(identity = names(model_fit_res))
   model_name_list <- lapply(model_fit_res, names)
@@ -542,6 +550,15 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
 }
+#' Title
+#'
+#' @param models_dt
+#' @param hrange
+#'
+#' @return
+#' @export
+#'
+#' @examples
 model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -606,9 +623,32 @@ format_model_summary_dt <- function(model_summary_dt) {
   # add model full name col so it can be used to create model color palette
   res_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
 }
+# combined steps of generating model summary and format it
+#' Title
+#'
+#' @param models_dt
+#'
+#' @return
+#' @export
+#'
+#' @examples
+model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
+  model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt,
+                                                        hrange = FALSE)
+  format_model_summary_dt(model_summary_dt)
+}
 # from akde result model list to data table with models in list column
-build_hrange_list_dt <- function(selected_dt, selected_hrange_list) {
-  dt <- copy(selected_dt)
+#' Title
+#'
+#' @param selected_dt
+#' @param selected_hrange_list
+#'
+#' @return
+#' @export
+#'
+#' @examples
+build_hrange_list_dt <- function(selected_model_names_dt, selected_hrange_list) {
+  dt <- copy(selected_model_names_dt)
   dt[, model := list(selected_hrange_list)]
   dt[, model_no := .I]
 }
@@ -627,6 +667,19 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   res_dt <- apply_format_f_list(dt, format_f_list)
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF area", "DOF bandwidth") := NA_real_]
+}
+#' Title
+#'
+#' @param hrange_list_dt
+#'
+#' @return
+#' @export
+#'
+#' @examples
+hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
+  hrange_summary_dt <- model_list_dt_to_model_summary_dt(hrange_list_dt,
+                                                        hrange = TRUE)
+  format_hrange_summary_dt(hrange_summary_dt)
 }
 # folder and timestamp ----
 # used in build_zip, creating temp folder for log

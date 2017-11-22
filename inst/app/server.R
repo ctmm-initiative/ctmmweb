@@ -1613,8 +1613,9 @@ output:
     # the dt with model in list column
     models_dt <- model_fit_res_to_model_list_dt(req(values$selected_data_model_fit_res))
     # the model summary table
-    model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
-    formated_summary_dt <- format_model_summary_dt(model_summary_dt)
+    # model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
+    # formated_summary_dt <- format_model_summary_dt(model_summary_dt)
+    formated_summary_dt <- model_list_dt_to_formated_model_summary_dt(models_dt)
     if (input$hide_ci_model) {
       formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
@@ -1739,10 +1740,13 @@ output:
   })
   # home range summary ----
   output$range_summary <- DT::renderDataTable({
-    hrange_summary_dt <- model_list_dt_to_model_summary_dt(
-      build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
-      hrange = TRUE)
-    dt <- format_hrange_summary_dt(hrange_summary_dt)
+    # hrange_summary_dt <- model_list_dt_to_model_summary_dt(
+    #   build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
+    #   hrange = TRUE)
+    # dt <- format_hrange_summary_dt(hrange_summary_dt)
+    hrange_list_dt <- build_hrange_list_dt(select_models()$names_dt,
+                                           select_models_hranges())
+    dt <- hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
     dt[, model_no := NULL]
     # LOG home range summary
     log_dt_md(dt, "Home Range Summary")
