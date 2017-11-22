@@ -1740,7 +1740,8 @@ output:
   # home range summary ----
   output$range_summary <- DT::renderDataTable({
     hrange_summary_dt <- model_list_dt_to_model_summary_dt(
-      build_hrange_list_dt(select_models()$names_dt, select_models_hranges()))
+      build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
+      hrange = TRUE)
     dt <- format_hrange_summary_dt(hrange_summary_dt)
     dt[, model_no := NULL]
     # LOG home range summary

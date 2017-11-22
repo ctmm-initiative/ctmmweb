@@ -542,7 +542,7 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
 }
-model_list_dt_to_model_summary_dt <- function(models_dt) {
+model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
   model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
@@ -550,9 +550,16 @@ model_list_dt_to_model_summary_dt <- function(models_dt) {
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  res_dt <- merge(models_dt[, .(identity, model_name, model_no, dAICc)],
-                  model_summary_dt,
-                  by = "model_no")
+  # home range result also used this function, but there is no dAICc column from summary of list of home range.
+  if (hrange) {
+    res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
+                    model_summary_dt,
+                    by = "model_no")
+  } else {
+    res_dt <- merge(models_dt[, .(identity, model_name, model_no, dAICc)],
+                    model_summary_dt,
+                    by = "model_no")
+  }
   # res_dt[, color_target := stringr::str_c(identity, " - " , estimate)]
 }
 # apply units format functions list to columns
