@@ -272,7 +272,7 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
   x_max_diff_half <- max(ranges[, max_x - min_x]) / 2
   y_max_diff_half <- max(ranges[, max_y - min_y]) / 2
   # need to filter data frame too otherwise the middle point is off. merging limits to every row make the filtering is easier.
-  animals_dt_with_range <- data.table::merge(animals_dt, ranges, by = "identity")
+  animals_dt_with_range <- merge(animals_dt, ranges, by = "identity")
   animals_updated <- animals_dt_with_range[x >= min_x & x <= max_x &
                                              y >= min_y & y <= max_y]
   dt <- animals_updated[, .(middle_x = (max(x) + min(x)) / 2,
@@ -520,7 +520,7 @@ ctmm_obj_to_summary_dt <- function(model) {
   # two part need to bind together, add model name col, then add animal name col in last step. because of row number difference, it's easier to use merge, add common col first.
   dof_dt[, item := 1]
   ci_dt[, item := 1]
-  res_dt <- data.table::merge(dof_dt, ci_dt, by = "item")
+  res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
 # from ctmm.fit result model list to data table with models in list column
@@ -550,7 +550,7 @@ model_list_dt_to_model_summary_dt <- function(models_dt) {
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  res_dt <- data.table::merge(models_dt[, .(identity, model_name, model_no, dAICc)],
+  res_dt <- merge(models_dt[, .(identity, model_name, model_no, dAICc)],
                   model_summary_dt,
                   by = "model_no")
   # res_dt[, color_target := stringr::str_c(identity, " - " , estimate)]
