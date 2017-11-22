@@ -409,10 +409,10 @@ exp_init <<- expression({
 # generate a new list, each item have two item from list a and b. use a b because we want to name the item, but difficult to use original name of input
 #' Title
 #'
-#' @param list_a
-#' @param list_b
+#' @param list_a list_a
+#' @param list_b list_b
 #'
-#' @return
+#' @return A list of list, each sublist have two item from list_a and list_b
 #' @export
 #'
 align_list <- function(list_a, list_b) {
@@ -425,10 +425,10 @@ align_list <- function(list_a, list_b) {
 # cannot transfer cluster size as parameter, because of environment?
 #' Parallel Apply Function To List In All Platforms
 #'
-#' @param ll
-#' @param fun
+#' @param ll A list to apply fun
+#' @param fun Function to be applied
 #'
-#' @return
+#' @return List of applied results
 #' @export
 #'
 para_ll <- function(ll, fun) {
@@ -457,9 +457,9 @@ fit_models <- function(tele_guess) {
 # wrapper to avoid function object as parameter
 #' Title
 #'
-#' @param tele_list
+#' @param tele_list telemetry list
 #'
-#' @return
+#' @return list of model fitting results on each telemetry object
 #' @export
 #'
 #' @examples para_ll_fit(buffalo)
@@ -472,9 +472,9 @@ ud_calc <- function(ud_para_list) {
 }
 #' Title
 #'
-#' @param ud_para_list
+#' @param ud_para_list Aligned list of telemetry list and model list
 #'
-#' @return
+#' @return occurrence results list
 #' @export
 #'
 #' @examples para_ll_ud(align_list(buffalo, models_list))
@@ -484,10 +484,10 @@ para_ll_ud <- function(ud_para_list) {
 # sample buffalo data ----
 #' Title
 #'
-#' @param tele
-#' @param m
+#' @param tele telemetry object
+#' @param m sample size
 #'
-#' @return
+#' @return sampled telemetry object
 #' @export
 #'
 #' @examples pick_m_tele(buffalo[[1]], 100)
@@ -496,10 +496,10 @@ pick_m_tele <- function(tele, m) {
 }
 #' Title
 #'
-#' @param tele_list
-#' @param m
+#' @param tele_list telemetry list
+#' @param m sample size
 #'
-#' @return
+#' @return sampled telemetry list
 #' @export
 #'
 #' @examples pick_m_tele_list(buffalo, 100)
@@ -532,13 +532,6 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt[, item := NULL]
 }
 # from ctmm.fit result model list to data table with models in list column
-#' Title
-#'
-#' @param model_fit_res
-#'
-#' @return
-#' @export
-#'
 model_fit_res_to_model_list_dt <- function(model_fit_res) {
   animal_names_dt <- data.table(identity = names(model_fit_res))
   model_name_list <- lapply(model_fit_res, names)
@@ -557,14 +550,6 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
 }
-#' Title
-#'
-#' @param models_dt
-#' @param hrange
-#'
-#' @return
-#' @export
-#'
 model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -632,9 +617,9 @@ format_model_summary_dt <- function(model_summary_dt) {
 # combined steps of generating model summary and format it
 #' Title
 #'
-#' @param models_dt
+#' @param models_dt model list dt
 #'
-#' @return
+#' @return formated model summary table
 #' @export
 #'
 model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
@@ -645,10 +630,10 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 # from akde result model list to data table with models in list column
 #' Title
 #'
-#' @param selected_dt
-#' @param selected_hrange_list
+#' @param selected_dt model names dt
+#' @param selected_hrange_list home range list
 #'
-#' @return
+#' @return a data.table holding model info and home range
 #' @export
 #'
 build_hrange_list_dt <- function(selected_model_names_dt, selected_hrange_list) {
@@ -674,9 +659,9 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 }
 #' Title
 #'
-#' @param hrange_list_dt
+#' @param hrange_list_dt a data.table holding model info and home range
 #'
-#' @return
+#' @return formated home range summary table
 #' @export
 #'
 hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
