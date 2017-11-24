@@ -49,15 +49,7 @@ help_button <- function(module_id) {
                style = styles$help_button
   )
 }
-click_help <- function(input, output, session, title, size, file){
-  observeEvent(input$help, {
-    showModal(modalDialog(
-      title = title, size = size,
-      fluidPage(includeMarkdown(file)),
-      easyClose = TRUE, fade = FALSE
-    ))
-  })
-}
+
 # log slider ----
 # need to be here because it will be used in ui.R
 JS.logify <- function(digits = 2) {

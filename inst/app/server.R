@@ -224,6 +224,8 @@ output:
   # app can work without data parameter, or launched with data parameter, so need to check if data parameter exist first.
   # checking the parent environment, which is the app() environment so there will not be naming conflict from user environment. if parameter is NULL, no condition will match and nothing is done
   if (exists("shiny_app_data", where = parent.env(environment()))) {
+    # app() mode need this for help function
+    app_wd <- appDir
     # ensure no naming conflict possible
     app_input_data <- get("shiny_app_data", envir = parent.env(environment()))
     if (is.character(app_input_data)) {
@@ -241,7 +243,22 @@ output:
               on = isolate(input$record_on))
       isolate(update_input_data(app_input_data))
     }
+  } else {
+    # app_wd should make help work in separate app mode
+    app_wd <- "."
   }
+  # help module server part ----
+  click_help <- function(input, output, session, title, size, file){
+    observeEvent(input$help, {
+      showModal(modalDialog(
+        title = title, size = size,
+        # app_wd could be package app folder or just app folder depend on loading method
+        fluidPage(includeMarkdown(file.path(app_wd, file))),
+        easyClose = TRUE, fade = FALSE
+      ))
+    })
+  }
+  # help function now have proper folder
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
