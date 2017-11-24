@@ -3,7 +3,7 @@
 # enable more debugging and messages
 debug_mode <- FALSE
 # all helper functions are for server side
-# source("helpers.R", local = TRUE)
+source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
