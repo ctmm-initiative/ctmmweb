@@ -48,10 +48,11 @@ pick_unit_speed <- function(speed) {
   ctmm:::unit(median(speed, na.rm = TRUE), dimension = "speed",
                    concise = TRUE)
 }
-format_area_f <- function(area, round = FALSE) {
-  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area",
-                   concise = TRUE, round = round)
-}
+# not used?
+# format_area_f <- function(area, round = FALSE) {
+#   pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area",
+#                    concise = TRUE, round = round)
+# }
 # intended for single input
 format_diff_time <- function(diff_t) {
   diff_t_secs <- as.numeric(diff_t, units = "secs")
@@ -681,6 +682,14 @@ create_folder <- function(folder_path) {
   return(folder_path)
 }
 # zip will be saved to one level up folder_path.
+#' Title
+#'
+#' @param folder_path The folder to be compressed
+#' @param zip_name The name of zip
+#'
+#' @return The absolute path of result zip file
+#' @export
+#'
 compress_folder <- function(folder_path, zip_name) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip

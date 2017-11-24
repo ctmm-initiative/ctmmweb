@@ -28,8 +28,8 @@ server <- function(input, output, session) {
   # use token as folder name, still create the timestamp folder as subfolder, so that the zip will have the timestamped folder
   # LOG_folder is session specific global variable inside server function, many functions need this as global variable and need to defined inside server instead of helpers.R
   create_log_folder <- function() {
-    create_folder(file.path(session_tmpdir,
-                            str_c("Report_", current_timestamp())))
+    ctmmweb:::create_folder(file.path(session_tmpdir,
+                            str_c("Report_", ctmmweb:::current_timestamp())))
   }
   # rely on several global variables. do side effect of console msg, and write string to global vector.
   # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown.
@@ -54,7 +54,7 @@ server <- function(input, output, session) {
   }
   # common process for saving a plot
   log_prepare_plot <- function(f_name, f_ext = ".png") {
-    pic_name <- str_c(f_name, "_", current_timestamp(), f_ext)
+    pic_name <- str_c(f_name, "_", ctmmweb:::current_timestamp(), f_ext)
     log_msg("saving plot as", pic_name)
     log_add_rmd(str_c("![](", pic_name, ")"))
     return(file.path(LOG_folder, pic_name))
@@ -87,7 +87,7 @@ server <- function(input, output, session) {
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
   log_dt_csv <- function(dt, msg, f_name, on = TRUE) {
     if (!on) return()
-    csv_name <- str_c(f_name, "_", current_timestamp(), ".csv")
+    csv_name <- str_c(f_name, "_", ctmmweb:::current_timestamp(), ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
     log_add_rmd(str_c("[", csv_name, "](", csv_name, ")"))
@@ -150,7 +150,7 @@ output:
   })
   # cache setup ----
   create_cache <- function() {
-    create_folder(file.path(session_tmpdir, "cache"))
+    ctmmweb:::create_folder(file.path(session_tmpdir, "cache"))
   }
   reset_cache <- function(cache_path) {
     cache_files <- list.files(cache_path, full.names = TRUE)
@@ -166,7 +166,7 @@ output:
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
     if (debug_mode) {
-      match_tele_merged(values$data$tele_list, values$data$merged)
+      ctmmweb:::match_tele_merged(values$data$tele_list, values$data$merged)
     }
   })
   # values$ ----
@@ -210,7 +210,7 @@ output:
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
     req(all(unlist(test_class)))
     # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
-    tele_list <- sort_tele_list(tele_list)
+    tele_list <- ctmmweb:::sort_tele_list(tele_list)
     update_input_data(tele_list)
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
@@ -361,7 +361,7 @@ output:
       shiny::span(icon("spinner fa-spin"), "Downloading studies..."),
       type = "message", duration = NULL)
     # always take current form value
-    res <- get_all_studies(input$user, input$pass)  # may generate error notification if failed
+    res <- ctmmweb:::get_all_studies(input$user, input$pass)  # may generate error notification if failed
     removeNotification(note_studies)
     # if failed, should clear previous studies table to avoid click on rows, which will update study details while the response is the error message text, not csv. then fread will have error to crash app
     if (res$status != "Success") {
@@ -421,7 +421,7 @@ output:
                  target = "_blank", href =
   paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id()))
       })
-      res <- get_study_detail(mb_id(), input$user, input$pass)
+      res <- ctmmweb:::get_study_detail(mb_id(), input$user, input$pass)
       # It's easier to specify cols here to drop some cols and reorder cols at the same time
       detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
       detail_dt <- try(fread(res$res_cont, select = detail_cols))
@@ -454,7 +454,7 @@ output:
       shiny::span(icon("spinner fa-spin"), "Downloading data..."),
       type = "message", duration = NULL)
     # always take current form value
-    res <- get_study_data(mb_id(), input$user, input$pass)
+    res <- ctmmweb:::get_study_data(mb_id(), input$user, input$pass)
     removeNotification(note_data_download)
     # need to check response content to determine result type. the status is always success
     # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
@@ -465,7 +465,7 @@ output:
       showNotification(
         h4("No data available -- or you need to agree to license term first."),
         type = "warning", duration = 5)
-      msg <- html_to_text(res$res_cont)
+      msg <- ctmmweb:::html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
       # LOG download movebank data failed
       log_msg("Movebank data download failed", mb_id(),
@@ -659,9 +659,9 @@ output:
                  size = input$point_size_1, alpha = 0.7) +
       coord_fixed(xlim = location_plot_gg_range$x,
                   ylim = location_plot_gg_range$y) +
-      factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
-      scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
+      ctmmweb:::factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
+      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
       bigger_theme + bigger_key
@@ -675,9 +675,9 @@ output:
     animals_dt <- req(select_data()$data)
     g <- ggplot(data = animals_dt, aes(x, y)) +
       geom_point(size = 0.1, aes(colour = id)) +
-      scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
-      factor_color(animals_dt$id) +
+      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ctmmweb:::factor_color(animals_dt$id) +
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
@@ -688,7 +688,7 @@ output:
   # 2.4 individual plot ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(select_data()$data)
-    new_ranges <- get_ranges_quantile_dt(animals_dt, input$include_level)
+    new_ranges <- ctmmweb:::get_ranges_quantile_dt(animals_dt, input$include_level)
     id_vector <- select_data()$info$identity
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
@@ -696,9 +696,9 @@ output:
       new_ranges_i <- new_ranges[identity == id_vector[i]]
       g_list[[i]] <- ggplot(data = data_i, aes(x, y, color = id)) +
         geom_point(size = input$point_size_3, alpha = 0.7) +
-        factor_color(data_i$id) +
-        scale_x_continuous(labels = format_distance_f(data_i$x)) +
-        scale_y_continuous(labels = format_distance_f(data_i$y)) +
+        ctmmweb:::factor_color(data_i$id) +
+        scale_x_continuous(labels = ctmmweb:::format_distance_f(data_i$x)) +
+        scale_y_continuous(labels = ctmmweb:::format_distance_f(data_i$y)) +
         labs(title = id_vector[i]) +
         theme(plot.title = element_text(hjust = 0.5),
               legend.position = "none") +
@@ -722,7 +722,7 @@ output:
     animals_dt <- req(select_data()$data)
     g <- ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
       geom_histogram(bins = 60) +
-      factor_fill(animals_dt$id) +
+      ctmmweb:::factor_fill(animals_dt$id) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
       bigger_theme + bigger_key
@@ -752,8 +752,8 @@ output:
   bin_by_distance <- reactive({
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
-    return(color_break(input$distance_his_bins, animals_dt,
-                       "distance_center", format_distance_f))
+    return(ctmmweb:::color_break(input$distance_his_bins, animals_dt,
+                       "distance_center", ctmmweb:::format_distance_f))
   })
   output$distance_histogram <- renderPlot({
     # need to get data from reactive, update by bin count
@@ -770,8 +770,8 @@ output:
       # need to exclude 0 count groups
       geom_text(stat = 'bin',aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = distance_binned$color_bin_breaks) +
-      factor_fill(animals_dt$distance_center_color_factor) +
-      factor_alpha(animals_dt$distance_center_color_factor) +
+      ctmmweb:::factor_fill(animals_dt$distance_center_color_factor) +
+      ctmmweb:::factor_alpha(animals_dt$distance_center_color_factor) +
       scale_x_continuous(breaks = distance_binned$non_empty_breaks,
                          labels = distance_binned$vec_formatter) +
       # all counts above 20 are not shown, so it's easier to see the few outliers.
@@ -784,16 +784,16 @@ output:
   })
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
-    unit_distance <- pick_unit_distance(animals_dt$distance_center)
-    unit_speed <- pick_unit_speed(animals_dt$speed)
+    unit_distance <- ctmmweb:::pick_unit_distance(animals_dt$distance_center)
+    unit_speed <- ctmmweb:::pick_unit_speed(animals_dt$speed)
     animal_selected_data[, .(id, row_no,
-       timestamp = format_datetime(timestamp),
+       timestamp = ctmmweb:::format_datetime(timestamp),
        distance_center = format(distance_center / unit_distance$scale,
                                 digits = 3),
        distance_unit = unit_distance$name,
        speed = format(speed / unit_speed$scale, digits = 3),
        speed_unit = unit_speed$name
-       # distance_center = format_distance_f(animals_dt[, distance_center])(
+       # distance_center = ctmmweb:::format_distance_f(animals_dt[, distance_center])(
        #   distance_center),
        # distance_center_SI = format(distance_center, digits = 3),
        # speed = format_speed_f(animals_dt[, speed])(speed)
@@ -808,7 +808,7 @@ output:
       switch(his_type,
              distance = {
                col_name = quote(distance_center)
-               format_f <- format_distance_f
+               format_f <- ctmmweb:::format_distance_f
                unit_name <- " m"
                animals_dt <- req(bin_by_distance()$animals_dt)
              },
@@ -884,11 +884,11 @@ output:
       }} +
       geom_point(data = unique(animals_dt[, .(id, median_x, median_y)]),
                  aes(x = median_x, y = median_y, shape = id), color = "blue", size = 0.8) +
-      factor_color(animal_selected_data$distance_center_color_factor) +
+      ctmmweb:::factor_color(animal_selected_data$distance_center_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
-      factor_alpha(animal_selected_data$distance_center_color_factor) +
-      scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
+      ctmmweb:::factor_alpha(animal_selected_data$distance_center_color_factor) +
+      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
       coord_fixed(xlim = distance_outlier_plot_range$x,
                   ylim = distance_outlier_plot_range$y) +
       theme(legend.position = "top",
@@ -972,7 +972,7 @@ output:
                        type = "error")
     }
     req(!zero_speeds)
-    return(color_break(input$speed_his_bins, animals_dt,
+    return(ctmmweb:::color_break(input$speed_his_bins, animals_dt,
                        "speed", format_speed_f))
   })
   output$speed_histogram <- renderPlot({
@@ -987,8 +987,8 @@ output:
       # need to exclude 0 count groups
       geom_text(stat = 'bin', aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = speed_binned$color_bin_breaks) +
-      factor_fill(animals_dt$speed_color_factor) +
-      factor_alpha(animals_dt$speed_color_factor) +
+      ctmmweb:::factor_fill(animals_dt$speed_color_factor) +
+      ctmmweb:::factor_alpha(animals_dt$speed_color_factor) +
       scale_x_continuous(breaks = speed_binned$non_empty_breaks,
                          labels = speed_binned$vec_formatter) +
       coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
@@ -1018,11 +1018,11 @@ output:
                  #                input$speed_alpha),
                  aes(colour = speed_color_factor,
                      alpha = speed_color_factor)) +
-      factor_color(animal_selected_data$speed_color_factor) +
+      ctmmweb:::factor_color(animal_selected_data$speed_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_speed()$color_bin_breaks) +
-      factor_alpha(animal_selected_data$speed_color_factor) +
-      scale_x_continuous(labels = format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = format_distance_f(animals_dt$y)) +
+      ctmmweb:::factor_alpha(animal_selected_data$speed_color_factor) +
+      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
       coord_fixed(xlim = speed_outlier_plot_range$x,
                   ylim = speed_outlier_plot_range$y) +
       theme(legend.position = "top",
@@ -1160,7 +1160,7 @@ output:
     selected_id <- select_data()$info$identity
     data_i <- select_data()$data
     data_i[, color_bin_start :=
-             cut_date_time(timestamp, input$time_color_bins)]  # a factor
+             ctmmweb:::cut_date_time(timestamp, input$time_color_bins)]  # a factor
     color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
@@ -1223,9 +1223,9 @@ output:
       return(NULL)
     } else {
       time_range_dt <- data.table(time_range_df)
-      time_range_dt[, `:=`(start = format_datetime(select_start),
-                           end = format_datetime(select_end),
-                           length = format_diff_time(select_end - select_start))]
+      time_range_dt[, `:=`(start = ctmmweb:::format_datetime(select_start),
+                           end = ctmmweb:::format_datetime(select_end),
+                           length = ctmmweb:::format_diff_time(select_end - select_start))]
       return(time_range_dt[, .(start, end, length)])
     }
   }
@@ -1252,9 +1252,9 @@ output:
       geom_point(size = input$point_size_time_loc, alpha = 0.9,
                  data = animal_selected_data,
                  aes(colour = color_bin_start)) +
-      factor_color(animal_selected_data$color_bin_start) +
-      scale_x_continuous(labels = format_distance_f(animal_binned$data$x)) +
-      scale_y_continuous(labels = format_distance_f(animal_binned$data$y)) +
+      ctmmweb:::factor_color(animal_selected_data$color_bin_start) +
+      scale_x_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$x)) +
+      scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$y)) +
       coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
       theme(legend.position = "top",
             legend.direction = "horizontal") + bigger_key
@@ -1340,8 +1340,8 @@ output:
                                      wrap_single_telemetry(new_tele))
     # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
     # sorted_names <- sort(names(values$data$tele_list))
-    values$data$tele_list <- sort_tele_list(values$data$tele_list)
-    values$data$input_tele_list <- sort_tele_list(values$data$input_tele_list)
+    values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
+    values$data$input_tele_list <- ctmmweb:::sort_tele_list(values$data$input_tele_list)
     values$data$merged$info <- tele_list_info(values$data$tele_list)
     values$time_ranges <- NULL
     verify_global_data()
@@ -1627,7 +1627,7 @@ output:
 
     model_full_names_dt[, base_color := values$id_pal(identity)]
     model_full_names_dt[, variation_number := seq_len(.N), by = identity]
-    model_full_names_dt[, color := vary_color(base_color, .N)[variation_number],
+    model_full_names_dt[, color := ctmmweb:::vary_color(base_color, .N)[variation_number],
                         by = identity]
     # need ordered = TRUE for character vector not being factor yet.
     hr_pal <- colorFactor(model_full_names_dt$color,
@@ -1780,7 +1780,7 @@ output:
   })
   # function on input didn't update, need a reactive expression?
   get_hr_levels <- reactive({
-    parse_CI_levels(input$hr_level_text)
+    ctmmweb:::parse_CI_levels(input$hr_level_text)
   })
   output$range_plot <- renderPlot({
     selected_tele_list <- select_models()$tele_list
@@ -1821,7 +1821,7 @@ output:
         }
         return(write_f)
       }
-      build_shapefile_zip(file, save_shapefiles(select_models_hranges(),
+      ctmmweb:::build_shapefile_zip(file, save_shapefiles(select_models_hranges(),
                                                 get_hr_levels()),
                           session_tmpdir)
       # LOG build shapefiles
@@ -1842,7 +1842,7 @@ output:
   })
   # function on input didn't update, need a reactive expression?
   get_oc_levels <- reactive({
-    parse_CI_levels(input$oc_level_text)
+    ctmmweb:::parse_CI_levels(input$oc_level_text)
   })
   output$occurrence_plot <- renderPlot({
     # plot
@@ -1872,7 +1872,7 @@ output:
   CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
   # save map to html
   save_map <- function(leaf, map_type) {
-    map_file_name <- str_c(map_type, "_", current_timestamp(), ".html")
+    map_file_name <- str_c(map_type, "_", ctmmweb:::current_timestamp(), ".html")
     # LOG saving map
     log_msg(str_c("Saving map: ", map_type),
               on = isolate(input$record_on))
@@ -1891,7 +1891,7 @@ output:
                      here_app_id = 'ehftALetcOLjvopsXsZP',
                      here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
   )
-  base_map <- init_base_maps(tiles_info)
+  base_map <- ctmmweb:::init_base_maps(tiles_info)
   output$point_map_holder <- renderUI(
     leafletOutput("point_map",
                   height = input$map_height)
@@ -1904,15 +1904,15 @@ output:
     # id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
     #                       values$data$merged$data$identity)
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
-    withProgress(leaf <- base_map %>% add_points(dt, info, values$id_pal),
+    withProgress(leaf <- base_map %>% ctmmweb:::add_points(dt, info, values$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
-    if (reactive_validated(select_models_hranges())) {
+    if (ctmmweb:::reactive_validated(select_models_hranges())) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
       # hr_pal <- model_pal(summary_models()$model_full_names_dt, id_pal)
       hr_pal <- summary_models()$hr_pal
       leaf <- leaf %>%
-        add_home_range_list(select_models_hranges(), get_hr_levels(),
+        ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
@@ -1950,11 +1950,11 @@ output:
   )
   # heatmap ----
   get_heat_map <- reactive({
-    base_map %>% add_heat(select_data()$data, tiles_info)
+    base_map %>% ctmmweb:::add_heat(select_data()$data, tiles_info)
   })
   output$heat_map <- renderLeaflet({
     # dt <- select_data()$data
-    # leaf <- base_map %>% add_heat(dt, tiles_info)
+    # leaf <- base_map %>% ctmmweb:::add_heat(dt, tiles_info)
     leaf <- get_heat_map()
     print(system.time(
       save_map(leaf, "Heatmap")
@@ -2014,7 +2014,7 @@ output:
         # fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
         #           input$heat_map_bounds$west, input$heat_map_bounds$south)
         # setView(NULL, NULL, zoom = input$heat_map_zoom) %>%
-        apply_bounds(input$heat_map_bounds)
+        ctmmweb:::apply_bounds(input$heat_map_bounds)
         # fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
         #           input$heat_map_bounds$west, input$heat_map_bounds$south)
     }
@@ -2022,24 +2022,24 @@ output:
   # reset map view ----
   observeEvent(input$reset_map_view, {
     # fitBounds will have some allowance so no need to add padding here.
-    bounds <- get_bounds(select_data()$data)
+    bounds <- ctmmweb:::get_bounds(select_data()$data)
     leafletProxy(map_name_by_tab[[input$map_tabs]], session) %>%
       fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
   })
   # download map ----
   output$download_map <- downloadHandler(
     filename = function() {
-      paste0(input$map_tabs, "_", current_timestamp(), ".html")
+      paste0(input$map_tabs, "_", ctmmweb:::current_timestamp(), ".html")
     },
     content = function(file) {
       # LOG download map
       log_msg("Downloading map", on = isolate(input$record_on))
       # to save map with current view, update the map object with current bounds. the proxy only updated the in memory structure, not the map objec itself
       if (input$map_tabs == "Point") {
-        leaf <- get_point_map() %>% apply_bounds(input$point_map_bounds)
+        leaf <- get_point_map() %>% ctmmweb:::apply_bounds(input$point_map_bounds)
         save_map(leaf, "Point")
       } else {
-        leaf <- get_heat_map() %>% apply_bounds(input$heat_map_bounds)
+        leaf <- get_heat_map() %>% ctmmweb:::apply_bounds(input$heat_map_bounds)
         save_map(leaf, "Heatmap")
       }
       # leaf <- get_heat_map() %>%
@@ -2054,7 +2054,7 @@ output:
   # save session ----
   output$save_session <- downloadHandler(
     filename = function() {
-      paste0("Session_", current_timestamp(), ".zip")
+      paste0("Session_", ctmmweb:::current_timestamp(), ".zip")
     },
     content = function(file) {
       # we are checking input data instead of select_data, which is the real condition that can cause error, because it's easier to check and should be in same status
@@ -2086,7 +2086,7 @@ output:
         #           overwrite = TRUE)
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # pack to session.zip, this is a temp name anyway.
-        session_zip_path <- compress_relative_files(
+        session_zip_path <- ctmmweb:::compress_relative_files(
           session_tmpdir, c("cache.zip", "saved.rds", "report.html"),
           "session.zip")
         file.copy(session_zip_path, file)
@@ -2157,7 +2157,7 @@ output:
   # })
   output$download_report <- downloadHandler(
     filename = function() {
-      paste0("Report_", current_timestamp(), ".html")
+      paste0("Report_", ctmmweb:::current_timestamp(), ".html")
     },
     content = function(file) {
       # LOG download report
@@ -2174,7 +2174,7 @@ output:
   )
   output$download_report_zip <- downloadHandler(
     filename = function() {
-      paste0("Report_", current_timestamp(), ".zip")
+      paste0("Report_", ctmmweb:::current_timestamp(), ".zip")
     },
     content = function(file) {
       # LOG download report zip
