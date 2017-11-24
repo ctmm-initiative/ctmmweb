@@ -201,7 +201,7 @@ output:
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # wrap it so even single individual will return a list with one item
-    tele_list <- tryCatch(wrap_single_telemetry(as.telemetry(data_path)),
+    tele_list <- tryCatch(ctmmweb:::wrap_single_telemetry(as.telemetry(data_path)),
         error = function(e) {
           showNotification("Import error, check data again",
                            duration = 4, type = "error")
@@ -248,6 +248,7 @@ output:
     app_wd <- "."
   }
   # help module server part ----
+  # help function now have proper folder
   click_help <- function(input, output, session, title, size, file){
     observeEvent(input$help, {
       showModal(modalDialog(
@@ -258,7 +259,6 @@ output:
       ))
     })
   }
-  # help function now have proper folder
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
@@ -1351,10 +1351,10 @@ output:
     values$data$merged$data <- all_dt
     # need to wrap single obj otherwise it was flattened by c
     values$data$tele_list <- c(values$data$tele_list,
-                               wrap_single_telemetry(new_tele))
+                               ctmmweb:::wrap_single_telemetry(new_tele))
     # also update input tele from original input + new tele
     values$data$input_tele_list <- c(values$data$input_tele_list,
-                                     wrap_single_telemetry(new_tele))
+                                     ctmmweb:::wrap_single_telemetry(new_tele))
     # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
@@ -1628,7 +1628,7 @@ output:
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- model_fit_res_to_model_list_dt(req(values$selected_data_model_fit_res))
+    models_dt <- ctmmweb:::model_fit_res_to_model_list_dt(req(values$selected_data_model_fit_res))
     # the model summary table
     # model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     # formated_summary_dt <- format_model_summary_dt(model_summary_dt)

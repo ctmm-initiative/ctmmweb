@@ -102,12 +102,26 @@ sort_tele_list <- function(tele_list) {
   tele_list[sort(names(tele_list))]
 }
 # taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
+#' Title
+#'
+#' @param tele_objs telemetry objects or list
+#'
+#' @return information table of input
+#' @export
+#'
 tele_list_info <- function(tele_objs){
   tele_list <- wrap_single_telemetry(tele_objs)
   animal_info_list <- lapply(tele_list, single_tele_info)
   rbindlist(animal_info_list)
 }
 # calculate median center based on time clusters
+#' Title
+#'
+#' @param animals_dt telemetry data in merged data.table
+#'
+#' @return data.table with distance columns added
+#' @export
+#'
 calculate_distance <- function(animals_dt) {
   find_boundary <- function(data) {
     time_gap_threshold <- stats::quantile((diff(data$t)), 0.8) * 100
@@ -189,6 +203,14 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
   return(animals_dt)
 }
 # all speed calculation except ctmm assume distance have been calculated. Since we always update two together, this is not problem.
+#' Title
+#'
+#' @param animals_dt telemetry data in merged data.table
+#' @param device_error device error if available
+#'
+#' @return data.table with speed columns added
+#' @export
+#'
 calculate_speed <- function(animals_dt, device_error) {
   setkey(animals_dt, row_no)
   # my speed calculation need distance columns
