@@ -48,11 +48,10 @@ pick_unit_speed <- function(speed) {
   ctmm:::unit(median(speed, na.rm = TRUE), dimension = "speed",
                    concise = TRUE)
 }
-# not used?
-# format_area_f <- function(area, round = FALSE) {
-#   pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area",
-#                    concise = TRUE, round = round)
-# }
+format_area_f <- function(area, round = FALSE) {
+  pick_best_unit_f(median(area, na.rm = TRUE), dimension = "area",
+                   concise = TRUE, round = round)
+}
 # intended for single input
 format_diff_time <- function(diff_t) {
   diff_t_secs <- as.numeric(diff_t, units = "secs")

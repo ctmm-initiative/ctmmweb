@@ -194,7 +194,8 @@ output:
   }
   # 1.1 csv to telemetry ----
   # call this function for side effect, set values$data
-  import_file <- function(data_path) {
+  # as.telemetry work on both file path and data.frame, so it works on both of uploaded file and downloaded movebank data frame.
+  data_import <- function(data_path) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
@@ -216,7 +217,7 @@ output:
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   # using parameter because launching app with path also use this function
   file_uploaded <- function(data_path){
-    import_file(data_path)
+    data_import(data_path)
     updateRadioButtons(session, "load_option", selected = "upload")
     updateTabItems(session, "tabs", "plots")
   }

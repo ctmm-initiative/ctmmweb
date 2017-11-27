@@ -6,7 +6,7 @@
     - y axis is compressed to show the few outlier count better.
 - The scatter plot below showed the locations colored by the histogram group color.
     - The lower distance bin colors are more transparent to reduce clutter.
-    - The median centers are drew with different shape and in blue color. The available shapes may not be enough if many individuals are included. 
+    - The median centers are drew with different shape and in blue color (labeled as `id` in legend). The available shapes may not be enough if many individuals are included. 
     - You can draw a rectangle with mouse button pressed, then double click inside the rectangle to **zoom in**. Double click in plot reset the zoom in.
 - When you use mouse to select a range in histogram, the points in selected range will be highlighted in the scatter plot with bigger size (which can be adjusted), and the other points become gray background.
     - All points in selected range are listed in the table below, which can be sorted.
