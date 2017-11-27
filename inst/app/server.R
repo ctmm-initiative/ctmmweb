@@ -29,14 +29,14 @@ server <- function(input, output, session) {
   # LOG_folder is session specific global variable inside server function, many functions need this as global variable and need to defined inside server instead of helpers.R
   create_log_folder <- function() {
     ctmmweb:::create_folder(file.path(session_tmpdir,
-                            str_c("Report_", ctmmweb:::current_timestamp())))
+                            stringr::str_c("Report_", ctmmweb:::current_timestamp())))
   }
   # rely on several global variables. do side effect of console msg, and write string to global vector.
   # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown.
   log_msg_console <- function(msg, detail = "") {
-    time_stamp <- str_c("[", Sys.time(), "]")
+    time_stamp <- stringr::str_c("[", Sys.time(), "]")
     if (detail != "") {
-      detail <- str_c("\n\t", detail)
+      detail <- stringr::str_c("\n\t", detail)
     }
     if (LOG_console) {
       cat(LOG_color_mappings$time_stamp(time_stamp),
@@ -50,47 +50,47 @@ server <- function(input, output, session) {
     if (!on) return()
     time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
-    log_add_rmd(str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
+    log_add_rmd(stringr::str_c("`", time_stamp, "` ", msg, "\n\n\t", detail))
   }
   # common process for saving a plot
   log_prepare_plot <- function(f_name, f_ext = ".png") {
-    pic_name <- str_c(f_name, "_", ctmmweb:::current_timestamp(), f_ext)
+    pic_name <- stringr::str_c(f_name, "_", ctmmweb:::current_timestamp(), f_ext)
     log_msg("saving plot as", pic_name)
-    log_add_rmd(str_c("![](", pic_name, ")"))
+    log_add_rmd(stringr::str_c("![](", pic_name, ")"))
     return(file.path(LOG_folder, pic_name))
   }
   log_save_ggplot <- function(g, f_name, on = TRUE) {
     if (!on) return(g)
-    print(system.time(ggsave(filename = log_prepare_plot(f_name), plot = g)))
+    print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name), plot = g)))
     return(g)
   }
   # only used for variogram, with specific format and parameters, some came from input
   log_save_vario <- function(f_name, rows, cols, on = TRUE) {
     if (!on) return()
-    dev.print(png, file = log_prepare_plot(f_name), units = "in", res = 220,
+    grDevices::dev.print(png, file = log_prepare_plot(f_name), units = "in", res = 220,
               width = cols * 4, height = rows * 3)
   }
   # pdf is better for home range, occurrence
   log_save_UD <- function(f_name, on = TRUE) {
     if (!on) return()
-    dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
+    grDevices::dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
   }
   # save dt into markdown table or csv. note the msg could be in different format
   log_dt_md <- function(dt, msg, on = TRUE) {
     if (!on) return()
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
-                                  str_c(utils::capture.output(dt), collapse = "\n\t"))
-    log_add_rmd(c(str_c("`", time_stamp, "` ", msg, "\n"),
+                                  stringr::str_c(utils::capture.output(dt), collapse = "\n\t"))
+    log_add_rmd(c(stringr::str_c("`", time_stamp, "` ", msg, "\n"),
                   knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
   log_dt_csv <- function(dt, msg, f_name, on = TRUE) {
     if (!on) return()
-    csv_name <- str_c(f_name, "_", ctmmweb:::current_timestamp(), ".csv")
+    csv_name <- stringr::str_c(f_name, "_", ctmmweb:::current_timestamp(), ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
-    log_add_rmd(str_c("[", csv_name, "](", csv_name, ")"))
+    log_add_rmd(stringr::str_c("[", csv_name, "](", csv_name, ")"))
   }
   # copy end ----
   # LOG app start
@@ -122,8 +122,8 @@ output:
                      report = "Work Report")
   log_page <- function(title, on = TRUE) {
     if (!on) return()
-    log_msg_console(str_c("## ", title))
-    log_add_rmd(str_c("\n## ", title, "\n"))
+    log_msg_console(stringr::str_c("## ", title))
+    log_add_rmd(stringr::str_c("\n## ", title, "\n"))
   }
   # also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
   observeEvent(input$tabs, {
@@ -146,7 +146,7 @@ output:
   log_page(page_title$import, on = isolate(input$record_on))
   observeEvent(input$record_on, {
     # this call doesn't use the switch to turn off itself
-    log_msg(str_c("Recording is ", if (input$record_on) "On" else "Off"))
+    log_msg(stringr::str_c("Recording is ", if (input$record_on) "On" else "Off"))
   })
   # cache setup ----
   create_cache <- function() {
@@ -182,11 +182,11 @@ output:
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
-    values$data$merged <- merge_animals(tele_list)
+    values$data$merged <- ctmmweb::merge_animals(tele_list)
     values$data$all_removed_outliers <- NULL
     values$selected_data_model_fit_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
-    values$data$id_pal <- leaflet::colorFactor(hue_pal()(nrow(values$data$merged$info)),
+    values$data$id_pal <- leaflet::colorFactor(scales::hue_pal()(nrow(values$data$merged$info)),
                                       unique(values$data$merged$data$id))
     updateTabItems(session, "tabs", "plots")
     # LOG input data updated
@@ -271,7 +271,7 @@ output:
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
     data("buffalo", envir = environment())
-    sample_data <- pick_m_tele_list(buffalo, input$sample_size)
+    sample_data <- ctmmweb::pick_m_tele_list(buffalo, input$sample_size)
     # LOG use sample
     log_msg("Using data", "buffalo sample from ctmm",
             on = isolate(input$record_on))
@@ -563,7 +563,7 @@ output:
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
       formatStyle('identity', target = 'row',
                   color = styleEqual(info_p$identity,
-                                     hue_pal()(nrow(info_p)))
+                                     scales::hue_pal()(nrow(info_p)))
       )
   })
   # delete selected individuals ----
@@ -597,7 +597,7 @@ output:
       verify_global_data()
       # LOG delete inidividuals
       log_msg("Individuals deleted from data ",
-              str_c(chosen_ids, collapse = ", "),
+              stringr::str_c(chosen_ids, collapse = ", "),
               on = isolate(input$record_on))
     }
   })
@@ -859,7 +859,7 @@ output:
       # LOG selection range, selected points count
       format_f_value <- format_f(c(select_start, select_end))
       format_raw <- function(value, unit_name) {
-        str_c(format(value, digits = 3), unit_name)
+        stringr::str_c(format(value, digits = 3), unit_name)
       }
       dt <- data.table(Unit = c("Formated", "SI"),
         Start = c(format_f_value(select_start),
@@ -947,7 +947,7 @@ output:
       x[!(row.names(x) %in% points_to_remove[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-    info <- tele_list_info(tele_list)
+    info <- ctmmweb::tele_list_info(tele_list)
     # distance/speed calculation need to be updated. row_no not updated.
     # animals_dt <- ctmmweb::calculate_distance(animals_dt)
     # animals_dt <- ctmmweb::calculate_speed(animals_dt)
@@ -1159,7 +1159,7 @@ output:
   # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
     values$data$tele_list <- values$data$input_tele_list
-    values$data$merged <- merge_animals(values$data$tele_list)
+    values$data$merged <- ctmmweb::merge_animals(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
     # LOG reset removal
     log_msg("All Removed Outliers Restored", on = isolate(input$record_on))
@@ -1179,7 +1179,7 @@ output:
     data_i <- select_data()$data
     data_i[, color_bin_start :=
              ctmmweb:::cut_date_time(timestamp, input$time_color_bins)]  # a factor
-    color_bin_start_vec_time <- ymd_hms(levels(data_i$color_bin_start))
+    color_bin_start_vec_time <- lubridate::ymd_hms(levels(data_i$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
                                      data_i[t == max(t), timestamp])
     # initital selection is full range
@@ -1204,13 +1204,13 @@ output:
   # histogram cut by color bins. default with less groups since color difference is limited.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
-    g <- ggplot(data = animal_binned$data, aes(x = timestamp)) +
-      geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
-                     fill = hue_pal()(input$time_color_bins)) +
-      scale_x_datetime(breaks = animal_binned$color_bin_breaks,
-                       labels = date_format("%Y-%m-%d %H:%M:%S")) +
-      ggtitle(animal_binned$data[1, identity]) + CENTER_TITLE +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    g <- ggplot2::ggplot(data = animal_binned$data, ggplot2::aes(x = timestamp)) +
+      ggplot2::geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
+                     fill = scales::hue_pal()(input$time_color_bins)) +
+      ggplot2::scale_x_datetime(breaks = animal_binned$color_bin_breaks,
+                       labels = scales::date_format("%Y-%m-%d %H:%M:%S")) +
+      ggplot2::ggtitle(animal_binned$data[1, identity]) + CENTER_TITLE +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_histogram",
                     on = isolate(input$record_on))
@@ -1329,7 +1329,7 @@ output:
     new_dt <- unique(rbindlist(res))
     setkey(new_dt, row_no)
     # new name
-    matches <- str_match(values$data$merged$info$identity,
+    matches <- stringr::str_match(values$data$merged$info$identity,
                          paste0(animal_binned$identity, "_subset_(\\d+)$"))
     matches[is.na(matches)] <- 0
     last_index <- max(as.numeric(matches[,2]))
@@ -1360,7 +1360,7 @@ output:
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
     values$data$input_tele_list <- ctmmweb:::sort_tele_list(values$data$input_tele_list)
-    values$data$merged$info <- tele_list_info(values$data$tele_list)
+    values$data$merged$info <- ctmmweb::tele_list_info(values$data$tele_list)
     values$time_ranges <- NULL
     verify_global_data()
     # LOG subset added
@@ -1393,7 +1393,7 @@ output:
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
-                    function(tele) ctmm.guess(tele, interactive = FALSE))
+                    function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
     res <- lapply(tele_list, variogram)
     names(res) <- names(tele_list)
     return(res)
@@ -1431,8 +1431,8 @@ output:
     ctmm_color <- switch(input$vario_mode,
                          guesstimate = "green",
                          modeled = "purple")
-    def.par <- par(no.readonly = TRUE)
-    par(mfrow = c(row_count, input$vario_columns),
+    def.par <- graphics::par(no.readonly = TRUE)
+    graphics::par(mfrow = c(row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     if (input$vario_option == "absolute") {
       max.lag <- max(sapply(vg_lst, function(v){ last(v$lag) } ))
@@ -1445,7 +1445,7 @@ output:
              col.CTMM = ctmm_color, fraction = 1,
              xlim = c(0, extent_tele["max", "x"]),
              ylim = c(0, extent_tele["max", "y"]))
-        title(title_vec[i])
+        graphics::title(title_vec[i])
         # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
         #   title(vg_zoomed_list[[i]]@info$identity, sub = "Error on",
         #         cex.sub = 0.85, col.sub = "red")
@@ -1459,7 +1459,7 @@ output:
              col.CTMM = ctmm_color,
              fraction = 10 ^ input$zoom_lag_fraction)
         # browser()
-        title(title_vec[i])
+        graphics::title(title_vec[i])
         # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
         #   title(vg_lst[[i]]@info$identity, sub = "Error on",
         #         cex.sub = 0.85, col.sub = "red")
@@ -1474,7 +1474,7 @@ output:
     # LOG save pic
     log_save_vario("vario", row_count, input$vario_columns,
                    on = isolate(input$record_on))
-    par(def.par)
+    graphics::par(def.par)
   }, height = function() {
       if (input$vario_mode != "modeled") {
         select_data_vg_layout()$height
@@ -1551,7 +1551,7 @@ output:
     req(init_slider_values()$control_sliders)
   })
   output$fit_zoom <- renderUI({
-    list(tags$head(tags$script(HTML(JS.onload("vfit_z")))),
+    list(tags$head(tags$script(HTML(ctmmweb::JS.onload("vfit_z")))),
          req(init_slider_values()$zoom_slider))
   })
   observeEvent(input$center_slider, {
@@ -1633,9 +1633,9 @@ output:
     # the model summary table
     # model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     # formated_summary_dt <- format_model_summary_dt(model_summary_dt)
-    formated_summary_dt <- model_list_dt_to_formated_model_summary_dt(models_dt)
+    formated_summary_dt <- ctmmweb::model_list_dt_to_formated_model_summary_dt(models_dt)
     if (input$hide_ci_model) {
-      formated_summary_dt <- formated_summary_dt[!str_detect(estimate, "CI")]
+      formated_summary_dt <- formated_summary_dt[!stringr::str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
     }
     # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table
@@ -1680,12 +1680,12 @@ output:
       # majority cells in color by model
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
-                                     hue_pal()(length(model_names)))
+                                     scales::hue_pal()(length(model_names)))
       ) %>%
       # override the id col color
       formatStyle('identity', target = 'cell',
                   color = styleEqual(info_p$identity,
-                                     hue_pal()(nrow(info_p)))
+                                     scales::hue_pal()(nrow(info_p)))
       ) %>%
       # override the low/high cols with background
       formatStyle(
@@ -1718,7 +1718,7 @@ output:
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     selected_models_list <- selected_models_dt$model
     selected_vg_list <- select_data_vg_list()[selected_names_dt$identity]
-    # selected_names_dt[, full_name := str_c(identity, " - ", model_name)]
+    # selected_names_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
     # LOG selected models
     log_dt_md(selected_names_dt, "Selected Models",
               on = isolate(input$record_on))
@@ -1727,7 +1727,7 @@ output:
                 tele_list = selected_tele_list,
                 models_list = selected_models_list,
                 # id_model =
-                #   selected_names_dt[, str_c(identity, " - ", model_name)],
+                #   selected_names_dt[, stringr::str_c(identity, " - ", model_name)],
                 vg_list = selected_vg_list
                 ))
   })
@@ -1769,7 +1769,7 @@ output:
     # LOG home range summary
     log_dt_md(dt, "Home Range Summary")
     if (input$hide_ci_hrange) {
-      dt <- dt[!str_detect(estimate, "CI")]
+      dt <- dt[!stringr::str_detect(estimate, "CI")]
       # dt[, estimate := NULL]
     }
     info_p <- values$data$merged$info
@@ -1780,12 +1780,12 @@ output:
       # majority cells in color by model
       formatStyle('model_name', target = 'row',
                   color = styleEqual(model_names,
-                                     hue_pal()(length(model_names)))
+                                     scales::hue_pal()(length(model_names)))
       ) %>%
       # override the id col color
       formatStyle('identity', target = 'cell',
                   color = styleEqual(info_p$identity,
-                                     hue_pal()(nrow(info_p)))
+                                     scales::hue_pal()(nrow(info_p)))
       ) %>%
       # override the low/high cols with background
       formatStyle(
@@ -1802,13 +1802,13 @@ output:
   })
   output$range_plot <- renderPlot({
     selected_tele_list <- select_models()$tele_list
-    def.par <- par(no.readonly = TRUE)
-    par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
+    def.par <- graphics::par(no.readonly = TRUE)
+    graphics::par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(selected_tele_list), function(i) {
       plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
            level.UD = get_hr_levels())
-      title(select_models()$names_dt$full_name[i])
+      graphics::title(select_models()$names_dt$full_name[i])
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
     # LOG save pic
@@ -1816,7 +1816,7 @@ output:
                    input$vario_columns,
                    on = isolate(input$record_on))
     log_save_UD("home_range", on = isolate(input$record_on))
-    par(def.par)
+    graphics::par(def.par)
   }, height = function() { select_models_layout()$height })
   # export shapefiles ----
   output$export_hrange <- downloadHandler(
@@ -1832,7 +1832,7 @@ output:
         write_f <- function(folder_path) {
           # hrange_list came from select_models(), so the order should be synced
           for (i in seq_along(hrange_list)) {
-            writeShapefile(hrange_list[[i]], level.UD = ud_levels,
+            ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
                            folder = folder_path,
                            file = select_models()$names_dt$full_name[i])
           }
@@ -1864,8 +1864,8 @@ output:
   })
   output$occurrence_plot <- renderPlot({
     # plot
-    def.par <- par(no.readonly = TRUE)
-    par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
+    def.par <- graphics::par(no.readonly = TRUE)
+    graphics::par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(select_models_occurrences()), function(i) {
       tryCatch({
@@ -1875,14 +1875,14 @@ output:
         warning(select_models()$names_dt$full_name[i], ": ", e)
         plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
       })
-      title(select_models()$names_dt$full_name[i])
+      graphics::title(select_models()$names_dt$full_name[i])
     })
     # LOG save pic
     log_save_vario("occurrence", select_models_layout()$row_count,
                    input$vario_columns,
                    on = isolate(input$record_on))
     log_save_UD("occurrence", on = isolate(input$record_on))
-    par(def.par)
+    graphics::par(def.par)
   }, height = function() { select_models_layout()$height })
   # p8. map ----
   callModule(click_help, "map", title = "Map",
@@ -1891,14 +1891,14 @@ output:
   CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
   # save map to html
   save_map <- function(leaf, map_type) {
-    map_file_name <- str_c(map_type, "_", ctmmweb:::current_timestamp(), ".html")
+    map_file_name <- stringr::str_c(map_type, "_", ctmmweb:::current_timestamp(), ".html")
     # LOG saving map
-    log_msg(str_c("Saving map: ", map_type),
+    log_msg(stringr::str_c("Saving map: ", map_type),
               on = isolate(input$record_on))
     map_path <- file.path(LOG_folder, map_file_name)
-    saveWidget(leaf, file = map_path, selfcontained = TRUE)
+    htmlwidgets::saveWidget(leaf, file = map_path, selfcontained = TRUE)
     # add link in rmd, difficult to embed map itself.
-    log_add_rmd(str_c("\n[", map_type, "](", map_file_name, ")\n"))
+    log_add_rmd(stringr::str_c("\n[", map_type, "](", map_file_name, ")\n"))
     # record the latest file path
     CURRENT_map_path[[map_type]] <<- map_path
   }
@@ -1912,7 +1912,7 @@ output:
   )
   base_map <- ctmmweb:::init_base_maps(tiles_info)
   output$point_map_holder <- renderUI(
-    leafletOutput("point_map",
+    leaflet::leafletOutput("point_map",
                   height = input$map_height)
   )
   # point map ----
@@ -1956,7 +1956,7 @@ output:
     return(leaf)
   })
   # reactive get map, render function save map and count time
-  output$point_map <- renderLeaflet({
+  output$point_map <- leaflet::renderLeaflet({
     leaf <- get_point_map()
     print(system.time(
       save_map(leaf, "Point")
@@ -1964,14 +1964,14 @@ output:
     return(leaf)
   })
   output$heat_map_holder <- renderUI(
-    leafletOutput("heat_map",
+    leaflet::leafletOutput("heat_map",
                   height = input$map_height)
   )
   # heatmap ----
   get_heat_map <- reactive({
     base_map %>% ctmmweb:::add_heat(select_data()$data, tiles_info)
   })
-  output$heat_map <- renderLeaflet({
+  output$heat_map <- leaflet::renderLeaflet({
     # dt <- select_data()$data
     # leaf <- base_map %>% ctmmweb:::add_heat(dt, tiles_info)
     leaf <- get_heat_map()
@@ -1981,7 +1981,7 @@ output:
     return(leaf)
   })
   output$cluster_map_holder <- renderUI(
-    leafletOutput("cluster_map",
+    leaflet::leafletOutput("cluster_map",
                   height = input$map_height)
   )
   # need a history list of tabs, from tab switching and page switching
@@ -2029,7 +2029,7 @@ output:
       # center_lng <- mean(input$heat_map_bounds$east, input$heat_map_bounds$west)
       # center_lat <- mean(input$heat_map_bounds$north,
       #                    input$heat_map_bounds$south)
-      leafletProxy("point_map", session) %>%
+      leaflet::leafletProxy("point_map", session) %>%
         # fitBounds(input$heat_map_bounds$east, input$heat_map_bounds$north,
         #           input$heat_map_bounds$west, input$heat_map_bounds$south)
         # setView(NULL, NULL, zoom = input$heat_map_zoom) %>%
@@ -2042,8 +2042,8 @@ output:
   observeEvent(input$reset_map_view, {
     # fitBounds will have some allowance so no need to add padding here.
     bounds <- ctmmweb:::get_bounds(select_data()$data)
-    leafletProxy(MAP_NAME_BY_TAB[[input$map_tabs]], session) %>%
-      fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
+    leaflet::leafletProxy(MAP_NAME_BY_TAB[[input$map_tabs]], session) %>%
+      leaflet::fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
   })
   # download map ----
   output$download_map <- downloadHandler(
@@ -2118,14 +2118,14 @@ output:
     log_msg("Loading cache data", input$load_cache$name,
             on = isolate(input$record_on))
     # saved.zip -> cache.zip, saved.rds, report.html
-    unzip(input$load_cache$datapath, exdir = session_tmpdir)
+    utils::unzip(input$load_cache$datapath, exdir = session_tmpdir)
     if (APP_local) {
       utils::browseURL(file.path(session_tmpdir, "report.html"))
     }
     # first clear current cache.
     reset_cache(cache_path)
     # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up
-    unzip(file.path(session_tmpdir, "cache.zip"), exdir = session_tmpdir)
+    utils::unzip(file.path(session_tmpdir, "cache.zip"), exdir = session_tmpdir)
     loaded <- readRDS(file.path(session_tmpdir, "saved.rds"))
     # restore variables in order, may need to freeze some
     values$data <- loaded$data
