@@ -31,7 +31,7 @@ You can run app in your local machine with these steps:
 2. Start R or RStudio, run this line in console.
 
     ```r
-    source("https://raw.githubusercontent.com/ctmm-initiative/ctmm-webapp/master/inst/app/run.R")
+    source("https://raw.githubusercontent.com/ctmm-initiative/ctmm-webapp/package/inst/app/run.R")
     ```
 
     The script above will install dependency packages and run app. Sometimes you may need to restart R in installing packages. 
