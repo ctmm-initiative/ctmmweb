@@ -157,9 +157,9 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  para_ll_fit_mem <- memoise(para_ll_fit, cache = cache_filesystem(cache_path))
-  akde_mem <- memoise(akde, cache = cache_filesystem(cache_path))
-  para_ll_ud_mem <- memoise(para_ll_ud, cache = cache_filesystem(cache_path))
+  para_ll_fit_mem <- memoise::memoise(para_ll_fit, cache = memoise::cache_filesystem(cache_path))
+  akde_mem <- memoise::memoise(akde, cache = memoise::cache_filesystem(cache_path))
+  para_ll_ud_mem <- memoise::memoise(para_ll_ud, cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -202,7 +202,7 @@ output:
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # wrap it so even single individual will return a list with one item
-    tele_list <- tryCatch(ctmmweb:::wrap_single_telemetry(as.telemetry(data_path)),
+    tele_list <- tryCatch(ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
         error = function(e) {
           showNotification("Import error, check data again",
                            duration = 4, type = "error")
@@ -1078,7 +1078,7 @@ output:
           geom_segment(data = animals_dt[(in_neighbor)],
                        color = "blue", alpha = 0.3, na.rm = TRUE,
                        aes(xend = xend, yend = yend),
-                       arrow = arrow(length = unit(2,"mm")))
+                       arrow = grid::arrow(length = unit(2,"mm")))
         # add label in path if needed, this only work when path is selected.
         if ("add_label" %in% input$selected_details) {
           g <- g +
@@ -1219,12 +1219,12 @@ output:
   # brush selection and matching color bins
   observeEvent(input$time_sub_his_brush, {
     values$selected_time_range <- list(
-      select_start = as_datetime(input$time_sub_his_brush$xmin),
-      select_end = as_datetime(input$time_sub_his_brush$xmax))
+      select_start = lubridate::as_datetime(input$time_sub_his_brush$xmin),
+      select_end = lubridate::as_datetime(input$time_sub_his_brush$xmax))
   })
   observeEvent(input$set_date_range, {
-    start <- as_datetime(input$date_range[1])
-    end <- as_datetime(input$date_range[2])
+    start <- lubridate::as_datetime(input$date_range[1])
+    end <- lubridate::as_datetime(input$date_range[2])
     if (end - start < 0) {
       showNotification("Start date is later than end date",
                        duration = 3, type = "error")
@@ -1609,7 +1609,7 @@ output:
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
     freezeReactiveValue(input, "model_fit_summary_rows_selected")
     # guess_list is updated inside select_data_vg_list, but select_data_vg_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
-    tele_guess_list <- align_list(select_data()$tele_list,
+    tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
                                   values$selected_data_guess_list)
     # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
     # print(fit_models)
@@ -1762,9 +1762,9 @@ output:
     #   build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
     #   hrange = TRUE)
     # dt <- format_hrange_summary_dt(hrange_summary_dt)
-    hrange_list_dt <- build_hrange_list_dt(select_models()$names_dt,
+    hrange_list_dt <- ctmmweb::build_hrange_list_dt(select_models()$names_dt,
                                            select_models_hranges())
-    dt <- hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
+    dt <- ctmmweb::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
     dt[, model_no := NULL]
     # LOG home range summary
     log_dt_md(dt, "Home Range Summary")
@@ -1851,7 +1851,7 @@ output:
              size = "l", file = "help/7_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
-    ud_para_list <- align_list(select_models()$tele_list,
+    ud_para_list <- ctmmweb::align_list(select_models()$tele_list,
                                select_models()$models_list)
     withProgress(print(system.time(
       res <- para_ll_ud_mem(ud_para_list))),
@@ -1934,23 +1934,23 @@ output:
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
-        addLayersControl(
+        leaflet::addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
           overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity,
                             select_models()$names_dt$full_name
                             # ,
                             # draw_group
           ),
-          options = layersControlOptions(collapsed = FALSE)
+          options = leaflet::layersControlOptions(collapsed = FALSE)
         )
     } else {
       leaf <- leaf %>%
-        addLayersControl(
+        leaflet::addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
           overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity
                             # , draw_group
           ),
-          options = layersControlOptions(collapsed = FALSE)
+          options = leaflet::layersControlOptions(collapsed = FALSE)
         )
     }
     return(leaf)
@@ -2120,7 +2120,7 @@ output:
     # saved.zip -> cache.zip, saved.rds, report.html
     unzip(input$load_cache$datapath, exdir = session_tmpdir)
     if (APP_local) {
-      browseURL(file.path(session_tmpdir, "report.html"))
+      utils::browseURL(file.path(session_tmpdir, "report.html"))
     }
     # first clear current cache.
     reset_cache(cache_path)
@@ -2150,7 +2150,7 @@ output:
     rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
     # file.copy(html_path, "www/report.html", overwrite = TRUE)
     # non-encoded file path cannot have white space for browserURL
-    if (preview) browseURL(html_path)
+    if (preview) utils::browseURL(html_path)
     values$html_path <- html_path
   }
   # preview in local mode, download in host mode
