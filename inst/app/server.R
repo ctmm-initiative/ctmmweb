@@ -2086,15 +2086,15 @@ output:
         # pack and save cache
         cache_zip_path <- compress_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
-        saved <- list(data = values$data,
-                      chosen_row_nos = select_data()$chosen_row_nos,
-                      selected_data_model_fit_res =
-                        values$selected_data_model_fit_res,
-                      selected_data_guess_list =
-                        values$selected_data_guess_list,
+        saved <- list(data = values$data
+                      # chosen_row_nos = select_data()$chosen_row_nos,
+                      # selected_data_model_fit_res =
+                      #   values$selected_data_model_fit_res,
+                      # selected_data_guess_list =
+                      #   values$selected_data_guess_list
                       # didn't sort this, need to sort it when restoring
-                      model_fit_summary_rows_selected =
-                        input$model_fit_summary_rows_selected
+                      # model_fit_summary_rows_selected =
+                      #   input$model_fit_summary_rows_selected
                       )
         saved_rds_path <- file.path(session_tmpdir, "saved.rds")
         saveRDS(saved, file = saved_rds_path)
@@ -2129,8 +2129,8 @@ output:
     loaded <- readRDS(file.path(session_tmpdir, "saved.rds"))
     # restore variables in order, may need to freeze some
     values$data <- loaded$data
-    values$selected_data_model_fit_res <- loaded$selected_data_model_fit_res
-    values$selected_data_guess_list <- loaded$selected_data_guess_list
+    # values$selected_data_model_fit_res <- loaded$selected_data_model_fit_res
+    # values$selected_data_guess_list <- loaded$selected_data_guess_list
     # freezeReactiveValue(input, "model_fit_summary_rows_selected")
     # selectRows(proxy_model_dt, loaded$model_fit_summary_rows_selected)
     updateTabItems(session, "tabs", "plots")
