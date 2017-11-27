@@ -307,13 +307,13 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
   return(dt)
 }
 # ggplot ----
-bigger_theme <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
+BIGGER_THEME <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                       legend.key.height = grid::unit(8, "mm"),
                       legend.text = ggplot2::element_text(size = 12),
                       axis.title = ggplot2::element_text(size = 14),
                       axis.text = ggplot2::element_text(size = 12))
-bigger_key <- ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 4)))
-center_title <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 4)))
+CENTER_TITLE <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
 # note need to use dt$id format. note the mapping is provided in aes(color/fill = xx) already, this is to override some options.
 factor_mapper <- function(fac, FUN) {
@@ -758,7 +758,7 @@ build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   file.copy(zip_path, file)
 }
 # map ----
-grid_group <- "_graticule_"
+GRID_GROUP <- "_graticule_"
 # draw_group <- "_draw with measure_"
 init_base_maps <- function(tiles_info) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(attributionControl = FALSE))
@@ -789,7 +789,7 @@ add_measure <- function(leaf) {
 add_points <- function(leaf, dt, info, id_pal) {
   leaf <- leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                       redraw = "moveend", group = grid_group)
+                       redraw = "moveend", group = GRID_GROUP)
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
   for (current_id in info$identity) {
@@ -851,14 +851,14 @@ vary_color <- function(base_color, count) {
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                       redraw = "moveend", group = grid_group) %>%
+                       redraw = "moveend", group = GRID_GROUP) %>%
     leaflet.extras::addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
     leaflet::addScaleBar(position = "bottomleft") %>%
     add_measure() %>%
     leaflet::addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
-      overlayGroups = c(grid_group, "Heatmap"),
+      overlayGroups = c(GRID_GROUP, "Heatmap"),
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
 get_bounds <- function(dt) {

@@ -682,7 +682,7 @@ output:
       scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
       theme(legend.position = "top",
             legend.direction = "horizontal") +
-      bigger_theme + bigger_key
+      ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_2_overview", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto"
@@ -699,7 +699,7 @@ output:
       facet_grid(id ~ .) +
       coord_fixed() +
       theme(strip.text.y = element_text(size = 12)) +
-      bigger_theme + bigger_key
+      ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_3_facet", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
@@ -743,7 +743,7 @@ output:
       ctmmweb:::factor_fill(animals_dt$id) +
       facet_grid(id ~ .) +
       theme(strip.text.y = element_text(size = 12)) +
-      bigger_theme + bigger_key
+      ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_5_histogram", on = isolate(input$record_on))
   }, height = styles$height_hist, width = "auto")
@@ -910,7 +910,7 @@ output:
       coord_fixed(xlim = distance_outlier_plot_range$x,
                   ylim = distance_outlier_plot_range$y) +
       theme(legend.position = "top",
-            legend.direction = "horizontal") + bigger_key
+            legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_distance_outlier_plot",
                     on = isolate(input$record_on))
@@ -1044,7 +1044,7 @@ output:
       coord_fixed(xlim = speed_outlier_plot_range$x,
                   ylim = speed_outlier_plot_range$y) +
       theme(legend.position = "top",
-            legend.direction = "horizontal") + bigger_key
+            legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # if selected some points in table of data in range. when some points are removed, data updated but this table is still there, not updated yet, so there are row selection values. Further, the plot is not updated so brush value is still there, select_speed_range() will get selected data with brush value, but last brush value is the higher range now have no match in data after outlier removal.
     # with 2nd points clicked in 2 points list, removing it cause the selected data update to one point, but the selection row is still 2nd. wrong execution order. reactive need reactive, not if check or normal branch.
     if (!is.null(input$points_in_speed_range_rows_selected)) {
@@ -1209,7 +1209,7 @@ output:
                      fill = hue_pal()(input$time_color_bins)) +
       scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = date_format("%Y-%m-%d %H:%M:%S")) +
-      ggtitle(animal_binned$data[1, identity]) + center_title +
+      ggtitle(animal_binned$data[1, identity]) + CENTER_TITLE +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_histogram",
@@ -1275,7 +1275,7 @@ output:
       scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$y)) +
       coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
       theme(legend.position = "top",
-            legend.direction = "horizontal") + bigger_key
+            legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_plot",
                     on = isolate(input$record_on))
@@ -1936,7 +1936,7 @@ output:
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
-          overlayGroups = c(ctmmweb:::grid_group, info$identity,
+          overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity,
                             select_models()$names_dt$full_name
                             # ,
                             # draw_group
@@ -1947,7 +1947,7 @@ output:
       leaf <- leaf %>%
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
-          overlayGroups = c(ctmmweb:::grid_group, info$identity
+          overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity
                             # , draw_group
           ),
           options = layersControlOptions(collapsed = FALSE)
