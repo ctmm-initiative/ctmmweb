@@ -80,7 +80,7 @@ server <- function(input, output, session) {
     if (!on) return()
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
-                                  str_c(capture.output(dt), collapse = "\n\t"))
+                                  str_c(utils::capture.output(dt), collapse = "\n\t"))
     log_add_rmd(c(str_c("`", time_stamp, "` ", msg, "\n"),
                   knitr::kable(dt, format = "markdown")))
   }
@@ -186,7 +186,7 @@ output:
     values$data$all_removed_outliers <- NULL
     values$selected_data_model_fit_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
-    values$data$id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
+    values$data$id_pal <- leaflet::colorFactor(hue_pal()(nrow(values$data$merged$info)),
                                       unique(values$data$merged$data$id))
     updateTabItems(session, "tabs", "plots")
     # LOG input data updated
@@ -668,19 +668,19 @@ output:
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
     animals_dt <- req(select_data()$data)
-    g <- ggplot() +
+    g <- ggplot2::ggplot() +
       {if (input$overlay_all) {
-        geom_point(data = values$data$merged$data, aes(x, y),
+        ggplot2::geom_point(data = values$data$merged$data, ggplot2::aes(x, y),
                    size = input$point_size_1, alpha = 0.6, colour = "gray")
       }} +
-      geom_point(data = animals_dt, aes(x, y, colour = id),
+      ggplot2::geom_point(data = animals_dt, ggplot2::aes(x, y, colour = id),
                  size = input$point_size_1, alpha = 0.7) +
-      coord_fixed(xlim = location_plot_gg_range$x,
+      ggplot2::coord_fixed(xlim = location_plot_gg_range$x,
                   ylim = location_plot_gg_range$y) +
       ctmmweb:::factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
-      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
-      theme(legend.position = "top",
+      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") +
       ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
@@ -691,14 +691,14 @@ output:
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
     animals_dt <- req(select_data()$data)
-    g <- ggplot(data = animals_dt, aes(x, y)) +
-      geom_point(size = 0.1, aes(colour = id)) +
-      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+    g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x, y)) +
+      ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
+      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
       ctmmweb:::factor_color(animals_dt$id) +
-      facet_grid(id ~ .) +
-      coord_fixed() +
-      theme(strip.text.y = element_text(size = 12)) +
+      ggplot2::facet_grid(id ~ .) +
+      ggplot2::coord_fixed() +
+      ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
       ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_3_facet", on = isolate(input$record_on))
@@ -712,15 +712,15 @@ output:
     for (i in seq_along(id_vector)) {
       data_i <- animals_dt[identity == id_vector[i]]
       new_ranges_i <- new_ranges[identity == id_vector[i]]
-      g_list[[i]] <- ggplot(data = data_i, aes(x, y, color = id)) +
-        geom_point(size = input$point_size_3, alpha = 0.7) +
+      g_list[[i]] <- ggplot2::ggplot(data = data_i, ggplot2::aes(x, y, color = id)) +
+        ggplot2::geom_point(size = input$point_size_3, alpha = 0.7) +
         ctmmweb:::factor_color(data_i$id) +
-        scale_x_continuous(labels = ctmmweb:::format_distance_f(data_i$x)) +
-        scale_y_continuous(labels = ctmmweb:::format_distance_f(data_i$y)) +
-        labs(title = id_vector[i]) +
-        theme(plot.title = element_text(hjust = 0.5),
+        ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(data_i$x)) +
+        ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(data_i$y)) +
+        ggplot2::labs(title = id_vector[i]) +
+        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
               legend.position = "none") +
-        coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
+        ggplot2::coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
                     ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
                     expand = FALSE)
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
@@ -731,18 +731,18 @@ output:
     #                      matrix(1:fig_count,
     #                             nrow = fig_count / input$plot4_col,
     #                             ncol = input$plot4_col, byrow = TRUE))
-    gr <- grid.arrange(grobs = g_list, ncol = input$plot4_col)
+    gr <- gridEctra::grid.arrange(grobs = g_list, ncol = input$plot4_col)
     # LOG save pic
     log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(select_data()$data)
-    g <- ggplot(data = animals_dt, aes(x = timestamp, fill = id)) +
-      geom_histogram(bins = 60) +
+    g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x = timestamp, fill = id)) +
+      ggplot2::geom_histogram(bins = 60) +
       ctmmweb:::factor_fill(animals_dt$id) +
-      facet_grid(id ~ .) +
-      theme(strip.text.y = element_text(size = 12)) +
+      ggplot2::facet_grid(id ~ .) +
+      ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
       ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_5_histogram", on = isolate(input$record_on))
@@ -760,8 +760,8 @@ output:
     req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data
-    animals_dt <- calculate_distance(animals_dt)
-    animals_dt <- calculate_speed(animals_dt, as.numeric(input$device_error))
+    animals_dt <- ctmmweb::calculate_distance(animals_dt)
+    animals_dt <- ctmmweb::calculate_speed(animals_dt, as.numeric(input$device_error))
     outlier_page_data$data <- animals_dt
     return(outlier_page_data)
   })
@@ -780,21 +780,21 @@ output:
     # use this to check if distance and speed data is synced
     # cat("dataset in distance page\n")
     # print(animals_dt[, .N, by = id])
-    g <- ggplot(animals_dt, aes(x = distance_center)) +
-      geom_histogram(breaks = distance_binned$color_bin_breaks,
+    g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x = distance_center)) +
+      ggplot2::geom_histogram(breaks = distance_binned$color_bin_breaks,
                      # fill = hue_pal()(input$distance_his_bins),
-                     aes(fill = distance_center_color_factor,
+                     ggplot2::aes(fill = distance_center_color_factor,
                        alpha = distance_center_color_factor)) +
       # need to exclude 0 count groups
-      geom_text(stat = 'bin',aes(label = ifelse(..count.. != 0, ..count.., "")),
+      ggplot2::geom_text(stat = 'bin', ggplot2::aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = distance_binned$color_bin_breaks) +
       ctmmweb:::factor_fill(animals_dt$distance_center_color_factor) +
       ctmmweb:::factor_alpha(animals_dt$distance_center_color_factor) +
-      scale_x_continuous(breaks = distance_binned$non_empty_breaks,
+      ggplot2::scale_x_continuous(breaks = distance_binned$non_empty_breaks,
                          labels = distance_binned$vec_formatter) +
       # all counts above 20 are not shown, so it's easier to see the few outliers.
-      coord_cartesian(ylim = c(0, input$distance_his_y_limit)) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+      ggplot2::coord_cartesian(ylim = c(0, input$distance_his_y_limit)) +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
             legend.position = "none")
     # LOG save pic
     log_save_ggplot(g, "plot_distance_outlier_histogram",
@@ -883,33 +883,33 @@ output:
     animals_dt <- req(bin_by_distance()$animals_dt)
     animal_selected_data <- select_distance_range()$animal_selected_data
     # browser()
-    g <- ggplot(animals_dt, aes(x, y)) +
-      geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
-      geom_point(data = animal_selected_data,
+    g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x, y)) +
+      ggplot2::geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
+      ggplot2::geom_point(data = animal_selected_data,
                  size = ifelse(is.null(input$distance_his_brush),
                                0.2,
                                input$distance_point_size),
                  # alpha = ifelse(is.null(input$distance_his_brush),
                  #                0.6,
                  #                input$distance_alpha),
-                 aes(colour = distance_center_color_factor,
+                 ggplot2::aes(colour = distance_center_color_factor,
                      alpha = distance_center_color_factor)) +
       {if (!is.null(input$points_in_distance_range_rows_selected)) {
         points_selected <- select_distance_range()$animal_selected_data[
           input$points_in_distance_range_rows_selected]
-        geom_point(data = points_selected, size = 3.5, alpha = 1,
+        ggplot2::geom_point(data = points_selected, size = 3.5, alpha = 1,
                    color = "blue", shape = 22)
       }} +
-      geom_point(data = unique(animals_dt[, .(id, median_x, median_y)]),
-                 aes(x = median_x, y = median_y, shape = id), color = "blue", size = 0.8) +
+      ggplot2::geom_point(data = unique(animals_dt[, .(id, median_x, median_y)]),
+                          ggplot2::aes(x = median_x, y = median_y, shape = id), color = "blue", size = 0.8) +
       ctmmweb:::factor_color(animal_selected_data$distance_center_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
       ctmmweb:::factor_alpha(animal_selected_data$distance_center_color_factor) +
-      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
-      coord_fixed(xlim = distance_outlier_plot_range$x,
+      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ggplot2::coord_fixed(xlim = distance_outlier_plot_range$x,
                   ylim = distance_outlier_plot_range$y) +
-      theme(legend.position = "top",
+      ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_distance_outlier_plot",
@@ -949,8 +949,8 @@ output:
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
     info <- tele_list_info(tele_list)
     # distance/speed calculation need to be updated. row_no not updated.
-    # animals_dt <- calculate_distance(animals_dt)
-    # animals_dt <- calculate_speed(animals_dt)
+    # animals_dt <- ctmmweb::calculate_distance(animals_dt)
+    # animals_dt <- ctmmweb::calculate_speed(animals_dt)
     values$data$tele_list <- tele_list
     values$data$merged <- NULL
     values$data$merged <- list(data = animals_dt, info = info)
@@ -998,19 +998,19 @@ output:
     animals_dt <- speed_binned$animals_dt
     # cat("dataset in speed page\n")
     # print(animals_dt[, .N, by = id])
-    g <- ggplot(animals_dt, aes(x = speed)) +
-      geom_histogram(breaks = speed_binned$color_bin_breaks,
-                     aes(fill = speed_color_factor,
+    g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x = speed)) +
+      ggplot2::geom_histogram(breaks = speed_binned$color_bin_breaks,
+                              ggplot2::aes(fill = speed_color_factor,
                          alpha = speed_color_factor)) +
       # need to exclude 0 count groups
-      geom_text(stat = 'bin', aes(label = ifelse(..count.. != 0, ..count.., "")),
+      ggplot2::geom_text(stat = 'bin', ggplot2::aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = speed_binned$color_bin_breaks) +
       ctmmweb:::factor_fill(animals_dt$speed_color_factor) +
       ctmmweb:::factor_alpha(animals_dt$speed_color_factor) +
-      scale_x_continuous(breaks = speed_binned$non_empty_breaks,
+      ggplot2::scale_x_continuous(breaks = speed_binned$non_empty_breaks,
                          labels = speed_binned$vec_formatter) +
-      coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+      ggplot2::coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
             legend.position = "none")
     # LOG save pic
     log_save_ggplot(g, "plot_speed_outlier_histogram",
@@ -1025,25 +1025,25 @@ output:
     # cat("dataset in speed scatter plot\n")
     # print(animals_dt[, .N, by = id])
     animal_selected_data <- select_speed_range()$animal_selected_data
-    g <- ggplot(animals_dt, aes(x, y)) +
-      geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
-      geom_point(data = animal_selected_data,
+    g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x, y)) +
+      ggplot2::geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
+      ggplot2::geom_point(data = animal_selected_data,
                  size = ifelse(is.null(input$speed_his_brush),
                                0.2,
                                input$speed_point_size),
                  # alpha = ifelse(is.null(input$speed_his_brush),
                  #                0.6,
                  #                input$speed_alpha),
-                 aes(colour = speed_color_factor,
+                 ggplot2::aes(colour = speed_color_factor,
                      alpha = speed_color_factor)) +
       ctmmweb:::factor_color(animal_selected_data$speed_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_speed()$color_bin_breaks) +
       ctmmweb:::factor_alpha(animal_selected_data$speed_color_factor) +
-      scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
-      coord_fixed(xlim = speed_outlier_plot_range$x,
+      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ggplot2::coord_fixed(xlim = speed_outlier_plot_range$x,
                   ylim = speed_outlier_plot_range$y) +
-      theme(legend.position = "top",
+      ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # if selected some points in table of data in range. when some points are removed, data updated but this table is still there, not updated yet, so there are row selection values. Further, the plot is not updated so brush value is still there, select_speed_range() will get selected data with brush value, but last brush value is the higher range now have no match in data after outlier removal.
     # with 2nd points clicked in 2 points list, removing it cause the selected data update to one point, but the selection row is still 2nd. wrong execution order. reactive need reactive, not if check or normal branch.
@@ -1057,7 +1057,7 @@ output:
       # draw rectangle around selected points
       # browser()
       g <- g +
-        geom_point(data = selected_points, size = 3.5, alpha = 1,
+        ggplot2::geom_point(data = selected_points, size = 3.5, alpha = 1,
                                    color = "blue", shape = 22)
       # calculate path if needed
       if ("draw_speed_path" %in% input$selected_details) {
@@ -1071,19 +1071,19 @@ output:
         # animals_dt[, c("xend", "yend") := NULL]
         animals_dt[(in_neighbor), `:=`(xend = x + inc_x, yend = y + inc_y)]
         g <- g +
-          geom_point(data = animals_dt[(in_neighbor)],
+          ggplot2::geom_point(data = animals_dt[(in_neighbor)],
                      color = "blue",
                      alpha = 0.8, size = 1, shape = 21) +
           # remove the warning of NA otherwise each zoom will have one warning.
-          geom_segment(data = animals_dt[(in_neighbor)],
+          ggplot2::geom_segment(data = animals_dt[(in_neighbor)],
                        color = "blue", alpha = 0.3, na.rm = TRUE,
-                       aes(xend = xend, yend = yend),
-                       arrow = grid::arrow(length = unit(2,"mm")))
+                       ggplot2::aes(xend = xend, yend = yend),
+                       arrow = grid::arrow(length = grid::unit(2,"mm")))
         # add label in path if needed, this only work when path is selected.
         if ("add_label" %in% input$selected_details) {
           g <- g +
-            geom_text(data = animals_dt[(in_neighbor)],
-                      aes(label = row_no), alpha = 0.6, hjust = -0.1)
+            ggplot2::geom_text(data = animals_dt[(in_neighbor)],
+                               ggplot2::aes(label = row_no), alpha = 0.6, hjust = -0.1)
         }
       }
     }
@@ -1265,16 +1265,16 @@ output:
     animal_selected_data <- animal_binned$data[
       (timestamp >= time_range$select_start) &
         (timestamp <= time_range$select_end)]
-    g <- ggplot(data = animal_binned$data, aes(x, y)) +
-      geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
-      geom_point(size = input$point_size_time_loc, alpha = 0.9,
+    g <- ggplot2::ggplot(data = animal_binned$data, ggplot2::aes(x, y)) +
+      ggplot2::geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
+      ggplot2::geom_point(size = input$point_size_time_loc, alpha = 0.9,
                  data = animal_selected_data,
-                 aes(colour = color_bin_start)) +
+                 ggplot2::aes(colour = color_bin_start)) +
       ctmmweb:::factor_color(animal_selected_data$color_bin_start) +
-      scale_x_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$x)) +
-      scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$y)) +
-      coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
-      theme(legend.position = "top",
+      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$x)) +
+      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$y)) +
+      ggplot2::coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
+      ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_plot",
@@ -1648,7 +1648,7 @@ output:
     model_full_names_dt[, color := ctmmweb:::vary_color(base_color, .N)[variation_number],
                         by = identity]
     # need ordered = TRUE for character vector not being factor yet.
-    hr_pal <- colorFactor(model_full_names_dt$color,
+    hr_pal <- leaflet::colorFactor(model_full_names_dt$color,
                           model_full_names_dt$full_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # we don't want the row number to show in the final table
@@ -2084,7 +2084,7 @@ output:
         # LOG save cache
         log_msg("Saving cache data", on = isolate(input$record_on))
         # pack and save cache
-        cache_zip_path <- compress_folder(cache_path, "cache.zip")
+        cache_zip_path <- ctmmweb::compress_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
         saved <- list(data = values$data
                       # chosen_row_nos = select_data()$chosen_row_nos,
@@ -2199,7 +2199,7 @@ output:
       # LOG download report zip
       log_msg("Downloading work report zip", on = isolate(input$record_on))
       generate_report(preview = FALSE)
-      zip_path <- compress_folder(LOG_folder, "report.zip")
+      zip_path <- ctmmweb::compress_folder(LOG_folder, "report.zip")
       file.copy(zip_path, file)
     }
   )
