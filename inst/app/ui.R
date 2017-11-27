@@ -1,3 +1,12 @@
+# help module ui part ----
+help_button <- function(module_id) {
+  prefix <- NS(module_id)
+  actionButton(prefix("help"),
+               "Help",
+               icon = icon("question"),
+               style = styles$help_button
+  )
+}
 header <- dashboardHeader(title = "Animal Movement")
 # sidebar ----
 sidebar <- dashboardSidebar(

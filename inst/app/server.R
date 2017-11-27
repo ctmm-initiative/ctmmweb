@@ -270,7 +270,7 @@ output:
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
-    data("buffalo")
+    data("buffalo", envir = environment())
     sample_data <- pick_m_tele_list(buffalo, input$sample_size)
     # LOG use sample
     log_msg("Using data", "buffalo sample from ctmm",
@@ -281,7 +281,7 @@ output:
   observeEvent(input$load_option, {
     switch(input$load_option,
            ctmm = {
-             data("buffalo")
+             data("buffalo", envir = environment())
              # LOG use buffalo
              log_msg("Using data", "buffalo from ctmm",
                      on = isolate(input$record_on))
