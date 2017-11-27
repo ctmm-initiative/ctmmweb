@@ -185,8 +185,8 @@ output:
     values$data$merged <- merge_animals(tele_list)
     values$data$all_removed_outliers <- NULL
     values$selected_data_model_fit_res <- NULL
-    # this need to be built with full data
-    values$id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
+    # this need to be built with full data, put as a part of values$data so it can be saved in session saving.
+    values$data$id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
                                  unique(values$data$merged$data$id))
     updateTabItems(session, "tabs", "plots")
     # LOG input data updated
@@ -1625,7 +1625,7 @@ output:
                             .(identity, model_name, full_name)])
     # prepare model color, identity color function
 
-    model_full_names_dt[, base_color := values$id_pal(identity)]
+    model_full_names_dt[, base_color := values$data$id_pal(identity)]
     model_full_names_dt[, variation_number := seq_len(.N), by = identity]
     model_full_names_dt[, color := vary_color(base_color, .N)[variation_number],
                         by = identity]
@@ -1904,7 +1904,7 @@ output:
     # id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
     #                       values$data$merged$data$identity)
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
-    withProgress(leaf <- base_map %>% add_points(dt, info, values$id_pal),
+    withProgress(leaf <- base_map %>% add_points(dt, info, values$data$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (reactive_validated(select_models_hranges())) {
