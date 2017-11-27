@@ -50,39 +50,3 @@ help_button <- function(module_id) {
   )
 }
 
-# log slider ----
-# need to be here because it will be used in ui.R
-JS.logify <- function(digits = 2) {
-  paste0(  "
-           // function to logify a sliderInput
-           function logifySlider (sliderId, sci = false) {
-           if (sci) {
-           // scientific style
-           $('#'+sliderId).data('ionRangeSlider').update({
-           'prettify': function (num) { return ('10<sup>'+num+'</sup>'); }
-           })
-           } else {
-           // regular number style
-           $('#'+sliderId).data('ionRangeSlider').update({
-           'prettify': function (num) { return (Math.pow(10, num).toFixed(",
-           digits, ")); }
-           })
-           }
-           }")
-}
-
-# call logifySlider for each relevant sliderInput
-JS.onload <- function(slider_id_vec, sci = FALSE) {
-  slider_call <- function(slider_id) {
-    paste0("logifySlider('", slider_id,
-           "', sci = ", ifelse(sci, "true", "false") , ")")
-  }
-  return(paste0("
-                // execute upon document loading
-                $(document).ready(function() {
-                // wait a few ms to allow other scripts to execute
-                setTimeout(function() {",
-                paste0(lapply(slider_id_vec, slider_call), collapse = "\n"),
-                "}, 5)})"
-                ))
-}

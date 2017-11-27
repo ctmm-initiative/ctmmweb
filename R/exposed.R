@@ -1,5 +1,57 @@
 # helper functions that useful to shiny app. fold the functions in script so it's easier to copy. keep comments in code so it's easy to update code later as two versions are identical.
 # to be placed in same directory of app.r/server.r
+# JS for log slider ----
+# usually used in ui part, but server part also need it when building ui dynamically
+#' Title
+#'
+#' Check relevant source code in ui.R for usage examples
+#'
+#' @param digits digits after numerical point
+#'
+#' @return JS function code
+#' @export
+#'
+JS.logify <- function(digits = 2) {
+  paste0(  "
+           // function to logify a sliderInput
+           function logifySlider (sliderId, sci = false) {
+           if (sci) {
+           // scientific style
+           $('#'+sliderId).data('ionRangeSlider').update({
+           'prettify': function (num) { return ('10<sup>'+num+'</sup>'); }
+           })
+           } else {
+           // regular number style
+           $('#'+sliderId).data('ionRangeSlider').update({
+           'prettify': function (num) { return (Math.pow(10, num).toFixed(",
+           digits, ")); }
+           })
+           }
+           }")
+}
+# call logifySlider for each relevant sliderInput
+#' Title
+#'
+#' @param slider_id_vec slider id vector
+#' @param sci use scientific notation
+#'
+#' @return JS functions code
+#' @export
+#'
+JS.onload <- function(slider_id_vec, sci = FALSE) {
+  slider_call <- function(slider_id) {
+    paste0("logifySlider('", slider_id,
+           "', sci = ", ifelse(sci, "true", "false") , ")")
+  }
+  return(paste0("
+                // execute upon document loading
+                $(document).ready(function() {
+                // wait a few ms to allow other scripts to execute
+                setTimeout(function() {",
+                paste0(lapply(slider_id_vec, slider_call), collapse = "\n"),
+                "}, 5)})"
+                ))
+                }
 # unit formatting ----
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
