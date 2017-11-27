@@ -51,7 +51,29 @@ JS.onload <- function(slider_id_vec, sci = FALSE) {
                 paste0(lapply(slider_id_vec, slider_call), collapse = "\n"),
                 "}, 5)})"
                 ))
-                }
+}
+# UI style constants ----
+# some are used in server call, so both ui and server need them
+# box, plotOutput, renderPlot, no need to set all three if need adjustment.
+# box height will expand by content, just set plotOutput width and height to percentages (99% width, need to keep it inside the box), then also need to set fixed value in renderPlot (otherwise it didn't show). We set height on histogram to make it shorter, setting box height is easier (no need to set in server part).
+STYLES <- list(
+  height_hist = 280,
+  # outliers
+  height_outlier_hist = "180px",
+  # time subsetting
+  # not setting the box height make arrange multiple items easier.
+  # height_hist_subset_box = "380px",
+  height_hist_subset_output = "150px",
+  # height_selected_loc_box = "480px"
+  # height_selected_loc = 480
+  page_action = "background-color: #FFEB3B;font-weight: 500;width:100%;",
+  # using similar color with first box in each page.
+  page_switch = "background-color: #7ad0f7;font-weight: 500;width:100%;",
+  external_link = "background-color: #a7c1fc;font-weight: 500;width:100%;",
+  download_button = "color: #2196F3;width:100%;",
+  help_button = "background-color: #8bc34a;width:100%;"
+  # info box blue #00c0ef
+)
 # unit formatting ----
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector

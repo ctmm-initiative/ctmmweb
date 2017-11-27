@@ -435,7 +435,7 @@ output:
         req(input$studies_rows_selected)
         shiny::a(tags$button(icon("external-link"), "Open in Movebank",
                              class = "btn btn-default action-button",
-                             style = styles$external_link),
+                             style = ctmmweb:::STYLES$external_link),
                  target = "_blank", href =
   paste0("https://www.movebank.org/movebank/#page=studies,path=study", mb_id()))
       })
@@ -746,7 +746,7 @@ output:
       ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_5_histogram", on = isolate(input$record_on))
-  }, height = styles$height_hist, width = "auto")
+  }, height = ctmmweb:::STYLES$height_hist, width = "auto")
   # p3. outlier ----
   callModule(click_help, "outlier_distance",
              title = "Outliers in Distance to Median Center",
@@ -1512,7 +1512,7 @@ output:
         column(2, offset = 2,
                actionButton("tuned", "Apply",
                             icon = icon("check"),
-                            style = styles$page_action)))
+                            style = ctmmweb:::STYLES$page_action)))
                             ))
     }
   })
@@ -2158,10 +2158,10 @@ output:
     if (APP_local) {
       actionButton("preview_report", "Preview Report",
                    icon = icon("file-text-o"),
-                   style = styles$page_action)
+                   style = ctmmweb:::STYLES$page_action)
     } else {
       downloadButton("download_report", "Download Report",
-                     style = styles$download_button)
+                     style = ctmmweb:::STYLES$download_button)
     }
   )
   observeEvent(input$preview_report, {
