@@ -157,9 +157,9 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  para_ll_fit_mem <- memoise::memoise(para_ll_fit, cache = memoise::cache_filesystem(cache_path))
-  akde_mem <- memoise::memoise(akde, cache = memoise::cache_filesystem(cache_path))
-  para_ll_ud_mem <- memoise::memoise(para_ll_ud, cache = memoise::cache_filesystem(cache_path))
+  para_ll_fit_mem <- memoise::memoise(ctmmweb::para_ll_fit, cache = memoise::cache_filesystem(cache_path))
+  akde_mem <- memoise::memoise(ctmm::akde, cache = memoise::cache_filesystem(cache_path))
+  para_ll_ud_mem <- memoise::memoise(ctmmweb::para_ll_ud, cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -270,7 +270,7 @@ output:
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
-    data("buffalo", envir = environment())
+    data("buffalo", package = "ctmm", envir = environment())
     sample_data <- ctmmweb::pick_m_tele_list(buffalo, input$sample_size)
     # LOG use sample
     log_msg("Using data", "buffalo sample from ctmm",
@@ -281,7 +281,7 @@ output:
   observeEvent(input$load_option, {
     switch(input$load_option,
            ctmm = {
-             data("buffalo", envir = environment())
+             data("buffalo", package = "ctmm", envir = environment())
              # LOG use buffalo
              log_msg("Using data", "buffalo from ctmm",
                      on = isolate(input$record_on))
@@ -731,7 +731,7 @@ output:
     #                      matrix(1:fig_count,
     #                             nrow = fig_count / input$plot4_col,
     #                             ncol = input$plot4_col, byrow = TRUE))
-    gr <- gridEctra::grid.arrange(grobs = g_list, ncol = input$plot4_col)
+    gr <- gridExtra::grid.arrange(grobs = g_list, ncol = input$plot4_col)
     # LOG save pic
     log_save_ggplot(gr, "plot_4_individual", on = isolate(input$record_on))
   }, height = function() { input$canvas_height }, width = "auto")
@@ -832,7 +832,7 @@ output:
              },
              speed = {
                col_name = quote(speed)
-               format_f <- format_speed_f
+               format_f <- ctmmweb:::format_speed_f
                unit_name <- " m/s"
                animals_dt <- req(bin_by_speed()$animals_dt)
              })
@@ -991,7 +991,7 @@ output:
     }
     req(!zero_speeds)
     return(ctmmweb:::color_break(input$speed_his_bins, animals_dt,
-                       "speed", format_speed_f))
+                       "speed", ctmmweb:::format_speed_f))
   })
   output$speed_histogram <- renderPlot({
     speed_binned <- req(bin_by_speed())
@@ -1209,7 +1209,7 @@ output:
                      fill = scales::hue_pal()(input$time_color_bins)) +
       ggplot2::scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = scales::date_format("%Y-%m-%d %H:%M:%S")) +
-      ggplot2::ggtitle(animal_binned$data[1, identity]) + CENTER_TITLE +
+      ggplot2::ggtitle(animal_binned$data[1, identity]) + ctmmweb:::CENTER_TITLE +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_histogram",
@@ -1394,7 +1394,7 @@ output:
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
-    res <- lapply(tele_list, variogram)
+    res <- lapply(tele_list, ctmm::variogram)
     names(res) <- names(tele_list)
     return(res)
   })
