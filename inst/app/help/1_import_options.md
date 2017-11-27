@@ -13,6 +13,6 @@
 
 ### Load Session
 - Using `Save Session` button in `Work Report` page, input data and cached calculation results can be saved.
-- Uploading the session data zip with `Load Session` will restore them. Exactly same calculation can be executed instantly because of cache. The cache also helps in same session if some calculations have bee run before.
+- Uploading the session data zip with `Load Session` will restore them. Previous model selection, home range and occurrence results are loaded into cache but not added to app directly because that depend on additional user selections. You still need to `fit models`, check home range to update the result, though the calculation can be finished instantly if the user selections are exactly same.
 - The work report of that session is also opened for reference if app is running in local mode.
 

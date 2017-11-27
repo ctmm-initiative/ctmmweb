@@ -758,6 +758,8 @@ build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   file.copy(zip_path, file)
 }
 # map ----
+grid_group <- "_graticule_"
+# draw_group <- "_draw with measure_"
 init_base_maps <- function(tiles_info) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(attributionControl = FALSE))
   for (prov in tiles_info$here) {

@@ -1887,6 +1887,7 @@ output:
   # p8. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/8_map.md")
+  MAP_NAME_BY_TAB <- list(Point = "point_map", Heatmap = "heat_map")
   CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
   # save map to html
   save_map <- function(leaf, map_type) {
@@ -1935,7 +1936,7 @@ output:
                             select_models()$names_dt$full_name) %>%
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
-          overlayGroups = c(grid_group, info$identity,
+          overlayGroups = c(ctmmweb:::grid_group, info$identity,
                             select_models()$names_dt$full_name
                             # ,
                             # draw_group
@@ -1946,7 +1947,7 @@ output:
       leaf <- leaf %>%
         addLayersControl(
           baseGroups = c(tiles_info$here, tiles_info$open),
-          overlayGroups = c(grid_group, info$identity
+          overlayGroups = c(ctmmweb:::grid_group, info$identity
                             # , draw_group
           ),
           options = layersControlOptions(collapsed = FALSE)
@@ -2041,7 +2042,7 @@ output:
   observeEvent(input$reset_map_view, {
     # fitBounds will have some allowance so no need to add padding here.
     bounds <- ctmmweb:::get_bounds(select_data()$data)
-    leafletProxy(map_name_by_tab[[input$map_tabs]], session) %>%
+    leafletProxy(MAP_NAME_BY_TAB[[input$map_tabs]], session) %>%
       fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
   })
   # download map ----

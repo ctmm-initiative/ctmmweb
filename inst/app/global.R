@@ -37,9 +37,9 @@ styles <- list(
   help_button = "background-color: #8bc34a;width:100%;"
   # info box blue #00c0ef
 )
-grid_group <- "_graticule_"
-draw_group <- "_draw with measure_"
-map_name_by_tab <- list(Point = "point_map", Heatmap = "heat_map")
+# grid_group <- "_graticule_"
+# draw_group <- "_draw with measure_"
+# map_name_by_tab <- list(Point = "point_map", Heatmap = "heat_map")
 # UI modules ----
 help_button <- function(module_id) {
   prefix <- NS(module_id)
