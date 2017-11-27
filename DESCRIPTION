@@ -1,10 +1,10 @@
 Package: ctmmweb
 Type: Package
-Title: Web App For ctmm Package
+Title: Web App For ctmm
 Version: 0.1.0
 Author: Xianghui Dong
 Maintainer: Xianghui Dong <xhdong@umd.edu>
-Description: Shiny app for ctmm, and various utility functions can be used 
+Description: Shiny app for ctmm. Various utility functions can also be used 
     individually.
 License: GPL-3
 Encoding: UTF-8
@@ -34,3 +34,7 @@ Imports: shiny,
     XML,
     xml2,
     zip
+Remotes: rstudio/shiny,
+    rstudio/leaflet,
+    ctmm-initiative/ctmm,
+    r-lib/crayon
