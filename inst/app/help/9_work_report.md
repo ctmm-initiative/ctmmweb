@@ -1,5 +1,5 @@
-### Session
-- `Save Session` will save input data, cached calculation results into a zip. The zip can be uploaded by `Load Session` button in `import` page.
+### Save Cache
+- `Save Cache` will save input data, cached calculation results and work report into a zip. The zip can be uploaded by `Load Cache` button in `import` page.
 
 ### Report
 - If app is running locally, `Preview Report` will compile current recordings into a html report, and open it in a new browser window.

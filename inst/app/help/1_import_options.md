@@ -11,8 +11,8 @@
 ### Record Actions
 - Every meaningful actions by user can be recorded and compiled into a html work report in `Work Report` page. All plots and most tables are also saved. The option can be turned off to improve performance.
 
-### Load Session
-- Using `Save Session` button in `Work Report` page, input data and cached calculation results can be saved.
-- Uploading the session data zip with `Load Session` will restore them. Previous model selection, home range and occurrence results are loaded into cache but not added to app directly because that depend on additional user selections. You still need to `fit models`, check home range to update the result, though the calculation can be finished instantly if the user selections are exactly same.
-- The work report of that session is also opened for reference if app is running in local mode.
+### Load Cache
+- Using `Save Cache` button in `Work Report` page, input data, cached calculation results and work report can be saved.
+- Uploading the saved zip with `Load Cache` will restore the input data and previous caches. The time consuming operations like model selection, home range and occurrence can be finished instanly if the calculation is exactly same, i.e. same data and same selections.
+- The saved work report is also opened for reference if app is running in local mode.
 

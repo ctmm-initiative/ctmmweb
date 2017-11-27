@@ -2070,10 +2070,10 @@ output:
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/9_work_report.md")
-  # save session ----
-  output$save_session <- downloadHandler(
+  # save cache ----
+  output$save_cache <- downloadHandler(
     filename = function() {
-      paste0("Session_", ctmmweb:::current_timestamp(), ".zip")
+      paste0("Saved_", ctmmweb:::current_timestamp(), ".zip")
     },
     content = function(file) {
       # we are checking input data instead of select_data, which is the real condition that can cause error, because it's easier to check and should be in same status
@@ -2081,8 +2081,8 @@ output:
         showNotification("No data to save", duration = 7,
                          type = "error")
       } else {
-        # LOG save session
-        log_msg("Saving session data", on = isolate(input$record_on))
+        # LOG save cache
+        log_msg("Saving cache data", on = isolate(input$record_on))
         # pack and save cache
         cache_zip_path <- compress_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
@@ -2104,21 +2104,21 @@ output:
         # file.copy(values$html_path, file.path(session_tmpdir, "report.html"),
         #           overwrite = TRUE)
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
-        # pack to session.zip, this is a temp name anyway.
-        session_zip_path <- ctmmweb:::compress_relative_files(
+        # pack to saved.zip, this is a temp name anyway.
+        saved_zip_path <- ctmmweb:::compress_relative_files(
           session_tmpdir, c("cache.zip", "saved.rds", "report.html"),
-          "session.zip")
-        file.copy(session_zip_path, file)
+          "saved.zip")
+        file.copy(saved_zip_path, file)
       }
     }
   )
-  # load session ----
-  observeEvent(input$load_session, {
-    # LOG load session
-    log_msg("Loading session data", input$load_session$name,
+  # load cache ----
+  observeEvent(input$load_cache, {
+    # LOG load cache
+    log_msg("Loading cache data", input$load_cache$name,
             on = isolate(input$record_on))
-    # session.zip -> cache.zip, saved.rds, report.html
-    unzip(input$load_session$datapath, exdir = session_tmpdir)
+    # saved.zip -> cache.zip, saved.rds, report.html
+    unzip(input$load_cache$datapath, exdir = session_tmpdir)
     if (APP_local) {
       browseURL(file.path(session_tmpdir, "report.html"))
     }

@@ -36,7 +36,7 @@ upload_box <- box(title = "Local Data Import",
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
           column(12, fileInput('tele_file', label = NULL)),
-          column(12, fileInput("load_session", label = "Load Saved Session"
+          column(12, fileInput("load_cache", label = "Load Saved Cache"
                                # ,
                                # placeholder = "Session zip"
                            # buttonLabel = "Load Session ..."
@@ -529,8 +529,8 @@ report_box <- box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
     column(3,
-           downloadButton("save_session",
-                          "Save Session",
+           downloadButton("save_cache",
+                          "Save Cache",
                           style = styles$download_button),
            br(), br(),
            uiOutput("view_report")
