@@ -8,10 +8,12 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(shiny, shinydashboard, DT,
                # markdown, crayon, rmarkdown, knitr,
                # ctmm, ctmmweb,
-               data.table,
+               data.table
+               # ,
                # parallel, memoise,
                # ggplot2, scales, grid, gridExtra, lubridate,
-               leaflet, sp, rgdal, leaflet.extras, htmlwidgets, rgeos,
-               httr, stringr, XML, xml2, zip)
+               # leaflet, sp, rgdal, leaflet.extras, htmlwidgets, rgeos,
+               # httr, stringr, XML, xml2, zip
+               )
 # increase the uploading file size limit to 200M
 options(shiny.maxRequestSize = 200*1024^2)

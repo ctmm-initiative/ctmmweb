@@ -837,14 +837,14 @@ GRID_GROUP <- "_graticule_"
 init_base_maps <- function(tiles_info) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(attributionControl = FALSE))
   for (prov in tiles_info$here) {
-    leaf <- leaf %>% leaflet::addProviderTiles(providers[[prov]], group = prov,
+    leaf <- leaf %>% leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov,
                                       options = leaflet::providerTileOptions(
                                         detectRetina = TRUE,
                                         app_id = tiles_info$here_app_id,
                                         app_code = tiles_info$here_app_code))
   }
   for (prov in tiles_info$open) {
-    leaf <- leaf %>% leaflet::addProviderTiles(providers[[prov]], group = prov)
+    leaf <- leaf %>% leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov)
   }
   return(leaf)
 }
