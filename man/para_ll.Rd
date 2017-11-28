@@ -4,16 +4,32 @@
 \alias{para_ll}
 \title{Parallel Apply Function To List In All Platforms}
 \usage{
-para_ll(ll, fun)
+para_ll(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm)
 }
 \arguments{
-\item{ll}{A list to apply fun}
+\item{ll}{Input list.}
 
-\item{fun}{Function to be applied}
+\item{fun}{Function to be applied on \code{ll}. Note only single parameter
+function is accepted, otherwise it's difficult to determine how to assign
+input parameters to each list item and worker. You need to convert multiple
+parameter function into a function take single list parameter, and assign
+parameters in that list accordingly. \code{\link[=align_list]{align_list()}} is a helper function to
+align two lists.}
+
+\item{win_init}{Expression to be initialized in Windows. Because all
+parameters should be included in the input list already, this usually means
+library calls, like \code{{library(ctmm)}} for ctmm related operations, which
+has been taken care of with the default value \code{ctmmweb:::WIN_INIT_ctmm}.}
 }
 \value{
 List of applied results
 }
 \description{
-Parallel Apply Function To List In All Platforms
+This is a generic parallel lapply that work across all major platforms.
+}
+\details{
+In Windows \code{parallel::parLapplyLB} is used, which is a socket cluster and
+need to initialize each session manually. In Linux/Mac \code{parallel::mclapply}
+is used, where each worker will inherit the current environment through
+forking, so no additional setup is required.
 }

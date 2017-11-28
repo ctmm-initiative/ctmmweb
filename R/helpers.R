@@ -498,7 +498,16 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 # need to prepare exp_init for windows version ----
 # try to include all variables in the lapply list so fun only take one parameter. that means exp_init usually only init libraries.
 # export take from global env, so need to assign in global
-exp_init <<- expression({
+
+#' Expression to be initialized in Windows for `ctmm` related parallel
+#' operations
+#'
+#' Parallel cluter in Windows is a socket cluster, which need to initialize each
+#' session manually. For ctmm related parallel operations, `ctmm` package need
+#' to be loaded. Instead of `library(ctmm)`, the expression of
+#' `requireNamespace("ctmm", quietly = TRUE)` is more appropriate inside a
+#' package.
+WIN_INIT_ctmm <- expression({
   # library(ctmm)
   requireNamespace("ctmm", quietly = TRUE)
 })
@@ -518,24 +527,39 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
-# cannot transfer cluster size as parameter, because of environment?
 #' Parallel Apply Function To List In All Platforms
 #'
-#' @param ll A list to apply fun
-#' @param fun Function to be applied
+#' This is a generic parallel lapply that work across all major platforms.
+#'
+#' In Windows `parallel::parLapplyLB` is used, which is a socket cluster and
+#' need to initialize each session manually. In Linux/Mac `parallel::mclapply`
+#' is used, where each worker will inherit the current environment through
+#' forking, so no additional setup is required.
+#'
+#' @param ll Input list.
+#' @param fun Function to be applied on `ll`. Note only single parameter
+#'   function is accepted, otherwise it's difficult to determine how to assign
+#'   input parameters to each list item and worker. You need to convert multiple
+#'   parameter function into a function take single list parameter, and assign
+#'   parameters in that list accordingly. [align_list()] is a helper function to
+#'   align two lists.
+#' @param win_init Expression to be initialized in Windows. Because all
+#'   parameters should be included in the input list already, this usually means
+#'   library calls, like `{library(ctmm)}` for ctmm related operations, which
+#'   has been taken care of with the default value `ctmmweb:::WIN_INIT_ctmm`.
 #'
 #' @return List of applied results
 #' @export
 #'
-para_ll <- function(ll, fun) {
+para_ll <- function(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm) {
   sysinfo <- Sys.info()
   if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
     win_cluster_size <- min(length(ll), parallel::detectCores())
     cat(crayon::inverse("running parallel in SOCKET cluster of", win_cluster_size, "\n"))
     cl <- parallel::makeCluster(win_cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
-    parallel::clusterExport(cl, c("exp_init"))
-    parallel::clusterEvalQ(cl, eval(exp_init))
+    parallel::clusterExport(cl, c("win_init"), envir = environment())
+    parallel::clusterEvalQ(cl, eval(win_init))
     res <- parallel::parLapplyLB(cl, ll, fun)
     parallel::stopCluster(cl)
   } else {
