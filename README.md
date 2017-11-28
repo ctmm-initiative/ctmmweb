@@ -4,9 +4,9 @@ This is the R package of Shiny web application for [ctmm](https://github.com/ctm
 
 Check [the videos here](README-demo.md) for feature demonstrations. The `help` buttons in each page also have detailed documentations for the specific feature.
 
-# Running the app
+## Running the app
 
-## Bundled with package
+### Bundled with package
 
 1. Install [the latest R](https://www.r-project.org/). 
 
@@ -40,7 +40,7 @@ Check [the videos here](README-demo.md) for feature demonstrations. The `help` b
   
   More details about installation and compatibility problems can be [found here.](README-install.md) 
 
-## Hosted app
+### Hosted app
 Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 
 
 This is more intended for demonstration purposes because
