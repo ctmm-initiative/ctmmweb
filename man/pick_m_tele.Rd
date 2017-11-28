@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{pick_m_tele}
 \alias{pick_m_tele}
-\title{Title}
+\title{Sample from telemetry object}
 \usage{
 pick_m_tele(tele, m)
 }
@@ -15,7 +15,8 @@ pick_m_tele(tele, m)
 sampled telemetry object
 }
 \description{
-Title
+Take even spaced m points. Rely on ctmm S3 method to treat telemetry object
+as a data.frame.
 }
 \examples{
 pick_m_tele(buffalo[[1]], 100)

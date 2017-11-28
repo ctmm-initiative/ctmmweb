@@ -597,13 +597,18 @@ para_ll_ud <- function(ud_para_list) {
   para_ll(ud_para_list, ud_calc)
 }
 # sample buffalo data ----
-#' Title
+#' Sample from telemetry object
+#'
+#' Take even spaced m points. Rely on ctmm S3 method to treat telemetry object
+#' as a data.frame.
 #'
 #' @param tele telemetry object
 #' @param m sample size
 #'
+#'
 #' @return sampled telemetry object
 #' @export
+#' @import ctmm
 #'
 #' @examples pick_m_tele(buffalo[[1]], 100)
 pick_m_tele <- function(tele, m) {
