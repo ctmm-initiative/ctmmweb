@@ -1,4 +1,4 @@
-## Intro
+## Introduction
 
 This is the R package of Shiny web application for [ctmm](https://github.com/ctmm-initiative/ctmm) [R package](https://cran.r-project.org/web/packages/ctmm/index.html). 
 
@@ -7,20 +7,6 @@ Check [the videos here](README-demo.md) for feature demonstrations. The `help` b
 # Running the app
 
 ## Bundled with package
-
-The web app is bundled as part of package distribution, so you can launch the app with `ctmmweb::app()` after package was installed.
-
-## Hosted app
-Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 
-
-This is more intended for demonstration purposes because
-
-- R is single threaded, so any computation heavy operations like loading large datasets, fitting models could block other users in same thread. We do have mutiple workers avaialble in the host but the resources are still limited.
-- The active hours per month is limited. 
-
-## Run app in local machine with Internet
-
-You can run app in your local machine with these steps:
 
 1. Install [the latest R](https://www.r-project.org/). 
 
@@ -40,7 +26,7 @@ You can run app in your local machine with these steps:
     devtools::install_github("ctmm-initiative/ctmm-webapp")
     ```
 
-3. Run the app with
+3. Run the app in one of following methods:
 
     ```r
     # run app
@@ -53,3 +39,11 @@ You can run app in your local machine with these steps:
   This will start the app locally with RStudio's embeded browser. In windows/Linux this has known compatibility problems. You can click the `open in browser` button in the browser top bar to use system browser instead. Chrome is recommended.
   
   More details about installation and compatibility problems can be [found here.](README-install.md) 
+
+## Hosted app
+Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 
+
+This is more intended for demonstration purposes because
+
+- R is single threaded, so any computation heavy operations like loading large datasets, fitting models could block other users in same thread. We do have mutiple workers avaialble in the host but the resources are still limited.
+- The active hours per month is limited. 
