@@ -2,16 +2,20 @@
 % Please edit documentation in R/helpers.R
 \name{calculate_distance}
 \alias{calculate_distance}
-\title{Title}
+\title{Calculate Distance To Median Center For Each Animal Location}
 \usage{
 calculate_distance(animals_dt)
 }
 \arguments{
-\item{animals_dt}{telemetry data in merged data.table}
+\item{animals_dt}{telemetry data in merged data.table. See \code{\link[=merge_animals]{merge_animals()}}}
 }
 \value{
-data.table with distance columns added
+data.table with distance columns added. Note the input parameter is
+modified in place.
 }
 \description{
-Title
+If there are big gaps in sampling time, median center for each time group is
+used. To reduce duplicate calculation, speed calculation will use some
+columns created in distance calculation. Always \code{calculate_distance} first
+then \code{\link[=calculate_speed]{calculate_speed()}}.
 }

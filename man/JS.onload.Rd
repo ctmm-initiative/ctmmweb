@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{JS.onload}
 \alias{JS.onload}
-\title{Title}
+\title{Register JS Logify Function For Each \code{sliderInput}}
 \usage{
 JS.onload(slider_id_vec, sci = FALSE)
 }
@@ -15,5 +15,5 @@ JS.onload(slider_id_vec, sci = FALSE)
 JS functions code
 }
 \description{
-Title
+Register JS Logify Function For Each \code{sliderInput}
 }

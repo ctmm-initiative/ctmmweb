@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{calculate_speed}
 \alias{calculate_speed}
-\title{Title}
+\title{Calculate Speed For Each Animal Location}
 \usage{
 calculate_speed(animals_dt, device_error)
 }
@@ -12,8 +12,17 @@ calculate_speed(animals_dt, device_error)
 \item{device_error}{device error if available}
 }
 \value{
-data.table with speed columns added
+data.table with speed columns added. Note the input parameter is
+modified in place.
 }
 \description{
-Title
+It's difficult to get a simple speed definition yet robust to all kinds of
+dirty data cases. A sophisticated method is attempt first which should cover
+most common edge cases reasonably well. When it fails for extreme situations,
+the function will fall back to simpler method which is more naive but robust.
+}
+\details{
+To reduce duplicate calculation, speed calculation will use some columns
+created in distance calculation. Always \code{\link[=calculate_distance]{calculate_distance()}} first then
+\code{\link[=calculate_speed]{calculate_speed()}}.
 }

@@ -2,16 +2,16 @@
 % Please edit documentation in R/helpers.R
 \name{tele_list_info}
 \alias{tele_list_info}
-\title{Title}
+\title{Get Information Table For Telemetry Object Or List}
 \usage{
-tele_list_info(tele_objs)
+tele_list_info(tele_obj_list)
 }
 \arguments{
-\item{tele_objs}{telemetry objects or list}
+\item{tele_obj_list}{telemetry object or list}
 }
 \value{
-information table of input
+An information \code{data.table} for input
 }
 \description{
-Title
+Get Information Table For Telemetry Object Or List
 }

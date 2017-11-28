@@ -1,10 +1,11 @@
-# helper functions that useful to shiny app. fold the functions in script so it's easier to copy. keep comments in code so it's easy to update code later as two versions are identical.
-# to be placed in same directory of app.r/server.r
+# helper functions that useful to shiny app. Some are exported for individual uses. All functions are placed in one file for easier search for now.
 # JS for log slider ----
-# usually used in ui part, but server part also need it when building ui dynamically
-#' Title
+
+#' JS Function To Logify A `sliderInput`
 #'
-#' Check relevant source code in ui.R for usage examples
+#' To be added in UI code of Shiny. The server code of Shiny may also use it
+#' when building UI dynamically. Search the usage in `/inst/app/ui.R` for
+#' examples.
 #'
 #' @param digits digits after numerical point
 #'
@@ -29,8 +30,7 @@ JS.logify <- function(digits = 2) {
            }
            }")
 }
-# call logifySlider for each relevant sliderInput
-#' Title
+#' Register JS Logify Function For Each `sliderInput`
 #'
 #' @param slider_id_vec slider id vector
 #' @param sci use scientific notation
@@ -107,7 +107,7 @@ format_distance_f <- function(v, round = FALSE){
 # given a test value, pick unit, return scale and name. SI / scale get the new value
 pick_unit_distance <- function(v) {
   ctmm:::unit(max(abs(v), na.rm = TRUE)/2, dimension = "length",
-                   concise = TRUE)
+              concise = TRUE)
 }
 format_seconds_f <- function(secs, round = FALSE) {
   pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time",
@@ -149,17 +149,16 @@ single_tele_info <- function(object) {
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
-  dt <- data.table(identity = object@info$identity,
-                   interval_s = sampling_interval,
-                   interval = format_seconds_f(sampling_interval)(sampling_interval),
-                   duration_s = sampling_range,
-                   duration = format_seconds_f(sampling_range)(sampling_range),
-                   sampling_start = t_start,
-                   sampling_end = t_end,
-                   start = format_datetime(t_start),
-                   end = format_datetime(t_end),
-                   points = nrow(object))
-  return(dt)
+  data.table(identity = object@info$identity,
+             interval_s = sampling_interval,
+             interval = format_seconds_f(sampling_interval)(sampling_interval),
+             duration_s = sampling_range,
+             duration = format_seconds_f(sampling_range)(sampling_range),
+             sampling_start = t_start,
+             sampling_end = t_end,
+             start = format_datetime(t_start),
+             end = format_datetime(t_end),
+             points = nrow(object))
 }
 wrap_single_telemetry <- function(tele_obj){
   if (class(tele_obj) != "list") {
@@ -174,25 +173,29 @@ wrap_single_telemetry <- function(tele_obj){
 sort_tele_list <- function(tele_list) {
   tele_list[sort(names(tele_list))]
 }
-# taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
-#' Title
+#' Get Information Table For Telemetry Object Or List
 #'
-#' @param tele_objs telemetry objects or list
+#' @param tele_obj_list telemetry object or list
 #'
-#' @return information table of input
+#' @return An information `data.table` for input
 #' @export
 #'
-tele_list_info <- function(tele_objs){
-  tele_list <- wrap_single_telemetry(tele_objs)
+tele_list_info <- function(tele_obj_list){
+  tele_list <- wrap_single_telemetry(tele_obj_list)
   animal_info_list <- lapply(tele_list, single_tele_info)
   rbindlist(animal_info_list)
 }
-# calculate median center based on time clusters
-#' Title
+#' Calculate Distance To Median Center For Each Animal Location
 #'
-#' @param animals_dt telemetry data in merged data.table
+#' If there are big gaps in sampling time, median center for each time group is
+#' used. To reduce duplicate calculation, speed calculation will use some
+#' columns created in distance calculation. Always `calculate_distance` first
+#' then [calculate_speed()].
 #'
-#' @return data.table with distance columns added
+#' @param animals_dt telemetry data in merged data.table. See [merge_animals()]
+#'
+#' @return data.table with distance columns added. Note the input parameter is
+#'   modified in place.
 #' @export
 #'
 calculate_distance <- function(animals_dt) {
@@ -201,7 +204,7 @@ calculate_distance <- function(animals_dt) {
     # increase 1 sec because interval boundry is right open [ )
     data[inc_t > time_gap_threshold, t + 1]
   }
-  # need inc_t, so get these column first. always calculate distance then speed
+  # function above need inc_t, speed calculation need inc_x, inc_y, inc_t. It's easier add these column in one pass here, that means we need to always calculate distance then speed.
   # x[i] + inc[i] = x[i+1], note by id
   animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
                     inc_y = shift(y, 1L, type = "lead") - y,
@@ -275,13 +278,22 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
              by = identity]
   return(animals_dt)
 }
-# all speed calculation except ctmm assume distance have been calculated. Since we always update two together, this is not problem.
-#' Title
+#' Calculate Speed For Each Animal Location
+#'
+#' It's difficult to get a simple speed definition yet robust to all kinds of
+#' dirty data cases. A sophisticated method is attempt first which should cover
+#' most common edge cases reasonably well. When it fails for extreme situations,
+#' the function will fall back to simpler method which is more naive but robust.
+#'
+#' To reduce duplicate calculation, speed calculation will use some columns
+#' created in distance calculation. Always [calculate_distance()] first then
+#' [calculate_speed()].
 #'
 #' @param animals_dt telemetry data in merged data.table
 #' @param device_error device error if available
 #'
-#' @return data.table with speed columns added
+#' @return data.table with speed columns added. Note the input parameter is
+#'   modified in place.
 #' @export
 #'
 calculate_speed <- function(animals_dt, device_error) {
@@ -304,8 +316,8 @@ calculate_speed <- function(animals_dt, device_error) {
 # merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # tele objs to data.table
 # assuming row order by timestamp and identity in same order with tele obj.
-tele_list_to_dt <- function(tele_objs) {
-  tele_list <- wrap_single_telemetry(tele_objs)
+tele_list_to_dt <- function(tele_obj_list) {
+  tele_list <- wrap_single_telemetry(tele_obj_list)
   animal_count <- length(tele_list)
   animal_data_list <- vector(mode = "list", length = animal_count)
   for (i in 1:animal_count) {
@@ -328,16 +340,16 @@ tele_list_to_dt <- function(tele_objs) {
 }
 #' Generate merged data.table and info table from telemetry object/list
 #'
-#' @param tele_objs telemetry object/list
+#' @param tele_obj_list telemetry object/list
 #'
 #' @return list of `data`: all animals merged in one data.table, `info`: animal
 #'   information table
 #' @export
 #'
 #' @examples merge_animals(buffalo)
-merge_animals <- function(tele_objs) {
-  return(list(data = tele_list_to_dt(tele_objs),
-              info = tele_list_info(tele_objs)))
+merge_animals <- function(tele_obj_list) {
+  return(list(data = tele_list_to_dt(tele_obj_list),
+              info = tele_list_info(tele_obj_list)))
 }
 # this will not work when there are NA cols introduced by merge with different cols. need to clean those cols first
 match_tele_merged <- function(tele_list, merged) {
@@ -620,7 +632,7 @@ ud_calc <- function(ud_para_list) {
 para_ll_ud <- function(ud_para_list) {
   para_ll(ud_para_list, ud_calc)
 }
-# sample buffalo data ----
+# sample telemetry data ----
 #' Sample from telemetry object
 #'
 #' Take even spaced m points. Rely on ctmm S3 method to treat telemetry object

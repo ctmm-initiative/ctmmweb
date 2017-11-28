@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{JS.logify}
 \alias{JS.logify}
-\title{Title}
+\title{JS Function To Logify A \code{sliderInput}}
 \usage{
 JS.logify(digits = 2)
 }
@@ -13,5 +13,7 @@ JS.logify(digits = 2)
 JS function code
 }
 \description{
-Check relevant source code in ui.R for usage examples
+To be added in UI code of Shiny. The server code of Shiny may also use it
+when building UI dynamically. Search the usage in \code{/inst/app/ui.R} for
+examples.
 }

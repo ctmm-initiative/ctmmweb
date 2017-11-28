@@ -4,10 +4,10 @@
 \alias{merge_animals}
 \title{Generate merged data.table and info table from telemetry object/list}
 \usage{
-merge_animals(tele_objs)
+merge_animals(tele_obj_list)
 }
 \arguments{
-\item{tele_objs}{telemetry object/list}
+\item{tele_obj_list}{telemetry object/list}
 }
 \value{
 list of \code{data}: all animals merged in one data.table, \code{info}: animal
