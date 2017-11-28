@@ -23,7 +23,7 @@ Check [the videos here](README-demo.md) for feature demonstrations. The `help` b
     devtools::install_github("rstudio/leaflet")
     devtools::install_github("r-lib/crayon")
     devtools::install_github("ctmm-initiative/ctmm")
-    devtools::install_github("ctmm-initiative/ctmm-webapp")
+    devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "package")
     ```
 
 3. Run the app in one of following methods:
