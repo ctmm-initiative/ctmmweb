@@ -157,7 +157,7 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  para_ll_fit_mem <- memoise::memoise(ctmmweb::para_ll_fit, cache = memoise::cache_filesystem(cache_path))
+  para_ll_fit_tele_guess_mem <- memoise::memoise(ctmmweb:::para_ll_fit_tele_guess, cache = memoise::cache_filesystem(cache_path))
   akde_mem <- memoise::memoise(ctmm::akde, cache = memoise::cache_filesystem(cache_path))
   para_ll_ud_mem <- memoise::memoise(ctmmweb::para_ll_ud, cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
@@ -1618,7 +1618,7 @@ output:
     # LOG fit models
     log_msg("Fitting models", on = isolate(input$record_on))
     withProgress(print(system.time(
-      values$selected_data_model_fit_res <- para_ll_fit_mem(tele_guess_list))),
+      values$selected_data_model_fit_res <- para_ll_fit_tele_guess_mem(tele_guess_list))),
       message = "Fitting models to find the best ...")
     names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")

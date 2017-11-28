@@ -550,17 +550,36 @@ fit_models <- function(tele_guess) {
   ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
               trace = TRUE, verbose = TRUE)
 }
-# wrapper to avoid function object as parameter
+# wrapper to avoid function object as parameter, internal use since we may want adjusted guess list instead of automatic one
 #' Title
+#'
+#' @param tele_guess_list aligned list of telemetry list and guess list
+#'
+#' @return list of model fitting results on each telemetry object
+#'
+para_ll_fit_tele_guess <- function(tele_guess_list) {
+  para_ll(tele_guess_list, fit_models)
+}
+# convenience wrapped to take telemetry list directly. In app we want more control and didn't use this.
+guess_tele <- function(tele_list) {
+  lapply(tele_list, function(x) {
+    ctmm.guess(x, interactive = FALSE)
+  })
+}
+#' Parallel Fit models on telemetry list
 #'
 #' @param tele_list telemetry list
 #'
-#' @return list of model fitting results on each telemetry object
+#' @return list of model fitting results on each telemetry object, named by
+#'   telemetry object names
 #' @export
 #'
-#' @examples para_ll_fit(buffalo)
-para_ll_fit <- function(tele_list) {
-  para_ll(tele_list, fit_models)
+#' @examples para_ll_fit_tele(buffalo)
+para_ll_fit_tele <- function(tele_list) {
+  tele_guess_list <- align_list(tele_list, guess_tele(tele_list))
+  print(system.time(model_select_res <- para_ll_fit_tele_guess(tele_guess_list)))
+  names(model_select_res) <- names(tele_list)
+  return(model_select_res)
 }
 # occurrence
 ud_calc <- function(ud_para_list) {
