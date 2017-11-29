@@ -866,8 +866,11 @@ create_folder <- function(folder_path) {
   dir.create(folder_path, recursive = TRUE)
   return(folder_path)
 }
-# zip will be saved to one level up folder_path.
-#' Title
+#' Compress A Folder Into Zip
+#'
+#' Keep the relative path structure in zip, include `folder_path` itself so the
+#' zip can be extracted directly without need of creating a folder to hold
+#' contents. The zip will be saved to one level up of `folder_path`.
 #'
 #' @param folder_path The folder to be compressed
 #' @param zip_name The name of zip
@@ -902,6 +905,7 @@ compress_relative_files <- function(base_folder, relative_paths, zip_name) {
   return(zip_path)
 }
 # home range ----
+# take the input in home range page, note the input need to be divided by 100
 parse_CI_levels <- function(levels_text) {
   if (stringr::str_trim(levels_text) == "") {
     return(0.95)
