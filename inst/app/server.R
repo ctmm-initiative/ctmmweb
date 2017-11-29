@@ -135,7 +135,7 @@ output:
     if (input$tabs == "subset") {
       # must select single animal to proceed
       if (length(input$individuals_rows_selected) != 1) {
-        updateTabItems(session, "tabs", "plots")
+        shinydashboard::updateTabItems(session, "tabs", "plots")
         showNotification(
           "Please select single individual first before time subsetting",
           type = "error", duration = 6)
@@ -190,7 +190,7 @@ output:
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     values$data$id_pal <- leaflet::colorFactor(scales::hue_pal()(nrow(values$data$merged$info)),
                                       unique(values$data$merged$data$id))
-    updateTabItems(session, "tabs", "plots")
+    shinydashboard::updateTabItems(session, "tabs", "plots")
     # LOG input data updated
     log_msg("Input data updated", on = isolate(input$record_on))
   }
@@ -221,7 +221,7 @@ output:
   file_uploaded <- function(data_path){
     data_import(data_path)
     updateRadioButtons(session, "load_option", selected = "upload")
-    updateTabItems(session, "tabs", "plots")
+    shinydashboard::updateTabItems(session, "tabs", "plots")
   }
   # data from app() ----
   # app can work without data parameter, or launched with data parameter, so need to check if data parameter exist first.
@@ -539,7 +539,7 @@ output:
     # LOG import movebank data
     log_msg("Movebank data imported", mb_id(),
             on = isolate(input$record_on))
-    updateTabItems(session, "tabs", "plots")
+    shinydashboard::updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
   # input (upload, movebank, buffalo) -> current -> chose animal in table
@@ -1368,7 +1368,7 @@ output:
     # LOG subset added
     log_msg("New Time Range Subset Added", new_id,
             on = isolate(input$record_on))
-    updateTabItems(session, "tabs", "plots")
+    shinydashboard::updateTabItems(session, "tabs", "plots")
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
   })
@@ -2141,7 +2141,7 @@ output:
     # values$selected_data_guess_list <- loaded$selected_data_guess_list
     # freezeReactiveValue(input, "model_fit_summary_rows_selected")
     # selectRows(proxy_model_dt, loaded$model_fit_summary_rows_selected)
-    updateTabItems(session, "tabs", "plots")
+    shinydashboard::updateTabItems(session, "tabs", "plots")
     # freezeReactiveValue(input, "individuals_rows_selected")
     # cat("selecting rows\n")
     # selectRows(proxy_individuals, loaded$chosen_row_nos)
