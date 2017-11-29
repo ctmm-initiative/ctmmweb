@@ -313,8 +313,7 @@ calculate_speed <- function(animals_dt, device_error) {
   # animals_dt <- calculate_speed_ctmm(animals_dt)
   return(animals_dt)
 }
-# merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
-# tele objs to data.table
+# merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
 tele_list_to_dt <- function(tele_obj_list) {
   tele_list <- wrap_single_telemetry(tele_obj_list)
@@ -338,12 +337,25 @@ tele_list_to_dt <- function(tele_obj_list) {
   # animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)
 }
-#' Generate merged data.table and info table from telemetry object/list
+#' Generate Merged Location And Info `data.table` From Telemetry Object/List
+#'
+#' A Telemetry list hold mutiple animal data in separate list items, each item
+#' have the animal location data in a data frame, and other information in
+#' various slots. This structure supports flexible S3 methods for telemetry
+#' object. However to plot multiple animals location together with `ggplot2`
+#' it's better to merge all location data into single data frame with an animal
+#' id column.
+#'
+#' We chose this data structure to be the main structure and made the app to
+#' work on a set of animals at the same time in all steps. Thus any input
+#' telemetry object/List need to be merged into a `data.table` of location data,
+#' and another information `data.table` for animals. `data.table` is chosen over
+#' `data.frame` for much better performance.
 #'
 #' @param tele_obj_list telemetry object/list
 #'
-#' @return list of `data`: all animals merged in one data.table, `info`: animal
-#'   information table
+#' @return list of - `data`: all animals merged in one data.table - `info`:
+#'   animal information table
 #' @export
 #'
 #' @examples merge_animals(buffalo)
@@ -351,6 +363,7 @@ merge_animals <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
               info = tele_list_info(tele_obj_list)))
 }
+# to test if tele_list is in sync with merged data.
 # this will not work when there are NA cols introduced by merge with different cols. need to clean those cols first
 match_tele_merged <- function(tele_list, merged) {
   req(!is.null(tele_list) | (!is.null(merged)))
@@ -398,8 +411,10 @@ BIGGER_THEME <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                       legend.text = ggplot2::element_text(size = 12),
                       axis.title = ggplot2::element_text(size = 14),
                       axis.text = ggplot2::element_text(size = 12))
-BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 4)))
-CENTER_TITLE <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(
+  override.aes = list(size = 4)))
+CENTER_TITLE <- ggplot2::theme(plot.title = ggplot2::element_text(
+  hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
 # note need to use dt$id format. note the mapping is provided in aes(color/fill = xx) already, this is to override some options.
 factor_mapper <- function(fac, FUN) {
@@ -426,8 +441,9 @@ request <- function(entity_type, user, pass){
   res <- httr::GET(url, config = httr::add_headers(user = user, password = pass))
   status <- httr::http_status(res)$category
   if (status != "Success") {
-    shiny::showNotification(paste0(httr::http_status(res)$message, "\nCheck console for more information"),
-                     duration = 6, type = "error")
+    shiny::showNotification(paste0(httr::http_status(res)$message,
+                                   "\nCheck console for more information"),
+                            duration = 6, type = "error")
     # will use xml2::read_html
     res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
     txt <- html_to_text(res_cont)
@@ -511,8 +527,8 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 # try to include all variables in the lapply list so fun only take one parameter. that means exp_init usually only init libraries.
 # export take from global env, so need to assign in global
 
-#' Expression to be initialized in Windows for `ctmm` related parallel
-#' operations
+#' Expression To Be Initialized In Windows For `ctmm` Related Parallel
+#' Operations
 #'
 #' Parallel cluter in Windows is a socket cluster, which need to initialize each
 #' session manually. For ctmm related parallel operations, `ctmm` package need
@@ -523,13 +539,20 @@ WIN_INIT_ctmm <- expression({
   # library(ctmm)
   requireNamespace("ctmm", quietly = TRUE)
 })
-# generate a new list, each item have two item from list a and b. use a b because we want to name the item, but difficult to use original name of input
-#' Title
+
+#' Combine Two Lists Into One List By Aligning Each Item
+#'
+#' `list_a` and `list_b` need to have same length.
 #'
 #' @param list_a list_a
 #' @param list_b list_b
 #'
-#' @return A list of list, each sublist have two item from list_a and list_b
+#' @return A list of same length of input list. Each item is a list of
+#' \itemize{
+#'  \item \code{a: list_a[[i]]}
+#'  \item \code{b: list_b[[i]]}
+#' }
+#'
 #' @export
 #'
 align_list <- function(list_a, list_b) {

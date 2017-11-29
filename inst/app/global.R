@@ -15,5 +15,4 @@ pacman::p_load(shiny, shinydashboard, DT,
                # leaflet, sp, rgdal, leaflet.extras, htmlwidgets, rgeos,
                # httr, stringr, XML, xml2, zip
                )
-# increase the uploading file size limit to 200M
-options(shiny.maxRequestSize = 200*1024^2)
+

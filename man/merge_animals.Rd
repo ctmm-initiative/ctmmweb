@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{merge_animals}
 \alias{merge_animals}
-\title{Generate merged data.table and info table from telemetry object/list}
+\title{Generate Merged Location And Info \code{data.table} From Telemetry Object/List}
 \usage{
 merge_animals(tele_obj_list)
 }
@@ -10,11 +10,23 @@ merge_animals(tele_obj_list)
 \item{tele_obj_list}{telemetry object/list}
 }
 \value{
-list of \code{data}: all animals merged in one data.table, \code{info}: animal
-information table
+list of - \code{data}: all animals merged in one data.table - \code{info}:
+animal information table
 }
 \description{
-Generate merged data.table and info table from telemetry object/list
+A Telemetry list hold mutiple animal data in separate list items, each item
+have the animal location data in a data frame, and other information in
+various slots. This structure supports flexible S3 methods for telemetry
+object. However to plot multiple animals location together with \code{ggplot2}
+it's better to merge all location data into single data frame with an animal
+id column.
+}
+\details{
+We chose this data structure to be the main structure and made the app to
+work on a set of animals at the same time in all steps. Thus any input
+telemetry object/List need to be merged into a \code{data.table} of location data,
+and another information \code{data.table} for animals. \code{data.table} is chosen over
+\code{data.frame} for much better performance.
 }
 \examples{
 merge_animals(buffalo)

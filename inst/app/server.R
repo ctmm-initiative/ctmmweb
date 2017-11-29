@@ -1,3 +1,5 @@
+# increase the uploading file size limit to 200M
+options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages

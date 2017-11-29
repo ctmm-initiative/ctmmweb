@@ -3,8 +3,8 @@
 \docType{data}
 \name{WIN_INIT_ctmm}
 \alias{WIN_INIT_ctmm}
-\title{Expression to be initialized in Windows for \code{ctmm} related parallel
-operations}
+\title{Expression To Be Initialized In Windows For \code{ctmm} Related Parallel
+Operations}
 \format{An object of class \code{expression} of length 1.}
 \usage{
 WIN_INIT_ctmm
