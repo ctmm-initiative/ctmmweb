@@ -17,8 +17,7 @@ Check [the videos here](README-demo.md) for feature demonstrations. The `help` b
 2. Start R or RStudio, run these in console to install dependency packages. Sometimes you may need to restart R in the process.
 
     ```r
-    if (!require("devtools"))
-      install.packages("devtools")
+    if (!require("devtools")) install.packages("devtools")
     devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "package")
     ```
 

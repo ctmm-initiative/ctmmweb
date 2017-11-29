@@ -4,12 +4,10 @@ options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages
 debug_mode <- FALSE
-# all helper functions are for server side
-# source("helpers.R", local = TRUE)
 
 server <- function(input, output, session) {
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
-  # to copy from 07_report_save_load
+  # to copy from 07_report_save_load.Rmd
   # global LOG variables ----
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
@@ -31,10 +29,11 @@ server <- function(input, output, session) {
   # LOG_folder is session specific global variable inside server function, many functions need this as global variable and need to defined inside server instead of helpers.R
   create_log_folder <- function() {
     ctmmweb:::create_folder(file.path(session_tmpdir,
-                            stringr::str_c("Report_", ctmmweb:::current_timestamp())))
+                            stringr::str_c("Report_",
+                                           ctmmweb:::current_timestamp())))
   }
-  # rely on several global variables. do side effect of console msg, and write string to global vector.
-  # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown.
+  # rely on several global variables. have side effect on console msg, and write string to global vector.
+  # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown. detail will be in 2nd line with code format
   log_msg_console <- function(msg, detail = "") {
     time_stamp <- stringr::str_c("[", Sys.time(), "]")
     if (detail != "") {
@@ -56,21 +55,25 @@ server <- function(input, output, session) {
   }
   # common process for saving a plot
   log_prepare_plot <- function(f_name, f_ext = ".png") {
-    pic_name <- stringr::str_c(f_name, "_", ctmmweb:::current_timestamp(), f_ext)
+    pic_name <- stringr::str_c(f_name, "_",
+                               ctmmweb:::current_timestamp(),
+                               f_ext)
     log_msg("saving plot as", pic_name)
     log_add_rmd(stringr::str_c("![](", pic_name, ")"))
     return(file.path(LOG_folder, pic_name))
   }
   log_save_ggplot <- function(g, f_name, on = TRUE) {
     if (!on) return(g)
-    print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name), plot = g)))
+    print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name),
+                                      plot = g)))
     return(g)
   }
   # only used for variogram, with specific format and parameters, some came from input
   log_save_vario <- function(f_name, rows, cols, on = TRUE) {
     if (!on) return()
-    grDevices::dev.print(png, file = log_prepare_plot(f_name), units = "in", res = 220,
-              width = cols * 4, height = rows * 3)
+    grDevices::dev.print(png, file = log_prepare_plot(f_name),
+                         units = "in", res = 220,
+                         width = cols * 4, height = rows * 3)
   }
   # pdf is better for home range, occurrence
   log_save_UD <- function(f_name, on = TRUE) {
@@ -82,14 +85,17 @@ server <- function(input, output, session) {
     if (!on) return()
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
-                                  stringr::str_c(utils::capture.output(dt), collapse = "\n\t"))
+                                  stringr::str_c(utils::capture.output(dt),
+                                                 collapse = "\n\t"))
     log_add_rmd(c(stringr::str_c("`", time_stamp, "` ", msg, "\n"),
                   knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
   log_dt_csv <- function(dt, msg, f_name, on = TRUE) {
     if (!on) return()
-    csv_name <- stringr::str_c(f_name, "_", ctmmweb:::current_timestamp(), ".csv")
+    csv_name <- stringr::str_c(f_name, "_",
+                               ctmmweb:::current_timestamp(),
+                               ".csv")
     fwrite(dt, file = file.path(LOG_folder, csv_name))
     log_msg(msg, detail = csv_name)
     log_add_rmd(stringr::str_c("[", csv_name, "](", csv_name, ")"))
@@ -127,7 +133,7 @@ output:
     log_msg_console(stringr::str_c("## ", title))
     log_add_rmd(stringr::str_c("\n## ", title, "\n"))
   }
-  # also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
+  # log each page, also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
   observeEvent(input$tabs, {
     req(values$data)
     # since we req data, so it will not record pages without data. This is good.
@@ -148,7 +154,8 @@ output:
   log_page(page_title$import, on = isolate(input$record_on))
   observeEvent(input$record_on, {
     # this call doesn't use the switch to turn off itself
-    log_msg(stringr::str_c("Recording is ", if (input$record_on) "On" else "Off"))
+    log_msg(stringr::str_c("Recording is ",
+                           if (input$record_on) "On" else "Off"))
   })
   # cache setup ----
   create_cache <- function() {
@@ -159,9 +166,15 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  para_ll_fit_tele_guess_mem <- memoise::memoise(ctmmweb:::para_ll_fit_tele_guess, cache = memoise::cache_filesystem(cache_path))
-  akde_mem <- memoise::memoise(ctmm::akde, cache = memoise::cache_filesystem(cache_path))
-  para_ll_ud_mem <- memoise::memoise(ctmmweb::para_ll_ud, cache = memoise::cache_filesystem(cache_path))
+  para_ll_fit_tele_guess_mem <- memoise::memoise(
+    ctmmweb:::para_ll_fit_tele_guess,
+    cache = memoise::cache_filesystem(cache_path))
+  akde_mem <- memoise::memoise(
+    ctmm::akde,
+    cache = memoise::cache_filesystem(cache_path))
+  para_ll_ud_mem <- memoise::memoise(
+    ctmmweb::para_ll_ud,
+    cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
   values <- reactiveValues()
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -188,8 +201,9 @@ output:
     values$data$all_removed_outliers <- NULL
     values$selected_data_model_fit_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
-    values$data$id_pal <- leaflet::colorFactor(scales::hue_pal()(nrow(values$data$merged$info)),
-                                      unique(values$data$merged$data$id))
+    values$data$id_pal <- leaflet::colorFactor(
+      scales::hue_pal()(nrow(values$data$merged$info)),
+      unique(values$data$merged$data$id))
     shinydashboard::updateTabItems(session, "tabs", "plots")
     # LOG input data updated
     log_msg("Input data updated", on = isolate(input$record_on))
@@ -204,10 +218,11 @@ output:
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # wrap it so even single individual will return a list with one item
-    tele_list <- tryCatch(ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
-        error = function(e) {
-          showNotification("Import error, check data again",
-                           duration = 4, type = "error")
+    tele_list <- tryCatch(
+      ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
+      error = function(e) {
+        showNotification("Import error, check data again",
+                         duration = 4, type = "error")
         })
     # only proceed if no error
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
@@ -290,12 +305,6 @@ output:
              update_input_data(buffalo)
            },
            ctmm_sample = {
-             # data("buffalo")
-             # sample_data <- sample_tele_list(buffalo, input$sample_size)
-             # # LOG use sample
-             # log_msg("Using data", "buffalo sample from ctmm",
-             #         on = isolate(input$record_on))
-             # update_input_data(sample_data)
              set_sample_data()
            },
            upload = {
@@ -326,7 +335,8 @@ output:
     # the textinput value are always sync to date, so we can just use textinput everywhere which is reactive
     updateTextInput(session, "user", value = mb_user_env)
     updateTextInput(session, "pass", value = mb_pass_env)
-    showNotification("Movebank login info found", duration = 1, type = "message")
+    showNotification("Movebank login info found", duration = 1,
+                     type = "message")
   }
   callModule(click_help, "login", title = "Movebank Login", size = "l",
              file = "help/1_movebank_login.md")
@@ -637,8 +647,7 @@ output:
     values$selected_data_model_fit_res <- NULL
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
-    log_dt_md(info[,
-                   .(identity, start, end, interval, duration, points)],
+    log_dt_md(info[, .(identity, start, end, interval, duration, points)],
               "Current selected individuals",
               on = isolate(input$record_on))
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
@@ -673,17 +682,20 @@ output:
     g <- ggplot2::ggplot() +
       {if (input$overlay_all) {
         ggplot2::geom_point(data = values$data$merged$data, ggplot2::aes(x, y),
-                   size = input$point_size_1, alpha = 0.6, colour = "gray")
+                            size = input$point_size_1, alpha = 0.6,
+                            colour = "gray")
       }} +
       ggplot2::geom_point(data = animals_dt, ggplot2::aes(x, y, colour = id),
-                 size = input$point_size_1, alpha = 0.7) +
+                          size = input$point_size_1, alpha = 0.7) +
       ggplot2::coord_fixed(xlim = location_plot_gg_range$x,
-                  ylim = location_plot_gg_range$y) +
+                           ylim = location_plot_gg_range$y) +
       ctmmweb:::factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
-      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ggplot2::scale_x_continuous(labels =
+                                    ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels =
+                                    ctmmweb:::format_distance_f(animals_dt$y)) +
       ggplot2::theme(legend.position = "top",
-            legend.direction = "horizontal") +
+                     legend.direction = "horizontal") +
       ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_2_overview", on = isolate(input$record_on))
@@ -695,8 +707,10 @@ output:
     animals_dt <- req(select_data()$data)
     g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x, y)) +
       ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
-      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ggplot2::scale_x_continuous(labels =
+                                    ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels =
+                                    ctmmweb:::format_distance_f(animals_dt$y)) +
       ctmmweb:::factor_color(animals_dt$id) +
       ggplot2::facet_grid(id ~ .) +
       ggplot2::coord_fixed() +
@@ -708,23 +722,27 @@ output:
   # 2.4 individual plot ----
   output$location_plot_individual <- renderPlot({
     animals_dt <- req(select_data()$data)
-    new_ranges <- ctmmweb:::get_ranges_quantile_dt(animals_dt, input$include_level)
+    new_ranges <- ctmmweb:::get_ranges_quantile_dt(animals_dt,
+                                                   input$include_level)
     id_vector <- select_data()$info$identity
     g_list <- vector("list", length = length(id_vector))
     for (i in seq_along(id_vector)) {
       data_i <- animals_dt[identity == id_vector[i]]
       new_ranges_i <- new_ranges[identity == id_vector[i]]
-      g_list[[i]] <- ggplot2::ggplot(data = data_i, ggplot2::aes(x, y, color = id)) +
+      g_list[[i]] <- ggplot2::ggplot(data = data_i,
+                                     ggplot2::aes(x, y, color = id)) +
         ggplot2::geom_point(size = input$point_size_3, alpha = 0.7) +
         ctmmweb:::factor_color(data_i$id) +
-        ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(data_i$x)) +
-        ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(data_i$y)) +
+        ggplot2::scale_x_continuous(labels =
+                                      ctmmweb:::format_distance_f(data_i$x)) +
+        ggplot2::scale_y_continuous(labels =
+                                      ctmmweb:::format_distance_f(data_i$y)) +
         ggplot2::labs(title = id_vector[i]) +
         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
               legend.position = "none") +
         ggplot2::coord_fixed(xlim = c(new_ranges_i$x_start, new_ranges_i$x_end),
-                    ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
-                    expand = FALSE)
+                             ylim = c(new_ranges_i$y_start, new_ranges_i$y_end),
+                             expand = FALSE)
       # no bigger theme and key here since no key involved. bigger theme could mess up the axis labels too.
     }
     fig_count <- length(id_vector)
@@ -740,7 +758,8 @@ output:
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(select_data()$data)
-    g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x = timestamp, fill = id)) +
+    g <- ggplot2::ggplot(data = animals_dt,
+                         ggplot2::aes(x = timestamp, fill = id)) +
       ggplot2::geom_histogram(bins = 60) +
       ctmmweb:::factor_fill(animals_dt$id) +
       ggplot2::facet_grid(id ~ .) +
@@ -763,7 +782,8 @@ output:
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data
     animals_dt <- ctmmweb::calculate_distance(animals_dt)
-    animals_dt <- ctmmweb::calculate_speed(animals_dt, as.numeric(input$device_error))
+    animals_dt <- ctmmweb::calculate_speed(animals_dt,
+                                           as.numeric(input$device_error))
     outlier_page_data$data <- animals_dt
     return(outlier_page_data)
   })
@@ -773,7 +793,8 @@ output:
     # animals_dt <- req(select_data()$data)
     animals_dt <- req(calc_outlier()$data)
     return(ctmmweb:::color_break(input$distance_his_bins, animals_dt,
-                       "distance_center", ctmmweb:::format_distance_f))
+                                 "distance_center",
+                                 ctmmweb:::format_distance_f))
   })
   output$distance_histogram <- renderPlot({
     # need to get data from reactive, update by bin count
@@ -788,16 +809,19 @@ output:
                      ggplot2::aes(fill = distance_center_color_factor,
                        alpha = distance_center_color_factor)) +
       # need to exclude 0 count groups
-      ggplot2::geom_text(stat = 'bin', ggplot2::aes(label = ifelse(..count.. != 0, ..count.., "")),
-                vjust = -1, breaks = distance_binned$color_bin_breaks) +
+      ggplot2::geom_text(stat = 'bin',
+                         ggplot2::aes(label =
+                                        ifelse(..count.. != 0, ..count.., "")),
+                         vjust = -1,
+                         breaks = distance_binned$color_bin_breaks) +
       ctmmweb:::factor_fill(animals_dt$distance_center_color_factor) +
       ctmmweb:::factor_alpha(animals_dt$distance_center_color_factor) +
       ggplot2::scale_x_continuous(breaks = distance_binned$non_empty_breaks,
-                         labels = distance_binned$vec_formatter) +
+                                  labels = distance_binned$vec_formatter) +
       # all counts above 20 are not shown, so it's easier to see the few outliers.
       ggplot2::coord_cartesian(ylim = c(0, input$distance_his_y_limit)) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
-            legend.position = "none")
+                     legend.position = "none")
     # LOG save pic
     log_save_ggplot(g, "plot_distance_outlier_histogram",
                     on = isolate(input$record_on))
@@ -813,11 +837,6 @@ output:
        distance_unit = unit_distance$name,
        speed = format(speed / unit_speed$scale, digits = 3),
        speed_unit = unit_speed$name
-       # distance_center = ctmmweb:::format_distance_f(animals_dt[, distance_center])(
-       #   distance_center),
-       # distance_center_SI = format(distance_center, digits = 3),
-       # speed = format_speed_f(animals_dt[, speed])(speed)
-       # speed_SI = format(speed, digits = 3)
        )]
   }
   # brush selection function
@@ -900,17 +919,21 @@ output:
         points_selected <- select_distance_range()$animal_selected_data[
           input$points_in_distance_range_rows_selected]
         ggplot2::geom_point(data = points_selected, size = 3.5, alpha = 1,
-                   color = "blue", shape = 22)
+                            color = "blue", shape = 22)
       }} +
-      ggplot2::geom_point(data = unique(animals_dt[, .(id, median_x, median_y)]),
-                          ggplot2::aes(x = median_x, y = median_y, shape = id), color = "blue", size = 0.8) +
+      ggplot2::geom_point(data =
+                            unique(animals_dt[, .(id, median_x, median_y)]),
+                          ggplot2::aes(x = median_x, y = median_y, shape = id),
+                          color = "blue", size = 0.8) +
       ctmmweb:::factor_color(animal_selected_data$distance_center_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_distance()$color_bin_breaks) +
       ctmmweb:::factor_alpha(animal_selected_data$distance_center_color_factor) +
-      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
-      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
+      ggplot2::scale_x_continuous(labels =
+                                    ctmmweb:::format_distance_f(animals_dt$x)) +
+      ggplot2::scale_y_continuous(labels =
+                                    ctmmweb:::format_distance_f(animals_dt$y)) +
       ggplot2::coord_fixed(xlim = distance_outlier_plot_range$x,
-                  ylim = distance_outlier_plot_range$y) +
+                           ylim = distance_outlier_plot_range$y) +
       ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # LOG save pic
@@ -1756,10 +1779,6 @@ output:
       res <- akde_mem(select_models()$tele_list,
                       CTMM = select_models()$models_list))),
       message = "Calculating Home Range ...")
-    # res
-    # withProgress(res <- akde_mem(select_models()$tele_list,
-    #                          CTMM = select_models()$models_list),
-    #              message = "Calculating home range ...")
     return(res)
   })
   # home range summary ----
@@ -1782,27 +1801,6 @@ output:
     # still use the full model name table color mapping to make it consistent.
     model_names <- sort(unique(summary_models()$summary_dt$model_name))
     render_model_summary_DT(dt, model_names, info_p)
-    # DT::datatable(dt, options = list(scrollX = TRUE,
-    #                              pageLength = 18, lengthMenu = c(18, 36, 72)),
-    #           rownames = FALSE) %>%
-    #   # majority cells in color by model
-    #   DT::formatStyle('model_name', target = 'row',
-    #               color = DT::styleEqual(model_names,
-    #                                  scales::hue_pal()(length(model_names)))
-    #   ) %>%
-    #   # override the id col color
-    #   DT::formatStyle('identity', target = 'cell',
-    #               color = DT::styleEqual(info_p$identity,
-    #                                  scales::hue_pal()(nrow(info_p)))
-    #   ) %>%
-    #   # override the low/high cols with background
-    #   DT::formatStyle(
-    #     'estimate',
-    #     target = 'row',
-    #     # valueColumns = 'estimate',
-    #     backgroundColor = DT::styleEqual(c("CI low", "ML" , "CI high"),
-    #                                  c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-    #   )
   })
   # function on input didn't update, need a reactive expression?
   get_hr_levels <- reactive({
@@ -1811,7 +1809,8 @@ output:
   output$range_plot <- renderPlot({
     selected_tele_list <- select_models()$tele_list
     def.par <- graphics::par(no.readonly = TRUE)
-    graphics::par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
+    graphics::par(mfrow = c(select_models_layout()$row_count,
+                            input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(selected_tele_list), function(i) {
       plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
@@ -2175,13 +2174,6 @@ output:
   observeEvent(input$preview_report, {
     generate_report(preview = TRUE)
   })
-  # observeEvent(input$generate_report, {
-  #   if (session$clientData$url_hostname == "127.0.0.1") {
-  #     generate_report(preview = TRUE)
-  #   } else {
-  #     generate_report(preview = FALSE)
-  #   }
-  # })
   output$download_report <- downloadHandler(
     filename = function() {
       paste0("Report_", ctmmweb:::current_timestamp(), ".html")
@@ -2191,12 +2183,6 @@ output:
       log_msg("Downloading work report", on = isolate(input$record_on))
       generate_report(preview = FALSE)
       file.copy(values$html_path, file)
-      # if (is.null(values$html_path)) {
-      #   showNotification("Report not generated yet", duration = 7,
-      #                    type = "error")
-      # } else {
-      #   file.copy(values$html_path, file)
-      # }
     }
   )
   output$download_report_zip <- downloadHandler(
