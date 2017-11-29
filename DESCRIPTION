@@ -36,5 +36,4 @@ Imports: shiny,
     zip
 Remotes: rstudio/shiny,
     rstudio/leaflet,
-    ctmm-initiative/ctmm,
-    r-lib/crayon
+    ctmm-initiative/ctmm

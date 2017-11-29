@@ -19,10 +19,6 @@ Check [the videos here](README-demo.md) for feature demonstrations. The `help` b
     ```r
     if (!require("devtools"))
       install.packages("devtools")
-    devtools::install_github("rstudio/shiny")
-    devtools::install_github("rstudio/leaflet")
-    devtools::install_github("r-lib/crayon")
-    devtools::install_github("ctmm-initiative/ctmm")
     devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "package")
     ```
 
