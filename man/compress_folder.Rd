@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{compress_folder}
 \alias{compress_folder}
-\title{Title}
+\title{Compress A Folder Into Zip}
 \usage{
 compress_folder(folder_path, zip_name)
 }
@@ -15,5 +15,7 @@ compress_folder(folder_path, zip_name)
 The absolute path of result zip file
 }
 \description{
-Title
+Keep the relative path structure in zip, include \code{folder_path} itself so the
+zip can be extracted directly without need of creating a folder to hold
+contents. The zip will be saved to one level up of \code{folder_path}.
 }

@@ -918,27 +918,32 @@ parse_CI_levels <- function(levels_text) {
 build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
   current_time <- current_timestamp()  # need this in zip name so save it
-  folder_path <- file.path(session_tmpdir, stringr::str_c("Range_", current_time))
+  folder_path <- file.path(session_tmpdir,
+                           stringr::str_c("Range_", current_time))
   create_folder(folder_path)
   write_f(folder_path)
   zip_path <- compress_folder(folder_path,
-                         paste0("Home Range ", current_time, ".zip"))
+                              paste0("Home Range ", current_time, ".zip"))
   file.copy(zip_path, file)
 }
 # map ----
 GRID_GROUP <- "_graticule_"
-# draw_group <- "_draw with measure_"
+# tiles_info hold selected map layer name, here api key, which are used here and other places in server code.
 init_base_maps <- function(tiles_info) {
-  leaf <- leaflet::leaflet(options = leaflet::leafletOptions(attributionControl = FALSE))
+  leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
+    attributionControl = FALSE))
   for (prov in tiles_info$here) {
-    leaf <- leaf %>% leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov,
-                                      options = leaflet::providerTileOptions(
-                                        detectRetina = TRUE,
-                                        app_id = tiles_info$here_app_id,
-                                        app_code = tiles_info$here_app_code))
+    leaf <- leaf %>%
+      leaflet::addProviderTiles(leaflet::providers[[prov]],
+                                group = prov,
+                                options = leaflet::providerTileOptions(
+                                  detectRetina = TRUE,
+                                  app_id = tiles_info$here_app_id,
+                                  app_code = tiles_info$here_app_code))
   }
   for (prov in tiles_info$open) {
-    leaf <- leaf %>% leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov)
+    leaf <- leaf %>%
+      leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov)
   }
   return(leaf)
 }
@@ -957,7 +962,7 @@ add_measure <- function(leaf) {
 add_points <- function(leaf, dt, info, id_pal) {
   leaf <- leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                       redraw = "moveend", group = GRID_GROUP)
+                                redraw = "moveend", group = GRID_GROUP)
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
   for (current_id in info$identity) {
@@ -980,14 +985,15 @@ add_points <- function(leaf, dt, info, id_pal) {
     # simple measure
     add_measure()
 }
+# check if a reactive value is valid yet
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
   return(!("try-error" %in% class(res)))
 }
 add_home_range <- function(leaf, hrange, hr_levels, hr_color, group_name){
-  hrange_spdf <- sp::spTransform(ctmm::SpatialPolygonsDataFrame.UD(hrange,
-                                                         level.UD = hr_levels),
-                             sp::CRS("+proj=longlat +datum=WGS84"))
+  hrange_spdf <- sp::spTransform(
+    ctmm::SpatialPolygonsDataFrame.UD(hrange, level.UD = hr_levels),
+    sp::CRS("+proj=longlat +datum=WGS84"))
   ML_indice <- seq(2, length(hrange_spdf), by = 3)
   hrange_spdf_ML <- hrange_spdf[ML_indice, ]
   hrange_spdf_other <- hrange_spdf[-ML_indice, ]
@@ -1006,7 +1012,7 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
   }
   return(leaf)
 }
-# take and return rgb strings
+# take and return rgb strings. given a base color, create variations in different values, ordered from bright to dark.
 vary_color <- function(base_color, count) {
   if (count == 1) {
     return(base_color)
@@ -1015,7 +1021,7 @@ vary_color <- function(base_color, count) {
     return(grDevices::hsv(hsv_vec[1], hsv_vec[2], seq(1, 0.5, length.out = count)))
   }
 }
-# added base map layer control
+# base map layer control added here
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
