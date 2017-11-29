@@ -1858,10 +1858,10 @@ output:
              size = "l", file = "help/7_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
-    ud_para_list <- ctmmweb::align_list(select_models()$tele_list,
-                               select_models()$models_list)
+    tele_model_list <- ctmmweb::align_list(select_models()$tele_list,
+                                        select_models()$models_list)
     withProgress(print(system.time(
-      res <- para_ll_ud_mem(ud_para_list))),
+      res <- para_ll_ud_mem(tele_model_list))),
                  message = "Calculating Occurrence ...")
     res
   })
