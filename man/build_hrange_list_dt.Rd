@@ -2,18 +2,19 @@
 % Please edit documentation in R/helpers.R
 \name{build_hrange_list_dt}
 \alias{build_hrange_list_dt}
-\title{Title}
+\title{Build Home Range list table}
 \usage{
 build_hrange_list_dt(selected_model_names_dt, selected_hrange_list)
 }
 \arguments{
 \item{selected_hrange_list}{home range list}
 
-\item{selected_dt}{model names dt}
+\item{selected_dt}{model names \code{data.table}}
 }
 \value{
 a data.table holding model info and home range
 }
 \description{
-Title
+The table structure is similar to model list table, with model information
+from model summary table, and home range objects as list column
 }

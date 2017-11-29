@@ -2,16 +2,16 @@
 % Please edit documentation in R/helpers.R
 \name{hrange_list_dt_to_formated_range_summary_dt}
 \alias{hrange_list_dt_to_formated_range_summary_dt}
-\title{Title}
+\title{Generate Formated Home Range Summary Table From Home Range List Table}
 \usage{
 hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
 }
 \arguments{
-\item{hrange_list_dt}{a data.table holding model info and home range}
+\item{hrange_list_dt}{a data.table holding model info and home range objects}
 }
 \value{
 formated home range summary table
 }
 \description{
-Title
+Generate Formated Home Range Summary Table From Home Range List Table
 }

@@ -687,6 +687,7 @@ sample_tele_list <- function(tele_list, m) {
   })
 }
 # build ctmm model summary table ----
+# each model object is a CTMM object, summary(ctmm_obj) give some information, which can be converted into a table. summary(ctmm_obj_list) give some comparison among models, which is additional info.
 ctmm_obj_to_summary_dt <- function(model) {
   # convert the named vectors into data table, keep relevant info
   model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
@@ -709,7 +710,8 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
-# from ctmm.fit result model list to data table with models in list column
+# para_ll_fit fit each animal with ctmm.fit, generate a model list for each animal, saved in a list of list, named by animal
+# this result was converted into a data.table models_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information.
 model_fit_res_to_model_list_dt <- function(model_fit_res) {
   animal_names_dt <- data.table(identity = names(model_fit_res))
   model_name_list <- lapply(model_fit_res, names)
@@ -728,6 +730,7 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
 }
+# generate summary table for models. home range don't have dAICc column
 model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -763,6 +766,7 @@ apply_format_f_list <- function(dt, format_f_list) {
   dt[, (old_cols) := NULL]
   setnames(dt, new_cols, old_cols)
 }
+# the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
@@ -792,10 +796,12 @@ format_model_summary_dt <- function(model_summary_dt) {
   # add model full name col so it can be used to create model color palette
   res_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
 }
-# combined steps of generating model summary and format it
-#' Title
+# combined steps to make usage easier, otherwise the function name could be confusing
+
+#' Generate Formated Model Summary Table From Model List Table
 #'
-#' @param models_dt model list dt
+#' @param models_dt a `data.table` holding model information and models objects
+#'   as list column
 #'
 #' @return formated model summary table
 #' @export
@@ -805,10 +811,12 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
                                                         hrange = FALSE)
   format_model_summary_dt(model_summary_dt)
 }
-# from akde result model list to data table with models in list column
-#' Title
+#' Build Home Range list table
 #'
-#' @param selected_dt model names dt
+#' The table structure is similar to model list table, with model information
+#' from model summary table, and home range objects as list column
+#'
+#' @param selected_dt model names `data.table`
 #' @param selected_hrange_list home range list
 #'
 #' @return a data.table holding model info and home range
@@ -835,9 +843,9 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF area", "DOF bandwidth") := NA_real_]
 }
-#' Title
+#' Generate Formated Home Range Summary Table From Home Range List Table
 #'
-#' @param hrange_list_dt a data.table holding model info and home range
+#' @param hrange_list_dt a data.table holding model info and home range objects
 #'
 #' @return formated home range summary table
 #' @export

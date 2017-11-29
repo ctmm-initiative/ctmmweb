@@ -2,16 +2,17 @@
 % Please edit documentation in R/helpers.R
 \name{model_list_dt_to_formated_model_summary_dt}
 \alias{model_list_dt_to_formated_model_summary_dt}
-\title{Title}
+\title{Generate Formated Model Summary Table From Model List Table}
 \usage{
 model_list_dt_to_formated_model_summary_dt(models_dt)
 }
 \arguments{
-\item{models_dt}{model list dt}
+\item{models_dt}{a \code{data.table} holding model information and models objects
+as list column}
 }
 \value{
 formated model summary table
 }
 \description{
-Title
+Generate Formated Model Summary Table From Model List Table
 }
