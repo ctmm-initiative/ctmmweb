@@ -8,6 +8,7 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(shiny, shinydashboard, DT,
                # markdown, crayon, rmarkdown, knitr,
                # ctmm, ctmmweb,
+               ctmm,
                data.table
                # ,
                # parallel, memoise,
