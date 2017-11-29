@@ -341,7 +341,7 @@ output:
   values$studies <- NULL
   # only show selected cols because we don't want to show owner col. want to keep it insivibly so we can switch it on and off.
   output$studies <- DT::renderDataTable(
-    datatable({
+    DT::datatable({
       req(values$studies)
       selected_studies_cols <- c("id", "name", "deployments",
                                  "events", "individuals")
@@ -356,7 +356,7 @@ output:
   # $study_detail ----
   values$study_detail <- NULL
   output$study_detail <- DT::renderDataTable(
-    datatable(req(values$study_detail),
+    DT::datatable(req(values$study_detail),
               rownames = FALSE,
               options = list(pageLength = 5),
               selection = 'none'))
@@ -367,7 +367,7 @@ output:
   # $study_preview ----
   values$study_preview <- NULL
   output$study_preview <- DT::renderDataTable(
-    datatable(req(values$study_preview), options = list(dom = 't')))
+    DT::datatable(req(values$study_preview), options = list(dom = 't')))
   # $move_bank_dt ----
   values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
   # the whole data preview box should be cleared with all actions other than download, otherwise it could be confusing when there is a previous download and user made other actions
@@ -561,10 +561,10 @@ output:
       info_p <- values$data$merged$info[,
                   .(identity, start, end, interval, duration, points)]
     }
-    datatable(info_p, options = list(pageLength = 6,
+    DT::datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
-      formatStyle('identity', target = 'row',
-                  color = styleEqual(info_p$identity,
+      DT::formatStyle('identity', target = 'row',
+                  color = DT::styleEqual(info_p$identity,
                                      scales::hue_pal()(nrow(info_p)))
       )
   })
@@ -603,13 +603,13 @@ output:
               on = isolate(input$record_on))
     }
   })
-  proxy_individuals <- dataTableProxy("individuals")
+  proxy_individuals <- DT::dataTableProxy("individuals")
   observeEvent(input$select_all, {
-    selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
+    DT::selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
   })
   observeEvent(input$deselect_all, {
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
-    selectRows(proxy_individuals, list())
+    DT::selectRows(proxy_individuals, list())
   })
   callModule(click_help, "visual", title = "Visualization",
              size = "l", file = "help/2_visualization.md")
@@ -923,7 +923,7 @@ output:
     req(input$distance_his_brush)
     # cols <- c("row_no", "timestamp", "id", "distance_center")
     # datatable(select_distance_range()$animal_selected_data[, cols, with = FALSE],
-    datatable(select_distance_range()$animal_selected_formatted,
+    DT::datatable(select_distance_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              scrollX = TRUE,
@@ -958,8 +958,8 @@ output:
     values$data$merged <- list(data = animals_dt, info = info)
     verify_global_data()
   }
-  proxy_points_in_distance_range <- dataTableProxy("points_in_distance_range",
-                                                deferUntilFlush = FALSE)
+  proxy_points_in_distance_range <- DT::dataTableProxy(
+    "points_in_distance_range", deferUntilFlush = FALSE)
   # actually just put row_name vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
   # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
@@ -972,7 +972,7 @@ output:
       select_distance_range()$animal_selected_formatted[
         input$points_in_distance_range_rows_selected]
     freezeReactiveValue(input, "points_in_distance_range_rows_selected")
-    selectRows(proxy_points_in_distance_range, list())
+    DT::selectRows(proxy_points_in_distance_range, list())
     freezeReactiveValue(input, "distance_his_brush")
     session$resetBrush("distance_his_brush")
     # LOG points to remove
@@ -1109,7 +1109,7 @@ output:
   output$points_in_speed_range <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(input$speed_his_brush)
-    datatable(select_speed_range()$animal_selected_formatted,
+    DT::datatable(select_speed_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              scrollX = TRUE,
@@ -1119,7 +1119,7 @@ output:
   # give it high priority so it will update in before the plot updates
   # outputOptions(output, "points_in_speed_range", priority = 10)
   # remove speed outliers ----
-  proxy_points_in_speed_range <- dataTableProxy("points_in_speed_range",
+  proxy_points_in_speed_range <- DT::dataTableProxy("points_in_speed_range",
                                                 deferUntilFlush = FALSE)
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
@@ -1133,7 +1133,7 @@ output:
     # to ensure proper order of execution, need to clear the points in range table row selection, and the brush value of histogram, otherwise some reactive expressions will take the leftover value of them when plot are not yet updated fully.
     # freeze it so all expression accessing it will be put on hold until update finish, because the reset here just send message to client, didn't update immediately
     freezeReactiveValue(input, "points_in_speed_range_rows_selected")
-    selectRows(proxy_points_in_speed_range, list())
+    DT::selectRows(proxy_points_in_speed_range, list())
     freezeReactiveValue(input, "speed_his_brush")
     session$resetBrush("speed_his_brush")
     # LOG points to remove
@@ -1149,7 +1149,7 @@ output:
     animals_dt <- req(calc_outlier()$data)
     dt <- format_outliers(values$data$all_removed_outliers, animals_dt)
     log_dt_md(dt, "All Removed Outliers", on = isolate(input$record_on))
-    datatable(dt,
+    DT::datatable(dt,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
                              searching = FALSE),
@@ -1255,9 +1255,9 @@ output:
     # LOG selection
     log_dt_md(dt, "Current Selected Time Range",
               on = isolate(input$record_on))
-    datatable(dt, options =
+    DT::datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE) %>%
-      formatStyle(1, target = 'row', color = "#00c0ef")
+      DT::formatStyle(1, target = 'row', color = "#00c0ef")
   })
   # 4.3 selected locations ----
   selected_loc_ranges <- add_zoom("selected_loc")
@@ -1379,7 +1379,7 @@ output:
     dt <- format_time_range(values$time_ranges)
     # LOG time range list
     log_dt_md(dt, "Time Range List", on = isolate(input$record_on))
-    datatable(dt, options =
+    DT::datatable(dt, options =
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
@@ -1625,7 +1625,7 @@ output:
     names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
-    selectRows(proxy_model_dt, summary_models()$first_models)
+    DT::selectRows(proxy_model_dt, summary_models()$first_models)
   })
   # summary_models() ----
   # summary table and model dt with model as list column
@@ -1664,6 +1664,29 @@ output:
                 first_models = first_models))
   })
   # model summary ----
+  # format model summary table as DT
+  render_model_summary_DT <- function(dt, model_names, info_p) {
+    DT::datatable(dt,options = list(scrollX = TRUE,
+                                    pageLength = 18,
+                                    lengthMenu = c(18, 36, 72)),
+                  rownames = FALSE) %>%
+      # majority cells in color by model
+      DT::formatStyle('model_name', target = 'row',
+                      color = DT::styleEqual(
+                        model_names, scales::hue_pal()(length(model_names)))
+      ) %>%
+      # override the id col color
+      DT::formatStyle('identity', target = 'cell',
+                      color = DT::styleEqual(info_p$identity,
+                                             scales::hue_pal()(nrow(info_p)))
+      ) %>%
+      # override the low/high cols with background
+      DT::formatStyle('estimate', target = 'row',
+                      backgroundColor = DT::styleEqual(
+                        c("CI low", "ML" , "CI high"),
+                        c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
+      )
+  }
   output$model_fit_summary <- DT::renderDataTable({
     # should not need to use req on reactive expression if that expression have req inside.
     dt <- copy(summary_models()$summary_dt)
@@ -1676,31 +1699,12 @@ output:
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
     model_names <- sort(unique(dt$model_name))
-    datatable(dt,options = list(scrollX = TRUE,
-                                pageLength = 18, lengthMenu = c(18, 36, 72)),
-              rownames = FALSE) %>%
-      # majority cells in color by model
-      formatStyle('model_name', target = 'row',
-                  color = styleEqual(model_names,
-                                     scales::hue_pal()(length(model_names)))
-      ) %>%
-      # override the id col color
-      formatStyle('identity', target = 'cell',
-                  color = styleEqual(info_p$identity,
-                                     scales::hue_pal()(nrow(info_p)))
-      ) %>%
-      # override the low/high cols with background
-      formatStyle(
-        'estimate',
-        target = 'row',
-        backgroundColor = styleEqual(c("CI low", "ML" , "CI high"),
-                           c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-      )
+    render_model_summary_DT(dt, model_names, info_p)
   })
-  proxy_model_dt <- dataTableProxy("model_fit_summary")
+  proxy_model_dt <- DT::dataTableProxy("model_fit_summary")
   observeEvent(input$clear_models, {
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
-    selectRows(proxy_model_dt, list())
+    DT::selectRows(proxy_model_dt, list())
   })
   # select_models() ----
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this.
@@ -1775,28 +1779,30 @@ output:
       # dt[, estimate := NULL]
     }
     info_p <- values$data$merged$info
-    model_names <- sort(unique(dt$model_name))
-    datatable(dt, options = list(scrollX = TRUE,
-                                 pageLength = 18, lengthMenu = c(18, 36, 72)),
-              rownames = FALSE) %>%
-      # majority cells in color by model
-      formatStyle('model_name', target = 'row',
-                  color = styleEqual(model_names,
-                                     scales::hue_pal()(length(model_names)))
-      ) %>%
-      # override the id col color
-      formatStyle('identity', target = 'cell',
-                  color = styleEqual(info_p$identity,
-                                     scales::hue_pal()(nrow(info_p)))
-      ) %>%
-      # override the low/high cols with background
-      formatStyle(
-        'estimate',
-        target = 'row',
-        # valueColumns = 'estimate',
-        backgroundColor = styleEqual(c("CI low", "ML" , "CI high"),
-                                     c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-      )
+    # still use the full model name table color mapping to make it consistent.
+    model_names <- sort(unique(summary_models()$summary_dt$model_name))
+    render_model_summary_DT(dt, model_names, info_p)
+    # DT::datatable(dt, options = list(scrollX = TRUE,
+    #                              pageLength = 18, lengthMenu = c(18, 36, 72)),
+    #           rownames = FALSE) %>%
+    #   # majority cells in color by model
+    #   DT::formatStyle('model_name', target = 'row',
+    #               color = DT::styleEqual(model_names,
+    #                                  scales::hue_pal()(length(model_names)))
+    #   ) %>%
+    #   # override the id col color
+    #   DT::formatStyle('identity', target = 'cell',
+    #               color = DT::styleEqual(info_p$identity,
+    #                                  scales::hue_pal()(nrow(info_p)))
+    #   ) %>%
+    #   # override the low/high cols with background
+    #   DT::formatStyle(
+    #     'estimate',
+    #     target = 'row',
+    #     # valueColumns = 'estimate',
+    #     backgroundColor = DT::styleEqual(c("CI low", "ML" , "CI high"),
+    #                                  c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
+    #   )
   })
   # function on input didn't update, need a reactive expression?
   get_hr_levels <- reactive({
