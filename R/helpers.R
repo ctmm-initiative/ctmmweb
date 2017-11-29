@@ -633,10 +633,11 @@ para_ll_ud <- function(ud_para_list) {
   para_ll(ud_para_list, ud_calc)
 }
 # sample telemetry data ----
-#' Sample from telemetry object
+
+#' Sample From Telemetry Object
 #'
-#' Take even spaced m points. Rely on ctmm S3 method to treat telemetry object
-#' as a data.frame.
+#' Take even spaced `m` points. Rely on ctmm S3 method to treat telemetry object
+#' as a data.frame, thus ctmm need to be imported in NAMESPACE.
 #'
 #' @param tele telemetry object
 #' @param m sample size
@@ -646,11 +647,11 @@ para_ll_ud <- function(ud_para_list) {
 #' @export
 #' @import ctmm
 #'
-#' @examples pick_m_tele(buffalo[[1]], 100)
-pick_m_tele <- function(tele, m) {
+#' @examples sample_tele(buffalo[[1]], 100)
+sample_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
-#' Title
+#' Sample Each Telemetry Object In List
 #'
 #' @param tele_list telemetry list
 #' @param m sample size
@@ -658,10 +659,10 @@ pick_m_tele <- function(tele, m) {
 #' @return sampled telemetry list
 #' @export
 #'
-#' @examples pick_m_tele_list(buffalo, 100)
-pick_m_tele_list <- function(tele_list, m) {
+#' @examples sample_tele_list(buffalo, 100)
+sample_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
-    pick_m_tele(x, m)
+    sample_tele(x, m)
   })
 }
 # build ctmm model summary table ----

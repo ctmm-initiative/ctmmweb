@@ -271,7 +271,7 @@ output:
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
     data("buffalo", package = "ctmm", envir = environment())
-    sample_data <- ctmmweb::pick_m_tele_list(buffalo, input$sample_size)
+    sample_data <- ctmmweb::sample_tele_list(buffalo, input$sample_size)
     # LOG use sample
     log_msg("Using data", "buffalo sample from ctmm",
             on = isolate(input$record_on))
@@ -289,7 +289,7 @@ output:
            },
            ctmm_sample = {
              # data("buffalo")
-             # sample_data <- pick_m_tele_list(buffalo, input$sample_size)
+             # sample_data <- sample_tele_list(buffalo, input$sample_size)
              # # LOG use sample
              # log_msg("Using data", "buffalo sample from ctmm",
              #         on = isolate(input$record_on))
