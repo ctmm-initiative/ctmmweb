@@ -2,18 +2,18 @@
 % Please edit documentation in R/helpers.R
 \name{para_ll_ud}
 \alias{para_ll_ud}
-\title{Title}
+\title{Parallel Calculate Occurrence From Telemetry And Model List}
 \usage{
-para_ll_ud(ud_para_list)
+para_ll_ud(tele_model_list)
 }
 \arguments{
-\item{ud_para_list}{Aligned list of telemetry list and model list}
+\item{tele_model_list}{Aligned list of telemetry list and model list}
 }
 \value{
 occurrence results list
 }
 \description{
-Title
+Parallel Calculate Occurrence From Telemetry And Model List
 }
 \examples{
 para_ll_ud(align_list(buffalo, models_list))

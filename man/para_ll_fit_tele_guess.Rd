@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{para_ll_fit_tele_guess}
 \alias{para_ll_fit_tele_guess}
-\title{Title}
+\title{Parallel Fit Models For List Of Telemetry List And Guess List}
 \usage{
 para_ll_fit_tele_guess(tele_guess_list)
 }
@@ -13,5 +13,5 @@ para_ll_fit_tele_guess(tele_guess_list)
 list of model fitting results on each telemetry object
 }
 \description{
-Title
+Parallel Fit Models For List Of Telemetry List And Guess List
 }

@@ -604,28 +604,23 @@ para_ll <- function(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm) {
   }
   return(res)
 }
-# cannot use select_models since that was a reactive expression to select model results
-fit_models <- function(tele_guess) {
-  ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
-              trace = TRUE, verbose = TRUE)
-}
-# wrapper to avoid function object as parameter, internal use since we may want adjusted guess list instead of automatic one
-#' Title
+# app need this since we may want adjusted guess list instead of automatic guess
+#' Parallel Fit Models For List Of Telemetry List And Guess List
 #'
 #' @param tele_guess_list aligned list of telemetry list and guess list
 #'
 #' @return list of model fitting results on each telemetry object
 #'
 para_ll_fit_tele_guess <- function(tele_guess_list) {
+  # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict
+  fit_models <- function(tele_guess) {
+    ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                      trace = TRUE, verbose = TRUE)
+  }
   para_ll(tele_guess_list, fit_models)
 }
-# convenience wrapped to take telemetry list directly. In app we want more control and didn't use this.
-guess_tele <- function(tele_list) {
-  lapply(tele_list, function(x) {
-    ctmm.guess(x, interactive = FALSE)
-  })
-}
-#' Parallel Fit models on telemetry list
+# convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
+#' Parallel Fit Models On Telemetry List
 #'
 #' @param tele_list telemetry list
 #'
@@ -635,25 +630,28 @@ guess_tele <- function(tele_list) {
 #'
 #' @examples para_ll_fit_tele(buffalo)
 para_ll_fit_tele <- function(tele_list) {
-  tele_guess_list <- align_list(tele_list, guess_tele(tele_list))
-  print(system.time(model_select_res <- para_ll_fit_tele_guess(tele_guess_list)))
+  tele_guess_list <- align_list(tele_list,
+                                lapply(tele_list, function(x) {
+                                  ctmm.guess(x, interactive = FALSE)
+                                }))
+  print(system.time(model_select_res <-
+                      para_ll_fit_tele_guess(tele_guess_list)))
   names(model_select_res) <- names(tele_list)
   return(model_select_res)
 }
-# occurrence
-ud_calc <- function(ud_para_list) {
-  ctmm::occurrence(ud_para_list$a, ud_para_list$b)
-}
-#' Title
+#' Parallel Calculate Occurrence From Telemetry And Model List
 #'
-#' @param ud_para_list Aligned list of telemetry list and model list
+#' @param tele_model_list Aligned list of telemetry list and model list
 #'
 #' @return occurrence results list
 #' @export
 #'
 #' @examples para_ll_ud(align_list(buffalo, models_list))
-para_ll_ud <- function(ud_para_list) {
-  para_ll(ud_para_list, ud_calc)
+para_ll_ud <- function(tele_model_list) {
+  ud_calc <- function(tele_model_list) {
+    ctmm::occurrence(tele_model_list$a, tele_model_list$b)
+  }
+  para_ll(tele_model_list, ud_calc)
 }
 # sample telemetry data ----
 

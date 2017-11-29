@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers.R
 \name{para_ll_fit_tele}
 \alias{para_ll_fit_tele}
-\title{Parallel Fit models on telemetry list}
+\title{Parallel Fit Models On Telemetry List}
 \usage{
 para_ll_fit_tele(tele_list)
 }
@@ -14,7 +14,7 @@ list of model fitting results on each telemetry object, named by
 telemetry object names
 }
 \description{
-Parallel Fit models on telemetry list
+Parallel Fit Models On Telemetry List
 }
 \examples{
 para_ll_fit_tele(buffalo)
