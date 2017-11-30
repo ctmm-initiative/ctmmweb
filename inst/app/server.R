@@ -6,6 +6,8 @@ options(shiny.maxRequestSize = 200*1024^2)
 VERIFY_DATA_SYNC <- FALSE
 
 server <- function(input, output, session) {
+  values <- reactiveValues()
+  # log/error options ----
   # test checkbox status passively, one time read when called
   option_selected <- function(option) {
     option %in% isolate(input$app_options)
@@ -16,17 +18,50 @@ server <- function(input, output, session) {
   }
   output$error_log_box <- renderUI({
     if (reactive_option("log_error")) {
+      values$error_file <- tempfile()
+      values$error_file_con <- file(values$error_file, open = "wt")
+      sink(values$error_file_con, type = "message")
+      # try(log("a"))
       shinydashboard::box(title = "Error Log", status = "primary",
                           solidHeader = TRUE, width = 12,
                           fluidRow(
                             column(12, verbatimTextOutput("session_info")),
-                            column(12, verbatimTextOutput("occurrence_info"))
+                            column(12, uiOutput("error_msg"))
                           ))
+    } else {
+      flush(values$error_file_con)
+      close(values$error_file_con)
+      # closeAllConnections()
+      return(NULL)
     }
+  })
+  output$error_msg <- renderUI({
+    file.info(values$error_file)
+    req(includeText(values$error_file))
+    # if (ctmmweb:::reactive_validated(values$error_file)) {
+    #   pre(includeText(values$error_file))
+    # }
   })
   output$session_info <- renderPrint({
     if (reactive_option("log_error")) sessionInfo()
   })
+  observeEvent(input$app_options, {
+    if (reactive_option("no_parallel")) {
+      try(log("a"))
+    }})
+  # only redirect error msg when selected in app, used in hosted app mode
+  # observeEvent(input$app_options, {
+  #   if (reactive_option("log_error")) {
+  #     error_file <- tempfile()
+  #     error_file_con <- file(error_file, open = "wt")
+  #     sink(error_file_con, type = "message")
+  #     output$error_msg <-
+  #       pre(includeText(error_file))
+  #   } else {
+  #     closeAllConnections()
+  #   }
+  # })
+
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # to copy from 07_report_save_load.Rmd
   # global LOG variables ----
@@ -200,7 +235,7 @@ output:
     ctmmweb::para_ll_ud,
     cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
-  values <- reactiveValues()
+
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
@@ -1858,9 +1893,9 @@ output:
     withProgress(print(system.time(
       res <- para_ll_ud_mem(tele_model_list))),
                  message = "Calculating Occurrence ...")
-    if (option_selected("log_error")) {
-      output$occurrence_info <- renderPrint(str(res))
-    }
+    # if (option_selected("log_error")) {
+    #   output$occurrence_info <- renderPrint(str(res))
+    # }
     res
   })
   # function on input didn't update, need a reactive expression?
