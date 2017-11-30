@@ -18,7 +18,7 @@ Check [the videos here](README-demo.md) for feature demonstrations. The `help` b
 
     ```r
     if (!require("devtools")) install.packages("devtools")
-    devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "package")
+    devtools::install_github("ctmm-initiative/ctmm-webapp")
     ```
 
 3. Run the app in one of following methods:

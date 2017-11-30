@@ -1,5 +1,5 @@
 # v0.0.9
-2017/11/28, pack into package - in process
+2017/11/29, pack into package - in process
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.
 - This is a time consuming process which involved:
     + changing app structure to make it work both as a function and an individual shiny app for hosting server
@@ -7,10 +7,10 @@
     + using full qualified function names everywhere
     + minimizing modifications to user environment
     + following other package development requirements
-- For the version after this change, you cannot launch specific version using previous method. You can install certain verion of package with
+- For the version after this change, you cannot launch specific version using previous method. You can install certain version of package with
 
 ```r
-devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "v0.0.9")
+devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "v0.1.0")
 ctmmweb::app()
 ```
 
