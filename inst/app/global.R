@@ -8,4 +8,4 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(shiny, shinydashboard, DT,
                ctmm,data.table)
 # in app debug, need this in both ui.R and server.R
-DEBUG_MODE <- TRUE
+DEBUG_MODE <- FALSE
