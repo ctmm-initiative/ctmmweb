@@ -5,7 +5,7 @@
     - The calculated speed could become all 0s if the device error value was too large.
 - The UI is very similar to the *distance to median center* tab, except there are two checkboxs for selected points (selected rows in table of selected range):
     - `Draw Path Around Selected Rows` will add paths with arrows for points before and after the selected points. You can zoom in plot for more details.
-    - `Label Row Number in Path` further add row number of points, which is sorted by timestamp.
+    - `Label Row Number in Path` further add row number of points, which is sorted by timestamp. This only works when path is drawn.
 - The speed value can have more sparse distribution, with majority of points at low speed, which could result:
     - Most points could be almost transparent in color. You can select a range in histogram to highlight them if needed.
     - The speed unit is determined by the median value in all speed values to ensure all units to be same in dataset, so the high value outliers can be seen with lower unit.

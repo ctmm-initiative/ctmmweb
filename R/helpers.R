@@ -1,5 +1,79 @@
-# helper functions that useful to shiny app. fold the functions in script so it's easier to copy. keep comments in code so it's easy to update code later as two versions are identical.
-# to be placed in same directory of app.r/server.r
+# helper functions that useful to shiny app. Some are exported for individual uses. All functions are placed in one file for easier search for now.
+# JS for log slider ----
+
+#' JS Function To Logify A `sliderInput`
+#'
+#' To be added in UI code of Shiny. The server code of Shiny may also use it
+#' when building UI dynamically. Search the usage in `/inst/app/ui.R` for
+#' examples.
+#'
+#' @param digits digits after numerical point
+#'
+#' @return JS function code
+#' @export
+#'
+JS.logify <- function(digits = 2) {
+  paste0(  "
+           // function to logify a sliderInput
+           function logifySlider (sliderId, sci = false) {
+           if (sci) {
+           // scientific style
+           $('#'+sliderId).data('ionRangeSlider').update({
+           'prettify': function (num) { return ('10<sup>'+num+'</sup>'); }
+           })
+           } else {
+           // regular number style
+           $('#'+sliderId).data('ionRangeSlider').update({
+           'prettify': function (num) { return (Math.pow(10, num).toFixed(",
+           digits, ")); }
+           })
+           }
+           }")
+}
+#' Register JS Logify Function For Each `sliderInput`
+#'
+#' @param slider_id_vec slider id vector
+#' @param sci use scientific notation
+#'
+#' @return JS functions code
+#' @export
+#'
+JS.onload <- function(slider_id_vec, sci = FALSE) {
+  slider_call <- function(slider_id) {
+    paste0("logifySlider('", slider_id,
+           "', sci = ", ifelse(sci, "true", "false") , ")")
+  }
+  return(paste0("
+                // execute upon document loading
+                $(document).ready(function() {
+                // wait a few ms to allow other scripts to execute
+                setTimeout(function() {",
+                paste0(lapply(slider_id_vec, slider_call), collapse = "\n"),
+                "}, 5)})"
+                ))
+}
+# UI style constants ----
+# some are used in server call, so both ui and server need them
+# box, plotOutput, renderPlot, no need to set all three if need adjustment.
+# box height will expand by content, just set plotOutput width and height to percentages (99% width, need to keep it inside the box), then also need to set fixed value in renderPlot (otherwise it didn't show). We set height on histogram to make it shorter, setting box height is easier (no need to set in server part).
+STYLES <- list(
+  height_hist = 280,
+  # outliers
+  height_outlier_hist = "180px",
+  # time subsetting
+  # not setting the box height make arrange multiple items easier.
+  # height_hist_subset_box = "380px",
+  height_hist_subset_output = "150px",
+  # height_selected_loc_box = "480px"
+  # height_selected_loc = 480
+  page_action = "background-color: #FFEB3B;font-weight: 500;width:100%;",
+  # using similar color with first box in each page.
+  page_switch = "background-color: #7ad0f7;font-weight: 500;width:100%;",
+  external_link = "background-color: #a7c1fc;font-weight: 500;width:100%;",
+  download_button = "color: #2196F3;width:100%;",
+  help_button = "background-color: #8bc34a;width:100%;"
+  # info box blue #00c0ef
+)
 # unit formatting ----
 # function with _f postfix generate a unit_format function, which can be used in ggplot scales. To generate formated values call function on input again
 # generate a unit_format function with picked unit. This only take single value, the wrappers will take a vector, pick test value and concise parameter according to data type then apply to whole vector
@@ -33,7 +107,7 @@ format_distance_f <- function(v, round = FALSE){
 # given a test value, pick unit, return scale and name. SI / scale get the new value
 pick_unit_distance <- function(v) {
   ctmm:::unit(max(abs(v), na.rm = TRUE)/2, dimension = "length",
-                   concise = TRUE)
+              concise = TRUE)
 }
 format_seconds_f <- function(secs, round = FALSE) {
   pick_best_unit_f(median(secs, na.rm = TRUE), dimension = "time",
@@ -75,17 +149,16 @@ single_tele_info <- function(object) {
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
-  dt <- data.table(identity = object@info$identity,
-                   interval_s = sampling_interval,
-                   interval = format_seconds_f(sampling_interval)(sampling_interval),
-                   duration_s = sampling_range,
-                   duration = format_seconds_f(sampling_range)(sampling_range),
-                   sampling_start = t_start,
-                   sampling_end = t_end,
-                   start = format_datetime(t_start),
-                   end = format_datetime(t_end),
-                   points = nrow(object))
-  return(dt)
+  data.table(identity = object@info$identity,
+             interval_s = sampling_interval,
+             interval = format_seconds_f(sampling_interval)(sampling_interval),
+             duration_s = sampling_range,
+             duration = format_seconds_f(sampling_range)(sampling_range),
+             sampling_start = t_start,
+             sampling_end = t_end,
+             start = format_datetime(t_start),
+             end = format_datetime(t_end),
+             points = nrow(object))
 }
 wrap_single_telemetry <- function(tele_obj){
   if (class(tele_obj) != "list") {
@@ -98,22 +171,40 @@ wrap_single_telemetry <- function(tele_obj){
 # sort tele list by identity, ggplot always sort by id. ctmm keep same order in csv, but this should not create problem. actually I found the table is sorted from ctmm for old buffalo data 1764627, which is unsorted in csv.
 # we should keep the list sorted, not the info table. info table order match original list because we need to use table index.
 sort_tele_list <- function(tele_list) {
-  tele_list[sort(names(tele_list))]
+  tele_list[stringr::str_sort(names(tele_list))]
 }
-# taking input directly, which could be tele obj or a list of tele obj. in server.R input afte wrap named as tele_list
-tele_list_info <- function(tele_objs){
-  tele_list <- wrap_single_telemetry(tele_objs)
+#' Get Information Table For Telemetry Object Or List
+#'
+#' @param tele_obj_list telemetry object or list
+#'
+#' @return An information `data.table` for input
+#' @export
+#'
+tele_list_info <- function(tele_obj_list){
+  tele_list <- wrap_single_telemetry(tele_obj_list)
   animal_info_list <- lapply(tele_list, single_tele_info)
   rbindlist(animal_info_list)
 }
-# calculate median center based on time clusters
+#' Calculate Distance To Median Center For Each Animal Location
+#'
+#' If there are big gaps in sampling time, median center for each time group is
+#' used. To reduce duplicate calculation, speed calculation will use some
+#' columns created in distance calculation. Always `calculate_distance` first
+#' then [calculate_speed()].
+#'
+#' @param animals_dt telemetry data in merged data.table. See [merge_animals()]
+#'
+#' @return data.table with distance columns added. Note the input parameter is
+#'   modified in place.
+#' @export
+#'
 calculate_distance <- function(animals_dt) {
   find_boundary <- function(data) {
     time_gap_threshold <- stats::quantile((diff(data$t)), 0.8) * 100
     # increase 1 sec because interval boundry is right open [ )
     data[inc_t > time_gap_threshold, t + 1]
   }
-  # need inc_t, so get these column first. always calculate distance then speed
+  # function above need inc_t, speed calculation need inc_x, inc_y, inc_t. It's easier add these column in one pass here, that means we need to always calculate distance then speed.
   # x[i] + inc[i] = x[i+1], note by id
   animals_dt[, `:=`(inc_x = shift(x, 1L, type = "lead") - x,
                     inc_y = shift(y, 1L, type = "lead") - y,
@@ -187,7 +278,24 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
              by = identity]
   return(animals_dt)
 }
-# all speed calculation except ctmm assume distance have been calculated. Since we always update two together, this is not problem.
+#' Calculate Speed For Each Animal Location
+#'
+#' It's difficult to get a simple speed definition yet robust to all kinds of
+#' dirty data cases. A sophisticated method is attempt first which should cover
+#' most common edge cases reasonably well. When it fails for extreme situations,
+#' the function will fall back to simpler method which is more naive but robust.
+#'
+#' To reduce duplicate calculation, speed calculation will use some columns
+#' created in distance calculation. Always [calculate_distance()] first then
+#' [calculate_speed()].
+#'
+#' @param animals_dt telemetry data in merged data.table
+#' @param device_error device error if available
+#'
+#' @return data.table with speed columns added. Note the input parameter is
+#'   modified in place.
+#' @export
+#'
 calculate_speed <- function(animals_dt, device_error) {
   setkey(animals_dt, row_no)
   # my speed calculation need distance columns
@@ -205,11 +313,10 @@ calculate_speed <- function(animals_dt, device_error) {
   # animals_dt <- calculate_speed_ctmm(animals_dt)
   return(animals_dt)
 }
-# merge obj list into data frame with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
-# tele objs to data.table
+# merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
-tele_list_to_dt <- function(tele_objs) {
-  tele_list <- wrap_single_telemetry(tele_objs)
+tele_list_to_dt <- function(tele_obj_list) {
+  tele_list <- wrap_single_telemetry(tele_obj_list)
   animal_count <- length(tele_list)
   animal_data_list <- vector(mode = "list", length = animal_count)
   for (i in 1:animal_count) {
@@ -230,19 +337,33 @@ tele_list_to_dt <- function(tele_objs) {
   # animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)
 }
-#' Generate merged data.table and info table from telemetry object/list
+#' Generate Merged Location And Info `data.table` From Telemetry Object/List
 #'
-#' @param tele_objs telemetry object/list
+#' A Telemetry list hold mutiple animal data in separate list items, each item
+#' have the animal location data in a data frame, and other information in
+#' various slots. This structure supports flexible S3 methods for telemetry
+#' object. However to plot multiple animals location together with `ggplot2`
+#' it's better to merge all location data into single data frame with an animal
+#' id column.
 #'
-#' @return list of `data`: all animals merged in one data.table, `info`: animal
-#'   information table
+#' We chose this data structure to be the main structure and made the app to
+#' work on a set of animals at the same time in all steps. Thus any input
+#' telemetry object/List need to be merged into a `data.table` of location data,
+#' and another information `data.table` for animals. `data.table` is chosen over
+#' `data.frame` for much better performance.
+#'
+#' @param tele_obj_list telemetry object/list
+#'
+#' @return list of - `data`: all animals merged in one data.table - `info`:
+#'   animal information table
 #' @export
 #'
 #' @examples merge_animals(buffalo)
-merge_animals <- function(tele_objs) {
-  return(list(data = tele_list_to_dt(tele_objs),
-              info = tele_list_info(tele_objs)))
+merge_animals <- function(tele_obj_list) {
+  return(list(data = tele_list_to_dt(tele_obj_list),
+              info = tele_list_info(tele_obj_list)))
 }
+# to test if tele_list is in sync with merged data.
 # this will not work when there are NA cols introduced by merge with different cols. need to clean those cols first
 match_tele_merged <- function(tele_list, merged) {
   req(!is.null(tele_list) | (!is.null(merged)))
@@ -285,13 +406,15 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
   return(dt)
 }
 # ggplot ----
-bigger_theme <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
+BIGGER_THEME <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                       legend.key.height = grid::unit(8, "mm"),
                       legend.text = ggplot2::element_text(size = 12),
                       axis.title = ggplot2::element_text(size = 14),
                       axis.text = ggplot2::element_text(size = 12))
-bigger_key <- ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(size = 4)))
-center_title <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"))
+BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(
+  override.aes = list(size = 4)))
+CENTER_TITLE <- ggplot2::theme(plot.title = ggplot2::element_text(
+  hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
 # note need to use dt$id format. note the mapping is provided in aes(color/fill = xx) already, this is to override some options.
 factor_mapper <- function(fac, FUN) {
@@ -318,8 +441,9 @@ request <- function(entity_type, user, pass){
   res <- httr::GET(url, config = httr::add_headers(user = user, password = pass))
   status <- httr::http_status(res)$category
   if (status != "Success") {
-    shiny::showNotification(paste0(httr::http_status(res)$message, "\nCheck console for more information"),
-                     duration = 6, type = "error")
+    shiny::showNotification(paste0(httr::http_status(res)$message,
+                                   "\nCheck console for more information"),
+                            duration = 6, type = "error")
     # will use xml2::read_html
     res_cont <- httr::content(res, type = 'text/html', encoding = "UTF-8")
     txt <- html_to_text(res_cont)
@@ -402,17 +526,33 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 # need to prepare exp_init for windows version ----
 # try to include all variables in the lapply list so fun only take one parameter. that means exp_init usually only init libraries.
 # export take from global env, so need to assign in global
-exp_init <<- expression({
+
+#' Expression To Be Initialized In Windows For `ctmm` Related Parallel
+#' Operations
+#'
+#' Parallel cluter in Windows is a socket cluster, which need to initialize each
+#' session manually. For ctmm related parallel operations, `ctmm` package need
+#' to be loaded. Instead of `library(ctmm)`, the expression of
+#' `requireNamespace("ctmm", quietly = TRUE)` is more appropriate inside a
+#' package.
+WIN_INIT_ctmm <- expression({
   # library(ctmm)
   requireNamespace("ctmm", quietly = TRUE)
 })
-# generate a new list, each item have two item from list a and b. use a b because we want to name the item, but difficult to use original name of input
-#' Title
+
+#' Combine Two Lists Into One List By Aligning Each Item
+#'
+#' `list_a` and `list_b` need to have same length.
 #'
 #' @param list_a list_a
 #' @param list_b list_b
 #'
-#' @return A list of list, each sublist have two item from list_a and list_b
+#' @return A list of same length of input list. Each item is a list of
+#' \itemize{
+#'  \item \code{a: list_a[[i]]}
+#'  \item \code{b: list_b[[i]]}
+#' }
+#'
 #' @export
 #'
 align_list <- function(list_a, list_b) {
@@ -422,24 +562,39 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
-# cannot transfer cluster size as parameter, because of environment?
 #' Parallel Apply Function To List In All Platforms
 #'
-#' @param ll A list to apply fun
-#' @param fun Function to be applied
+#' This is a generic parallel lapply that work across all major platforms.
+#'
+#' In Windows `parallel::parLapplyLB` is used, which is a socket cluster and
+#' need to initialize each session manually. In Linux/Mac `parallel::mclapply`
+#' is used, where each worker will inherit the current environment through
+#' forking, so no additional setup is required.
+#'
+#' @param ll Input list.
+#' @param fun Function to be applied on `ll`. Note only single parameter
+#'   function is accepted, otherwise it's difficult to determine how to assign
+#'   input parameters to each list item and worker. You need to convert multiple
+#'   parameter function into a function take single list parameter, and assign
+#'   parameters in that list accordingly. [align_list()] is a helper function to
+#'   align two lists.
+#' @param win_init Expression to be initialized in Windows. Because all
+#'   parameters should be included in the input list already, this usually means
+#'   library calls, like `{library(ctmm)}` for ctmm related operations, which
+#'   has been taken care of with the default value `ctmmweb:::WIN_INIT_ctmm`.
 #'
 #' @return List of applied results
 #' @export
 #'
-para_ll <- function(ll, fun) {
+para_ll <- function(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm) {
   sysinfo <- Sys.info()
   if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
     win_cluster_size <- min(length(ll), parallel::detectCores())
     cat(crayon::inverse("running parallel in SOCKET cluster of", win_cluster_size, "\n"))
     cl <- parallel::makeCluster(win_cluster_size, outfile = "")
     # have to export parameter too because it's not available in remote
-    parallel::clusterExport(cl, c("exp_init"))
-    parallel::clusterEvalQ(cl, eval(exp_init))
+    parallel::clusterExport(cl, c("win_init"), envir = environment())
+    parallel::clusterEvalQ(cl, eval(win_init))
     res <- parallel::parLapplyLB(cl, ll, fun)
     parallel::stopCluster(cl)
   } else {
@@ -449,52 +604,75 @@ para_ll <- function(ll, fun) {
   }
   return(res)
 }
-# cannot use select_models since that was a reactive expression to select model results
-fit_models <- function(tele_guess) {
-  ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
-              trace = TRUE, verbose = TRUE)
+# app need this since we may want adjusted guess list instead of automatic guess
+#' Parallel Fit Models For List Of Telemetry List And Guess List
+#'
+#' @param tele_guess_list aligned list of telemetry list and guess list
+#'
+#' @return list of model fitting results on each telemetry object
+#'
+para_ll_fit_tele_guess <- function(tele_guess_list) {
+  # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict
+  fit_models <- function(tele_guess) {
+    ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                      trace = TRUE, verbose = TRUE)
+  }
+  para_ll(tele_guess_list, fit_models)
 }
-# wrapper to avoid function object as parameter
-#' Title
+# convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
+#' Parallel Fit Models On Telemetry List
 #'
 #' @param tele_list telemetry list
 #'
-#' @return list of model fitting results on each telemetry object
+#' @return list of model fitting results on each telemetry object, named by
+#'   telemetry object names
 #' @export
 #'
-#' @examples para_ll_fit(buffalo)
-para_ll_fit <- function(tele_list) {
-  para_ll(tele_list, fit_models)
+#' @examples para_ll_fit_tele(buffalo)
+para_ll_fit_tele <- function(tele_list) {
+  tele_guess_list <- align_list(tele_list,
+                                lapply(tele_list, function(x) {
+                                  ctmm.guess(x, interactive = FALSE)
+                                }))
+  print(system.time(model_select_res <-
+                      para_ll_fit_tele_guess(tele_guess_list)))
+  names(model_select_res) <- names(tele_list)
+  return(model_select_res)
 }
-# occurrence
-ud_calc <- function(ud_para_list) {
-  ctmm::occurrence(ud_para_list$a, ud_para_list$b)
-}
-#' Title
+#' Parallel Calculate Occurrence From Telemetry And Model List
 #'
-#' @param ud_para_list Aligned list of telemetry list and model list
+#' @param tele_model_list Aligned list of telemetry list and model list
 #'
 #' @return occurrence results list
 #' @export
 #'
 #' @examples para_ll_ud(align_list(buffalo, models_list))
-para_ll_ud <- function(ud_para_list) {
-  para_ll(ud_para_list, ud_calc)
+para_ll_ud <- function(tele_model_list) {
+  ud_calc <- function(tele_model_list) {
+    ctmm::occurrence(tele_model_list$a, tele_model_list$b)
+  }
+  para_ll(tele_model_list, ud_calc)
 }
-# sample buffalo data ----
-#' Title
+# sample telemetry data ----
+
+#' Sample From Telemetry Object
+#'
+#' Take even spaced `m` points. Rely on ctmm S3 method to treat telemetry object
+#' as a data.frame, thus ctmm need to be imported in NAMESPACE.
 #'
 #' @param tele telemetry object
 #' @param m sample size
 #'
+#'
 #' @return sampled telemetry object
 #' @export
+#' @import ctmm
 #'
-#' @examples pick_m_tele(buffalo[[1]], 100)
-pick_m_tele <- function(tele, m) {
+#' @examples sample_tele(buffalo[[1]], 100)
+sample_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
-#' Title
+#' Sample Each Telemetry Object In List
 #'
 #' @param tele_list telemetry list
 #' @param m sample size
@@ -502,13 +680,14 @@ pick_m_tele <- function(tele, m) {
 #' @return sampled telemetry list
 #' @export
 #'
-#' @examples pick_m_tele_list(buffalo, 100)
-pick_m_tele_list <- function(tele_list, m) {
+#' @examples sample_tele_list(buffalo, 100)
+sample_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
-    pick_m_tele(x, m)
+    sample_tele(x, m)
   })
 }
 # build ctmm model summary table ----
+# each model object is a CTMM object, summary(ctmm_obj) give some information, which can be converted into a table. summary(ctmm_obj_list) give some comparison among models, which is additional info.
 ctmm_obj_to_summary_dt <- function(model) {
   # convert the named vectors into data table, keep relevant info
   model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
@@ -531,7 +710,8 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
-# from ctmm.fit result model list to data table with models in list column
+# para_ll_fit fit each animal with ctmm.fit, generate a model list for each animal, saved in a list of list, named by animal
+# this result was converted into a data.table models_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information.
 model_fit_res_to_model_list_dt <- function(model_fit_res) {
   animal_names_dt <- data.table(identity = names(model_fit_res))
   model_name_list <- lapply(model_fit_res, names)
@@ -550,6 +730,7 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
 }
+# generate summary table for models. home range don't have dAICc column
 model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
@@ -585,6 +766,7 @@ apply_format_f_list <- function(dt, format_f_list) {
   dt[, (old_cols) := NULL]
   setnames(dt, new_cols, old_cols)
 }
+# the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
@@ -614,10 +796,12 @@ format_model_summary_dt <- function(model_summary_dt) {
   # add model full name col so it can be used to create model color palette
   res_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
 }
-# combined steps of generating model summary and format it
-#' Title
+# combined steps to make usage easier, otherwise the function name could be confusing
+
+#' Generate Formated Model Summary Table From Model List Table
 #'
-#' @param models_dt model list dt
+#' @param models_dt a `data.table` holding model information and models objects
+#'   as list column
 #'
 #' @return formated model summary table
 #' @export
@@ -627,10 +811,12 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
                                                         hrange = FALSE)
   format_model_summary_dt(model_summary_dt)
 }
-# from akde result model list to data table with models in list column
-#' Title
+#' Build Home Range list table
 #'
-#' @param selected_dt model names dt
+#' The table structure is similar to model list table, with model information
+#' from model summary table, and home range objects as list column
+#'
+#' @param selected_dt model names `data.table`
 #' @param selected_hrange_list home range list
 #'
 #' @return a data.table holding model info and home range
@@ -657,9 +843,9 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF area", "DOF bandwidth") := NA_real_]
 }
-#' Title
+#' Generate Formated Home Range Summary Table From Home Range List Table
 #'
-#' @param hrange_list_dt a data.table holding model info and home range
+#' @param hrange_list_dt a data.table holding model info and home range objects
 #'
 #' @return formated home range summary table
 #' @export
@@ -680,7 +866,18 @@ create_folder <- function(folder_path) {
   dir.create(folder_path, recursive = TRUE)
   return(folder_path)
 }
-# zip will be saved to one level up folder_path.
+#' Compress A Folder Into Zip
+#'
+#' Keep the relative path structure in zip, include `folder_path` itself so the
+#' zip can be extracted directly without need of creating a folder to hold
+#' contents. The zip will be saved to one level up of `folder_path`.
+#'
+#' @param folder_path The folder to be compressed
+#' @param zip_name The name of zip
+#'
+#' @return The absolute path of result zip file
+#' @export
+#'
 compress_folder <- function(folder_path, zip_name) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip
@@ -708,6 +905,7 @@ compress_relative_files <- function(base_folder, relative_paths, zip_name) {
   return(zip_path)
 }
 # home range ----
+# take the input in home range page, note the input need to be divided by 100
 parse_CI_levels <- function(levels_text) {
   if (stringr::str_trim(levels_text) == "") {
     return(0.95)
@@ -720,25 +918,32 @@ parse_CI_levels <- function(levels_text) {
 build_shapefile_zip <- function(file, write_f, session_tmpdir) {
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
   current_time <- current_timestamp()  # need this in zip name so save it
-  folder_path <- file.path(session_tmpdir, stringr::str_c("Range_", current_time))
+  folder_path <- file.path(session_tmpdir,
+                           stringr::str_c("Range_", current_time))
   create_folder(folder_path)
   write_f(folder_path)
   zip_path <- compress_folder(folder_path,
-                         paste0("Home Range ", current_time, ".zip"))
+                              paste0("Home Range ", current_time, ".zip"))
   file.copy(zip_path, file)
 }
 # map ----
+GRID_GROUP <- "_graticule_"
+# tiles_info hold selected map layer name, here api key, which are used here and other places in server code.
 init_base_maps <- function(tiles_info) {
-  leaf <- leaflet::leaflet(options = leaflet::leafletOptions(attributionControl = FALSE))
+  leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
+    attributionControl = FALSE))
   for (prov in tiles_info$here) {
-    leaf <- leaf %>% leaflet::addProviderTiles(providers[[prov]], group = prov,
-                                      options = leaflet::providerTileOptions(
-                                        detectRetina = TRUE,
-                                        app_id = tiles_info$here_app_id,
-                                        app_code = tiles_info$here_app_code))
+    leaf <- leaf %>%
+      leaflet::addProviderTiles(leaflet::providers[[prov]],
+                                group = prov,
+                                options = leaflet::providerTileOptions(
+                                  detectRetina = TRUE,
+                                  app_id = tiles_info$here_app_id,
+                                  app_code = tiles_info$here_app_code))
   }
   for (prov in tiles_info$open) {
-    leaf <- leaf %>% leaflet::addProviderTiles(providers[[prov]], group = prov)
+    leaf <- leaf %>%
+      leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov)
   }
   return(leaf)
 }
@@ -757,7 +962,7 @@ add_measure <- function(leaf) {
 add_points <- function(leaf, dt, info, id_pal) {
   leaf <- leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                       redraw = "moveend", group = grid_group)
+                                redraw = "moveend", group = GRID_GROUP)
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
   for (current_id in info$identity) {
@@ -780,14 +985,15 @@ add_points <- function(leaf, dt, info, id_pal) {
     # simple measure
     add_measure()
 }
+# check if a reactive value is valid yet
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)
   return(!("try-error" %in% class(res)))
 }
 add_home_range <- function(leaf, hrange, hr_levels, hr_color, group_name){
-  hrange_spdf <- sp::spTransform(ctmm::SpatialPolygonsDataFrame.UD(hrange,
-                                                         level.UD = hr_levels),
-                             sp::CRS("+proj=longlat +datum=WGS84"))
+  hrange_spdf <- sp::spTransform(
+    ctmm::SpatialPolygonsDataFrame.UD(hrange, level.UD = hr_levels),
+    sp::CRS("+proj=longlat +datum=WGS84"))
   ML_indice <- seq(2, length(hrange_spdf), by = 3)
   hrange_spdf_ML <- hrange_spdf[ML_indice, ]
   hrange_spdf_other <- hrange_spdf[-ML_indice, ]
@@ -806,7 +1012,7 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
   }
   return(leaf)
 }
-# take and return rgb strings
+# take and return rgb strings. given a base color, create variations in different values, ordered from bright to dark.
 vary_color <- function(base_color, count) {
   if (count == 1) {
     return(base_color)
@@ -815,18 +1021,18 @@ vary_color <- function(base_color, count) {
     return(grDevices::hsv(hsv_vec[1], hsv_vec[2], seq(1, 0.5, length.out = count)))
   }
 }
-# added base map layer control
+# base map layer control added here
 add_heat <- function(leaf, dt, tiles_info) {
   leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                       redraw = "moveend", group = grid_group) %>%
+                       redraw = "moveend", group = GRID_GROUP) %>%
     leaflet.extras::addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
     leaflet::addScaleBar(position = "bottomleft") %>%
     add_measure() %>%
     leaflet::addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
-      overlayGroups = c(grid_group, "Heatmap"),
+      overlayGroups = c(GRID_GROUP, "Heatmap"),
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
 get_bounds <- function(dt) {
