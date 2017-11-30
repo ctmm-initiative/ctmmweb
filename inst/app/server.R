@@ -1722,8 +1722,8 @@ output:
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
-    model_names <- sort(unique(dt$model_name))
-    print(model_names)
+    # base::sort have different result in linux, hosted server.
+    model_names <- stringr::str_sort(unique(dt$model_name))
     render_model_summary_DT(dt, model_names, info_p)
   })
   proxy_model_dt <- DT::dataTableProxy("model_fit_summary")
