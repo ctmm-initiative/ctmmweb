@@ -331,7 +331,7 @@ output:
   # 1.2 movebank login ----
   # look up user R environment for movebank login
   mb_env <- Sys.getenv(c("movebank_user", "movebank_pass"))
-  if (identical(sort(names(mb_env)), c("movebank_pass", "movebank_user")) &&
+  if (identical(stringr::str_sort(names(mb_env)), c("movebank_pass", "movebank_user")) &&
       all(nchar(mb_env) != 0)) {
     mb_user_env <- unname(mb_env["movebank_user"])
     mb_pass_env <- unname(mb_env["movebank_pass"])

@@ -171,7 +171,7 @@ wrap_single_telemetry <- function(tele_obj){
 # sort tele list by identity, ggplot always sort by id. ctmm keep same order in csv, but this should not create problem. actually I found the table is sorted from ctmm for old buffalo data 1764627, which is unsorted in csv.
 # we should keep the list sorted, not the info table. info table order match original list because we need to use table index.
 sort_tele_list <- function(tele_list) {
-  tele_list[sort(names(tele_list))]
+  tele_list[stringr::str_sort(names(tele_list))]
 }
 #' Get Information Table For Telemetry Object Or List
 #'
