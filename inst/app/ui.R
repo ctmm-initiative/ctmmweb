@@ -57,7 +57,18 @@ upload_box <- shinydashboard::box(title = "Local Data Import",
                                # placeholder = "Session zip"
                            # buttonLabel = "Load Session ..."
                            )),
-          column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
+          # column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
+          column(7, checkboxGroupInput("app_options", label = NULL,
+                      choiceNames = list(div(icon("video-camera"),
+                                             "Record Actions"),
+                                         div(icon("video-camera"),
+                                             "Log Error Messages"),
+                                         div(icon("video-camera"),
+                                             "Disable Parallel Mode")),
+                      choiceValues = list("record_on",
+                                          "log_error",
+                                          "no_parallel"),
+                      selected = "record_on")),
           column(5, offset = 0, help_button("import"))
            )
     )
@@ -536,12 +547,13 @@ report_box <- shinydashboard::box(title = "Report", status = "info",
            help_button("report"))
   ))
 # show debug information in app, because hosted app log often mess up
-debug_box <- shinydashboard::box(title = "Debug", status = "primary",
-                                 solidHeader = TRUE, width = 12,
-   fluidRow(
-     column(12, verbatimTextOutput("session_info")),
-     column(12, verbatimTextOutput("occurrence_info"))
-   ))
+# debug_box <- shinydashboard::box(title = "Debug", status = "primary",
+#                                  solidHeader = TRUE, width = 12,
+#    fluidRow(
+#      column(12, verbatimTextOutput("session_info")),
+#      column(12, verbatimTextOutput("occurrence_info"))
+#    ))
+error_log_box <- uiOutput("error_log_box")
 # body ----
 body <- shinydashboard::dashboardBody(
   includeCSS("www/styles.css"),
@@ -579,7 +591,9 @@ body <- shinydashboard::dashboardBody(
     # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
     shinydashboard::tabItem(tabName = "report",
                             fluidRow(report_box,
-                                     if (DEBUG_MODE) debug_box))
+                                     # if (DEBUG_MODE) debug_box)
+                                    error_log_box)
+                            )
   )
 )
 # assemble UI
