@@ -523,18 +523,17 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
               vec_formatter = vec_formatter))
 }
 # parallel ----
-# need to prepare exp_init for windows version ----
-# try to include all variables in the lapply list so fun only take one parameter. that means exp_init usually only init libraries.
-# export take from global env, so need to assign in global
 
 #' Expression To Be Initialized In Windows For `ctmm` Related Parallel
 #' Operations
 #'
 #' Parallel cluter in Windows is a socket cluster, which need to initialize each
-#' session manually. For ctmm related parallel operations, `ctmm` package need
-#' to be loaded. Instead of `library(ctmm)`, the expression of
-#' `requireNamespace("ctmm", quietly = TRUE)` is more appropriate inside a
-#' package.
+#' session manually. Since all parameters should be included in single list
+#' parameter, only stuff needed is init libraries. For ctmm related parallel
+#' operations, `ctmm` package need to be loaded. Instead of `library(ctmm)`, the
+#' expression of `requireNamespace("ctmm", quietly = TRUE)` is more appropriate
+#' inside a package.
+#'
 WIN_INIT_ctmm <- expression({
   # library(ctmm)
   requireNamespace("ctmm", quietly = TRUE)
@@ -562,14 +561,15 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
+# used to write fallback as last parameter, then para_ll(ll, fun, fallback = TRUE) is interpreted as win_init = {fallback = TRUE}
 #' Parallel Apply Function To List In All Platforms
 #'
 #' This is a generic parallel lapply that work across all major platforms.
 #'
 #' In Windows `parallel::parLapplyLB` is used, which is a socket cluster and
-#' need to initialize each session manually. In Linux/Mac `parallel::mclapply`
-#' is used, where each worker will inherit the current environment through
-#' forking, so no additional setup is required.
+#' need to initialize each session manually with `win_init` if needed. In
+#' Linux/Mac `parallel::mclapply` is used, where each worker will inherit the
+#' current environment through forking, so no additional setup is required.
 #'
 #' @param ll Input list.
 #' @param fun Function to be applied on `ll`. Note only single parameter
@@ -578,6 +578,8 @@ align_list <- function(list_a, list_b) {
 #'   parameter function into a function take single list parameter, and assign
 #'   parameters in that list accordingly. [align_list()] is a helper function to
 #'   align two lists.
+#' @param fallback Use regular `lapply`. This is used to test if parallel caused
+#'   problems.
 #' @param win_init Expression to be initialized in Windows. Because all
 #'   parameters should be included in the input list already, this usually means
 #'   library calls, like `{library(ctmm)}` for ctmm related operations, which
@@ -586,21 +588,30 @@ align_list <- function(list_a, list_b) {
 #' @return List of applied results
 #' @export
 #'
-para_ll <- function(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm) {
-  sysinfo <- Sys.info()
-  if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-    win_cluster_size <- min(length(ll), parallel::detectCores())
-    cat(crayon::inverse("running parallel in SOCKET cluster of", win_cluster_size, "\n"))
-    cl <- parallel::makeCluster(win_cluster_size, outfile = "")
-    # have to export parameter too because it's not available in remote
-    parallel::clusterExport(cl, c("win_init"), envir = environment())
-    parallel::clusterEvalQ(cl, eval(win_init))
-    res <- parallel::parLapplyLB(cl, ll, fun)
-    parallel::stopCluster(cl)
+para_ll <- function(ll, fun, fallback = FALSE,
+                    win_init = ctmmweb:::WIN_INIT_ctmm
+                    ) {
+  if (!fallback) {
+    sysinfo <- Sys.info()
+    if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
+      win_cluster_size <- min(length(ll), parallel::detectCores())
+      cat(crayon::inverse("running parallel in SOCKET cluster of",
+                          win_cluster_size, "\n"))
+      cl <- parallel::makeCluster(win_cluster_size, outfile = "")
+      # have to export parameter too because it's not available in remote
+      parallel::clusterExport(cl, c("win_init"), envir = environment())
+      parallel::clusterEvalQ(cl, eval(win_init))
+      res <- parallel::parLapplyLB(cl, ll, fun)
+      parallel::stopCluster(cl)
+    } else {
+      cluster_size <- min(length(ll),
+                          parallel::detectCores(logical = FALSE) * 4)
+      cat(crayon::inverse("running parallel with mclapply in cluster of",
+                          cluster_size, "\n"))
+      res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
+    }
   } else {
-    cluster_size <- min(length(ll), parallel::detectCores(logical = FALSE) * 4)
-    cat(crayon::inverse("running parallel with mclapply in cluster of", cluster_size, "\n"))
-    res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
+    res <- lapply(ll, fun)
   }
   return(res)
 }
@@ -608,16 +619,18 @@ para_ll <- function(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm) {
 #' Parallel Fit Models For List Of Telemetry List And Guess List
 #'
 #' @param tele_guess_list aligned list of telemetry list and guess list
+#' @param fallback Use regular `lapply`. This is used to test if parallel caused
+#'   problems.
 #'
 #' @return list of model fitting results on each telemetry object
 #'
-para_ll_fit_tele_guess <- function(tele_guess_list) {
+para_ll_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict
   fit_models <- function(tele_guess) {
     ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                       trace = TRUE, verbose = TRUE)
   }
-  para_ll(tele_guess_list, fit_models)
+  para_ll(tele_guess_list, fit_models, fallback)
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 #' Parallel Fit Models On Telemetry List
@@ -642,16 +655,18 @@ para_ll_fit_tele <- function(tele_list) {
 #' Parallel Calculate Occurrence From Telemetry And Model List
 #'
 #' @param tele_model_list Aligned list of telemetry list and model list
+#' @param fallback Use regular `lapply`. This is used to test if parallel caused
+#'   problems.
 #'
 #' @return occurrence results list
 #' @export
 #'
 #' @examples para_ll_ud(align_list(buffalo, models_list))
-para_ll_ud <- function(tele_model_list) {
+para_ll_ud <- function(tele_model_list, fallback = FALSE) {
   ud_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
   }
-  para_ll(tele_model_list, ud_calc)
+  para_ll(tele_model_list, ud_calc, fallback)
 }
 # sample telemetry data ----
 

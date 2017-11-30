@@ -4,10 +4,13 @@
 \alias{para_ll_ud}
 \title{Parallel Calculate Occurrence From Telemetry And Model List}
 \usage{
-para_ll_ud(tele_model_list)
+para_ll_ud(tele_model_list, fallback = FALSE)
 }
 \arguments{
 \item{tele_model_list}{Aligned list of telemetry list and model list}
+
+\item{fallback}{Use regular \code{lapply}. This is used to test if parallel caused
+problems.}
 }
 \value{
 occurrence results list

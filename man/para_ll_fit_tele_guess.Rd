@@ -4,10 +4,13 @@
 \alias{para_ll_fit_tele_guess}
 \title{Parallel Fit Models For List Of Telemetry List And Guess List}
 \usage{
-para_ll_fit_tele_guess(tele_guess_list)
+para_ll_fit_tele_guess(tele_guess_list, fallback = FALSE)
 }
 \arguments{
 \item{tele_guess_list}{aligned list of telemetry list and guess list}
+
+\item{fallback}{Use regular \code{lapply}. This is used to test if parallel caused
+problems.}
 }
 \value{
 list of model fitting results on each telemetry object

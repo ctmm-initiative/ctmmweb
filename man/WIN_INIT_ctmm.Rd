@@ -11,9 +11,10 @@ WIN_INIT_ctmm
 }
 \description{
 Parallel cluter in Windows is a socket cluster, which need to initialize each
-session manually. For ctmm related parallel operations, \code{ctmm} package need
-to be loaded. Instead of \code{library(ctmm)}, the expression of
-\code{requireNamespace("ctmm", quietly = TRUE)} is more appropriate inside a
-package.
+session manually. Since all parameters should be included in single list
+parameter, only stuff needed is init libraries. For ctmm related parallel
+operations, \code{ctmm} package need to be loaded. Instead of \code{library(ctmm)}, the
+expression of \code{requireNamespace("ctmm", quietly = TRUE)} is more appropriate
+inside a package.
 }
 \keyword{datasets}

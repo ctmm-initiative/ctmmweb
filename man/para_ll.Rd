@@ -4,7 +4,7 @@
 \alias{para_ll}
 \title{Parallel Apply Function To List In All Platforms}
 \usage{
-para_ll(ll, fun, win_init = ctmmweb:::WIN_INIT_ctmm)
+para_ll(ll, fun, fallback = FALSE, win_init = ctmmweb:::WIN_INIT_ctmm)
 }
 \arguments{
 \item{ll}{Input list.}
@@ -15,6 +15,10 @@ input parameters to each list item and worker. You need to convert multiple
 parameter function into a function take single list parameter, and assign
 parameters in that list accordingly. \code{\link[=align_list]{align_list()}} is a helper function to
 align two lists.}
+
+\item{fallback}{Use regular \code{lapply}. This is used to test if parallel caused
+problems. Because \code{win_init} take an expression, must use named parameter
+to make sure this is not assigned to \code{win_init}}
 
 \item{win_init}{Expression to be initialized in Windows. Because all
 parameters should be included in the input list already, this usually means
