@@ -6,21 +6,27 @@ options(shiny.maxRequestSize = 200*1024^2)
 VERIFY_DATA_SYNC <- FALSE
 
 server <- function(input, output, session) {
-  # test checkbox status
+  # test checkbox status passively, one time read when called
   option_selected <- function(option) {
     option %in% isolate(input$app_options)
   }
-  output$error_log_box <- renderUI({
-    shinydashboard::box(title = "Debug", status = "primary",
-                                     solidHeader = TRUE, width = 12,
-                                     fluidRow(
-                                       column(12, verbatimTextOutput("session_info")),
-                                       column(12, verbatimTextOutput("occurrence_info"))
-                                     ))
-  })
-  if (DEBUG_MODE) {
-    output$session_info <- renderPrint(sessionInfo())
+  # depend on option reactively, only use in reactive context for UI
+  reactive_option <- function(option) {
+    option %in% input$app_options
   }
+  output$error_log_box <- renderUI({
+    if (reactive_option("log_error")) {
+      shinydashboard::box(title = "Error Log", status = "primary",
+                          solidHeader = TRUE, width = 12,
+                          fluidRow(
+                            column(12, verbatimTextOutput("session_info")),
+                            column(12, verbatimTextOutput("occurrence_info"))
+                          ))
+    }
+  })
+  output$session_info <- renderPrint({
+    if (reactive_option("log_error")) sessionInfo()
+  })
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # to copy from 07_report_save_load.Rmd
   # global LOG variables ----
@@ -1852,7 +1858,7 @@ output:
     withProgress(print(system.time(
       res <- para_ll_ud_mem(tele_model_list))),
                  message = "Calculating Occurrence ...")
-    if (DEBUG_MODE) {
+    if (option_selected("log_error")) {
       output$occurrence_info <- renderPrint(str(res))
     }
     res

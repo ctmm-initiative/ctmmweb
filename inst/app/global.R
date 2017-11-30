@@ -7,5 +7,3 @@ if (!require("pacman")) install.packages("pacman")
 # packrat doesn't recognize p_load_gh so need to put ctmm in p_load again. because deployment try to reproduce current environment, it will install ctmm github version even I only used p_load here since I have github version installed. and the run script will install github version first so it also work.
 pacman::p_load(shiny, shinydashboard, DT,
                ctmm,data.table)
-# in app debug, need this in both ui.R and server.R
-DEBUG_MODE <- TRUE
