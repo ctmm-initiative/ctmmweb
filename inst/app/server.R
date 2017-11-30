@@ -1801,7 +1801,8 @@ output:
     }
     info_p <- values$data$merged$info
     # still use the full model name table color mapping to make it consistent.
-    model_names <- sort(unique(summary_models()$summary_dt$model_name))
+    model_names <- stringr::str_sort(unique(
+      summary_models()$summary_dt$model_name))
     render_model_summary_DT(dt, model_names, info_p)
   })
   # function on input didn't update, need a reactive expression?
@@ -1865,6 +1866,7 @@ output:
     withProgress(print(system.time(
       res <- para_ll_ud_mem(tele_model_list))),
                  message = "Calculating Occurrence ...")
+    print(str(res))
     res
   })
   # function on input didn't update, need a reactive expression?
