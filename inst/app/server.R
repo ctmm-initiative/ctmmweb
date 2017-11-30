@@ -18,48 +18,13 @@ server <- function(input, output, session) {
   reactive_option <- function(option) {
     option %in% input$app_options
   }
-  # output$error_log_box <- renderUI({
-  #   if (reactive_option("log_error")) {
-  #     values$error_file <- tempfile()
-  #     values$error_file_con <- file(values$error_file, open = "wt")
-  #     sink(values$error_file_con, type = "message")
-  #     # try(log("a"))
-  #     # shinydashboard::box(title = "Error Log", status = "primary",
-  #     #                     solidHeader = TRUE, width = 12,
-  #     #                     fluidRow(
-  #     #                       column(12, verbatimTextOutput("session_info")),
-  #     #                       column(12, uiOutput("error_msg"))
-  #     #                     ))
-  #   } else {
-  #     flush(values$error_file_con)
-  #     close(values$error_file_con)
-  #     # closeAllConnections()
-  #     return(NULL)
-  #   }
-  # })
-  # output$error_msg <- renderUI({
-  #   file.info(values$error_file)
-  #   req(includeText(values$error_file))
-  #   # if (ctmmweb:::reactive_validated(values$error_file)) {
-  #   #   pre(includeText(values$error_file))
-  #   # }
-  # })
-  # output$session_info <- renderPrint({
-  #   if (reactive_option("log_error")) sessionInfo()
-  # })
   observeEvent(input$app_options, {
     if (reactive_option("log_error")) {
       # values$error_file <- tempfile()
+      # appending mode to save all messages
       values$error_file_con <- file(values$error_file, open = "a")
       sink(values$error_file_con, type = "message")
     }
-    # else {
-    #   # flush(req(values$error_file_con))
-    #   # cannot close message connection
-    #   # close(req(values$error_file_con))
-    #   # closeAllConnections()
-    #   return(NULL)
-    # }
     if (reactive_option("no_parallel")) {
       try(log("a"))
     }})
@@ -75,24 +40,12 @@ server <- function(input, output, session) {
                             column(12, verbatimTextOutput("session_info")),
                             column(12, pre(includeText(req(values$error_file))))
                           ), size = "l", easyClose = TRUE, fade = FALSE))
-    # output$session_info <- renderPrint(sessionInfo())
+    output$session_info <- renderPrint(sessionInfo())
   })
-  # only redirect error msg when selected in app, used in hosted app mode
-  # observeEvent(input$app_options, {
-  #   if (reactive_option("log_error")) {
-  #     error_file <- tempfile()
-  #     error_file_con <- file(error_file, open = "wt")
-  #     sink(error_file_con, type = "message")
-  #     output$error_msg <-
-  #       pre(includeText(error_file))
-  #   } else {
-  #     closeAllConnections()
-  #   }
-  # })
-
+  # global LOG variables ----
+  # one time check if app is running in hosted mode
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # to copy from 07_report_save_load.Rmd
-  # global LOG variables ----
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
                              msg = crayon::green,
