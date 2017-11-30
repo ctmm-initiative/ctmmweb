@@ -25,9 +25,10 @@ server <- function(input, output, session) {
       values$error_file_con <- file(values$error_file, open = "a")
       sink(values$error_file_con, type = "message")
     }
-    if (reactive_option("no_parallel")) {
-      try(log("a"))
-    }})
+    # if (reactive_option("no_parallel")) {
+    #   try(log("a"))
+    # }
+    })
   observeEvent(input$show_error, {
     # no effect if error log not turned on
     req(reactive_option("log_error"))
@@ -36,10 +37,10 @@ server <- function(input, output, session) {
     # flush(req(values$error_file_con))
     # close(req(values$error_file_con))
     showModal(modalDialog(title = "Error Log",
-                          fluidRow(
-                            column(12, verbatimTextOutput("session_info")),
-                            column(12, pre(includeText(req(values$error_file))))
-                          ), size = "l", easyClose = TRUE, fade = FALSE))
+                  fluidRow(
+                    column(12, pre(includeText(req(values$error_file)))),
+                    column(12, verbatimTextOutput("session_info"))
+                  ), size = "l", easyClose = TRUE, fade = FALSE))
     output$session_info <- renderPrint(sessionInfo())
   })
   # global LOG variables ----
@@ -1654,7 +1655,9 @@ output:
     # LOG fit models
     log_msg("Fitting models")
     withProgress(print(system.time(
-      values$selected_data_model_fit_res <- para_ll_fit_tele_guess_mem(tele_guess_list))),
+      values$selected_data_model_fit_res <-
+        para_ll_fit_tele_guess_mem(tele_guess_list,
+                                   fallback = option_selected("no_parallel")))),
       message = "Fitting models to find the best ...")
     names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
@@ -1872,7 +1875,8 @@ output:
     tele_model_list <- ctmmweb::align_list(select_models()$tele_list,
                                         select_models()$models_list)
     withProgress(print(system.time(
-      res <- para_ll_ud_mem(tele_model_list))),
+      res <- para_ll_ud_mem(tele_model_list,
+                            fallback = option_selected("no_parallel")))),
                  message = "Calculating Occurrence ...")
     # if (option_selected("log_error")) {
     #   output$occurrence_info <- renderPrint(str(res))

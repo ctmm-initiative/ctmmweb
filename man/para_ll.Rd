@@ -17,8 +17,7 @@ parameters in that list accordingly. \code{\link[=align_list]{align_list()}} is 
 align two lists.}
 
 \item{fallback}{Use regular \code{lapply}. This is used to test if parallel caused
-problems. Because \code{win_init} take an expression, must use named parameter
-to make sure this is not assigned to \code{win_init}}
+problems.}
 
 \item{win_init}{Expression to be initialized in Windows. Because all
 parameters should be included in the input list already, this usually means
@@ -33,7 +32,7 @@ This is a generic parallel lapply that work across all major platforms.
 }
 \details{
 In Windows \code{parallel::parLapplyLB} is used, which is a socket cluster and
-need to initialize each session manually. In Linux/Mac \code{parallel::mclapply}
-is used, where each worker will inherit the current environment through
-forking, so no additional setup is required.
+need to initialize each session manually with \code{win_init} if needed. In
+Linux/Mac \code{parallel::mclapply} is used, where each worker will inherit the
+current environment through forking, so no additional setup is required.
 }
