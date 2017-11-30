@@ -72,7 +72,10 @@ upload_box <- shinydashboard::box(title = "Local Data Import",
                                           "log_error",
                                           "no_parallel"),
                       selected = "record_on")),
-          column(5, offset = 0, br(), br(), help_button("import"))
+          column(5, actionButton("show_error", "Error Log",
+                                 icon = icon("exclamation-triangle"),
+                                 style = ctmmweb:::STYLES$page_action)),
+          column(5, offset = 0, br(), help_button("import"))
            )
     )
 movebank_login_box <- shinydashboard::box(title = "Movebank Login",
@@ -593,9 +596,11 @@ body <- shinydashboard::dashboardBody(
             fluidRow(map_control_box, map_box)),
     # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
     shinydashboard::tabItem(tabName = "report",
-                            fluidRow(report_box,
+                            fluidRow(report_box
+                                     # ,
                                      # if (DEBUG_MODE) debug_box)
-                                    error_log_box)
+                                    # error_log_box
+                                    )
                             )
   )
 )
