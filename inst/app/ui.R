@@ -534,8 +534,14 @@ report_box <- shinydashboard::box(title = "Report", status = "info",
                           style = ctmmweb:::STYLES$download_button),
            br(), br(),
            help_button("report"))
-  )
-                          )
+  ))
+# show debug information in app, because hosted app log often mess up
+debug_box <- shinydashboard::box(title = "Debug", status = "primary",
+                                 solidHeader = TRUE, width = 12,
+   fluidRow(
+     column(12, verbatimTextOutput("session_info")),
+     column(12, verbatimTextOutput("occurrence_info"))
+   ))
 # body ----
 body <- shinydashboard::dashboardBody(
   includeCSS("www/styles.css"),
@@ -571,7 +577,9 @@ body <- shinydashboard::dashboardBody(
     shinydashboard::tabItem(tabName = "map",
             fluidRow(map_control_box, map_box)),
     # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
-    shinydashboard::tabItem(tabName = "report", fluidRow(report_box))
+    shinydashboard::tabItem(tabName = "report",
+                            fluidRow(report_box,
+                                     if (DEBUG_MODE) debug_box))
   )
 )
 # assemble UI

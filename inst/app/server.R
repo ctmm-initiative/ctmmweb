@@ -3,10 +3,12 @@ options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages
-debug_mode <- FALSE
-print(sessionInfo())
+VERIFY_DATA_SYNC <- FALSE
 
 server <- function(input, output, session) {
+  if (DEBUG_MODE) {
+    output$session_info <- renderPrint(sessionInfo())
+  }
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # to copy from 07_report_save_load.Rmd
   # global LOG variables ----
@@ -181,7 +183,7 @@ output:
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
-    if (debug_mode) {
+    if (VERIFY_DATA_SYNC) {
       ctmmweb:::match_tele_merged(values$data$tele_list, values$data$merged)
     }
   })
@@ -1866,7 +1868,9 @@ output:
     withProgress(print(system.time(
       res <- para_ll_ud_mem(tele_model_list))),
                  message = "Calculating Occurrence ...")
-    print(str(res))
+    if (DEBUG_MODE) {
+      output$occurrence_info <- renderPrint(str(res))
+    }
     res
   })
   # function on input didn't update, need a reactive expression?
