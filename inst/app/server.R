@@ -4,6 +4,7 @@ options(shiny.maxRequestSize = 200*1024^2)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages
 debug_mode <- FALSE
+print(sessionInfo())
 
 server <- function(input, output, session) {
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
@@ -1722,6 +1723,7 @@ output:
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
     model_names <- sort(unique(dt$model_name))
+    print(model_names)
     render_model_summary_DT(dt, model_names, info_p)
   })
   proxy_model_dt <- DT::dataTableProxy("model_fit_summary")
