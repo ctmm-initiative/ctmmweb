@@ -1,3 +1,21 @@
+---
+title: "Installation"
+author: "Xianghui Dong"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Installation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
 ## Package installation
 
 Sometimes you need to restart R session in the process of install/upgrade lots of packages. Just restart R session and run the installation code again.
@@ -27,6 +45,6 @@ Sometimes you need to restart R session in the process of install/upgrade lots o
     OMP: Error #13: Assertion failure at kmp_runtime.cpp(6480).
     ```
 
-The error is pretty random and hard to reproduce, but usually you can restart R session and it should dissappear.
-
-It's also possible to meet mysterious bugs with parallel operations in a long session. Restart R usually can solve the problem. 
+  The error is pretty random and hard to reproduce, but usually you can restart R session and it should dissappear.
+  
+  It's also possible to meet mysterious bugs with parallel operations in a long session. Restart R usually can solve the problem. 

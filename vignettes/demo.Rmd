@@ -1,5 +1,23 @@
-# Video demos
-Below are some screen recordings showing some features, please choose highest resolution and enable CC/subtitle for best result:
+---
+title: "Demo"
+author: "Xianghui Dong"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Demo}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Video demos
+Here are some screen recordings showcaseing some features. Please choose highest resolution and enable CC/subtitle for best result:
 
 - Import data locally, plots, time subsetting
 

@@ -39,4 +39,6 @@ Imports: shiny,
 Remotes: rstudio/shiny,
     rstudio/leaflet,
     ctmm-initiative/ctmm
-
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
