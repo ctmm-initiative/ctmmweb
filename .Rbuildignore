@@ -1,3 +1,5 @@
 ^NEWS\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^docs$
+^_pkgdown\.yml$

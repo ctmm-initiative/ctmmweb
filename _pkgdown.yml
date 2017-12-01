@@ -1,0 +1,18 @@
+title: ctmmweb
+url: https://ctmm-initiative.github.io/ctmm-webapp
+templates:
+  params:
+    bootswatch: flatly
+navbar:
+  title: ctmmweb
+  type: default
+  left:
+  - icon: fa-home fa-lg
+    href: index.html
+  - text: Reference
+    href: reference/index.html
+  - text: News
+    href: news/index.html
+  right:
+  - icon: fa-github fa-2x
+    href: https://github.com/ctmm-initiative/ctmm-webapp

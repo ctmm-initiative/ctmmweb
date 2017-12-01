@@ -1,6 +1,8 @@
 ## Introduction
 
-This is the R package of Shiny web application for [ctmm](https://github.com/ctmm-initiative/ctmm) [R package](https://cran.r-project.org/web/packages/ctmm/index.html). 
+This is a web app for analyzing animal tracking data as a continuous-time stochastic processes.
+
+It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). This is also a R package so you can reuse some functionalities in your own R analysis. 
 
 Check [the videos here](README-demo.md) for feature demonstrations. The `help` buttons in each page also have detailed documentations for the specific feature.
 

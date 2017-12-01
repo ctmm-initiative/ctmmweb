@@ -2,7 +2,8 @@ Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
 Version: 0.1.0
-Author: Xianghui Dong
+Authors@R: person("Xianghui", "Dong", email = "xhdong@umd.edu",
+                  role = c("aut", "cre"))
 Maintainer: Xianghui Dong <xhdong@umd.edu>
 Description: Shiny app for ctmm. Various utility functions can also be used 
     individually.
@@ -38,3 +39,4 @@ Imports: shiny,
 Remotes: rstudio/shiny,
     rstudio/leaflet,
     ctmm-initiative/ctmm
+
