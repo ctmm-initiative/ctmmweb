@@ -286,31 +286,61 @@ output:
     updateRadioButtons(session, "load_option", selected = "upload")
     shinydashboard::updateTabItems(session, "tabs", "plots")
   }
-  # data from app() ----
-  # app can work without data parameter, or launched with data parameter, so need to check if data parameter exist first.
-  # checking the parent environment, which is the app() environment so there will not be naming conflict from user environment. if parameter is NULL, no condition will match and nothing is done
-  if (exists("shiny_app_data", where = parent.env(environment()))) {
-    # app() mode need this for help function
-    APP_wd <- appDir
-    # ensure no naming conflict possible
-    app_input_data <- get("shiny_app_data", envir = parent.env(environment()))
-    if (is.character(app_input_data)) {
-      # LOG file loaded from app()
-      log_msg("Importing file from app(shiny_app_data)", app_input_data)
-      # accessed reactive values so need to isolate
-      isolate(file_uploaded(app_input_data))
-    } else if (("telemetry" %in% class(app_input_data)) ||
-               (is.list(shiny_app_data) &&
-                "telemetry" %in% class(shiny_app_data[[1]]))
-              ) {
-      # LOG data loaded from app()
-      log_msg("Loading telemetry data from app(shiny_app_data)")
-      isolate(update_input_data(app_input_data))
+  # app() launch mode ----
+  # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
+  # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
+  # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
+  calling_env <- parent.env(environment())
+  # app() mode: if not from global
+  if (!identical(parent.env(calling_env), globalenv())) {
+    # cat("running in app() mode\n")
+    #set app directory to installed package app folder (from app()), which is needed by loading help documentations
+    APP_wd <- get("app_DIR", envir = calling_env)
+    # further check if data parameter is avaialbe
+    if (exists("shiny_app_data", where = calling_env)) {
+      app_input_data <- get("shiny_app_data", envir = calling_env)
+      if (is.character(app_input_data)) {
+        # LOG file loaded from app()
+        log_msg("Importing file from app(shiny_app_data)", app_input_data)
+        # accessed reactive values so need to isolate
+        isolate(file_uploaded(app_input_data))
+      } else if (("telemetry" %in% class(app_input_data)) ||
+                 (is.list(shiny_app_data) &&
+                  "telemetry" %in% class(shiny_app_data[[1]]))
+      ) {
+        # LOG data loaded from app()
+        log_msg("Loading telemetry data from app(shiny_app_data)")
+        isolate(update_input_data(app_input_data))
+      }
     }
   } else {
-    # APP_wd should make help work in separate app mode
+    # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
+    # cat("running in runShinydir mode\n")
     APP_wd <- "."
   }
+  # checking the parent environment, which is the app() environment so there will not be naming conflict from user environment. if parameter is NULL, no condition will match and nothing is done
+  # if (exists("shiny_app_data", where = parent.env(environment()))) {
+  #   # app() mode need this for help function
+  #   APP_wd <- appDir
+  #   # ensure no naming conflict possible
+  #   app_input_data <- get("shiny_app_data", envir = parent.env(environment()))
+  #   if (is.character(app_input_data)) {
+  #     # LOG file loaded from app()
+  #     log_msg("Importing file from app(shiny_app_data)", app_input_data)
+  #     # accessed reactive values so need to isolate
+  #     isolate(file_uploaded(app_input_data))
+  #   } else if (("telemetry" %in% class(app_input_data)) ||
+  #              (is.list(shiny_app_data) &&
+  #               "telemetry" %in% class(shiny_app_data[[1]]))
+  #             ) {
+  #     # LOG data loaded from app()
+  #     log_msg("Loading telemetry data from app(shiny_app_data)")
+  #     isolate(update_input_data(app_input_data))
+  #   }
+  # } else {
+  #   # APP_wd should make help work in separate app mode
+  #   APP_wd <- "."
+  # }
   # help module server part ----
   # help function now have proper folder
   click_help <- function(input, output, session, title, size, file){

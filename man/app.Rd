@@ -7,7 +7,14 @@
 app(shiny_app_data = NULL)
 }
 \arguments{
-\item{data}{Data to be loaded with app. Could be path to csv file, \code{ctmm} telemetry object/list. Default \code{NULL} will not load any data.}
+\item{data}{Data to be loaded with app. It could be anything can be taken by \code{ctmm::as.telemetry}:
+\itemize{
+\item Path to MoveBank csv file
+\item MoveBank \code{data.frame} object
+\item \code{Move} object
+\item \code{ctmm} `telemetry`` object/list.
+\item Default \code{NULL} will not load any data.
+}}
 }
 \description{
 Start ctmm web app
