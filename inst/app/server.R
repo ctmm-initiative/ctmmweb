@@ -8,6 +8,7 @@ VERIFY_DATA_SYNC <- FALSE
 server <- function(input, output, session) {
   values <- reactiveValues()
   # log/error options ----
+  # log functions will use these options, so need to prepare them first
   # each session have one error log file
   values$error_file <- tempfile()
   # test checkbox status passively, one time read when called
@@ -18,31 +19,6 @@ server <- function(input, output, session) {
   reactive_option <- function(option) {
     option %in% input$app_options
   }
-  observeEvent(input$app_options, {
-    if (reactive_option("log_error")) {
-      # values$error_file <- tempfile()
-      # appending mode to save all messages
-      values$error_file_con <- file(values$error_file, open = "a")
-      sink(values$error_file_con, type = "message")
-    }
-    # if (reactive_option("no_parallel")) {
-    #   try(log("a"))
-    # }
-    })
-  observeEvent(input$show_error, {
-    # no effect if error log not turned on
-    req(reactive_option("log_error"))
-    # maintaince first before accessing file
-    # sink(type = "message")
-    # flush(req(values$error_file_con))
-    # close(req(values$error_file_con))
-    showModal(modalDialog(title = "Error Log",
-                  fluidRow(
-                    column(12, pre(includeText(req(values$error_file)))),
-                    column(12, verbatimTextOutput("session_info"))
-                  ), size = "l", easyClose = TRUE, fade = FALSE))
-    output$session_info <- renderPrint(sessionInfo())
-  })
   # global LOG variables ----
   # one time check if app is running in hosted mode
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
@@ -197,6 +173,44 @@ output:
     # this call doesn't use the switch to turn off itself
     log_msg(stringr::str_c("Recording is ",
                            if (input$record_on) "On" else "Off"))
+  })
+  # log error ----
+  # will add to log, so after log is initialized
+  observeEvent(input$app_options, {
+    browser()
+    # each test is independent to others
+    if (reactive_option("record_on")) {
+      log_msg("Recording is On")
+    } else {
+      log_msg("Recording is Off")
+    }
+    if (reactive_option("log_error")) {
+      # values$error_file <- tempfile()
+      # appending mode to save all messages
+      values$error_file_con <- file(values$error_file, open = "a")
+      sink(values$error_file_con, type = "message")
+      log_msg("Error messages directed to app")
+    } else {
+      sink(type = "message")
+      log_msg("Error message directed to console")
+    }
+    if (reactive_option("no_parallel")) {
+      try(log("a"))
+    }
+  })
+  observeEvent(input$show_error, {
+    # no effect if error log not turned on
+    req(reactive_option("log_error"))
+    # maintaince first before accessing file
+    # sink(type = "message")
+    # flush(req(values$error_file_con))
+    # close(req(values$error_file_con))
+    showModal(modalDialog(title = "Error Log",
+                          fluidRow(
+                            column(12, pre(includeText(req(values$error_file)))),
+                            column(12, verbatimTextOutput("session_info"))
+                          ), size = "l", easyClose = TRUE, fade = FALSE))
+    output$session_info <- renderPrint(sessionInfo())
   })
   # cache setup ----
   create_cache <- function() {
