@@ -38,6 +38,28 @@ sidebar <- shinydashboard::dashboardSidebar(
 
 )
 # p1. import ----
+app_option_box <- shinydashboard::box(title = "App Options",
+                                      status = "primary", solidHeader = TRUE,
+                                      width = 12,
+  fluidRow(
+    column(4, checkboxInput("record_on",
+                             div(icon("video-camera"),
+                                 HTML('&nbsp;'),
+                                 "Record Actions")
+                             , value = TRUE)),
+    column(4, checkboxInput("capture_error",
+                             div(icon("exclamation-triangle"),
+                                 HTML('&nbsp;'),
+                                 "Capture Error Messages"))),
+    column(4, checkboxInput("no_parallel",
+                             div(icon("cogs"),
+                                 HTML('&nbsp;'),
+                                 "Disable Parallel Mode"))),
+    column(3, actionButton("show_error", "Error Log",
+                           icon = icon("exclamation-triangle"),
+                           style = ctmmweb:::STYLES$page_action)),
+    column(3, offset = 6, help_button("app_option"))
+                                      ))
 upload_box <- shinydashboard::box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 6,
@@ -57,25 +79,22 @@ upload_box <- shinydashboard::box(title = "Local Data Import",
                                # placeholder = "Session zip"
                            # buttonLabel = "Load Session ..."
                            )),
-          # column(7, checkboxInput("record_on", "Record Actions", value = TRUE)),
-          column(7, checkboxGroupInput("app_options", label = NULL,
-                      choiceNames = list(div(icon("video-camera"),
-                                             HTML('&nbsp;'),
-                                             "Record Actions"),
-                                         div(icon("exclamation-triangle"),
-                                             HTML('&nbsp;'),
-                                             "Capture Error Messages"),
-                                         div(icon("cogs"),
-                                             HTML('&nbsp;'),
-                                             " Disable Parallel Mode")),
-                      choiceValues = list("record_on",
-                                          "log_error",
-                                          "no_parallel"),
-                      selected = "record_on")),
-          column(5, actionButton("show_error", "Error Log",
-                                 icon = icon("exclamation-triangle"),
-                                 style = ctmmweb:::STYLES$page_action)),
-          column(5, offset = 0, br(), help_button("import"))
+          column(5, offset = 7, help_button("import"))
+          # column(7, checkboxGroupInput("app_options", label = NULL,
+          #             choiceNames = list(div(icon("video-camera"),
+          #                                    HTML('&nbsp;'),
+          #                                    "Record Actions"),
+          #                                div(icon("exclamation-triangle"),
+          #                                    HTML('&nbsp;'),
+          #                                    "Capture Error Messages"),
+          #                                div(icon("cogs"),
+          #                                    HTML('&nbsp;'),
+          #                                    " Disable Parallel Mode")),
+          #             choiceValues = list("record_on",
+          #                                 "log_error",
+          #                                 "no_parallel"),
+          #             selected = "record_on")),
+
            )
     )
 movebank_login_box <- shinydashboard::box(title = "Movebank Login",
@@ -86,13 +105,14 @@ movebank_login_box <- shinydashboard::box(title = "Movebank Login",
                             column(12,
                                   textInput("user", "User Name"), br(),
                                   passwordInput("pass", label = "Password")),
-                            column(12, br(), br()),
+                            column(12, br(), br(), br()),
                             column(5, actionButton("login", "Login",
                                           icon = icon("sign-in"),
                                           style = ctmmweb:::STYLES$page_action)),
                             column(5, offset = 2,
-                                  help_button("login")),
-                            column(12, br())
+                                  help_button("login"))
+                            # ,
+                            # column(12, br())
                             ))
 movebank_studies_box <- shinydashboard::box(title = "Movebank Studies",
                                             collapsible = TRUE,
@@ -567,7 +587,8 @@ body <- shinydashboard::dashboardBody(
   shinydashboard::tabItems(
     # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     shinydashboard::tabItem(tabName = "import",
-                            fluidRow(upload_box, movebank_login_box),
+                            fluidRow(app_option_box,
+                                     upload_box, movebank_login_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,
                                      movebank_study_preview_box)),
