@@ -4,7 +4,7 @@ This is a web app for analyzing animal tracking data as a continuous-time stocha
 
 It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). This is also a R package so you can reuse some functionalities in your own R analysis. 
 
-- Check [the videos here](vignettes/demo.Rmd) for feature demonstrations. 
+- Check [the videos here](https://ctmm-initiative.github.io/ctmm-webapp/articles/demo.html) for feature demonstrations. 
 - The `help` buttons in each page also have detailed documentations for the specific feature.
 - [The package help website](https://ctmm-initiative.github.io/ctmm-webapp/) provided some installation tips and documentations for package functions.
 
@@ -37,7 +37,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
     ```
   This will start the app locally with RStudio's embeded browser. In windows/Linux this has known compatibility problems. You can click the `open in browser` button in the browser top bar to use system browser instead. Chrome is recommended.
   
-  More details about installation and compatibility problems can be [found here.](vignettes/installation.Rmd) 
+  More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmm-webapp/articles/installation.html) 
 
 ### Hosted app
 Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 
