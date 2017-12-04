@@ -38,7 +38,7 @@ sidebar <- shinydashboard::dashboardSidebar(
 
 )
 # p1. import ----
-app_option_box <- shinydashboard::box(title = "App Options",
+app_options_box <- shinydashboard::box(title = "App Options",
                                       status = "primary", solidHeader = TRUE,
                                       width = 12,
   fluidRow(
@@ -58,7 +58,7 @@ app_option_box <- shinydashboard::box(title = "App Options",
     column(3, actionButton("show_error", "Error Messages",
                            icon = icon("exclamation-triangle"),
                            style = ctmmweb:::STYLES$page_action)),
-    column(3, offset = 6, help_button("app_option"))
+    column(3, offset = 6, help_button("app_options"))
                                       ))
 upload_box <- shinydashboard::box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
@@ -587,7 +587,7 @@ body <- shinydashboard::dashboardBody(
   shinydashboard::tabItems(
     # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     shinydashboard::tabItem(tabName = "import",
-                            fluidRow(app_option_box,
+                            fluidRow(app_options_box,
                                      upload_box, movebank_login_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,

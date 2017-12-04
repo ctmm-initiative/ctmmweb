@@ -225,7 +225,6 @@ output:
     ctmmweb::para_ll_ud,
     cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
-
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
@@ -292,7 +291,7 @@ output:
   # checking the parent environment, which is the app() environment so there will not be naming conflict from user environment. if parameter is NULL, no condition will match and nothing is done
   if (exists("shiny_app_data", where = parent.env(environment()))) {
     # app() mode need this for help function
-    app_wd <- appDir
+    APP_wd <- appDir
     # ensure no naming conflict possible
     app_input_data <- get("shiny_app_data", envir = parent.env(environment()))
     if (is.character(app_input_data)) {
@@ -309,8 +308,8 @@ output:
       isolate(update_input_data(app_input_data))
     }
   } else {
-    # app_wd should make help work in separate app mode
-    app_wd <- "."
+    # APP_wd should make help work in separate app mode
+    APP_wd <- "."
   }
   # help module server part ----
   # help function now have proper folder
@@ -318,12 +317,16 @@ output:
     observeEvent(input$help, {
       showModal(modalDialog(
         title = title, size = size,
-        # app_wd could be package app folder or just app folder depend on loading method
-        fluidPage(includeMarkdown(file.path(app_wd, file))),
+        # APP_wd could be package app folder or just app folder depend on loading method
+        fluidPage(includeMarkdown(file.path(APP_wd, file))),
         easyClose = TRUE, fade = FALSE
       ))
     })
   }
+  # the app option help is registered after help function is ready
+  callModule(click_help, "app_options",
+             title = "App Options", size = "l",
+             file = "help/1_app_options.md")
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)

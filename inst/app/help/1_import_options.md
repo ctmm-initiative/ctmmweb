@@ -8,9 +8,6 @@
 - You can upload file by clicking `Browse` directly without having to choose the radio button.
 - Starting from shiny 1.0.4, you can drag and drop file into the file uploader.
 
-### Record Actions
-- Every meaningful actions by user can be recorded and compiled into a html work report in `Work Report` page. All plots and most tables are also saved. The option can be turned off to improve performance.
-
 ### Load Cache
 - Using `Save Cache` button in `Work Report` page, input data, cached calculation results and work report can be saved.
 - Uploading the saved zip with `Load Cache` will restore the input data and previous caches. The time consuming operations like model selection, home range and occurrence can be finished instanly if the calculation is exactly same, i.e. same data and same selections.
