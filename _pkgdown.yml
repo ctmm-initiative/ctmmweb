@@ -38,7 +38,7 @@ navbar:
   title: ctmmweb
   type: inverse
   left:
-  - text: Installation and Demo
+  - text: App Usage
     menu:
     - text: Demo
       href: articles/demo.html
