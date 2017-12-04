@@ -55,7 +55,7 @@ app_option_box <- shinydashboard::box(title = "App Options",
                              div(icon("cogs"),
                                  HTML('&nbsp;'),
                                  "Disable Parallel Mode"))),
-    column(3, actionButton("show_error", "Error Log",
+    column(3, actionButton("show_error", "Error Messages",
                            icon = icon("exclamation-triangle"),
                            style = ctmmweb:::STYLES$page_action)),
     column(3, offset = 6, help_button("app_option"))

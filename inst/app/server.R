@@ -160,7 +160,7 @@ output:
     }
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
-  # app log start ----
+  # APP log start ----
   log_msg("App started")
   # first page need to be added manually since no page switching event fired
   log_page(page_title$import)
@@ -192,30 +192,6 @@ output:
       log_msg("Parallel mode enabled")
     }
   })
-  # log error ----
-  # will add to log, so after log is initialized
-  # observeEvent(input$app_options, {
-  #   browser()
-  #   # each test is independent to others
-  #   if (input$record_on) {
-  #     log_msg("Recording is On")
-  #   } else {
-  #     log_msg("Recording is Off")
-  #   }
-  #   if (input$capture_error) {
-  #     # values$error_file <- tempfile()
-  #     # appending mode to save all messages
-  #     values$error_file_con <- file(values$error_file, open = "a")
-  #     sink(values$error_file_con, type = "message")
-  #     log_msg("Error messages directed to app")
-  #   } else {
-  #     sink(type = "message")
-  #     log_msg("Error message directed to console")
-  #   }
-  #   if (input$no_parallel) {
-  #     try(log("a"))
-  #   }
-  # })
   observeEvent(input$show_error, {
     # no effect if error log not turned on
     req(input$capture_error)
@@ -223,11 +199,11 @@ output:
     # sink(type = "message")
     # flush(req(values$error_file_con))
     # close(req(values$error_file_con))
-    showModal(modalDialog(title = "Error Log",
-                          fluidRow(
-                            column(12, pre(includeText(req(values$error_file)))),
-                            column(12, verbatimTextOutput("session_info"))
-                          ), size = "l", easyClose = TRUE, fade = FALSE))
+    showModal(modalDialog(title = "Error Messages",
+                fluidRow(
+                  column(12, pre(includeText(req(values$error_file)))),
+                  column(12, verbatimTextOutput("session_info"))),
+                size = "l", easyClose = TRUE, fade = FALSE))
     output$session_info <- renderPrint(sessionInfo())
   })
   # cache setup ----
