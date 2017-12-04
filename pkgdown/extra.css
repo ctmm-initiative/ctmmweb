@@ -1,0 +1,4 @@
+/* Syntax highlighting ---------------------------------------------------- */
+.fu      {color: #3498db;} /* function */
+.ch,.st  {color: #18bc9c;} /* string */
+.kw      {color: #3498db;} /* keyword */

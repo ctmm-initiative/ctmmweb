@@ -23,7 +23,7 @@
 <link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
-  
+  <link href="../extra.css" rel="stylesheet">
   
 <!-- mathjax -->
 <script src='https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
@@ -106,7 +106,13 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>data</th>
-      <td><p>Data to be loaded with app. Could be path to csv file, <code>ctmm</code> telemetry object/list. Default <code>NULL</code> will not load any data.</p></td>
+      <td><p>Data to be loaded with app. It could be anything can be taken by <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/as.telemetry'>ctmm::as.telemetry</a></code>:</p><ul>
+<li><p>Path to MoveBank csv file</p></li>
+<li><p>MoveBank <code>data.frame</code> object</p></li>
+<li><p><code>Move</code> object</p></li>
+<li><p><code>ctmm</code> `telemetry`` object/list.</p></li>
+<li><p>Default <code>NULL</code> will not load any data.</p></li>
+</ul></td>
     </tr>
     </table>
     

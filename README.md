@@ -1,3 +1,9 @@
+---
+output: 
+  html_document: 
+    highlight: haddock
+    theme: flatly
+---
 ## Introduction
 
 This is a web app for analyzing animal tracking data as a continuous-time stochastic processes.
