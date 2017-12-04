@@ -7,7 +7,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
 - Check [the videos here](https://ctmm-initiative.github.io/ctmm-webapp/articles/demo.html) for feature demonstrations. 
 - The `help` buttons in each page also have detailed documentations for the specific feature.
 - [The package reference website](https://ctmm-initiative.github.io/ctmm-webapp/) provided some installation tips and documentations for package functions.
-- [Release History](NEWS.md)
+- [Release History](https://ctmm-initiative.github.io/ctmm-webapp/docs/news/index.html)
 
 ## Running the app
 
