@@ -1,9 +1,39 @@
 title: ctmmweb
-url: https://ctmm-initiative.github.io/ctmm-webapp
+url: https://ctmm-initiative.github.io/ctmm-webapp/
 
 template:
   params:
     bootswatch: flatly
+
+reference:
+- title: "Start the app"
+  desc: ~
+  contents:
+  - '`app`'
+- title: "Basic Data Structure for app"
+  desc: Input ctmm telemetry data need to be converted to `data.table` for app uses
+  contents:
+  - '`tele_list_info`'
+  - '`merge_animals`'
+- title: "Parallel Computing"
+  desc: ~
+  contents:
+  - '`align_list`'
+  - '`par_lapply`'
+  - '`par_fit_tele`'
+  - '`par_occur`'
+- title: "Misc Utilitiy Functions"
+  desc: ~
+  contents:
+  - '`calculate_distance`'
+  - '`calculate_speed`'
+  - '`sample_tele`'
+  - '`sample_tele_list`'
+  - '`summary_model_fit`'
+  - '`JS.logify`'
+  - '`JS.onload`'
+  - '`compress_folder`'
+
 navbar:
   title: ctmmweb
   type: inverse
@@ -14,7 +44,7 @@ navbar:
       href: articles/demo.html
     - text: Installation
       href: articles/installation.html
-  - text: Reference
+  - text: Functions
     href: reference/index.html
   - text: News
     href: news/index.html

@@ -15,8 +15,10 @@ sample_tele_list(tele_list, m)
 sampled telemetry list
 }
 \description{
-Sample Each Telemetry Object In List
+Sample each object with \link{sample_tele}.
 }
 \examples{
+library(ctmm)
+data(buffalo)
 sample_tele_list(buffalo, 100)
 }

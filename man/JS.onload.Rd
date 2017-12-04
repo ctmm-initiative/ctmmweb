@@ -12,8 +12,10 @@ JS.onload(slider_id_vec, sci = FALSE)
 \item{sci}{use scientific notation}
 }
 \value{
-JS functions code
+JS code
 }
 \description{
-Register JS Logify Function For Each \code{sliderInput}
+Make Shiny \code{sliderInput} \href{https://stackoverflow.com/a/39028280/3718827}{support logarithmicscale}. \code{JS.logify} create a
+Javascript function in string, and \link{JS.onload} register the function to
+\code{sliderInput}. Search the usage in \code{/inst/app/ui.R} for examples.
 }

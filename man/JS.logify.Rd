@@ -10,10 +10,10 @@ JS.logify(digits = 2)
 \item{digits}{digits after numerical point}
 }
 \value{
-JS function code
+JS code
 }
 \description{
-To be added in UI code of Shiny. The server code of Shiny may also use it
-when building UI dynamically. Search the usage in \code{/inst/app/ui.R} for
-examples.
+Make Shiny \code{sliderInput} \href{https://stackoverflow.com/a/39028280/3718827}{support logarithmicscale}. \code{JS.logify} create a
+Javascript function in string, and \link{JS.onload} register the function to
+\code{sliderInput}. Search the usage in \code{/inst/app/ui.R} for examples.
 }

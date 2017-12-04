@@ -67,7 +67,7 @@
   </ul>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li>
   <a href="../news/index.html">News</a>
@@ -96,9 +96,11 @@
     </div>
 
     
-    <p>Keep the relative path structure in zip, include <code>folder_path</code> itself so the
-zip can be extracted directly without need of creating a folder to hold
-contents. The zip will be saved to one level up of <code>folder_path</code>.</p>
+    <p><a href='https://github.com/r-lib/zip'>zip</a> package is used so this is platform
+independent. It will keep the relative path structure in zip, include
+<code>folder_path</code> itself so the zip can be extracted directly without need of
+creating a folder to hold contents. The zip file will be saved to the parent
+folder of <code>folder_path</code>.</p>
     
 
     <pre class="usage"><span class='fu'>compress_folder</span>(<span class='no'>folder_path</span>, <span class='no'>zip_name</span>)</pre>

@@ -7,17 +7,16 @@
 align_list(list_a, list_b)
 }
 \arguments{
-\item{list_a}{list_a}
+\item{list_a}{list_a. \code{list_a} and \code{list_b} need to have same length.}
 
 \item{list_b}{list_b}
 }
 \value{
-A list of same length of input list. Each item is a list of
-\itemize{
-\item \code{a: list_a[[i]]}
-\item \code{b: list_b[[i]]}
-}
+A list of same length of input list. Each item is a list of \itemize{
+\item \code{a: list_a[[i]]} \item \code{b: list_b[[i]]} }
 }
 \description{
-\code{list_a} and \code{list_b} need to have same length.
+The generic parallel function \link{para_ll} can only apply a function with single
+parameter to a list. Thus function with multiple parameters need to be
+wrapped into a function with single list which hold all the parameters.
 }

@@ -29,5 +29,7 @@ and another information \code{data.table} for animals. \code{data.table} is chos
 \code{data.frame} for much better performance.
 }
 \examples{
+library(ctmm)
+data(buffalo)
 merge_animals(buffalo)
 }

@@ -9,15 +9,18 @@ sample_tele(tele, m)
 \arguments{
 \item{tele}{telemetry object}
 
-\item{m}{sample size}
+\item{m}{sample size. \code{m} even spaced points are taken from data.}
 }
 \value{
 sampled telemetry object
 }
 \description{
-Take even spaced \code{m} points. Rely on ctmm S3 method to treat telemetry object
-as a data.frame, thus ctmm need to be imported in NAMESPACE.
+A sampled dataset can have models fitted much quicker. This is used to reduce
+waiting time in developing code that involved time consuming modeling
+processes. After code is tested and stablized, full size dataset can be used.
 }
 \examples{
+library(ctmm)
+data(buffalo)
 sample_tele(buffalo[[1]], 100)
 }

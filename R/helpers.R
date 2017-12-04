@@ -3,13 +3,14 @@
 
 #' JS Function To Logify A `sliderInput`
 #'
-#' To be added in UI code of Shiny. The server code of Shiny may also use it
-#' when building UI dynamically. Search the usage in `/inst/app/ui.R` for
-#' examples.
+#' Make Shiny `sliderInput` [support logarithmic
+#' scale](https://stackoverflow.com/a/39028280/3718827). `JS.logify` create a
+#' Javascript function in string, and [JS.onload] register the function to
+#' `sliderInput`. Search the usage in `/inst/app/ui.R` for examples.
 #'
 #' @param digits digits after numerical point
 #'
-#' @return JS function code
+#' @return JS code
 #' @export
 #'
 JS.logify <- function(digits = 2) {
@@ -32,10 +33,15 @@ JS.logify <- function(digits = 2) {
 }
 #' Register JS Logify Function For Each `sliderInput`
 #'
+#' Make Shiny `sliderInput` [support logarithmic
+#' scale](https://stackoverflow.com/a/39028280/3718827). `JS.logify` create a
+#' Javascript function in string, and [JS.onload] register the function to
+#' `sliderInput`. Search the usage in `/inst/app/ui.R` for examples.
+#'
 #' @param slider_id_vec slider id vector
 #' @param sci use scientific notation
 #'
-#' @return JS functions code
+#' @return JS code
 #' @export
 #'
 JS.onload <- function(slider_id_vec, sci = FALSE) {
@@ -358,7 +364,10 @@ tele_list_to_dt <- function(tele_obj_list) {
 #'   animal information table
 #' @export
 #'
-#' @examples merge_animals(buffalo)
+#' @examples
+#' library(ctmm)
+#' data(buffalo)
+#' merge_animals(buffalo)
 merge_animals <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
               info = tele_list_info(tele_obj_list)))
@@ -524,16 +533,16 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 }
 # parallel ----
 
-#' Expression To Be Initialized In Windows For `ctmm` Related Parallel
-#' Operations
-#'
-#' Parallel cluter in Windows is a socket cluster, which need to initialize each
-#' session manually. Since all parameters should be included in single list
-#' parameter, only stuff needed is init libraries. For ctmm related parallel
-#' operations, `ctmm` package need to be loaded. Instead of `library(ctmm)`, the
-#' expression of `requireNamespace("ctmm", quietly = TRUE)` is more appropriate
-#' inside a package.
-#'
+# Expression To Be Initialized In Windows For `ctmm` Related Parallel
+# Operations
+#
+# Parallel cluter in Windows is a socket cluster, which need to initialize each
+# session manually. Since all parameters should be included in single list
+# parameter, only stuff needed is init libraries.
+#
+# For ctmm related parallel operations, `ctmm` package need to be loaded.
+# Instead of `library(ctmm)`, the expression of `requireNamespace("ctmm",
+# quietly = TRUE)` is more appropriate inside a package.
 WIN_INIT_ctmm <- expression({
   # library(ctmm)
   requireNamespace("ctmm", quietly = TRUE)
@@ -541,16 +550,15 @@ WIN_INIT_ctmm <- expression({
 
 #' Combine Two Lists Into One List By Aligning Each Item
 #'
-#' `list_a` and `list_b` need to have same length.
+#' The generic parallel function [para_ll] can only apply a function with single
+#' parameter to a list. Thus function with multiple parameters need to be
+#' wrapped into a function with single list which hold all the parameters.
 #'
-#' @param list_a list_a
+#' @param list_a list_a. `list_a` and `list_b` need to have same length.
 #' @param list_b list_b
 #'
-#' @return A list of same length of input list. Each item is a list of
-#' \itemize{
-#'  \item \code{a: list_a[[i]]}
-#'  \item \code{b: list_b[[i]]}
-#' }
+#' @return A list of same length of input list. Each item is a list of \itemize{
+#'   \item \code{a: list_a[[i]]} \item \code{b: list_b[[i]]} }
 #'
 #' @export
 #'
@@ -571,8 +579,8 @@ align_list <- function(list_a, list_b) {
 #' Linux/Mac `parallel::mclapply` is used, where each worker will inherit the
 #' current environment through forking, so no additional setup is required.
 #'
-#' @param ll Input list.
-#' @param fun Function to be applied on `ll`. Note only single parameter
+#' @param lst Input list.
+#' @param fun Function to be applied on `lst`. Note only single parameter
 #'   function is accepted, otherwise it's difficult to determine how to assign
 #'   input parameters to each list item and worker. You need to convert multiple
 #'   parameter function into a function take single list parameter, and assign
@@ -588,67 +596,73 @@ align_list <- function(list_a, list_b) {
 #' @return List of applied results
 #' @export
 #'
-para_ll <- function(ll, fun, fallback = FALSE,
+par_lapply <- function(lst, fun, fallback = FALSE,
                     win_init = ctmmweb:::WIN_INIT_ctmm
                     ) {
   if (!fallback) {
     sysinfo <- Sys.info()
     if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-      win_cluster_size <- min(length(ll), parallel::detectCores())
+      win_cluster_size <- min(length(lst), parallel::detectCores())
       cat(crayon::inverse("running parallel in SOCKET cluster of",
                           win_cluster_size, "\n"))
       cl <- parallel::makeCluster(win_cluster_size, outfile = "")
       # have to export parameter too because it's not available in remote
       parallel::clusterExport(cl, c("win_init"), envir = environment())
       parallel::clusterEvalQ(cl, eval(win_init))
-      res <- parallel::parLapplyLB(cl, ll, fun)
+      res <- parallel::parLapplyLB(cl, lst, fun)
       parallel::stopCluster(cl)
     } else {
-      cluster_size <- min(length(ll),
+      cluster_size <- min(length(lst),
                           parallel::detectCores(logical = FALSE) * 4)
       cat(crayon::inverse("running parallel with mclapply in cluster of",
                           cluster_size, "\n"))
-      res <- parallel::mclapply(ll, fun, mc.cores = cluster_size)
+      res <- parallel::mclapply(lst, fun, mc.cores = cluster_size)
     }
   } else {
-    res <- lapply(ll, fun)
+    res <- lapply(lst, fun)
   }
   return(res)
 }
-# app need this since we may want adjusted guess list instead of automatic guess
-#' Parallel Fit Models For List Of Telemetry List And Guess List
-#'
-#' @param tele_guess_list aligned list of telemetry list and guess list
-#' @param fallback Use regular `lapply`. This is used to test if parallel caused
-#'   problems.
-#'
-#' @return list of model fitting results on each telemetry object
-#'
-para_ll_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
+# app need this since we may want adjusted guess list instead of automatic guess. don't want to add this in package help index, so do not use roxygen format.
+# Parallel Fit Models For List Of Telemetry List And Guess List
+#
+# tele_guess_list aligned list of telemetry list and guess list
+# fallback Use regular `lapply`. This is used to test if parallel caused
+#   problems.
+#
+# return list of model fitting results on each telemetry object
+par_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict
   fit_models <- function(tele_guess) {
     ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                       trace = TRUE, verbose = TRUE)
   }
-  para_ll(tele_guess_list, fit_models, fallback)
+  par_lapply(tele_guess_list, fit_models, fallback)
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 #' Parallel Fit Models On Telemetry List
 #'
 #' @param tele_list telemetry list
+#' @param fallback Use regular `lapply`. This is used to test if parallel caused
+#'   problems.
 #'
 #' @return list of model fitting results on each telemetry object, named by
 #'   telemetry object names
 #' @export
 #'
-#' @examples para_ll_fit_tele(buffalo)
-para_ll_fit_tele <- function(tele_list) {
+#' @examples
+#' \dontrun{
+#'   library(ctmm)
+#'   data(buffalo)
+#'   par_fit_tele(sample_tele_list(buffalo, 100))
+#' }
+par_fit_tele <- function(tele_list, fallback = FALSE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm.guess(x, interactive = FALSE)
                                 }))
   print(system.time(model_select_res <-
-                      para_ll_fit_tele_guess(tele_guess_list)))
+                      par_fit_tele_guess(tele_guess_list, fallback)))
   names(model_select_res) <- names(tele_list)
   return(model_select_res)
 }
@@ -661,33 +675,43 @@ para_ll_fit_tele <- function(tele_list) {
 #' @return occurrence results list
 #' @export
 #'
-#' @examples para_ll_ud(align_list(buffalo, models_list))
-para_ll_ud <- function(tele_model_list, fallback = FALSE) {
-  ud_calc <- function(tele_model_list) {
+#' @examples
+#' \dontrun{
+#'   para_ll_ud(align_list(buffalo, models_list))
+#' }
+par_occur <- function(tele_model_list, fallback = FALSE) {
+  occur_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
   }
-  para_ll(tele_model_list, ud_calc, fallback)
+  par_lapply(tele_model_list, occur_calc, fallback)
 }
 # sample telemetry data ----
 
 #' Sample From Telemetry Object
 #'
-#' Take even spaced `m` points. Rely on ctmm S3 method to treat telemetry object
-#' as a data.frame, thus ctmm need to be imported in NAMESPACE.
+#' A sampled dataset can have models fitted much quicker. This is used to reduce
+#' waiting time in developing code that involved time consuming modeling
+#' processes. After code is tested and stablized, full size dataset can be used.
 #'
 #' @param tele telemetry object
-#' @param m sample size
+#' @param m sample size. `m` even spaced points are taken from data.
 #'
 #'
 #' @return sampled telemetry object
 #' @export
 #' @import ctmm
 #'
-#' @examples sample_tele(buffalo[[1]], 100)
+#' @examples
+#' library(ctmm)
+#' data(buffalo)
+#' sample_tele(buffalo[[1]], 100)
 sample_tele <- function(tele, m) {
+  # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
 #' Sample Each Telemetry Object In List
+#'
+#' Sample each object with [sample_tele].
 #'
 #' @param tele_list telemetry list
 #' @param m sample size
@@ -695,7 +719,10 @@ sample_tele <- function(tele, m) {
 #' @return sampled telemetry list
 #' @export
 #'
-#' @examples sample_tele_list(buffalo, 100)
+#' @examples
+#' library(ctmm)
+#' data(buffalo)
+#' sample_tele_list(buffalo, 100)
 sample_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
     sample_tele(x, m)
@@ -812,31 +839,51 @@ format_model_summary_dt <- function(model_summary_dt) {
   res_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
-
-#' Generate Formated Model Summary Table From Model List Table
-#'
-#' @param models_dt a `data.table` holding model information and models objects
-#'   as list column
-#'
-#' @return formated model summary table
-#' @export
-#'
+# Generate Formated Model Summary Table From Model List Table
+#
+# models_dt a `data.table` holding model information and models objects
+#   as list column
+#
+# return formated model summary table
 model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
   model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt,
                                                         hrange = FALSE)
   format_model_summary_dt(model_summary_dt)
 }
-#' Build Home Range list table
+# exported version, make the interface simpler. our internal version need intermediate steps because we need the intermediate data
+
+#' Generate Formated Model Summary Table From Model Fit Results
 #'
-#' The table structure is similar to model list table, with model information
-#' from model summary table, and home range objects as list column
+#' @param model_fit_res list of applying `ctmm::ctmm.select` on telemetry objects
 #'
-#' @param selected_dt model names `data.table`
-#' @param selected_hrange_list home range list
-#'
-#' @return a data.table holding model info and home range
+#' @return A `data.table` of model summary
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'  library(ctmm)
+#'  library(ctmmweb)
+#'  data("buffalo")
+#'  data_sample <- sample_tele_list(buffalo, 100)
+#'  model_fit_res <- par_fit_tele(data_sample)
+#'  summary_model_fit(model_fit_res)
+#' }
+summary_model_fit <- function(model_fit_res) {
+  models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+  model_list_dt_to_formated_model_summary_dt(models_dt)
+}
+# it requires more manual code to assemble a table for home range, temporarily not exporting these function untill requested
+# Build Home Range list table
+#
+# The table structure is similar to model list table, with model information
+# from model summary table, and home range objects as list column
+#
+# param selected_dt model names `data.table`
+# param selected_hrange_list home range list
+#
+# return a data.table holding model info and home range
+# export
+#
 build_hrange_list_dt <- function(selected_model_names_dt, selected_hrange_list) {
   dt <- copy(selected_model_names_dt)
   dt[, model := list(selected_hrange_list)]
@@ -858,13 +905,11 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF area", "DOF bandwidth") := NA_real_]
 }
-#' Generate Formated Home Range Summary Table From Home Range List Table
-#'
-#' @param hrange_list_dt a data.table holding model info and home range objects
-#'
-#' @return formated home range summary table
-#' @export
-#'
+# Generate Formated Home Range Summary Table From Home Range List Table
+#
+# param hrange_list_dt a data.table holding model info and home range objects
+#
+# return formated home range summary table
 hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
   hrange_summary_dt <- model_list_dt_to_model_summary_dt(hrange_list_dt,
                                                         hrange = TRUE)
@@ -883,9 +928,11 @@ create_folder <- function(folder_path) {
 }
 #' Compress A Folder Into Zip
 #'
-#' Keep the relative path structure in zip, include `folder_path` itself so the
-#' zip can be extracted directly without need of creating a folder to hold
-#' contents. The zip will be saved to one level up of `folder_path`.
+#' [`zip`](https://github.com/r-lib/zip) package is used so this is platform
+#' independent. It will keep the relative path structure in zip, include
+#' `folder_path` itself so the zip can be extracted directly without need of
+#' creating a folder to hold contents. The zip file will be saved to the parent
+#' folder of `folder_path`.
 #'
 #' @param folder_path The folder to be compressed
 #' @param zip_name The name of zip

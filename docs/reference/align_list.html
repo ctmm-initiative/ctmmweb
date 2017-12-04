@@ -67,7 +67,7 @@
   </ul>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li>
   <a href="../news/index.html">News</a>
@@ -96,7 +96,9 @@
     </div>
 
     
-    <p><code>list_a</code> and <code>list_b</code> need to have same length.</p>
+    <p>The generic parallel function para_ll can only apply a function with single
+parameter to a list. Thus function with multiple parameters need to be
+wrapped into a function with single list which hold all the parameters.</p>
     
 
     <pre class="usage"><span class='fu'>align_list</span>(<span class='no'>list_a</span>, <span class='no'>list_b</span>)</pre>
@@ -106,7 +108,7 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>list_a</th>
-      <td><p>list_a</p></td>
+      <td><p>list_a. <code>list_a</code> and <code>list_b</code> need to have same length.</p></td>
     </tr>
     <tr>
       <th>list_b</th>

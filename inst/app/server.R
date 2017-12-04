@@ -186,7 +186,7 @@ output:
   # just log option changes, the value is taken directly when needed.
   observeEvent(input$no_parallel, {
     if (input$no_parallel) {
-      try(log("a"))  # for testing error log
+      # try(log("a"))  # for testing error log
       log_msg("Parallel mode disabled")
     } else {
       log_msg("Parallel mode enabled")
@@ -215,14 +215,14 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  para_ll_fit_tele_guess_mem <- memoise::memoise(
-    ctmmweb:::para_ll_fit_tele_guess,
+  par_fit_tele_guess_mem <- memoise::memoise(
+    ctmmweb:::par_fit_tele_guess,
     cache = memoise::cache_filesystem(cache_path))
   akde_mem <- memoise::memoise(
     ctmm::akde,
     cache = memoise::cache_filesystem(cache_path))
-  para_ll_ud_mem <- memoise::memoise(
-    ctmmweb::para_ll_ud,
+  par_occur_mem <- memoise::memoise(
+    ctmmweb::par_occur,
     cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
   # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
@@ -1674,7 +1674,7 @@ output:
     log_msg("Fitting models")
     withProgress(print(system.time(
       values$selected_data_model_fit_res <-
-        para_ll_fit_tele_guess_mem(tele_guess_list,
+        par_fit_tele_guess_mem(tele_guess_list,
                                    fallback = option_selected("no_parallel")))),
       message = "Fitting models to find the best ...")
     names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
@@ -1686,24 +1686,27 @@ output:
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- ctmmweb:::model_fit_res_to_model_list_dt(req(values$selected_data_model_fit_res))
+    models_dt <- ctmmweb:::model_fit_res_to_model_list_dt(
+      req(values$selected_data_model_fit_res))
     # the model summary table
     # model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     # formated_summary_dt <- format_model_summary_dt(model_summary_dt)
-    formated_summary_dt <- ctmmweb::model_list_dt_to_formated_model_summary_dt(models_dt)
+    formated_summary_dt <-
+      ctmmweb:::model_list_dt_to_formated_model_summary_dt(models_dt)
     if (input$hide_ci_model) {
-      formated_summary_dt <- formated_summary_dt[!stringr::str_detect(estimate, "CI")]
+      formated_summary_dt <- formated_summary_dt[
+        !stringr::str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
     }
     # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table
     model_full_names_dt <- unique(formated_summary_dt[,
                             .(identity, model_name, full_name)])
     # prepare model color, identity color function
-
     model_full_names_dt[, base_color := values$data$id_pal(identity)]
     model_full_names_dt[, variation_number := seq_len(.N), by = identity]
-    model_full_names_dt[, color := ctmmweb:::vary_color(base_color, .N)[variation_number],
-                        by = identity]
+    model_full_names_dt[
+      , color := ctmmweb:::vary_color(base_color, .N)[variation_number],
+      by = identity]
     # need ordered = TRUE for character vector not being factor yet.
     hr_pal <- leaflet::colorFactor(model_full_names_dt$color,
                           model_full_names_dt$full_name, ordered = TRUE)
@@ -1819,9 +1822,9 @@ output:
     #   build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
     #   hrange = TRUE)
     # dt <- format_hrange_summary_dt(hrange_summary_dt)
-    hrange_list_dt <- ctmmweb::build_hrange_list_dt(select_models()$names_dt,
+    hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$names_dt,
                                            select_models_hranges())
-    dt <- ctmmweb::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
+    dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
     dt[, model_no := NULL]
     # LOG home range summary
     log_dt_md(dt, "Home Range Summary")
@@ -1893,7 +1896,7 @@ output:
     tele_model_list <- ctmmweb::align_list(select_models()$tele_list,
                                         select_models()$models_list)
     withProgress(print(system.time(
-      res <- para_ll_ud_mem(tele_model_list,
+      res <- par_occur_mem(tele_model_list,
                             fallback = option_selected("no_parallel")))),
                  message = "Calculating Occurrence ...")
     # if (option_selected("log_error")) {

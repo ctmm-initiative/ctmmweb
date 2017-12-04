@@ -1,6 +1,6 @@
 urls:
-  reference: https://ctmm-initiative.github.io/ctmm-webapp/reference
-  article: https://ctmm-initiative.github.io/ctmm-webapp/articles
+  reference: https://ctmm-initiative.github.io/ctmm-webapp//reference
+  article: https://ctmm-initiative.github.io/ctmm-webapp//articles
 articles:
   demo: demo.html
   installation: installation.html

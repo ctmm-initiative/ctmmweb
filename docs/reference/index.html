@@ -67,7 +67,7 @@
   </ul>
 </li>
 <li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../reference/index.html">Functions</a>
 </li>
 <li>
   <a href="../news/index.html">News</a>
@@ -109,7 +109,41 @@
       <tbody>
         <tr>
           <th colspan="2">
-            <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+            <h2 id="section-start-the-app" class="hasAnchor"><a href="#section-start-the-app" class="anchor"></a>Start the app</h2>
+            <p class="section-desc"></p>
+          </th>
+        </tr>
+        <tr>
+          <!--  -->
+          <td>
+            <p><code><a href="app.html">app</a></code> </p>
+          </td>
+          <td><p>Start ctmm web app</p></td>
+        </tr>
+      </tbody><tbody>
+        <tr>
+          <th colspan="2">
+            <h2 id="section-basic-data-structure-for-app" class="hasAnchor"><a href="#section-basic-data-structure-for-app" class="anchor"></a>Basic Data Structure for app</h2>
+            <p class="section-desc"><p>Input ctmm telemetry data need to be converted to <code>data.table</code> for app uses</p></p>
+          </th>
+        </tr>
+        <tr>
+          <!--  -->
+          <td>
+            <p><code><a href="tele_list_info.html">tele_list_info</a></code> </p>
+          </td>
+          <td><p>Get Information Table For Telemetry Object Or List</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="merge_animals.html">merge_animals</a></code> </p>
+          </td>
+          <td><p>Generate Merged Location And Info <code>data.table</code> From Telemetry Object/List</p></td>
+        </tr>
+      </tbody><tbody>
+        <tr>
+          <th colspan="2">
+            <h2 id="section-parallel-computing" class="hasAnchor"><a href="#section-parallel-computing" class="anchor"></a>Parallel Computing</h2>
             <p class="section-desc"></p>
           </th>
         </tr>
@@ -122,16 +156,30 @@
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="app.html">app</a></code> </p>
+            <p><code><a href="par_lapply.html">par_lapply</a></code> </p>
           </td>
-          <td><p>Start ctmm web app</p></td>
+          <td><p>Parallel Apply Function To List In All Platforms</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="build_hrange_list_dt.html">build_hrange_list_dt</a></code> </p>
+            <p><code><a href="par_fit_tele.html">par_fit_tele</a></code> </p>
           </td>
-          <td><p>Build Home Range list table</p></td>
+          <td><p>Parallel Fit Models On Telemetry List</p></td>
         </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="par_occur.html">par_occur</a></code> </p>
+          </td>
+          <td><p>Parallel Calculate Occurrence From Telemetry And Model List</p></td>
+        </tr>
+      </tbody><tbody>
+        <tr>
+          <th colspan="2">
+            <h2 id="section-misc-utilitiy-functions" class="hasAnchor"><a href="#section-misc-utilitiy-functions" class="anchor"></a>Misc Utilitiy Functions</h2>
+            <p class="section-desc"></p>
+          </th>
+        </tr>
+        <tr>
           <!--  -->
           <td>
             <p><code><a href="calculate_distance.html">calculate_distance</a></code> </p>
@@ -146,15 +194,21 @@
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="compress_folder.html">compress_folder</a></code> </p>
+            <p><code><a href="sample_tele.html">sample_tele</a></code> </p>
           </td>
-          <td><p>Compress A Folder Into Zip</p></td>
+          <td><p>Sample From Telemetry Object</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="hrange_list_dt_to_formated_range_summary_dt.html">hrange_list_dt_to_formated_range_summary_dt</a></code> </p>
+            <p><code><a href="sample_tele_list.html">sample_tele_list</a></code> </p>
           </td>
-          <td><p>Generate Formated Home Range Summary Table From Home Range List Table</p></td>
+          <td><p>Sample Each Telemetry Object In List</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="summary_model_fit.html">summary_model_fit</a></code> </p>
+          </td>
+          <td><p>Generate Formated Model Summary Table From Model Fit Results</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -170,64 +224,9 @@
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="merge_animals.html">merge_animals</a></code> </p>
+            <p><code><a href="compress_folder.html">compress_folder</a></code> </p>
           </td>
-          <td><p>Generate Merged Location And Info <code>data.table</code> From Telemetry Object/List</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="model_list_dt_to_formated_model_summary_dt.html">model_list_dt_to_formated_model_summary_dt</a></code> </p>
-          </td>
-          <td><p>Generate Formated Model Summary Table From Model List Table</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="para_ll_fit_tele_guess.html">para_ll_fit_tele_guess</a></code> </p>
-          </td>
-          <td><p>Parallel Fit Models For List Of Telemetry List And Guess List</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="para_ll_fit_tele.html">para_ll_fit_tele</a></code> </p>
-          </td>
-          <td><p>Parallel Fit Models On Telemetry List</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="para_ll_ud.html">para_ll_ud</a></code> </p>
-          </td>
-          <td><p>Parallel Calculate Occurrence From Telemetry And Model List</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="para_ll.html">para_ll</a></code> </p>
-          </td>
-          <td><p>Parallel Apply Function To List In All Platforms</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="sample_tele_list.html">sample_tele_list</a></code> </p>
-          </td>
-          <td><p>Sample Each Telemetry Object In List</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="sample_tele.html">sample_tele</a></code> </p>
-          </td>
-          <td><p>Sample From Telemetry Object</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="tele_list_info.html">tele_list_info</a></code> </p>
-          </td>
-          <td><p>Get Information Table For Telemetry Object Or List</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="WIN_INIT_ctmm.html">WIN_INIT_ctmm</a></code> </p>
-          </td>
-          <td><p>Expression To Be Initialized In Windows For <code>ctmm</code> Related Parallel
-Operations</p></td>
+          <td><p>Compress A Folder Into Zip</p></td>
         </tr>
       </tbody>
       </table>
@@ -237,7 +236,10 @@ Operations</p></td>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#section-start-the-app">Start the app</a></li>
+      <li><a href="#section-basic-data-structure-for-app">Basic Data Structure for app</a></li>
+      <li><a href="#section-parallel-computing">Parallel Computing</a></li>
+      <li><a href="#section-misc-utilitiy-functions">Misc Utilitiy Functions</a></li>
     </ul>
   </div>
 </div>
