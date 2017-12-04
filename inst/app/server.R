@@ -11,13 +11,9 @@ server <- function(input, output, session) {
   # log functions will use these options, so need to prepare them first
   # each session have one error log file
   values$error_file <- tempfile()
-  # test checkbox status passively, one time read when called
+  # test checkbox status passively, one time read when called. create this function because it can handle both independent checkbox or checkboxgroup
   option_selected <- function(option) {
-    option %in% isolate(input$app_options)
-  }
-  # depend on option reactively, only use in reactive context for UI
-  reactive_option <- function(option) {
-    option %in% input$app_options
+    isolate(input[[option]])
   }
   # global LOG variables ----
   # one time check if app is running in hosted mode
@@ -164,27 +160,19 @@ output:
     }
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
-  # log_msg("App started", on = isolate(input$record_on))
-  # log_msg("App started", on = option_selected("record_on"))
+  # app log start ----
   log_msg("App started")
   # first page need to be added manually since no page switching event fired
   log_page(page_title$import)
+  # log app options ----
+  # just log option changes, the value is taken directly when needed.
   observeEvent(input$record_on, {
-    # this call doesn't use the switch to turn off itself
+    # this call doesn't use the default switch to turn off itself
     log_msg(stringr::str_c("Recording is ",
-                           if (input$record_on) "On" else "Off"))
+                           if (input$record_on) "On" else "Off"), on = TRUE)
   })
-  # log error ----
-  # will add to log, so after log is initialized
-  observeEvent(input$app_options, {
-    browser()
-    # each test is independent to others
-    if (reactive_option("record_on")) {
-      log_msg("Recording is On")
-    } else {
-      log_msg("Recording is Off")
-    }
-    if (reactive_option("log_error")) {
+  observeEvent(input$capture_error, {
+    if (input$capture_error) {
       # values$error_file <- tempfile()
       # appending mode to save all messages
       values$error_file_con <- file(values$error_file, open = "a")
@@ -194,13 +182,43 @@ output:
       sink(type = "message")
       log_msg("Error message directed to console")
     }
-    if (reactive_option("no_parallel")) {
-      try(log("a"))
+  })
+  # just log option changes, the value is taken directly when needed.
+  observeEvent(input$no_parallel, {
+    if (input$no_parallel) {
+      try(log("a"))  # for testing error log
+      log_msg("Parallel mode disabled")
+    } else {
+      log_msg("Parallel mode enabled")
     }
   })
+  # log error ----
+  # will add to log, so after log is initialized
+  # observeEvent(input$app_options, {
+  #   browser()
+  #   # each test is independent to others
+  #   if (input$record_on) {
+  #     log_msg("Recording is On")
+  #   } else {
+  #     log_msg("Recording is Off")
+  #   }
+  #   if (input$capture_error) {
+  #     # values$error_file <- tempfile()
+  #     # appending mode to save all messages
+  #     values$error_file_con <- file(values$error_file, open = "a")
+  #     sink(values$error_file_con, type = "message")
+  #     log_msg("Error messages directed to app")
+  #   } else {
+  #     sink(type = "message")
+  #     log_msg("Error message directed to console")
+  #   }
+  #   if (input$no_parallel) {
+  #     try(log("a"))
+  #   }
+  # })
   observeEvent(input$show_error, {
     # no effect if error log not turned on
-    req(reactive_option("log_error"))
+    req(input$capture_error)
     # maintaince first before accessing file
     # sink(type = "message")
     # flush(req(values$error_file_con))
