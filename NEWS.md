@@ -1,13 +1,13 @@
-## version 0.1.0, 2017/12/01, Package
-- pack into package - in process
+## version 0.1.0, 2017/12/04, Package
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.
+- Reference website is built
 - This is a time consuming process which involved:
     + changing app structure to make it work both as a function and an individual shiny app for hosting server
     + untangling a lot of dependencies
     + using full qualified function names everywhere
     + minimizing modifications to user environment
     + following other package development requirements
-    + building package website
+    + building a website
 - For the version after this change, you cannot launch specific version using previous method. You can install certain version of package with
 
 ```r
