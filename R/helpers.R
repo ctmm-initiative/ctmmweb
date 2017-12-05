@@ -360,7 +360,9 @@ tele_list_to_dt <- function(tele_obj_list) {
 #'
 #' @param tele_obj_list telemetry object/list
 #'
-#' @return list of - `data`: all animals merged in one data.table - `info`:
+#' @return list of
+#' - `data`: all animals merged in one data.table
+#' - `info`:
 #'   animal information table
 #' @export
 #'

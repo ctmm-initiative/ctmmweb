@@ -10,8 +10,12 @@ merge_animals(tele_obj_list)
 \item{tele_obj_list}{telemetry object/list}
 }
 \value{
-list of - \code{data}: all animals merged in one data.table - \code{info}:
+list of
+\itemize{
+\item \code{data}: all animals merged in one data.table
+\item \code{info}:
 animal information table
+}
 }
 \description{
 A Telemetry list hold mutiple animal data in separate list items, each item

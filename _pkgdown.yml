@@ -46,8 +46,17 @@ navbar:
       href: articles/installation.html
   - text: Functions
     href: reference/index.html
+  right:
   - text: News
     href: news/index.html
-  right:
   - icon: fa-github fa-lg
     href: https://github.com/ctmm-initiative/ctmm-webapp
+
+home:
+  links:
+  - text: CTMM Initiative
+    href: http://biology.umd.edu/movement.html
+  - text: ctmm
+    href: https://github.com/ctmm-initiative/ctmm
+  - text: ctmm user forum
+    href: https://groups.google.com/forum/#!forum/ctmm-user
