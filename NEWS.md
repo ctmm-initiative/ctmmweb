@@ -1,4 +1,8 @@
-## version 0.1.0, 2017/12/04, Package
+
+## version 0.1.0, in progress
+- [export most features of app as package functions](https://github.com/ctmm-initiative/ctmm-webapp/issues/41) 
+
+## version 0.0.9, 2017/12/04, Package
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.
 - Reference website is built
 - This is a time consuming process which involved:
@@ -11,7 +15,7 @@
 - For the version after this change, you cannot launch specific version using previous method. You can install certain version of package with
 
 ```r
-devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "v0.1.0")
+devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "v0.0.9")
 ctmmweb::app()
 ```
 
