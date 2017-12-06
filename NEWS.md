@@ -1,5 +1,6 @@
 
 ## version 0.1.0, in progress
+- change repo name to match package name
 - [export most features of app as package functions](https://github.com/ctmm-initiative/ctmm-webapp/issues/41) 
 
 ## version 0.0.9, 2017/12/04, Package

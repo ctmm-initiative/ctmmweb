@@ -1,8 +1,8 @@
 ### Current subset of individuals
 All plots and actions are based on **current subset of individuals**.
 
-![selected_animals](1_select_animals.png)
-![selected_plot](1_selected_plot.png)
+![selected_animals](2_select_animals.png)
+![selected_plot](2_selected_plot.png)
 
 - You can select rows in table `1. Individuals` by 
     - mouse clicking
