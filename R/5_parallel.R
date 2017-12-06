@@ -1,7 +1,7 @@
 # parallel ----
 
-# Expression To Be Initialized In Windows For `ctmm` Related Parallel
-# Operations
+# Expression to be initialized in windows for `ctmm` related parallel
+# operations
 #
 # Parallel cluter in Windows is a socket cluster, which need to initialize each
 # session manually. Since all parameters should be included in single list
@@ -15,7 +15,7 @@ WIN_INIT_ctmm <- expression({
   requireNamespace("ctmm", quietly = TRUE)
 })
 
-#' Combine Two Lists Into One List By Aligning Each Item
+#' Combine two lists into one list by aligning each item
 #'
 #' The generic parallel function [para_ll] can only apply a function with single
 #' parameter to a list. Thus function with multiple parameters need to be
@@ -37,7 +37,7 @@ align_list <- function(list_a, list_b) {
   })
 }
 # used to write fallback as last parameter, then para_ll(ll, fun, fallback = TRUE) is interpreted as win_init = {fallback = TRUE}
-#' Parallel Apply Function To List In All Platforms
+#' Parallel apply function to list in all platforms
 #'
 #' This is a generic parallel lapply that work across all major platforms.
 #'
@@ -107,7 +107,7 @@ par_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
   par_lapply(tele_guess_list, fit_models, fallback)
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
-#' Parallel Fit Models On Telemetry List
+#' Parallel fit models on telemetry list
 #'
 #' @param tele_list telemetry list
 #' @param fallback Use regular `lapply`. This is used to test if parallel caused
@@ -133,7 +133,7 @@ par_fit_tele <- function(tele_list, fallback = FALSE) {
   names(model_select_res) <- names(tele_list)
   return(model_select_res)
 }
-#' Parallel Calculate Occurrence From Telemetry And Model List
+#' Parallel calculate occurrence from telemetry and model list
 #'
 #' @param tele_model_list Aligned list of telemetry list and model list
 #' @param fallback Use regular `lapply`. This is used to test if parallel caused
@@ -154,7 +154,7 @@ par_occur <- function(tele_model_list, fallback = FALSE) {
 }
 # sample telemetry data ----
 
-#' Sample From Telemetry Object
+#' Sample from telemetry object
 #'
 #' A sampled dataset can have models fitted much quicker. This is used to reduce
 #' waiting time in developing code that involved time consuming modeling
@@ -176,7 +176,7 @@ sample_tele <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
-#' Sample Each Telemetry Object In List
+#' Sample each telemetry object in list
 #'
 #' Sample each object with [sample_tele].
 #'

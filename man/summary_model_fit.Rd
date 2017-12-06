@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_model_summary.R
 \name{summary_model_fit}
 \alias{summary_model_fit}
-\title{Generate Formated Model Summary Table From Model Fit Results}
+\title{Generate formated model summary table from model fit results}
 \usage{
 summary_model_fit(model_fit_res)
 }
@@ -13,7 +13,7 @@ summary_model_fit(model_fit_res)
 A \code{data.table} of model summary
 }
 \description{
-Generate Formated Model Summary Table From Model Fit Results
+Generate formated model summary table from model fit results
 }
 \examples{
 \dontrun{

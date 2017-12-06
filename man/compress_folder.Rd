@@ -2,7 +2,7 @@
 % Please edit documentation in R/6_files.R
 \name{compress_folder}
 \alias{compress_folder}
-\title{Compress A Folder Into Zip}
+\title{Compress a folder into zip}
 \usage{
 compress_folder(folder_path, zip_name)
 }

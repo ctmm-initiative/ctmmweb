@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_parallel.R
 \name{align_list}
 \alias{align_list}
-\title{Combine Two Lists Into One List By Aligning Each Item}
+\title{Combine two lists into one list by aligning each item}
 \usage{
 align_list(list_a, list_b)
 }

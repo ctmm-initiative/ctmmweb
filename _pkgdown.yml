@@ -15,6 +15,23 @@ reference:
   contents:
   - '`tele_list_info`'
   - '`merge_animals`'
+- title: "Plot Location and Time"
+  desc: ~
+  contents:
+  - '`BIGGER_THEME`'
+  - '`plot_loc`'
+- title: "Variograms"
+  desc: ~
+  contents:
+- title: "Home Range Estimation"
+  desc: ~
+  contents:
+- title: "Occurrence"
+  desc: ~
+  contents:
+- title: "Map"
+  desc: ~
+  contents:
 - title: "Parallel Computing"
   desc: ~
   contents:

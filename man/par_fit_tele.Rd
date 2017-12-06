@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_parallel.R
 \name{par_fit_tele}
 \alias{par_fit_tele}
-\title{Parallel Fit Models On Telemetry List}
+\title{Parallel fit models on telemetry list}
 \usage{
 par_fit_tele(tele_list, fallback = FALSE)
 }
@@ -17,7 +17,7 @@ list of model fitting results on each telemetry object, named by
 telemetry object names
 }
 \description{
-Parallel Fit Models On Telemetry List
+Parallel fit models on telemetry list
 }
 \examples{
 \dontrun{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_parallel.R
 \name{sample_tele_list}
 \alias{sample_tele_list}
-\title{Sample Each Telemetry Object In List}
+\title{Sample each telemetry object in list}
 \usage{
 sample_tele_list(tele_list, m)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_parallel.R
 \name{par_lapply}
 \alias{par_lapply}
-\title{Parallel Apply Function To List In All Platforms}
+\title{Parallel apply function to list in all platforms}
 \usage{
 par_lapply(lst, fun, fallback = FALSE, win_init = ctmmweb:::WIN_INIT_ctmm)
 }

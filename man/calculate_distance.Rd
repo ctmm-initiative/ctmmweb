@@ -2,7 +2,7 @@
 % Please edit documentation in R/1_ctmm_data.R
 \name{calculate_distance}
 \alias{calculate_distance}
-\title{Calculate Distance To Median Center For Each Animal Location}
+\title{Calculate distance to median center for each animal location}
 \usage{
 calculate_distance(animals_dt)
 }

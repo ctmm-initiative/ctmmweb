@@ -1,11 +1,23 @@
 # ggplot ----
+# customize theme ----
+
+#' Override some ggplot2 default theme settings
+#'
+#' - `ctmmweb:::BIGGER_THEME` increase the default ggplot2 legend, axis size
+#' - `ctmmweb:::BIGGER_KEY` increase default legend key size
+#' - `ctmmweb:::CENTER_TITLE` place title in center and bold
+#'
+#' @format A `ggplot2` function call of `ggplot2::theme` or `ggplot2::guides`
+#' @rdname ggplot_customization
 BIGGER_THEME <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                                legend.key.height = grid::unit(8, "mm"),
                                legend.text = ggplot2::element_text(size = 12),
                                axis.title = ggplot2::element_text(size = 14),
                                axis.text = ggplot2::element_text(size = 12))
+#' @rdname ggplot_customization
 BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(
   override.aes = list(size = 4)))
+#' @rdname ggplot_customization
 CENTER_TITLE <- ggplot2::theme(plot.title = ggplot2::element_text(
   hjust = 0.5, face = "bold"))
 # map color to a factor with unused levels included, but don't show them in legend.
@@ -28,11 +40,11 @@ factor_alpha <- function(fac) {
 }
 # plot 2 overview
 
-#' Plot Animal Locations Subset With Background
+#' Plot animal locations subset with background
 #'
-#' Draw a scatter plot of some animals' location with `ggplot2`. To color each
-#' individual consistently and add all animals as background, the full data set
-#' of animals is also needed.
+#' Draw a scatter plot of some animals' location with `ggplot2` (like plot 2
+#' Overview in app). To color each individual consistently and add all animals
+#' as background, the full data set of animals is also needed.
 #'
 #' @param selected_dt A subset of animals. A `data.table` subset taken from
 #'   `dt`.
@@ -52,7 +64,14 @@ factor_alpha <- function(fac) {
 #' dt <- merge_animals(buffalo)$data
 #' selected_dt <- dt[identity %in% c("Gabs", "Queen")]
 #' plot_loc(selected_dt, dt)
-#'
+#' # you can take the ggplot2 object to further customize it
+#' plot_loc(selected_dt, dt) +
+#'   ggplot2::ggtitle("Locations of Buffalos") +
+#'   # override the default left alignment of title and make it bigger
+#'   ctmmweb:::CENTER_TITLE
+#' # or export plot as png
+#' g <- plot_loc(selected_dt, dt)
+#' ggplot2::ggsave("test.png", g)
 plot_loc <- function(selected_dt, dt, point_size = 0.1, overlay_all = TRUE) {
   g <- ggplot2::ggplot() +
   {if (overlay_all) {

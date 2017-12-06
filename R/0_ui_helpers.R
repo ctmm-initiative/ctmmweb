@@ -30,7 +30,7 @@ JS.logify <- function(digits = 2) {
            }
            }")
 }
-#' Register JS Logify Function For Each `sliderInput`
+#' Register JS logify function for each `sliderInput`
 #'
 #' Make Shiny `sliderInput` [support logarithmic
 #' scale](https://stackoverflow.com/a/39028280/3718827). `JS.logify` create a

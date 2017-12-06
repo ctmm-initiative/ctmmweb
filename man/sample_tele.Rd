@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_parallel.R
 \name{sample_tele}
 \alias{sample_tele}
-\title{Sample From Telemetry Object}
+\title{Sample from telemetry object}
 \usage{
 sample_tele(tele, m)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/1_ctmm_data.R
 \name{tele_list_info}
 \alias{tele_list_info}
-\title{Get Information Table For Telemetry Object Or List}
+\title{Get information table for telemetry object or list}
 \usage{
 tele_list_info(tele_obj_list)
 }
@@ -13,5 +13,5 @@ tele_list_info(tele_obj_list)
 An information \code{data.table} for input
 }
 \description{
-Get Information Table For Telemetry Object Or List
+Get information table for telemetry object or list
 }

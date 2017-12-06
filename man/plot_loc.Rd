@@ -2,7 +2,7 @@
 % Please edit documentation in R/2_plot.R
 \name{plot_loc}
 \alias{plot_loc}
-\title{Plot Animal Locations Subset With Background}
+\title{Plot animal locations subset with background}
 \usage{
 plot_loc(selected_dt, dt, point_size = 0.1, overlay_all = TRUE)
 }
@@ -22,9 +22,9 @@ point size.}
 A ggplot object.
 }
 \description{
-Draw a scatter plot of some animals' location with \code{ggplot2}. To make sure
-each individual was colored with consistent color and add all animals as
-background, the full data set of animals is also needed.
+Draw a scatter plot of some animals' location with \code{ggplot2} (like plot 2
+Overview in app). To color each individual consistently and add all animals
+as background, the full data set of animals is also needed.
 }
 \examples{
 library(ctmm)
@@ -33,5 +33,12 @@ data("buffalo")
 dt <- merge_animals(buffalo)$data
 selected_dt <- dt[identity \%in\% c("Gabs", "Queen")]
 plot_loc(selected_dt, dt)
-
+# you can take the ggplot2 object to further customize it
+plot_loc(selected_dt, dt) +
+  ggplot2::ggtitle("Locations of Buffalos") +
+  # override the default left alignment of title and make it bigger
+  ctmmweb:::CENTER_TITLE
+# or export plot as png
+g <- plot_loc(selected_dt, dt)
+ggplot2::ggsave("test.png", g)
 }

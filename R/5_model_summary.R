@@ -122,7 +122,7 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 }
 # exported version, make the interface simpler. our internal version need intermediate steps because we need the intermediate data
 
-#' Generate Formated Model Summary Table From Model Fit Results
+#' Generate formated model summary table from model fit results
 #'
 #' @param model_fit_res list of applying `ctmm::ctmm.select` on telemetry objects
 #'

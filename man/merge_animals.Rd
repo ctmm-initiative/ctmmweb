@@ -2,7 +2,7 @@
 % Please edit documentation in R/1_ctmm_data.R
 \name{merge_animals}
 \alias{merge_animals}
-\title{Generate Merged Location And Info \code{data.table} From Telemetry Object/List}
+\title{Generate merged location and info \code{data.table} from telemetry object/list}
 \usage{
 merge_animals(tele_obj_list)
 }

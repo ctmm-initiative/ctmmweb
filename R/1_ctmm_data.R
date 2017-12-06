@@ -34,7 +34,7 @@ wrap_single_telemetry <- function(tele_obj){
 sort_tele_list <- function(tele_list) {
   tele_list[stringr::str_sort(names(tele_list))]
 }
-#' Get Information Table For Telemetry Object Or List
+#' Get information table for telemetry object or list
 #'
 #' @param tele_obj_list telemetry object or list
 #'
@@ -46,7 +46,7 @@ tele_list_info <- function(tele_obj_list){
   animal_info_list <- lapply(tele_list, single_tele_info)
   rbindlist(animal_info_list)
 }
-#' Calculate Distance To Median Center For Each Animal Location
+#' Calculate distance to median center for each animal location
 #'
 #' If there are big gaps in sampling time, median center for each time group is
 #' used. To reduce duplicate calculation, speed calculation will use some
@@ -139,7 +139,7 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
              by = identity]
   return(animals_dt)
 }
-#' Calculate Speed For Each Animal Location
+#' Calculate speed for each animal location
 #'
 #' It's difficult to get a simple speed definition yet robust to all kinds of
 #' dirty data cases. A sophisticated method is attempt first which should cover
@@ -198,7 +198,7 @@ tele_list_to_dt <- function(tele_obj_list) {
   # animals_data_dt <- calculate_speed(animals_data_dt)
   return(animals_data_dt)
 }
-#' Generate Merged Location And Info `data.table` From Telemetry Object/List
+#' Generate merged location and info `data.table` from telemetry object/list
 #'
 #' A Telemetry list hold mutiple animal data in separate list items, each item
 #' have the animal location data in a data frame, and other information in

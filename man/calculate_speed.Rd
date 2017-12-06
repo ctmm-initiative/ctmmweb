@@ -2,7 +2,7 @@
 % Please edit documentation in R/1_ctmm_data.R
 \name{calculate_speed}
 \alias{calculate_speed}
-\title{Calculate Speed For Each Animal Location}
+\title{Calculate speed for each animal location}
 \usage{
 calculate_speed(animals_dt, device_error)
 }

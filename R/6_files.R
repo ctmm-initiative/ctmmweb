@@ -9,7 +9,7 @@ create_folder <- function(folder_path) {
   dir.create(folder_path, recursive = TRUE)
   return(folder_path)
 }
-#' Compress A Folder Into Zip
+#' Compress a folder into zip
 #'
 #' [`zip`](https://github.com/r-lib/zip) package is used so this is platform
 #' independent. It will keep the relative path structure in zip, include

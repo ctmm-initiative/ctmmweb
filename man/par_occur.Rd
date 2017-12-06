@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_parallel.R
 \name{par_occur}
 \alias{par_occur}
-\title{Parallel Calculate Occurrence From Telemetry And Model List}
+\title{Parallel calculate occurrence from telemetry and model list}
 \usage{
 par_occur(tele_model_list, fallback = FALSE)
 }
@@ -16,7 +16,7 @@ problems.}
 occurrence results list
 }
 \description{
-Parallel Calculate Occurrence From Telemetry And Model List
+Parallel calculate occurrence from telemetry and model list
 }
 \examples{
 \dontrun{
