@@ -725,24 +725,28 @@ output:
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
     animals_dt <- req(select_data()$data)
-    g <- ggplot2::ggplot() +
-      {if (input$overlay_all) {
-        ggplot2::geom_point(data = values$data$merged$data, ggplot2::aes(x, y),
-                            size = input$point_size_1, alpha = 0.6,
-                            colour = "gray")
-      }} +
-      ggplot2::geom_point(data = animals_dt, ggplot2::aes(x, y, colour = id),
-                          size = input$point_size_1, alpha = 0.7) +
+    g <- plot_loc(animals_dt, values$data$merged$data,
+                  input$point_size_1, input$overlay_all) +
       ggplot2::coord_fixed(xlim = location_plot_gg_range$x,
-                           ylim = location_plot_gg_range$y) +
-      ctmmweb:::factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
-      ggplot2::scale_x_continuous(labels =
-                                    ctmmweb:::format_distance_f(animals_dt$x)) +
-      ggplot2::scale_y_continuous(labels =
-                                    ctmmweb:::format_distance_f(animals_dt$y)) +
-      ggplot2::theme(legend.position = "top",
-                     legend.direction = "horizontal") +
-      ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
+                           ylim = location_plot_gg_range$y)
+    # g <- ggplot2::ggplot() +
+    #   {if (input$overlay_all) {
+    #     ggplot2::geom_point(data = values$data$merged$data, ggplot2::aes(x, y),
+    #                         size = input$point_size_1, alpha = 0.6,
+    #                         colour = "gray")
+    #   }} +
+    #   ggplot2::geom_point(data = animals_dt, ggplot2::aes(x, y, colour = id),
+    #                       size = input$point_size_1, alpha = 0.7) +
+    #   ggplot2::coord_fixed(xlim = location_plot_gg_range$x,
+    #                        ylim = location_plot_gg_range$y) +
+    #   ctmmweb:::factor_color(animals_dt$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
+    #   ggplot2::scale_x_continuous(labels =
+    #                                 ctmmweb:::format_distance_f(animals_dt$x)) +
+    #   ggplot2::scale_y_continuous(labels =
+    #                                 ctmmweb:::format_distance_f(animals_dt$y)) +
+    #   ggplot2::theme(legend.position = "top",
+    #                  legend.direction = "horizontal") +
+    #   ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_2_overview")
   }, height = function() { input$canvas_height }, width = "auto"
