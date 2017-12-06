@@ -15,5 +15,5 @@
     - If A is far from the points before and after it in time, both the speed value of point coming to A and A coming to next point are huge. The algorithm need to assign the extreme speed value to appropriate point.
     - It's possible that some data set have special cases that were not handled perfectly by the algorithm.
     - It's often better to use the *distance* tab to filter some obvious outlier first, then the case left for *speed* can be simplified.
-    - See [discussion about the algorithm](https://github.com/ctmm-initiative/ctmm-webapp/issues/5), and [some algorithms used by Movebank](https://www.movebank.org/node/27252).
+    - See [discussion about the algorithm](https://github.com/ctmm-initiative/ctmmweb/issues/5), and [some algorithms used by Movebank](https://www.movebank.org/node/27252).
     - If the sophisticated method failed for any reason, it will fall back to a simpler method with less accurate estimation but more robust for data.

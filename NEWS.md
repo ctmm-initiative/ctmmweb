@@ -1,7 +1,7 @@
 
 ## version 0.1.0, in progress
 - change repo name to match package name
-- [export most features of app as package functions](https://github.com/ctmm-initiative/ctmm-webapp/issues/41) 
+- [export most features of app as package functions](https://github.com/ctmm-initiative/ctmmweb/issues/41) 
 
 ## version 0.0.9, 2017/12/04, Package
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.
@@ -16,7 +16,7 @@
 - For the version after this change, you cannot launch specific version using previous method. You can install certain version of package with
 
 ```r
-devtools::install_github("ctmm-initiative/ctmm-webapp", ref = "v0.0.9")
+devtools::install_github("ctmm-initiative/ctmmweb", ref = "v0.0.9")
 ctmmweb::app()
 ```
 
@@ -46,7 +46,7 @@ ctmmweb::app()
 Run this version with
 
 ```r
-shiny::runGitHub('ctmm-initiative/ctmm-webapp', ref = "v0.0.4")
+shiny::runGitHub('ctmm-initiative/ctmmweb', ref = "v0.0.4")
 ```
 
 ## version 0.0.2, 2017/02/28, Data exploration, plots, time subsetting
@@ -60,7 +60,7 @@ Though the latter stages of modeling is not connected yet, because the modeling 
 Run this version with
 
 ```r
-shiny::runGitHub('ctmm-initiative/ctmm-webapp', ref = "v0.0.2")
+shiny::runGitHub('ctmm-initiative/ctmmweb', ref = "v0.0.2")
 ```
 
 ## version 0.0.1, 2017/01/27, First rudimental version 
@@ -73,5 +73,5 @@ To run this version you need to install shinyjs (which is not required in later 
 
 ```r
 install.packages("shinyjs")
-shiny::runGitHub('ctmm-initiative/ctmm-webapp', ref = "v0.0.1")
+shiny::runGitHub('ctmm-initiative/ctmmweb', ref = "v0.0.1")
 ```

@@ -12,7 +12,7 @@ you can reuse some functionalities in your own R analysis.
 }
 \details{
 \itemize{
-\item \href{https://github.com/ctmm-initiative/ctmm-webapp}{github repo}
-\item \href{https://ctmm-initiative.github.io/ctmm-webapp/}{reference site}
+\item \href{https://github.com/ctmm-initiative/ctmmweb}{github repo}
+\item \href{https://ctmm-initiative.github.io/ctmmweb/}{reference site}
 }
 }

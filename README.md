@@ -4,10 +4,10 @@ This is a web app package for analyzing animal tracking data as a continuous-tim
 
 It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). This is also a R package so you can reuse some functionalities in your own R analysis. 
 
-- Check [the videos here](https://ctmm-initiative.github.io/ctmm-webapp/articles/demo.html) for feature demonstrations. 
+- Check [the videos here](https://ctmm-initiative.github.io/ctmmweb/articles/demo.html) for feature demonstrations. 
 - The `help` buttons in each page also have detailed documentations for the specific feature.
-- [The package reference website](https://ctmm-initiative.github.io/ctmm-webapp/) provided some installation tips and documentations for package functions.
-- [Release History](https://ctmm-initiative.github.io/ctmm-webapp/news/index.html)
+- [The package reference website](https://ctmm-initiative.github.io/ctmmweb/) provided some installation tips and documentations for package functions.
+- [Release History](https://ctmm-initiative.github.io/ctmmweb/news/index.html)
 
 ## Running the app
 
@@ -23,7 +23,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
 
     ```r
     if (!require("devtools")) install.packages("devtools")
-    devtools::install_github("ctmm-initiative/ctmm-webapp")
+    devtools::install_github("ctmm-initiative/ctmmweb")
     ```
 
 3. Run the app in one of following methods:
@@ -38,7 +38,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
     ```
   This will start the app locally with RStudio's embeded browser. In windows/Linux this has known compatibility problems. You can click the `open in browser` button in the browser top bar to use system browser instead. Chrome is recommended.
   
-  More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmm-webapp/articles/installation.html) 
+  More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmmweb/articles/installation.html) 
 
 ### Hosted app
 Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 

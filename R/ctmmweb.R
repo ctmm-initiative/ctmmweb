@@ -6,8 +6,8 @@
 #' [ctmm](https://github.com/ctmm-initiative/ctmm). This is also a R package so
 #' you can reuse some functionalities in your own R analysis.
 #'
-#' - [github repo](https://github.com/ctmm-initiative/ctmm-webapp)
-#' - [reference site](https://ctmm-initiative.github.io/ctmm-webapp/)
+#' - [github repo](https://github.com/ctmm-initiative/ctmmweb)
+#' - [reference site](https://ctmm-initiative.github.io/ctmmweb/)
 #'
 #' @docType package
 #' @name ctmmweb

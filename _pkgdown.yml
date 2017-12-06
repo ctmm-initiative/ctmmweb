@@ -1,5 +1,5 @@
 title: ctmmweb
-url: https://ctmm-initiative.github.io/ctmm-webapp/
+url: https://ctmm-initiative.github.io/ctmmweb/
 
 template:
   params:
@@ -50,5 +50,5 @@ navbar:
   - text: News
     href: news/index.html
   - icon: fa-github fa-lg
-    href: https://github.com/ctmm-initiative/ctmm-webapp
+    href: https://github.com/ctmm-initiative/ctmmweb
 
