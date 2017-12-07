@@ -75,28 +75,24 @@ server <- function(input, output, session) {
   log_save_ggplot <- function(g, f_name, on = option_selected("record_on")) {
     if (!on) return(g)
     # need to save current device and restore it. otherwise plotting in R console will cause app draw plot to RStudio plot window. https://stackoverflow.com/questions/47699956/ggplot-in-shiny-app-go-to-rstudio-plot-window/.
-    ctmmweb::safe_print(
-      print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name),
-                                        plot = g)))
-    )
+    cur_dev <- dev.cur()
+    print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name),
+                                      plot = g)))
+    dev.set(cur_dev)
     return(g)
   }
-  # only used for variogram, with specific format and parameters, some came from input. we don't need to return something in end of renderPlot for basic plot, since plot seemed to be side effect. (ggplot need the object to be overriden so interactive plot can have proper scale, see ?renderPlot)
+  # only used for variogram, with specific format and parameters, some came from input. we don't need to return something in end of renderPlot for basic plot, since plot seemed to be side effect. (ggplot need the object to be overriden so interactive plot can have proper scale, see ?renderPlot). It also don't have the ggsave changing current device problem
   log_save_vario <- function(f_name, rows, cols,
                              on = option_selected("record_on")) {
     if (!on) return()
-    ctmmweb::safe_print(
-      grDevices::dev.print(png, file = log_prepare_plot(f_name),
-                           units = "in", res = 220,
-                           width = cols * 4, height = rows * 3)
-    )
+    grDevices::dev.print(png, file = log_prepare_plot(f_name),
+                         units = "in", res = 220,
+                         width = cols * 4, height = rows * 3)
   }
   # pdf is better for home range, occurrence
   log_save_UD <- function(f_name, on = option_selected("record_on")) {
     if (!on) return()
-    ctmmweb::safe_print(
-      grDevices::dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
-    )
+    grDevices::dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
   }
   # save dt into markdown table or csv. note the msg could be in different format
   log_dt_md <- function(dt, msg, on = option_selected("record_on")) {
