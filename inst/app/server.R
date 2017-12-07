@@ -725,7 +725,7 @@ output:
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
     animals_dt <- req(select_data()$data)
-    g <- plot_loc(animals_dt, values$data$merged$data,
+    g <- ctmmweb::plot_loc(animals_dt, values$data$merged$data,
                   input$point_size_1, input$overlay_all) +
       ggplot2::coord_fixed(xlim = location_plot_gg_range$x,
                            ylim = location_plot_gg_range$y)

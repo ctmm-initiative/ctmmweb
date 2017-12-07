@@ -73,7 +73,7 @@ factor_alpha <- function(fac) {
 #' g <- plot_loc(selected_dt, dt)
 #' ggplot2::ggsave("test.png", g)
 plot_loc <- function(selected_dt, dt, point_size = 0.1, overlay_all = TRUE) {
-  g <- ggplot2::ggplot() +
+  ggplot2::ggplot() +
   {if (overlay_all) {
     ggplot2::geom_point(data = dt, ggplot2::aes(x, y),
                         size = point_size, alpha = 0.6,
@@ -92,5 +92,4 @@ plot_loc <- function(selected_dt, dt, point_size = 0.1, overlay_all = TRUE) {
     ggplot2::theme(legend.position = "top",
                    legend.direction = "horizontal") +
     ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
-  g
 }
