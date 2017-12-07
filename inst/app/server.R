@@ -758,17 +758,18 @@ output:
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
     animals_dt <- req(select_data()$data)
-    g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x, y)) +
-      ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
-      ggplot2::scale_x_continuous(labels =
-                                    ctmmweb:::format_distance_f(animals_dt$x)) +
-      ggplot2::scale_y_continuous(labels =
-                                    ctmmweb:::format_distance_f(animals_dt$y)) +
-      ctmmweb:::factor_color(animals_dt$id) +
-      ggplot2::facet_grid(id ~ .) +
-      ggplot2::coord_fixed() +
-      ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
-      ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
+    g <- ctmmweb::plot_loc_facet(animals_dt)
+    # g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x, y)) +
+    #   ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
+    #   ggplot2::scale_x_continuous(labels =
+    #                                 ctmmweb:::format_distance_f(animals_dt$x)) +
+    #   ggplot2::scale_y_continuous(labels =
+    #                                 ctmmweb:::format_distance_f(animals_dt$y)) +
+    #   ctmmweb:::factor_color(animals_dt$id) +
+    #   ggplot2::facet_grid(id ~ .) +
+    #   ggplot2::coord_fixed() +
+    #   ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
+    #   ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_3_facet")
   }, height = function() { input$canvas_height }, width = "auto")
@@ -811,13 +812,14 @@ output:
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(select_data()$data)
-    g <- ggplot2::ggplot(data = animals_dt,
-                         ggplot2::aes(x = timestamp, fill = id)) +
-      ggplot2::geom_histogram(bins = 60) +
-      ctmmweb:::factor_fill(animals_dt$id) +
-      ggplot2::facet_grid(id ~ .) +
-      ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
-      ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
+    g <- ctmmweb::plot_time(animals_dt)
+    # g <- ggplot2::ggplot(data = animals_dt,
+    #                      ggplot2::aes(x = timestamp, fill = id)) +
+    #   ggplot2::geom_histogram(bins = 60) +
+    #   ctmmweb:::factor_fill(animals_dt$id) +
+    #   ggplot2::facet_grid(id ~ .) +
+    #   ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
+    #   ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_5_histogram")
   }, height = ctmmweb:::STYLES$height_hist, width = "auto")

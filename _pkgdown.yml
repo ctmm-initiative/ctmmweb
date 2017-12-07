@@ -20,6 +20,8 @@ reference:
   contents:
   - '`BIGGER_THEME`'
   - '`plot_loc`'
+  - '`plot_loc_facet`'
+  - '`plot_time`'
 - title: "Variograms"
   desc: ~
   contents:

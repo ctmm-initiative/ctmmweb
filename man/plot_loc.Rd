@@ -2,13 +2,15 @@
 % Please edit documentation in R/2_plot.R
 \name{plot_loc}
 \alias{plot_loc}
-\title{Plot animal locations subset with background}
+\title{Plot animal locations subset with all as background}
 \usage{
 plot_loc(selected_dt, dt, point_size = 0.1, overlay_all = TRUE)
 }
 \arguments{
-\item{selected_dt}{A subset of animals. A \code{data.table} subset taken from
-\code{dt}.}
+\item{selected_dt}{A subset of animals. A \code{data.table} subset taken from full
+data set of all animals location. Note the \code{id} column is factor with all
+animals identity as levels. So this subset still have all identities
+information, which is needed to color each animal consistently.}
 
 \item{dt}{The full data set of all animals location in merged \code{data.table}
 format. Usually came from \link{merge_animals}.}
@@ -23,8 +25,8 @@ A ggplot object.
 }
 \description{
 Draw a scatter plot of some animals' location with \code{ggplot2} (like plot 2
-Overview in app). To color each individual consistently and add all animals
-as background, the full data set of animals is also needed.
+Overview in app). To add all animals as background, the full data set of
+animals is also needed.
 }
 \examples{
 library(ctmm)
@@ -32,7 +34,6 @@ library(ctmmweb)
 data("buffalo")
 dt <- merge_animals(buffalo)$data
 selected_dt <- dt[identity \%in\% c("Gabs", "Queen")]
-plot_loc(selected_dt, dt)
 # you can take the ggplot2 object to further customize it
 plot_loc(selected_dt, dt) +
   ggplot2::ggtitle("Locations of Buffalos") +
@@ -40,5 +41,5 @@ plot_loc(selected_dt, dt) +
   ctmmweb:::CENTER_TITLE
 # or export plot as png
 g <- plot_loc(selected_dt, dt)
-ggplot2::ggsave("test.png", g)
+# ggplot2::ggsave("test.png", g)
 }
