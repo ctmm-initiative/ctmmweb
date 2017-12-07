@@ -74,8 +74,11 @@ server <- function(input, output, session) {
   }
   log_save_ggplot <- function(g, f_name, on = option_selected("record_on")) {
     if (!on) return(g)
+    # need to save current device and restore it. otherwise plotting in R console will cause app draw plot to RStudio plot window. https://stackoverflow.com/questions/47699956/ggplot-in-shiny-app-go-to-rstudio-plot-window/
+    cur_dev <- dev.cur()
     print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name),
                                       plot = g)))
+    dev.set(cur_dev)
     return(g)
   }
   # only used for variogram, with specific format and parameters, some came from input
