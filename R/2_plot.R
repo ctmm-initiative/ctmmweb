@@ -38,6 +38,31 @@ factor_alpha <- function(fac) {
   # scale_alpha_discrete(drop = FALSE, breaks = levels(droplevels(fac)))
   factor_mapper(fac, ggplot2::scale_alpha_discrete)
 }
+
+#' Print/Save plot in Shiny safely
+#'
+#' If there is open graphic device in R session (for example, just made some
+#' plots), saving plot to file through `ggplot2::ggsave` or other print methods
+#' inside Shiny may mess up the graphic device of Shiny, and all plots will go
+#' to the RStudio plot window or R plot window.
+#' [Example](https://stackoverflow.com/questions/47699956/ggplot-in-shiny-app-go-to-rstudio-plot-window/)
+#'
+#' This function simply save current graphic device before printing/saving and
+#' restore it later.
+#'
+#' @param expr An expression that print/save plots.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   safe_print(ggsave("plot.png", g))
+#' }
+safe_print <- function(expr) {
+  cur_dev <- dev.cur()
+  expr
+  dev.set(cur_dev)
+}
 # plot 2 overview
 
 #' Plot animal locations subset with background
