@@ -14,7 +14,7 @@ reference:
   desc: Input ctmm telemetry data need to be converted to `data.table` for app uses
   contents:
   - '`tele_list_info`'
-  - '`merge_animals`'
+  - '`merge_tele`'
 - title: "Plot Location and Time"
   desc: ~
   contents:

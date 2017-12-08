@@ -7,7 +7,7 @@
 calculate_distance(animals_dt)
 }
 \arguments{
-\item{animals_dt}{telemetry data in merged data.table. See \code{\link[=merge_animals]{merge_animals()}}}
+\item{animals_dt}{telemetry data in merged data.table. See \code{\link[=merge_tele]{merge_tele()}}}
 }
 \value{
 data.table with distance columns added. Note the input parameter is

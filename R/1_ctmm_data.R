@@ -53,7 +53,7 @@ tele_list_info <- function(tele_obj_list){
 #' columns created in distance calculation. Always `calculate_distance` first
 #' then [calculate_speed()].
 #'
-#' @param animals_dt telemetry data in merged data.table. See [merge_animals()]
+#' @param animals_dt telemetry data in merged data.table. See [merge_tele()]
 #'
 #' @return data.table with distance columns added. Note the input parameter is
 #'   modified in place.
@@ -207,25 +207,24 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' it's better to merge all location data into single data frame with an animal
 #' id column.
 #'
-#' We chose this data structure to be the main structure and made the app to
-#' work on a set of animals at the same time in all steps. Thus any input
-#' telemetry object/List need to be merged into a `data.table` of location data,
-#' and another information `data.table` for animals. `data.table` is chosen over
-#' `data.frame` for much better performance.
+#' Thus any input telemetry object/List need to be merged into a `data.table` of
+#' location data, and another information `data.table` for animals. `data.table`
+#' is chosen over `data.frame` for much better performance. This is the main
+#' data structure in app. The app works on any selected subset of it in almost
+#' all steps.
 #'
 #' @param tele_obj_list telemetry object/list
 #'
 #' @return list of
 #' - `data`: all animals merged in one data.table
-#' - `info`:
-#'   animal information table
+#' - `info`: animal information table
 #' @export
 #'
 #' @examples
 #' library(ctmm)
 #' data(buffalo)
-#' merge_animals(buffalo)
-merge_animals <- function(tele_obj_list) {
+#' merge_tele(buffalo)
+merge_tele <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
               info = tele_list_info(tele_obj_list)))
 }

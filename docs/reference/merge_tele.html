@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Generate merged location and info <code>data.table</code> from telemetry object/list — merge_animals • ctmmweb</title>
+<title>Generate merged location and info <code>data.table</code> from telemetry object/list — merge_tele • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -104,7 +104,7 @@ it's better to merge all location data into single data frame with an animal
 id column.</p>
     
 
-    <pre class="usage"><span class='fu'>merge_animals</span>(<span class='no'>tele_obj_list</span>)</pre>
+    <pre class="usage"><span class='fu'>merge_tele</span>(<span class='no'>tele_obj_list</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -119,24 +119,23 @@ id column.</p>
 
     <p>list of</p><ul>
 <li><p><code>data</code>: all animals merged in one data.table</p></li>
-<li><p><code>info</code>:
-animal information table</p></li>
+<li><p><code>info</code>: animal information table</p></li>
 </ul>
 
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>We chose this data structure to be the main structure and made the app to
-work on a set of animals at the same time in all steps. Thus any input
-telemetry object/List need to be merged into a <code>data.table</code> of location data,
-and another information <code>data.table</code> for animals. <code>data.table</code> is chosen over
-<code>data.frame</code> for much better performance.</p>
+    <p>Thus any input telemetry object/List need to be merged into a <code>data.table</code> of
+location data, and another information <code>data.table</code> for animals. <code>data.table</code>
+is chosen over <code>data.frame</code> for much better performance. This is the main
+data structure in app. The app works on any selected subset of it in almost
+all steps.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='fu'>library</span>(<span class='no'>ctmm</span>)
 <span class='fu'>data</span>(<span class='no'>buffalo</span>)
-<span class='fu'>merge_animals</span>(<span class='no'>buffalo</span>)</div><div class='output co'>#&gt; $data
+<span class='fu'>merge_tele</span>(<span class='no'>buffalo</span>)</div><div class='output co'>#&gt; $data
 #&gt;                  timestamp longitude  latitude          t         x          y
 #&gt;     1: 2005-07-14 05:35:00  31.88776 -24.96738 1121319300  35215.76   836.7338
 #&gt;     2: 2005-07-14 07:35:00  31.85942 -24.94288 1121326500  32127.59 -1629.8224

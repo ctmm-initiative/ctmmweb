@@ -116,7 +116,7 @@ information, which is needed to color each animal consistently.</p></td>
     <tr>
       <th>dt</th>
       <td><p>The full data set of all animals location in merged <code>data.table</code>
-format. Usually came from <a href='merge_animals.html'>merge_animals</a>.</p></td>
+format. Usually came from merge_animals.</p></td>
     </tr>
     <tr>
       <th>point_size</th>
@@ -138,15 +138,13 @@ point size.</p></td>
     <pre class="examples"><div class='input'><span class='fu'>library</span>(<span class='no'>ctmm</span>)
 <span class='fu'>library</span>(<span class='no'>ctmmweb</span>)
 <span class='fu'>data</span>(<span class='st'>"buffalo"</span>)
-<span class='no'>dt</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='merge_animals.html'>merge_animals</a></span>(<span class='no'>buffalo</span>)$<span class='no'>data</span>
-<span class='no'>selected_dt</span> <span class='kw'>&lt;-</span> <span class='no'>dt</span>[<span class='no'>identity</span> <span class='kw'>%in%</span> <span class='fu'>c</span>(<span class='st'>"Gabs"</span>, <span class='st'>"Queen"</span>)]
-<span class='co'># you can take the ggplot2 object to further customize it</span>
+<span class='no'>dt</span> <span class='kw'>&lt;-</span> <span class='fu'>merge_animals</span>(<span class='no'>buffalo</span>)$<span class='no'>data</span></div><div class='output co'>#&gt; <span class='error'>Error in merge_animals(buffalo): could not find function "merge_animals"</span></div><div class='input'><span class='no'>selected_dt</span> <span class='kw'>&lt;-</span> <span class='no'>dt</span>[<span class='no'>identity</span> <span class='kw'>%in%</span> <span class='fu'>c</span>(<span class='st'>"Gabs"</span>, <span class='st'>"Queen"</span>)]</div><div class='output co'>#&gt; <span class='error'>Error in match(x, table, nomatch = 0L): 'match' requires vector arguments</span></div><div class='input'><span class='co'># you can take the ggplot2 object to further customize it</span>
 <span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='no'>dt</span>) +
   <span class='kw pkg'>ggplot2</span><span class='kw ns'>::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/labs'>ggtitle</a></span>(<span class='st'>"Locations of Buffalos"</span>) +
   <span class='co'># override the default left alignment of title and make it bigger</span>
-  <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'><a href='http://www.rdocumentation.org/packages/ctmmweb/topics/ggplot_customization'>CENTER_TITLE</a></span></div><div class='img'><img src='plot_loc-1.png' alt='' width='700' height='432.632880098887' /></div><div class='input'><span class='co'># or export plot as png</span>
-<span class='no'>g</span> <span class='kw'>&lt;-</span> <span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='no'>dt</span>)
-<span class='co'># ggplot2::ggsave("test.png", g)</span></div></pre>
+  <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'><a href='http://www.rdocumentation.org/packages/ctmmweb/topics/ggplot_customization'>CENTER_TITLE</a></span></div><div class='output co'>#&gt; <span class='error'>Error in fortify(data): object 'selected_dt' not found</span></div><div class='input'><span class='co'># or export plot as png</span>
+<span class='no'>g</span> <span class='kw'>&lt;-</span> <span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='no'>dt</span>)</div><div class='output co'>#&gt; <span class='error'>Error in fortify(data): object 'selected_dt' not found</span></div><div class='input'># ggplot2::ggsave("test.png", g)
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

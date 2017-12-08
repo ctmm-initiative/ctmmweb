@@ -228,7 +228,7 @@ output:
     ctmmweb::par_occur,
     cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
-  # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_animals. this should got run automatically? no if not referenced. need reactive expression to refer values$.
+  # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from merge_tele. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
     if (VERIFY_DATA_SYNC) {
@@ -248,7 +248,7 @@ output:
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
-    values$data$merged <- ctmmweb::merge_animals(tele_list)
+    values$data$merged <- ctmmweb::merge_tele(tele_list)
     values$data$all_removed_outliers <- NULL
     values$selected_data_model_fit_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
@@ -1226,11 +1226,11 @@ output:
   })
   # tried to add delete rows like the time range table, but that need to update a lot of values in proper order, the reset is easy because it just use original input. Not really need this complex operations.
   # reset outlier removal ----
-  # method 1. merge data back, just reverse the remove outlier. that require add rows to tele which is not possible now? need that tele update function later. if this is doable, pros: merge dt is faster than merge_animals; time-subset don't need to update input tele, only need to maintain current tele/dt.
+  # method 1. merge data back, just reverse the remove outlier. that require add rows to tele which is not possible now? need that tele update function later. if this is doable, pros: merge dt is faster than merge_tele; time-subset don't need to update input tele, only need to maintain current tele/dt.
   # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
     values$data$tele_list <- values$data$input_tele_list
-    values$data$merged <- ctmmweb::merge_animals(values$data$tele_list)
+    values$data$merged <- ctmmweb::merge_tele(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
     # LOG reset removal
     log_msg("All Removed Outliers Restored")
