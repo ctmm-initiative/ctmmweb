@@ -1458,7 +1458,7 @@ output:
              size = "l", file = "help/5_b_irregular_data.md")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
-  # calculate vario row and height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all of them.
+  # calculate vario row and height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all.
   get_vario_layout <- function(vario_list, figure_height, column) {
     fig_count <- length(vario_list)
     row_count <- ceiling(fig_count / column)
@@ -1487,16 +1487,8 @@ output:
            modeled = select_models()$models_list
     )
   })
-  # modeled mode and home range etc share same layout, which could coexist with variograms. so we cannot use one layout for all of them.
-  # select_data_vario_layout <- reactive({
-  #   fig_count <- length(select_data_vario_list())
-  #   row_count <- ceiling(fig_count / input$vario_columns)
-  #   height <- input$vario_height * row_count
-  #   # return(list(layout_matrix = layout_matrix, height = height))
-  #   return(list(row_count = row_count, height = height))
-  # })
   # current_vario() ----
-  # switch input vario, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches.
+  # switch vario_list, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches.
   current_vario <- reactive({
     current <- list()
     if (input$vario_mode != "modeled") {
@@ -1588,11 +1580,11 @@ output:
       log_msg("Fine-tune Parameters for", input$fit_selected)
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
                                            input$fit_selected),
-                            fluidRow(column(4, uiOutput("fit_sliders")),
-                                     column(8, plotOutput("fit_plot")),
-                                     column(4, offset = 2, uiOutput("fit_zoom"))),
-                            size = "l",
-                            footer = fluidRow(
+                      fluidRow(column(4, uiOutput("fit_sliders")),
+                               column(8, plotOutput("fit_plot")),
+                               column(4, offset = 2, uiOutput("fit_zoom"))),
+                      size = "l",
+                      footer = fluidRow(
         column(3, actionButton("center_slider", "Center current sliders",
                                icon = icon("align-center"))),
         column(3, offset = 2,
@@ -1678,7 +1670,8 @@ output:
     removeModal()
     ids <- sapply(select_data_vario()$vario_list,
                   function(vario) vario@info$identity)
-    values$selected_data_guess_list[ids == input$fit_selected][[1]] <- slider_to_CTMM()
+    values$selected_data_guess_list[ids == input$fit_selected][[1]] <-
+      slider_to_CTMM()
   })
   # fine tune fit end ----
   # p5. model selection ----
