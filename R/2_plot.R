@@ -51,11 +51,10 @@ factor_alpha <- function(fac) {
 #'   animals identity as levels. So this subset still have all identities
 #'   information, which is needed to color each animal consistently.
 #' @param dt The full data set of all animals location in merged `data.table`
-#'   format. Usually came from [merge_animals].
+#'   format. Usually came from [merge_animals]. Default `NULL` means no full
+#'   data as background.
 #' @param point_size The size of point in plot. Denser plot may need smaller
 #'   point size.
-#' @param overlay_all Draw full data set as background
-#'
 #' @return A ggplot object.
 #' @export
 #'
@@ -73,9 +72,9 @@ factor_alpha <- function(fac) {
 #' # or export plot as png
 #' g <- plot_loc(selected_dt, dt)
 #' # ggplot2::ggsave("test.png", g)
-plot_loc <- function(selected_dt, dt, point_size = 0.1, overlay_all = TRUE) {
+plot_loc <- function(selected_dt, dt = NULL, point_size = 0.1) {
   ggplot2::ggplot() +
-  {if (overlay_all) {
+  {if (!is.null(dt)) {
     ggplot2::geom_point(data = dt, ggplot2::aes(x, y),
                         size = point_size, alpha = 0.6,
                         colour = "gray")

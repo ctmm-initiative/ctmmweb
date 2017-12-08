@@ -4,7 +4,7 @@
 \alias{plot_loc}
 \title{Plot animal locations subset with all as background}
 \usage{
-plot_loc(selected_dt, dt, point_size = 0.1, overlay_all = TRUE)
+plot_loc(selected_dt, dt = NULL, point_size = 0.1)
 }
 \arguments{
 \item{selected_dt}{A subset of animals. A \code{data.table} subset taken from full
