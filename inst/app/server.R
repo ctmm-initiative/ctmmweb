@@ -1458,99 +1458,118 @@ output:
              size = "l", file = "help/5_b_irregular_data.md")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
-  # select_data_vario_list() ----
-  # select_data_vario_list is variogram for current data.
-  select_data_vario_list <- reactive({
+  # calculate vario row and height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all of them.
+  get_vario_layout <- function(vario_list, figure_height, column) {
+    fig_count <- length(vario_list)
+    row_count <- ceiling(fig_count / column)
+    height <- figure_height * row_count
+    return(list(row_count = row_count, height = height))
+  }
+  # select_data_vario() ----
+  # variogram list and layout for current data. In modeled mode there are multiple models for every animal, need to have additional selection on models and new set of input, layout. The vario mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
+  select_data_vario <- reactive({
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
-    res <- lapply(tele_list, ctmm::variogram)
-    names(res) <- names(tele_list)
-    return(res)
+    vario_list <- lapply(tele_list, ctmm::variogram)
+    names(vario_list) <- names(tele_list)  # needed for figure title
+    vario_layout <- get_vario_layout(vario_list,
+                                     input$vario_height, input$vario_columns)
+    return(list(vario_list = vario_list, vario_layout = vario_layout))
   })
-  # select_data_vario_layout() ----
-  # modeled mode and home range etc share same layout, which could coexist with variograms. so we cannot use one layout for all of them.
-  select_data_vario_layout <- reactive({
-    fig_count <- length(select_data_vario_list())
-    row_count <- ceiling(fig_count / input$vario_columns)
-    height <- input$vario_height * row_count
-    # return(list(layout_matrix = layout_matrix, height = height))
-    return(list(row_count = row_count, height = height))
-  })
-  # variogram CTMM ----
-  get_vario_ctmm_list <- reactive({
+  # current_vario_model_list() ----
+  # if put inside vario_parameters, fine tune didn't trigger changes correctly. maybe because guess_list is defined inside that reactive, new changes didn't override the initialization
+  current_vario_model_list <- reactive({
     switch(input$vario_mode,
            empirical = NULL,
            guesstimate = values$selected_data_guess_list,
            modeled = select_models()$models_list
-           )
+    )
+  })
+  # modeled mode and home range etc share same layout, which could coexist with variograms. so we cannot use one layout for all of them.
+  # select_data_vario_layout <- reactive({
+  #   fig_count <- length(select_data_vario_list())
+  #   row_count <- ceiling(fig_count / input$vario_columns)
+  #   height <- input$vario_height * row_count
+  #   # return(list(layout_matrix = layout_matrix, height = height))
+  #   return(list(row_count = row_count, height = height))
+  # })
+  # current_vario() ----
+  # switch input vario, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches.
+  current_vario <- reactive({
+    current <- list()
+    if (input$vario_mode != "modeled") {
+      current <- select_data_vario()
+    } else {
+      # model mode need each item in different places so not packed in list
+      current$vario_list <- select_models()$vario_list
+      current$vario_layout <- select_models()$vario_layout
+    }
+    return(current)
   })
   # plot variograms ----
   output$vario_plot_zoom <- renderPlot({
-    # in modeled mode there are multiple models for every animal, will have different layout and selections. draw selected subset of select_data_vario_list and selected models, using select_models_layout
-    if (input$vario_mode != "modeled") {
-      vario_list <- select_data_vario_list()
-      row_count <- select_data_vario_layout()$row_count
-      title_vec <- names(select_data()$tele_list)
-    } else {
-      vario_list <- select_models()$vario_list
-      row_count <- select_models_layout()$row_count
-      title_vec <- select_models()$names_dt$full_name
-    }
-    ctmm_list <- get_vario_ctmm_list()  # this adjust to selected models by self
     ctmm_color <- switch(input$vario_mode,
                          guesstimate = "green",
                          modeled = "purple")
-    def.par <- graphics::par(no.readonly = TRUE)
-    graphics::par(mfrow = c(row_count, input$vario_columns),
-        mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    if (input$vario_option == "absolute") {
-      max.lag <- max(sapply(vario_list, function(v){ last(v$lag) } ))
-      xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
-      vario_zoomed_list <- lapply(vario_list,
-                             function(vario) vario[vario$lag <= xlim, ])
-      extent_tele <- ctmm::extent(vario_zoomed_list)
-      for (i in seq_along(vario_zoomed_list)) {
-        plot(vario_zoomed_list[[i]], CTMM = ctmm_list[[i]],
-             col.CTMM = ctmm_color, fraction = 1,
-             xlim = c(0, extent_tele["max", "x"]),
-             ylim = c(0, extent_tele["max", "y"]))
-        graphics::title(title_vec[i])
-        # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
-        #   title(vario_zoomed_list[[i]]@info$identity, sub = "Error on",
-        #         cex.sub = 0.85, col.sub = "red")
-        # } else {
-        #   title(title_vec[i])
-        # }
-      }
-    } else {
-      for (i in seq_along(vario_list)) {
-        plot(vario_list[[i]], CTMM = ctmm_list[[i]],
-             col.CTMM = ctmm_color,
-             fraction = 10 ^ input$zoom_lag_fraction)
-        # browser()
-        graphics::title(title_vec[i])
-        # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
-        #   title(vario_list[[i]]@info$identity, sub = "Error on",
-        #         cex.sub = 0.85, col.sub = "red")
-        # } else {
-        #   title(vario_list[[i]]@info$identity)
-        # }
-        # if (ctmm_list[[i]]$error) {
-        #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
-        # }
-      }
-    }
+    # actual fraction value from slider is not in log, need to convert
+    ctmmweb::plot_vario(current_vario()$vario_list,
+                        current_vario_model_list(),
+                        fraction = 10 ^ input$zoom_lag_fraction,
+                        relative_zoom = (input$vario_option == "relative"),
+                        model_color = ctmm_color, columns = input$vario_columns)
+    # def.par <- graphics::par(no.readonly = TRUE)
+    # graphics::par(mfrow = c(row_count, input$vario_columns),
+    #     mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+    # if (input$vario_option == "absolute") {
+    #   max.lag <- max(sapply(vario_list, function(v){ last(v$lag) } ))
+    #   xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
+    #   vario_zoomed_list <- lapply(vario_list,
+    #                          function(vario) vario[vario$lag <= xlim, ])
+    #   extent_tele <- ctmm::extent(vario_zoomed_list)
+    #   for (i in seq_along(vario_zoomed_list)) {
+    #     plot(vario_zoomed_list[[i]], CTMM = ctmm_list[[i]],
+    #          col.CTMM = ctmm_color, fraction = 1,
+    #          xlim = c(0, extent_tele["max", "x"]),
+    #          ylim = c(0, extent_tele["max", "y"]))
+    #     graphics::title(title_vec[i])
+    #     # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
+    #     #   title(vario_zoomed_list[[i]]@info$identity, sub = "Error on",
+    #     #         cex.sub = 0.85, col.sub = "red")
+    #     # } else {
+    #     #   title(title_vec[i])
+    #     # }
+    #   }
+    # } else {
+    #   for (i in seq_along(vario_list)) {
+    #     plot(vario_list[[i]], CTMM = ctmm_list[[i]],
+    #          col.CTMM = ctmm_color,
+    #          fraction = 10 ^ input$zoom_lag_fraction)
+    #     # browser()
+    #     graphics::title(title_vec[i])
+    #     # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
+    #     #   title(vario_list[[i]]@info$identity, sub = "Error on",
+    #     #         cex.sub = 0.85, col.sub = "red")
+    #     # } else {
+    #     #   title(vario_list[[i]]@info$identity)
+    #     # }
+    #     # if (ctmm_list[[i]]$error) {
+    #     #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
+    #     # }
+    #   }
+    # }
     # LOG save pic
-    log_save_vario("vario", row_count, input$vario_columns)
-    graphics::par(def.par)
+    log_save_vario("vario", current_vario()$vario_layout$row_count,
+                   input$vario_columns)
+    # graphics::par(def.par)
   }, height = function() {
-      if (input$vario_mode != "modeled") {
-        select_data_vario_layout()$height
-      } else {
-        select_models_layout()$height
-      }
+      current_vario()$vario_layout$height
+      # if (input$vario_mode != "modeled") {
+      #   select_data_vario()$vario_layout$height
+      # } else {
+      #   select_models()$vario_layout$height
+      # }
     }
   )
   # select individual plot to fine tune
@@ -1587,9 +1606,9 @@ output:
   })
   # init values of sliders ----
   init_slider_values <- reactive({
-    req(select_data_vario_list())
-    ids <- names(select_data_vario_list())
-    vario <- select_data_vario_list()[ids == input$fit_selected][[1]]
+    vario_list <- req(select_data_vario()$vario_list)
+    ids <- names(vario_list)
+    vario <- vario_list[ids == input$fit_selected][[1]]
     CTMM <- values$selected_data_guess_list[ids == input$fit_selected][[1]]
     fraction <- 10 ^ input$zoom_lag_fraction
     STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = CTMM,
@@ -1657,7 +1676,8 @@ output:
     # LOG fine tune apply
     log_msg("Apply Fine-tuned Parameters")
     removeModal()
-    ids <- sapply(select_data_vario_list(), function(vario) vario@info$identity)
+    ids <- sapply(select_data_vario()$vario_list,
+                  function(vario) vario@info$identity)
     values$selected_data_guess_list[ids == input$fit_selected][[1]] <- slider_to_CTMM()
   })
   # fine tune fit end ----
@@ -1796,27 +1816,22 @@ output:
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     selected_models_list <- selected_models_dt$model
-    selected_vario_list <- select_data_vario_list()[selected_names_dt$identity]
+    names(selected_models_list) <- selected_names_dt$full_name
+    selected_vario_list <- select_data_vario()$vario_list[
+      selected_names_dt$identity]
     # selected_names_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
+    # vario layout for selected models
+    selected_vario_layout <- get_vario_layout(selected_vario_list,
+                                     input$vario_height, input$vario_columns)
     # LOG selected models
     log_dt_md(selected_names_dt, "Selected Models")
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
                 tele_list = selected_tele_list,
                 models_list = selected_models_list,
-                # id_model =
-                #   selected_names_dt[, stringr::str_c(identity, " - ", model_name)],
-                vario_list = selected_vario_list
+                vario_list = selected_vario_list,
+                vario_layout = selected_vario_layout
                 ))
-  })
-  # select_models_layout() ----
-  # even the control parameter is same with variogram, the total number could be different
-  select_models_layout <- reactive({
-    fig_count <- length(select_models()$models_list)
-    row_count <- ceiling(fig_count / input$vario_columns)
-    height <- input$vario_height * row_count
-    # return(list(layout_matrix = layout_matrix, height = height))
-    return(list(row_count = row_count, height = height))
   })
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
@@ -1859,7 +1874,7 @@ output:
   output$range_plot <- renderPlot({
     selected_tele_list <- select_models()$tele_list
     def.par <- graphics::par(no.readonly = TRUE)
-    graphics::par(mfrow = c(select_models_layout()$row_count,
+    graphics::par(mfrow = c(select_models()$vario_layout$row_count,
                             input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(selected_tele_list), function(i) {
@@ -1869,11 +1884,11 @@ output:
       # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     })
     # LOG save pic
-    log_save_vario("home_range", select_models_layout()$row_count,
+    log_save_vario("home_range", select_models()$vario_layout$row_count,
                    input$vario_columns)
     log_save_UD("home_range")
     graphics::par(def.par)
-  }, height = function() { select_models_layout()$height })
+  }, height = function() { select_models()$vario_layout$height })
   # export shapefiles ----
   output$export_hrange <- downloadHandler(
     filename = function() {
@@ -1925,7 +1940,8 @@ output:
   output$occurrence_plot <- renderPlot({
     # plot
     def.par <- graphics::par(no.readonly = TRUE)
-    graphics::par(mfrow = c(select_models_layout()$row_count, input$vario_columns),
+    graphics::par(mfrow = c(select_models()$vario_layout$row_count,
+                            input$vario_columns),
         mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
     lapply(seq_along(select_models_occurrences()), function(i) {
       tryCatch({
@@ -1938,11 +1954,11 @@ output:
       graphics::title(select_models()$names_dt$full_name[i])
     })
     # LOG save pic
-    log_save_vario("occurrence", select_models_layout()$row_count,
+    log_save_vario("occurrence", select_models()$vario_layout$row_count,
                    input$vario_columns)
     log_save_UD("occurrence")
     graphics::par(def.par)
-  }, height = function() { select_models_layout()$height })
+  }, height = function() { select_models()$vario_layout$height })
   # p8. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/8_map.md")

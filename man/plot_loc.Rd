@@ -13,12 +13,11 @@ animals identity as levels. So this subset still have all identities
 information, which is needed to color each animal consistently.}
 
 \item{dt}{The full data set of all animals location in merged \code{data.table}
-format. Usually came from \link{merge_animals}.}
+format. Usually came from \link{merge_animals}. Default \code{NULL} means no full
+data as background.}
 
 \item{point_size}{The size of point in plot. Denser plot may need smaller
 point size.}
-
-\item{overlay_all}{Draw full data set as background}
 }
 \value{
 A ggplot object.
