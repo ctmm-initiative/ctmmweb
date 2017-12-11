@@ -1981,6 +1981,7 @@ output:
     CURRENT_map_path[[map_type]] <<- map_path
   }
   # shared basemap
+  # need separate items because here map and others use different parameter to initialize
   tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
                               "HERE.hybridDay"),
                      open = c("OpenTopoMap",
