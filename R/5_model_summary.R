@@ -130,7 +130,8 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 #' @export
 summary_model_fit <- function(model_fit_res) {
   models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
-  model_list_dt_to_formated_model_summary_dt(models_dt)
+  # use [] to make sure calling function directly will print in console.
+  model_list_dt_to_formated_model_summary_dt(models_dt)[]
 }
 # it requires more manual code to assemble a table for home range, temporarily not exporting these function untill requested
 # Build Home Range list table

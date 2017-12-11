@@ -27,12 +27,9 @@ library(ctmmweb)
 data(buffalo)
 ```
 
-```{r basic data structure, eval=FALSE}
-merge_tele(buffalo)
-```
 
 ```{r plot location and time, eval=FALSE}
-
+#basic data structure
 dt <- merge_tele(buffalo)$data
 selected_dt <- dt[identity %in% c("Gabs", "Queen")]
 plot_loc(selected_dt, dt)
@@ -53,15 +50,24 @@ sample_tele(buffalo[[1]], 100)
 data_sample <- sample_tele_list(buffalo, 100)
 model_fit_res <- par_fit_tele(data_sample)
 summary_model_fit(model_fit_res)
+
+# need to prepare model list dt like in app.
 ```
 
 ```{r parallel, eval=FALSE}
-par_fit_tele(sample_tele_list(buffalo, 100))
-
-# para_ll_ud(align_list(buffalo, models_list))
+# generic parallel usage
 ```
 
 ```{r variogram, eval=FALSE}
+
+```
+
+```{r home range}
+
+```
+
+- with 100 sample, the Gabs 2nd model, OUF ani have error in occurrence plot? report this with reproducible code, also test with different sample size.
+```{r occurrence}
 
 ```
 
