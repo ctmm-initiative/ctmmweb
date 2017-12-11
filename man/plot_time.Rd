@@ -18,11 +18,3 @@ A ggplot object.
 \description{
 Plot animal sampling time histogram in facet
 }
-\examples{
-library(ctmm)
-library(ctmmweb)
-data("buffalo")
-dt <- merge_animals(buffalo)$data
-selected_dt <- dt[identity \%in\% c("Gabs", "Queen")]
-plot_time(selected_dt)
-}

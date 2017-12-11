@@ -101,7 +101,7 @@ Overview in app). To add all animals as background, the full data set of
 animals is also needed.</p>
     
 
-    <pre class="usage"><span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='no'>dt</span>, <span class='kw'>point_size</span> <span class='kw'>=</span> <span class='fl'>0.1</span>, <span class='kw'>overlay_all</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+    <pre class="usage"><span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='kw'>dt</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>point_size</span> <span class='kw'>=</span> <span class='fl'>0.1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -116,16 +116,13 @@ information, which is needed to color each animal consistently.</p></td>
     <tr>
       <th>dt</th>
       <td><p>The full data set of all animals location in merged <code>data.table</code>
-format. Usually came from merge_animals.</p></td>
+format. Usually came from merge_animals. Default <code>NULL</code> means no full
+data as background.</p></td>
     </tr>
     <tr>
       <th>point_size</th>
       <td><p>The size of point in plot. Denser plot may need smaller
 point size.</p></td>
-    </tr>
-    <tr>
-      <th>overlay_all</th>
-      <td><p>Draw full data set as background</p></td>
     </tr>
     </table>
     
@@ -134,17 +131,6 @@ point size.</p></td>
     <p>A ggplot object.</p>
     
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>library</span>(<span class='no'>ctmm</span>)
-<span class='fu'>library</span>(<span class='no'>ctmmweb</span>)
-<span class='fu'>data</span>(<span class='st'>"buffalo"</span>)
-<span class='no'>dt</span> <span class='kw'>&lt;-</span> <span class='fu'>merge_animals</span>(<span class='no'>buffalo</span>)$<span class='no'>data</span></div><div class='output co'>#&gt; <span class='error'>Error in merge_animals(buffalo): could not find function "merge_animals"</span></div><div class='input'><span class='no'>selected_dt</span> <span class='kw'>&lt;-</span> <span class='no'>dt</span>[<span class='no'>identity</span> <span class='kw'>%in%</span> <span class='fu'>c</span>(<span class='st'>"Gabs"</span>, <span class='st'>"Queen"</span>)]</div><div class='output co'>#&gt; <span class='error'>Error in match(x, table, nomatch = 0L): 'match' requires vector arguments</span></div><div class='input'><span class='co'># you can take the ggplot2 object to further customize it</span>
-<span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='no'>dt</span>) +
-  <span class='kw pkg'>ggplot2</span><span class='kw ns'>::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/ggplot2/topics/labs'>ggtitle</a></span>(<span class='st'>"Locations of Buffalos"</span>) +
-  <span class='co'># override the default left alignment of title and make it bigger</span>
-  <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'><a href='http://www.rdocumentation.org/packages/ctmmweb/topics/ggplot_customization'>CENTER_TITLE</a></span></div><div class='output co'>#&gt; <span class='error'>Error in fortify(data): object 'selected_dt' not found</span></div><div class='input'><span class='co'># or export plot as png</span>
-<span class='no'>g</span> <span class='kw'>&lt;-</span> <span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='no'>dt</span>)</div><div class='output co'>#&gt; <span class='error'>Error in fortify(data): object 'selected_dt' not found</span></div><div class='input'># ggplot2::ggsave("test.png", g)
-</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -152,9 +138,7 @@ point size.</p></td>
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+          </ul>
 
   </div>
 </div>

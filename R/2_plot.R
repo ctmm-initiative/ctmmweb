@@ -57,21 +57,6 @@ factor_alpha <- function(fac) {
 #'   point size.
 #' @return A ggplot object.
 #' @export
-#'
-#' @examples
-#' library(ctmm)
-#' library(ctmmweb)
-#' data("buffalo")
-#' dt <- merge_animals(buffalo)$data
-#' selected_dt <- dt[identity %in% c("Gabs", "Queen")]
-#' # you can take the ggplot2 object to further customize it
-#' plot_loc(selected_dt, dt) +
-#'   ggplot2::ggtitle("Locations of Buffalos") +
-#'   # override the default left alignment of title and make it bigger
-#'   ctmmweb:::CENTER_TITLE
-#' # or export plot as png
-#' g <- plot_loc(selected_dt, dt)
-#' # ggplot2::ggsave("test.png", g)
 plot_loc <- function(selected_dt, dt = NULL, point_size = 0.1) {
   ggplot2::ggplot() +
   {if (!is.null(dt)) {
@@ -103,14 +88,6 @@ plot_loc <- function(selected_dt, dt = NULL, point_size = 0.1) {
 #'
 #' @return A ggplot object.
 #' @export
-#'
-#' @examples
-#' library(ctmm)
-#' library(ctmmweb)
-#' data("buffalo")
-#' dt <- merge_animals(buffalo)$data
-#' selected_dt <- dt[identity %in% c("Gabs", "Queen")]
-#' plot_loc_facet(selected_dt)
 plot_loc_facet <- function(selected_dt) {
   ggplot2::ggplot(data = selected_dt, ggplot2::aes(x, y)) +
     ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
@@ -131,14 +108,6 @@ plot_loc_facet <- function(selected_dt) {
 #'
 #' @return A ggplot object.
 #' @export
-#'
-#' @examples
-#' library(ctmm)
-#' library(ctmmweb)
-#' data("buffalo")
-#' dt <- merge_animals(buffalo)$data
-#' selected_dt <- dt[identity %in% c("Gabs", "Queen")]
-#' plot_time(selected_dt)
 plot_time <- function(selected_dt) {
   ggplot2::ggplot(data = selected_dt,
                        ggplot2::aes(x = timestamp, fill = id)) +

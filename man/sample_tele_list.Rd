@@ -17,8 +17,3 @@ sampled telemetry list
 \description{
 Sample each object with \link{sample_tele}.
 }
-\examples{
-library(ctmm)
-data(buffalo)
-sample_tele_list(buffalo, 100)
-}

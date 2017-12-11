@@ -18,8 +18,3 @@ occurrence results list
 \description{
 Parallel calculate occurrence from telemetry and model list
 }
-\examples{
-\dontrun{
-  para_ll_ud(align_list(buffalo, models_list))
-}
-}

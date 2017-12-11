@@ -118,11 +118,6 @@ information, which is needed to color each animal consistently.</p></td>
     <p>A ggplot object.</p>
     
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>library</span>(<span class='no'>ctmm</span>)
-<span class='fu'>library</span>(<span class='no'>ctmmweb</span>)
-<span class='fu'>data</span>(<span class='st'>"buffalo"</span>)
-<span class='no'>dt</span> <span class='kw'>&lt;-</span> <span class='fu'>merge_animals</span>(<span class='no'>buffalo</span>)$<span class='no'>data</span></div><div class='output co'>#&gt; <span class='error'>Error in merge_animals(buffalo): could not find function "merge_animals"</span></div><div class='input'><span class='no'>selected_dt</span> <span class='kw'>&lt;-</span> <span class='no'>dt</span>[<span class='no'>identity</span> <span class='kw'>%in%</span> <span class='fu'>c</span>(<span class='st'>"Gabs"</span>, <span class='st'>"Queen"</span>)]</div><div class='output co'>#&gt; <span class='error'>Error in match(x, table, nomatch = 0L): 'match' requires vector arguments</span></div><div class='input'><span class='fu'>plot_time</span>(<span class='no'>selected_dt</span>)</div><div class='output co'>#&gt; <span class='error'>Error in ggplot2::ggplot(data = selected_dt, ggplot2::aes(x = timestamp,     fill = id)): object 'selected_dt' not found</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -130,9 +125,7 @@ information, which is needed to color each animal consistently.</p></td>
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+          </ul>
 
   </div>
 </div>

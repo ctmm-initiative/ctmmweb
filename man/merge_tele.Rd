@@ -31,8 +31,3 @@ is chosen over \code{data.frame} for much better performance. This is the main
 data structure in app. The app works on any selected subset of it in almost
 all steps.
 }
-\examples{
-library(ctmm)
-data(buffalo)
-merge_tele(buffalo)
-}

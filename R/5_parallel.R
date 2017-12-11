@@ -116,13 +116,6 @@ par_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
 #' @return list of model fitting results on each telemetry object, named by
 #'   telemetry object names
 #' @export
-#'
-#' @examples
-#' \dontrun{
-#'   library(ctmm)
-#'   data(buffalo)
-#'   par_fit_tele(sample_tele_list(buffalo, 100))
-#' }
 par_fit_tele <- function(tele_list, fallback = FALSE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
@@ -141,11 +134,6 @@ par_fit_tele <- function(tele_list, fallback = FALSE) {
 #'
 #' @return occurrence results list
 #' @export
-#'
-#' @examples
-#' \dontrun{
-#'   para_ll_ud(align_list(buffalo, models_list))
-#' }
 par_occur <- function(tele_model_list, fallback = FALSE) {
   occur_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
@@ -163,15 +151,9 @@ par_occur <- function(tele_model_list, fallback = FALSE) {
 #' @param tele telemetry object
 #' @param m sample size. `m` even spaced points are taken from data.
 #'
-#'
 #' @return sampled telemetry object
 #' @export
 #' @import ctmm
-#'
-#' @examples
-#' library(ctmm)
-#' data(buffalo)
-#' sample_tele(buffalo[[1]], 100)
 sample_tele <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
@@ -185,11 +167,6 @@ sample_tele <- function(tele, m) {
 #'
 #' @return sampled telemetry list
 #' @export
-#'
-#' @examples
-#' library(ctmm)
-#' data(buffalo)
-#' sample_tele_list(buffalo, 100)
 sample_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
     sample_tele(x, m)

@@ -19,10 +19,3 @@ telemetry object names
 \description{
 Parallel fit models on telemetry list
 }
-\examples{
-\dontrun{
-  library(ctmm)
-  data(buffalo)
-  par_fit_tele(sample_tele_list(buffalo, 100))
-}
-}

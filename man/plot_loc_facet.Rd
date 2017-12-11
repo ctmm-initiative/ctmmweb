@@ -19,11 +19,3 @@ A ggplot object.
 Each animal is plotted separately (facet). The axis are aligned so it's easy
 to compare them.
 }
-\examples{
-library(ctmm)
-library(ctmmweb)
-data("buffalo")
-dt <- merge_animals(buffalo)$data
-selected_dt <- dt[identity \%in\% c("Gabs", "Queen")]
-plot_loc_facet(selected_dt)
-}

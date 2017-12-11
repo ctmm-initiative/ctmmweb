@@ -15,13 +15,3 @@ A \code{data.table} of model summary
 \description{
 Generate formated model summary table from model fit results
 }
-\examples{
-\dontrun{
- library(ctmm)
- library(ctmmweb)
- data("buffalo")
- data_sample <- sample_tele_list(buffalo, 100)
- model_fit_res <- par_fit_tele(data_sample)
- summary_model_fit(model_fit_res)
-}
-}

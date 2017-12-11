@@ -128,16 +128,6 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 #'
 #' @return A `data.table` of model summary
 #' @export
-#'
-#' @examples
-#' \dontrun{
-#'  library(ctmm)
-#'  library(ctmmweb)
-#'  data("buffalo")
-#'  data_sample <- sample_tele_list(buffalo, 100)
-#'  model_fit_res <- par_fit_tele(data_sample)
-#'  summary_model_fit(model_fit_res)
-#' }
 summary_model_fit <- function(model_fit_res) {
   models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
   model_list_dt_to_formated_model_summary_dt(models_dt)

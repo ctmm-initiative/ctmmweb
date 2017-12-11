@@ -27,18 +27,3 @@ Draw a scatter plot of some animals' location with \code{ggplot2} (like plot 2
 Overview in app). To add all animals as background, the full data set of
 animals is also needed.
 }
-\examples{
-library(ctmm)
-library(ctmmweb)
-data("buffalo")
-dt <- merge_animals(buffalo)$data
-selected_dt <- dt[identity \%in\% c("Gabs", "Queen")]
-# you can take the ggplot2 object to further customize it
-plot_loc(selected_dt, dt) +
-  ggplot2::ggtitle("Locations of Buffalos") +
-  # override the default left alignment of title and make it bigger
-  ctmmweb:::CENTER_TITLE
-# or export plot as png
-g <- plot_loc(selected_dt, dt)
-# ggplot2::ggsave("test.png", g)
-}

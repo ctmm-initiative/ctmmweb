@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Articles • ctmmweb</title>
+<title>Plot a group of empirical or modeled variograms. — plot_vario • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -37,7 +37,7 @@
   </head>
 
   <body>
-    <div class="container template-vignette-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
   <div class="container">
@@ -89,22 +89,72 @@
       
       </header>
 
-      <div class="page-header">
-  <h1>Articles <small>version&nbsp;0.0.9</small></h1>
-</div>
-
-<div class="row">
-  <div class="col-md-9">
-    <div class="section ">
-      <h3>All vignettes</h3>
-      <p class="section-desc"></p>
-
-      <ul>
-        <li><a href="demo.html">Demo</a></li>
-        <li><a href="installation.html">Installation</a></li>
-        <li><a href="package_usage.html">package usage</a></li>
-      </ul>
+      <div class="row">
+  <div class="col-md-9 contents">
+    <div class="page-header">
+    <h1>Plot a group of empirical or modeled variograms.</h1>
     </div>
+
+    
+    <p>Plot a group of empirical or modeled variograms.</p>
+    
+
+    <pre class="usage"><span class='fu'>plot_vario</span>(<span class='no'>vario_list</span>, <span class='kw'>model_list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fraction</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
+  <span class='kw'>relative_zoom</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>model_color</span> <span class='kw'>=</span> <span class='st'>"blue"</span>, <span class='kw'>columns</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>vario_list</th>
+      <td><p>list of <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/variogram'>ctmm::variogram</a></code>. The <code>names</code> of list will be used
+as figure title if in empirical variogram mode.</p></td>
+    </tr>
+    <tr>
+      <th>model_list</th>
+      <td><p><code>CTMM</code> models list. The <code>names</code> of list are needed for
+figure titles. Draw modeled variogram if provided. The models list should
+match <code>vario_list</code> in length and animal, so that <code>i</code>th model is for <code>i</code>th
+variogram.</p><ul>
+<li><p><code>NULL</code>, only draw empirical variogram. <code>vario_list</code> names will
+be used as figure title.</p></li>
+<li><p>list of guesstimated models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/variogram.fit'>ctmm::ctmm.guess</a></code> on <code>vario_list</code>,
+overlay guesstimate variogram.</p></li>
+<li><p>list of fitted models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/ctmm.fit'>ctmm::ctmm.select</a></code> on <code>vario_list</code>, overlay
+modeled variogram.</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>fraction</th>
+      <td><p>Fraction of time-lag range. Value in 0, 1</p></td>
+    </tr>
+    <tr>
+      <th>relative_zoom</th>
+      <td><ul>
+<li><p>Absolute mode operate on the max Time-lag range
+individual in group, and all others scaled with same X, Y axes for easier
+comparison. - Relative mode zoom every plot by fraction of their own
+Time-lag range. The X, Y axes are not synced.</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>model_color</th>
+      <td><p>The color of model variogram</p></td>
+    </tr>
+    <tr>
+      <th>columns</th>
+      <td><p>The columns of the group plot layout.</p></td>
+    </tr>
+    </table>
+    
+
+  </div>
+  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+    <h2>Contents</h2>
+    <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
+                </ul>
+
   </div>
 </div>
 

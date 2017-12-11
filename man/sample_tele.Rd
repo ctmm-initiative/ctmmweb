@@ -19,8 +19,3 @@ A sampled dataset can have models fitted much quicker. This is used to reduce
 waiting time in developing code that involved time consuming modeling
 processes. After code is tested and stablized, full size dataset can be used.
 }
-\examples{
-library(ctmm)
-data(buffalo)
-sample_tele(buffalo[[1]], 100)
-}

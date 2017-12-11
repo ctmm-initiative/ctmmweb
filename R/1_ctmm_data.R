@@ -219,11 +219,7 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' - `data`: all animals merged in one data.table
 #' - `info`: animal information table
 #' @export
-#'
-#' @examples
-#' library(ctmm)
-#' data(buffalo)
-#' merge_tele(buffalo)
+
 merge_tele <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
               info = tele_list_info(tele_obj_list)))

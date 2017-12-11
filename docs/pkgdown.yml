@@ -4,4 +4,5 @@ urls:
 articles:
   demo: demo.html
   installation: installation.html
+  package_usage: package_usage.html
 

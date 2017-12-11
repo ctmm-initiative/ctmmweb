@@ -22,8 +22,6 @@
 #' @param columns The columns of the group plot layout.
 #'
 #' @export
-#'
-#' @examples
 plot_vario <- function(vario_list, model_list = NULL,
                        fraction = 0.5, relative_zoom = TRUE,
                        model_color = "blue", columns = 2){
