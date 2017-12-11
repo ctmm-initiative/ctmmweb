@@ -22,15 +22,10 @@ reference:
   - '`plot_loc`'
   - '`plot_loc_facet`'
   - '`plot_time`'
-- title: "Variograms"
+- title: "Variograms, Home Range Estimation, Occurrence"
   desc: ~
   contents:
-- title: "Home Range Estimation"
-  desc: ~
-  contents:
-- title: "Occurrence"
-  desc: ~
-  contents:
+  - '`plot_vario`'
 - title: "Map"
   desc: ~
   contents:

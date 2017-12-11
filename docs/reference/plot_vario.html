@@ -118,7 +118,8 @@ as figure title if in empirical variogram mode.</p></td>
       <td><p><code>CTMM</code> models list. The <code>names</code> of list are needed for
 figure titles. Draw modeled variogram if provided. The models list should
 match <code>vario_list</code> in length and animal, so that <code>i</code>th model is for <code>i</code>th
-variogram.</p><ul>
+variogram.
+Possible values:</p><ul>
 <li><p><code>NULL</code>, only draw empirical variogram. <code>vario_list</code> names will
 be used as figure title.</p></li>
 <li><p>list of guesstimated models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/variogram.fit'>ctmm::ctmm.guess</a></code> on <code>vario_list</code>,
@@ -129,15 +130,15 @@ modeled variogram.</p></li>
     </tr>
     <tr>
       <th>fraction</th>
-      <td><p>Fraction of time-lag range. Value in 0, 1</p></td>
+      <td><p>Fraction of time-lag range, 0 ~ 1.</p></td>
     </tr>
     <tr>
       <th>relative_zoom</th>
       <td><ul>
-<li><p>Absolute mode operate on the max Time-lag range
-individual in group, and all others scaled with same X, Y axes for easier
-comparison. - Relative mode zoom every plot by fraction of their own
-Time-lag range. The X, Y axes are not synced.</p></li>
+<li><p>Relative mode zoom every plot by fraction of their own Time-lag range. The
+X, Y axes are not synced.</p></li>
+<li><p>Absolute mode operate on the max Time-lag range individual in group, and
+all others scaled with same X, Y axes for easier comparison.</p></li>
 </ul></td>
     </tr>
     <tr>

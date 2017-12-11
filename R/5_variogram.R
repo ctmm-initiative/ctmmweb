@@ -7,17 +7,19 @@
 #'   figure titles. Draw modeled variogram if provided. The models list should
 #'   match `vario_list` in length and animal, so that `i`th model is for `i`th
 #'   variogram.
+#'   Possible values:
 #'   - `NULL`, only draw empirical variogram. `vario_list` names will
 #'   be used as figure title.
 #'   - list of guesstimated models from `ctmm::ctmm.guess` on `vario_list`,
 #'   overlay guesstimate variogram.
 #'   - list of fitted models from `ctmm::ctmm.select` on `vario_list`, overlay
 #'   modeled variogram.
-#' @param fraction Fraction of time-lag range. Value in [0, 1]
-#' @param relative_zoom - Absolute mode operate on the max Time-lag range
-#'   individual in group, and all others scaled with same X, Y axes for easier
-#'   comparison. - Relative mode zoom every plot by fraction of their own
-#'   Time-lag range. The X, Y axes are not synced.
+#' @param fraction Fraction of time-lag range, 0 ~ 1.
+#' @param relative_zoom
+#' - Relative mode zoom every plot by fraction of their own Time-lag range. The
+#' X, Y axes are not synced.
+#' - Absolute mode operate on the max Time-lag range individual in group, and
+#' all others scaled with same X, Y axes for easier comparison.
 #' @param model_color The color of model variogram
 #' @param columns The columns of the group plot layout.
 #'

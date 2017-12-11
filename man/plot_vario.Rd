@@ -15,6 +15,7 @@ as figure title if in empirical variogram mode.}
 figure titles. Draw modeled variogram if provided. The models list should
 match \code{vario_list} in length and animal, so that \code{i}th model is for \code{i}th
 variogram.
+Possible values:
 \itemize{
 \item \code{NULL}, only draw empirical variogram. \code{vario_list} names will
 be used as figure title.
@@ -24,13 +25,13 @@ overlay guesstimate variogram.
 modeled variogram.
 }}
 
-\item{fraction}{Fraction of time-lag range. Value in \link{0, 1}}
+\item{fraction}{Fraction of time-lag range, 0 ~ 1.}
 
 \item{relative_zoom}{\itemize{
-\item Absolute mode operate on the max Time-lag range
-individual in group, and all others scaled with same X, Y axes for easier
-comparison. - Relative mode zoom every plot by fraction of their own
-Time-lag range. The X, Y axes are not synced.
+\item Relative mode zoom every plot by fraction of their own Time-lag range. The
+X, Y axes are not synced.
+\item Absolute mode operate on the max Time-lag range individual in group, and
+all others scaled with same X, Y axes for easier comparison.
 }}
 
 \item{model_color}{The color of model variogram}
