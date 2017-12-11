@@ -1,5 +1,7 @@
 #' Plot a group of empirical or modeled variograms.
 #'
+#' This is a wrapper over `ctmm::plot.variogram` to make group plot easier.
+#'
 #' @param vario_list list of `ctmm::variogram`. The `names` of list will be used
 #'   as figure title if in empirical variogram mode.
 #' @param model_list `CTMM` models list. The `names` of list are needed for
@@ -77,8 +79,11 @@ plot_vario <- function(vario_list, model_list = NULL,
 
 #' Plot a group of home ranges or occurrences
 #'
-#' @param UD_list `ctmm` `UD` object list. The names of list are needed for
-#'   title of figures.
+#' This is a wrapper over `ctmm::plot.telemetry` to make group plot easier.
+#'
+#' @param UD_list `ctmm` `UD` object list, which can be home range from
+#'   `ctmm::akde` or occurrences from `ctmm::occurrence`. The names of list are
+#'   needed for title of figures.
 #' @param level_vec The vector of `level.UD` in `ctmm::plot.telemetry`. To be
 #'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
 #'   app UI take values 0 ~ 100 (for example 95) for easier input.
