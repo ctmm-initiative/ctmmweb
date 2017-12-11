@@ -1968,7 +1968,7 @@ output:
              size = "l", file = "help/8_map.md")
   MAP_NAME_BY_TAB <- list(Point = "point_map", Heatmap = "heat_map")
   CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
-  # save map to html
+  # save map to html, record html path in CURRENT_map_path. this is used in log save, and download map button.
   save_map <- function(leaf, map_type) {
     map_file_name <- stringr::str_c(map_type, "_", ctmmweb:::current_timestamp(), ".html")
     # LOG saving map
@@ -1993,7 +1993,7 @@ output:
     leaflet::leafletOutput("point_map",
                   height = input$map_height)
   )
-  # point map ----
+  # get_point_map() ----
   get_point_map <- reactive({
     dt <- select_data()$data
     info <- select_data()$info
@@ -2045,7 +2045,7 @@ output:
     leaflet::leafletOutput("heat_map",
                   height = input$map_height)
   )
-  # heatmap ----
+  # get_heat_map() ----
   get_heat_map <- reactive({
     base_map %>% ctmmweb:::add_heat(select_data()$data, tiles_info)
   })
@@ -2131,7 +2131,7 @@ output:
     content = function(file) {
       # LOG download map
       log_msg("Downloading map")
-      # to save map with current view, update the map object with current bounds. the proxy only updated the in memory structure, not the map objec itself
+      # to save map with current view, update the map object with current bounds. the proxy only updated the in memory structure, not the map objec itself. The previously saved map by log don't have current bounds info, also that could be turned off.
       if (input$map_tabs == "Point") {
         leaf <- get_point_map() %>% ctmmweb:::apply_bounds(input$point_map_bounds)
         save_map(leaf, "Point")

@@ -7,8 +7,9 @@
 plot_ud(UD_list, level_vec, columns = 2, tele_list = NULL)
 }
 \arguments{
-\item{UD_list}{\code{ctmm} \code{UD} object list. The names of list are needed for
-title of figures.}
+\item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from
+\code{ctmm::akde} or occurrences from \code{ctmm::occurrence}. The names of list are
+needed for title of figures.}
 
 \item{level_vec}{The vector of \code{level.UD} in \code{ctmm::plot.telemetry}. To be
 consistent with \code{ctmm} they are values 0 ~ 1 (for example 0.95). Note the
@@ -20,5 +21,5 @@ app UI take values 0 ~ 100 (for example 95) for easier input.}
 used for home range since it can interfere with occurrence plot.}
 }
 \description{
-Plot a group of home ranges or occurrences
+This is a wrapper over \code{ctmm::plot.telemetry} to make group plot easier.
 }

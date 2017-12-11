@@ -114,3 +114,4 @@ get_bounds <- function(dt) {
 apply_bounds <- function(leaf, bounds) {
   leaflet::fitBounds(leaf, bounds$east, bounds$north, bounds$west, bounds$south)
 }
+# export map, just a wrapper around htmlwidget. the app save_map have more details.

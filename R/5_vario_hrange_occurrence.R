@@ -9,8 +9,9 @@
 #'   match `vario_list` in length and animal, so that `i`th model is for `i`th
 #'   variogram.
 #'   Possible values:
-#'   - `NULL`, only draw empirical variogram. `vario_list` names will
-#'   be used as figure title.
+#'   - It can be skipped to use default value `NULL`, and only empirical
+#'   variograms are drawn. `vario_list` names will be used as figure title.
+#'   Better use named parameters for others in this case.
 #'   - list of guesstimated models from `ctmm::ctmm.guess` on `vario_list`,
 #'   overlay guesstimate variogram.
 #'   - list of fitted models from `ctmm::ctmm.select` on `vario_list`, overlay

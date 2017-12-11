@@ -51,8 +51,11 @@ factor_alpha <- function(fac) {
 #'   animals identity as levels. So this subset still have all identities
 #'   information, which is needed to color each animal consistently.
 #' @param dt The full data set of all animals location in merged `data.table`
-#'   format. Usually came from [merge_animals]. Default `NULL` means no full
-#'   data as background.
+#'   format. Usually came from [merge_animals]. If background is not needed, it
+#'   can be skipped and take the default `NULL` value. In this case better use
+#'   named parameter for `point_size` if needed, like `plot_loc(selected_dt,
+#'   point_size = 0.2)` instead of `plot_loc(selected_dt, 0.2)` otherwise the
+#'   second parameter will be interpreted as `dt`.
 #' @param point_size The size of point in plot. Denser plot may need smaller
 #'   point size.
 #' @return A ggplot object.

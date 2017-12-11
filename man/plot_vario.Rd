@@ -17,8 +17,9 @@ match \code{vario_list} in length and animal, so that \code{i}th model is for \c
 variogram.
 Possible values:
 \itemize{
-\item \code{NULL}, only draw empirical variogram. \code{vario_list} names will
-be used as figure title.
+\item It can be skipped to use default value \code{NULL}, and only empirical
+variograms are drawn. \code{vario_list} names will be used as figure title.
+Better use named parameters for others in this case.
 \item list of guesstimated models from \code{ctmm::ctmm.guess} on \code{vario_list},
 overlay guesstimate variogram.
 \item list of fitted models from \code{ctmm::ctmm.select} on \code{vario_list}, overlay
@@ -39,5 +40,5 @@ all others scaled with same X, Y axes for easier comparison.
 \item{columns}{The columns of the group plot layout.}
 }
 \description{
-Plot a group of empirical or modeled variograms.
+This is a wrapper over \code{ctmm::plot.variogram} to make group plot easier.
 }
