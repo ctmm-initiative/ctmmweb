@@ -1,4 +1,3 @@
-
 #' Plot a group of empirical or modeled variograms.
 #'
 #' @param vario_list list of `ctmm::variogram`. The `names` of list will be used
@@ -73,5 +72,39 @@ plot_vario <- function(vario_list, model_list = NULL,
       # }
     }
   }
+  graphics::par(def.par)
+}
+
+#' Plot a group of home ranges or occurrences
+#'
+#' @param UD_list `ctmm` `UD` object list. The names of list are needed for
+#'   title of figures.
+#' @param level_vec The vector of `level.UD` in `ctmm::plot.telemetry`. To be
+#'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
+#'   app UI take values 0 ~ 100 (for example 95) for easier input.
+#' @inheritParams plot_vario
+#' @param tele_list Overlay animal locations with home range when provided. This
+#'   can interfere with occurrence plot so better skip it.
+#'
+#' @export
+plot_ud <- function(UD_list, level_vec, columns = 2, tele_list = NULL) {
+  def.par <- graphics::par(no.readonly = TRUE)
+  row_count <- ceiling(length(UD_list) / columns)
+  graphics::par(mfrow = c(row_count, columns),
+                mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+  lapply(seq_along(UD_list), function(i) {
+    tryCatch({
+      # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
+      if (is.null(tele_list)) {
+        plot(UD_list[[i]], level.UD = level_vec)
+      } else {
+        plot(tele_list[[i]], UD_list[[i]], level.UD = level_vec)
+      }
+    }, error = function(e) {
+      warning(names(UD_list)[i], ": ", e)
+      plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
+    })
+    graphics::title(names(UD_list)[i])
+  })
   graphics::par(def.par)
 }

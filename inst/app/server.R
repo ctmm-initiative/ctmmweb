@@ -1924,6 +1924,8 @@ output:
     # if (option_selected("log_error")) {
     #   output$occurrence_info <- renderPrint(str(res))
     # }
+    # add name so plot can take figure title from it
+    names(res) <- select_models()$names_dt$full_name
     res
   })
   # function on input didn't update, need a reactive expression?
@@ -1931,26 +1933,28 @@ output:
     ctmmweb:::parse_CI_levels(input$oc_level_text)
   })
   output$occurrence_plot <- renderPlot({
+    plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
+            columns = input$vario_columns)
     # plot
-    def.par <- graphics::par(no.readonly = TRUE)
-    graphics::par(mfrow = c(select_models()$vario_layout$row_count,
-                            input$vario_columns),
-        mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    lapply(seq_along(select_models_occurrences()), function(i) {
-      tryCatch({
-        # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
-        plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
-      }, error = function(e) {
-        warning(select_models()$names_dt$full_name[i], ": ", e)
-        plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
-      })
-      graphics::title(select_models()$names_dt$full_name[i])
-    })
+    # def.par <- graphics::par(no.readonly = TRUE)
+    # graphics::par(mfrow = c(select_models()$vario_layout$row_count,
+    #                         input$vario_columns),
+    #     mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+    # lapply(seq_along(select_models_occurrences()), function(i) {
+    #   tryCatch({
+    #     # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
+    #     plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
+    #   }, error = function(e) {
+    #     warning(select_models()$names_dt$full_name[i], ": ", e)
+    #     plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
+    #   })
+    #   graphics::title(select_models()$names_dt$full_name[i])
+    # })
     # LOG save pic
     log_save_vario("occurrence", select_models()$vario_layout$row_count,
                    input$vario_columns)
     log_save_UD("occurrence")
-    graphics::par(def.par)
+    # graphics::par(def.par)
   }, height = function() { select_models()$vario_layout$height })
   # p8. map ----
   callModule(click_help, "map", title = "Map",
