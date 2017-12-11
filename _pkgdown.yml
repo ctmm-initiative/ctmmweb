@@ -63,7 +63,9 @@ navbar:
       href: articles/demo.html
     - text: Installation
       href: articles/installation.html
-  - text: Functions
+  - text: Package Usage
+    href: articles/package_usage.html
+  - text: References
     href: reference/index.html
   right:
   - text: News
