@@ -16,8 +16,8 @@ app UI take values 0 ~ 100 (for example 95) for easier input.}
 
 \item{columns}{The columns of the group plot layout.}
 
-\item{tele_list}{Overlay animal locations with home range when provided. This
-can interfere with occurrence plot so better skip it.}
+\item{tele_list}{Overlay animal locations when provided. This should only be
+used for home range since it can interfere with occurrence plot.}
 }
 \description{
 Plot a group of home ranges or occurrences

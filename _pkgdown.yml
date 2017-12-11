@@ -26,6 +26,7 @@ reference:
   desc: ~
   contents:
   - '`plot_vario`'
+  - '`plot_ud`'
 - title: "Map"
   desc: ~
   contents:

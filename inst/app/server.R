@@ -1836,6 +1836,8 @@ output:
       res <- akde_mem(select_models()$tele_list,
                       CTMM = select_models()$models_list))),
       message = "Calculating Home Range ...")
+    # add name so plot can take figure title from it
+    names(res) <- select_models()$names_dt$full_name
     return(res)
   })
   # home range summary ----
@@ -1865,22 +1867,27 @@ output:
     ctmmweb:::parse_CI_levels(input$hr_level_text)
   })
   output$range_plot <- renderPlot({
-    selected_tele_list <- select_models()$tele_list
-    def.par <- graphics::par(no.readonly = TRUE)
-    graphics::par(mfrow = c(select_models()$vario_layout$row_count,
-                            input$vario_columns),
-        mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    lapply(seq_along(selected_tele_list), function(i) {
-      plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
-           level.UD = get_hr_levels())
-      graphics::title(select_models()$names_dt$full_name[i])
-      # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
-    })
+    # browser()
+    # selected_tele_list <- select_models()$tele_list
+    plot_ud(select_models_hranges(), level_vec = get_hr_levels(),
+            columns = input$vario_columns,
+            tele_list = select_models()$tele_list)
+    # selected_tele_list <- select_models()$tele_list
+    # def.par <- graphics::par(no.readonly = TRUE)
+    # graphics::par(mfrow = c(select_models()$vario_layout$row_count,
+    #                         input$vario_columns),
+    #     mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+    # lapply(seq_along(selected_tele_list), function(i) {
+    #   plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
+    #        level.UD = get_hr_levels())
+    #   graphics::title(select_models()$names_dt$full_name[i])
+    #   # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
+    # })
     # LOG save pic
     log_save_vario("home_range", select_models()$vario_layout$row_count,
                    input$vario_columns)
     log_save_UD("home_range")
-    graphics::par(def.par)
+    # graphics::par(def.par)
   }, height = function() { select_models()$vario_layout$height })
   # export shapefiles ----
   output$export_hrange <- downloadHandler(

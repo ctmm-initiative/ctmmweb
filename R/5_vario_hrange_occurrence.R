@@ -83,8 +83,8 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
 #'   app UI take values 0 ~ 100 (for example 95) for easier input.
 #' @inheritParams plot_vario
-#' @param tele_list Overlay animal locations with home range when provided. This
-#'   can interfere with occurrence plot so better skip it.
+#' @param tele_list Overlay animal locations when provided. This should only be
+#'   used for home range since it can interfere with occurrence plot.
 #'
 #' @export
 plot_ud <- function(UD_list, level_vec, columns = 2, tele_list = NULL) {
@@ -98,7 +98,8 @@ plot_ud <- function(UD_list, level_vec, columns = 2, tele_list = NULL) {
       if (is.null(tele_list)) {
         plot(UD_list[[i]], level.UD = level_vec)
       } else {
-        plot(tele_list[[i]], UD_list[[i]], level.UD = level_vec)
+        # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
+        plot(tele_list[[i]], UD = UD_list[[i]], level.UD = level_vec)
       }
     }, error = function(e) {
       warning(names(UD_list)[i], ": ", e)
