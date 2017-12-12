@@ -1,7 +1,14 @@
 # map ----
 GRID_GROUP <- "_graticule_"
-# tiles_info hold selected map layer name, here api key, which are used here and other places in server code.
-init_base_maps <- function(tiles_info) {
+# TILES_INFO hold information of tiles needed for initialization. HERE maps need api key and different init code, so they are placed in separate list items, also need to keep here api key. The layer names are also needed in layer control code in other places
+TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
+                            "HERE.hybridDay"),
+                   open = c("OpenTopoMap",
+                            "Esri.WorldTopoMap", "Esri.WorldImagery"),
+                   here_app_id = 'ehftALetcOLjvopsXsZP',
+                   here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
+)
+init_base_maps <- function(tiles_info = ctmmweb:::TILES_INFO) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
     attributionControl = FALSE))
   for (prov in tiles_info$here) {
@@ -94,7 +101,7 @@ vary_color <- function(base_color, count) {
   }
 }
 # base map layer control added here
-add_heat <- function(leaf, dt, tiles_info) {
+add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
   leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
                                 redraw = "moveend", group = GRID_GROUP) %>%

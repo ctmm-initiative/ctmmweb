@@ -1981,15 +1981,14 @@ output:
     CURRENT_map_path[[map_type]] <<- map_path
   }
   # shared basemap
-  # need separate items because here map and others use different parameter to initialize
-  tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
-                              "HERE.hybridDay"),
-                     open = c("OpenTopoMap",
-                              "Esri.WorldTopoMap", "Esri.WorldImagery"),
-                     here_app_id = 'ehftALetcOLjvopsXsZP',
-                     here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
-  )
-  base_map <- ctmmweb:::init_base_maps(tiles_info)
+  # tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
+  #                             "HERE.hybridDay"),
+  #                    open = c("OpenTopoMap",
+  #                             "Esri.WorldTopoMap", "Esri.WorldImagery"),
+  #                    here_app_id = 'ehftALetcOLjvopsXsZP',
+  #                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
+  # )
+  base_map <- ctmmweb:::init_base_maps()
   output$point_map_holder <- renderUI(
     leaflet::leafletOutput("point_map",
                   height = input$map_height)
@@ -2014,7 +2013,7 @@ output:
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
         leaflet::addLayersControl(
-          baseGroups = c(tiles_info$here, tiles_info$open),
+          baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
           overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity,
                             select_models()$names_dt$full_name
                             # ,
@@ -2025,7 +2024,7 @@ output:
     } else {
       leaf <- leaf %>%
         leaflet::addLayersControl(
-          baseGroups = c(tiles_info$here, tiles_info$open),
+          baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
           overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity
                             # , draw_group
           ),
@@ -2048,7 +2047,7 @@ output:
   )
   # get_heat_map() ----
   get_heat_map <- reactive({
-    base_map %>% ctmmweb:::add_heat(select_data()$data, tiles_info)
+    base_map %>% ctmmweb:::add_heat(select_data()$data)
   })
   output$heat_map <- leaflet::renderLeaflet({
     # dt <- select_data()$data
