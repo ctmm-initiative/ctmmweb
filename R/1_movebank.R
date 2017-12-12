@@ -24,7 +24,7 @@ get_all_studies <- function(user, pass) {
 # [blog post](https://tonybreyal.wordpress.com/2011/11/18/htmltotext-extracting-text-from-html-via-xpath/), [code](https://github.com/tonybreyal/Blog-Reference-Functions/blob/master/R/htmlToText/htmlToText.R)
 html_to_text <- function(html) {
   doc <- XML::htmlParse(html, asText = TRUE)
-  text <- XML::xpathSApply(doc, "//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)][not(ancestor::form)]", xmlValue)
+  text <- XML::xpathSApply(doc, "//text()[not(ancestor::script)][not(ancestor::style)][not(ancestor::noscript)][not(ancestor::form)]", XML::xmlValue)
   return(text)
 }
 get_study_detail <- function(mb_id, user, pass) {

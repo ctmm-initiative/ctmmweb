@@ -545,12 +545,13 @@ output:
     removeNotification(note_data_download)
     # need to check response content to determine result type. the status is always success
     # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
-    # sometimes the result is one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file, generate some warnings. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters.
-    movebank_dt_preview <- try(fread(res$res_cont, sep = ",", nrows = 5))
+    # sometimes the result is one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file, generate some warnings. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters. We don't need to print error to console which can be confusing to user, and we have message in app. We can always turn this on in debugging.
+    movebank_dt_preview <- try(fread(res$res_cont, sep = ",", nrows = 5),
+                               silent = TRUE)
     # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
     if (!("data.table" %in% class(movebank_dt_preview))) {
       showNotification(
-        h4("No data available -- or you need to agree to license term first."),
+        h4("No data available or you need to agree to license term first. See details in Selected Study Data box."),
         type = "warning", duration = 5)
       msg <- ctmmweb:::html_to_text(res$res_cont)
       clear_mb_download(paste0(msg, collapse = "\n"))
