@@ -4,10 +4,10 @@
 \alias{heat_map}
 \title{Generate heat map from animal location data table}
 \usage{
-heat_map(dt)
+heat_map(selected_dt)
 }
 \arguments{
-\item{dt}{\code{data.table} of animal locations from \link{merge_tele}}
+\item{selected_dt}{\code{data.table} (subset) of animal locations from \link{merge_tele}}
 }
 \value{
 A \code{Leaflet} map widget.

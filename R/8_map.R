@@ -99,8 +99,8 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
   return(leaf)
 }
 # point map ----
-# build point map, possibly add polygons of home range. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
-build_point_map <- function(leaf, dt, name_vec, id_pal,
+# exported user friendly version. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
+point_map <- function(leaf, selected_dt, dt, name_vec, id_pal,
                             hrange, hr_levels, hr_color, group_name) {
 
 }
@@ -130,12 +130,15 @@ add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
 #' interactive session. You can also further augment it with `leaflet`
 #' operations, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param dt `data.table` of animal locations from [merge_tele]
+#' @param selected_dt `data.table` (subset) of animal locations from
+#'   [merge_tele]. The subset parameter name is used for consistency. Even you
+#'   don't really need to use a subset here, the point map still need both the
+#'   subset and full data set.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-heat_map <- function(dt) {
-  init_base_maps() %>% add_heat(dt)
+heat_map <- function(selected_dt) {
+  init_base_maps() %>% add_heat(selected_dt)
 }
 # utilities ----
 # check if a reactive value is valid yet
