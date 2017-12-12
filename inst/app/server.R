@@ -1990,6 +1990,7 @@ output:
   # )
   # used for both point and heat map
   base_map <- ctmmweb:::init_base_maps()
+  # use dynamic UI so we can adjust map height
   output$point_map_holder <- renderUI(
     leaflet::leafletOutput("point_map",
                   height = input$map_height)
@@ -2013,24 +2014,24 @@ output:
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
-        leaflet::addLayersControl(
-          baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
-          overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity,
-                            select_models()$names_dt$full_name
-                            # ,
-                            # draw_group
-          ),
-          options = leaflet::layersControlOptions(collapsed = FALSE)
-        )
+        ctmmweb:::add_control(c(ctmmweb:::GRID_GROUP, info$identity,
+                                select_models()$names_dt$full_name))
+        # leaflet::addLayersControl(
+        #   baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
+        #   overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity,
+        #                     select_models()$names_dt$full_name
+        #   ),
+        #   options = leaflet::layersControlOptions(collapsed = FALSE)
+        # )
     } else {
       leaf <- leaf %>%
-        leaflet::addLayersControl(
-          baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
-          overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity
-                            # , draw_group
-          ),
-          options = leaflet::layersControlOptions(collapsed = FALSE)
-        )
+        ctmmweb:::add_control(c(ctmmweb:::GRID_GROUP, info$identity))
+        # leaflet::addLayersControl(
+        #   baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
+        #   overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity
+        #   ),
+        #   options = leaflet::layersControlOptions(collapsed = FALSE)
+        # )
     }
     return(leaf)
   })
@@ -2047,23 +2048,22 @@ output:
                   height = input$map_height)
   )
   # get_heat_map() ----
+  # need reactive here because save map button need to access it outside render function
   get_heat_map <- reactive({
     # we didn't use the package function here because we can reuse base_map
     base_map %>% ctmmweb:::add_heat(select_data()$data)
   })
   output$heat_map <- leaflet::renderLeaflet({
-    # dt <- select_data()$data
-    # leaf <- base_map %>% ctmmweb:::add_heat(dt, tiles_info)
     leaf <- get_heat_map()
     print(system.time(
       save_map(leaf, "Heatmap")
     ))
     return(leaf)
   })
-  output$cluster_map_holder <- renderUI(
-    leaflet::leafletOutput("cluster_map",
-                  height = input$map_height)
-  )
+  # output$cluster_map_holder <- renderUI(
+  #   leaflet::leafletOutput("cluster_map",
+  #                 height = input$map_height)
+  # )
   # need a history list of tabs, from tab switching and page switching
   # values$map_tab_history <- NULL
   # first map page view ----
@@ -2135,10 +2135,12 @@ output:
       log_msg("Downloading map")
       # to save map with current view, update the map object with current bounds. the proxy only updated the in memory structure, not the map objec itself. The previously saved map by log don't have current bounds info, also that could be turned off.
       if (input$map_tabs == "Point") {
-        leaf <- get_point_map() %>% ctmmweb:::apply_bounds(input$point_map_bounds)
+        leaf <- get_point_map() %>%
+          ctmmweb:::apply_bounds(input$point_map_bounds)
         save_map(leaf, "Point")
       } else {
-        leaf <- get_heat_map() %>% ctmmweb:::apply_bounds(input$heat_map_bounds)
+        leaf <- get_heat_map() %>%
+          ctmmweb:::apply_bounds(input$heat_map_bounds)
         save_map(leaf, "Heatmap")
       }
       # leaf <- get_heat_map() %>%

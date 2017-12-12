@@ -1,4 +1,4 @@
-# map ----
+# CONFIG ----
 GRID_GROUP <- "_graticule_"
 # TILES_INFO hold information of tiles needed for initialization. HERE maps need api key and different init code, so they are placed in separate list items, also need to keep here api key. The layer names are also needed in layer control code in other places
 TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
@@ -8,6 +8,7 @@ TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
                    here_app_id = 'ehftALetcOLjvopsXsZP',
                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
 )
+# build map ----
 init_base_maps <- function(tiles_info = ctmmweb:::TILES_INFO) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
     attributionControl = FALSE))
@@ -26,6 +27,7 @@ init_base_maps <- function(tiles_info = ctmmweb:::TILES_INFO) {
   }
   return(leaf)
 }
+# note all additional augment functions need leaf as first parameter.
 add_measure <- function(leaf) {
   leaf %>%
     leaflet::addMeasure(
@@ -64,11 +66,15 @@ add_points <- function(leaf, dt, info, id_pal) {
     # simple measure
     add_measure()
 }
-# check if a reactive value is valid yet
-reactive_validated <- function(reactive_value) {
-  res <- try(reactive_value, silent = TRUE)
-  return(!("try-error" %in% class(res)))
+# add layer controls. layer_vec is the vector of user data layers, usually are grid, animal id vec, model names
+add_control <- function(leaf, layer_vec) {
+  leaf %>% leaflet::addLayersControl(
+    baseGroups = c(TILES_INFO$here, TILES_INFO$open),
+    overlayGroups = layer_vec,
+    options = leaflet::layersControlOptions(collapsed = FALSE)
+  )
 }
+# home range ----
 add_home_range <- function(leaf, hrange, hr_levels, hr_color, group_name){
   hrange_spdf <- sp::spTransform(
     ctmm::SpatialPolygonsDataFrame.UD(hrange, level.UD = hr_levels),
@@ -91,6 +97,8 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
   }
   return(leaf)
 }
+# point map
+
 
 # heat map ----
 # base map layer control added here
@@ -111,7 +119,7 @@ add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
 #'
 #' An interactive map will shown in RStudio Viewer pane when running in
 #' interactive session. You can also further augment it with `leaflet`
-#' operations, or save to a html with [export_map].
+#' operations, or save to a html with `htmlwidgets::saveWidget`.
 #'
 #' @param dt `data.table` of animal locations from [merge_tele]
 #'
@@ -120,23 +128,12 @@ add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
 heat_map <- function(dt) {
   init_base_maps() %>% add_heat(dt)
 }
-# export map, just a wrapper around htmlwidget. the app save_map have more details.
-#' Export leaflet map into standalone html file
-#'
-#' @param leaf
-#' @param file_name
-#'
-#' @return
-#' @export
-#'
-#' @examples
-export_map <- function(leaf, file_name) {
-
-}
-# point map
-
-# heat map
 # utilities ----
+# check if a reactive value is valid yet
+reactive_validated <- function(reactive_value) {
+  res <- try(reactive_value, silent = TRUE)
+  return(!("try-error" %in% class(res)))
+}
 # take and return rgb strings. given a base color, create variations in different values, ordered from bright to dark.
 vary_color <- function(base_color, count) {
   if (count == 1) {
