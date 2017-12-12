@@ -39,21 +39,21 @@ add_measure <- function(leaf) {
       activeColor = "#3D535D",
       completedColor = "#e74c3c")
 }
-# the layer control need to wait home range, so not added here.
-add_points <- function(leaf, dt, info, id_pal) {
+# the layer control need to wait home range, so not added here. id_pal is color pallete function from full data set.
+add_points <- function(leaf, dt, name_vec, id_pal) {
   leaf <- leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
                                 redraw = "moveend", group = GRID_GROUP)
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
-  for (current_id in info$identity) {
+  for (current_id in name_vec) {
     leaf <- leaf %>%
       leaflet::addCircles(data = dt[identity == current_id], group = current_id,
                           lng = ~longitude, lat = ~latitude, radius = 0.3, weight = 2,
                           color = ~id_pal(id), opacity = 0.4, fillOpacity = 0.05)
   }
   leaf %>%
-    leaflet::addLegend(pal = id_pal, values = info$identity,
+    leaflet::addLegend(pal = id_pal, values = name_vec,
                        position = "topleft") %>%
     leaflet::addScaleBar(position = "bottomleft") %>%
     # draw with measure, but it show measure on markers
@@ -66,11 +66,12 @@ add_points <- function(leaf, dt, info, id_pal) {
     # simple measure
     add_measure()
 }
-# add layer controls. layer_vec is the vector of user data layers, usually are grid, animal id vec, model names
+
+# add layer controls. layer_vec is the vector of user data layers, usually are animal id vec, model names. graticule is added by default.
 add_control <- function(leaf, layer_vec) {
   leaf %>% leaflet::addLayersControl(
     baseGroups = c(TILES_INFO$here, TILES_INFO$open),
-    overlayGroups = layer_vec,
+    overlayGroups = c(GRID_GROUP, layer_vec),
     options = leaflet::layersControlOptions(collapsed = FALSE)
   )
 }
@@ -97,7 +98,15 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
   }
   return(leaf)
 }
-# point map
+# point map ----
+# build point map, possibly add polygons of home range. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
+build_point_map <- function(leaf, dt, name_vec, id_pal,
+                            hrange, hr_levels, hr_color, group_name) {
+
+}
+point_map <- function() {
+
+}
 
 
 # heat map ----

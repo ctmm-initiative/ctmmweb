@@ -2000,10 +2000,8 @@ output:
     dt <- select_data()$data
     info <- select_data()$info
     # the color pallete need to be built upon full data set, not current subset
-    # id_pal <- colorFactor(hue_pal()(nrow(values$data$merged$info)),
-    #                       values$data$merged$data$identity)
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
-    withProgress(leaf <- base_map %>% ctmmweb:::add_points(dt, info, values$data$id_pal),
+    withProgress(leaf <- base_map %>% ctmmweb:::add_points(dt, info$identity, values$data$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
@@ -2014,24 +2012,11 @@ output:
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
-        ctmmweb:::add_control(c(ctmmweb:::GRID_GROUP, info$identity,
+        ctmmweb:::add_control(c(info$identity,
                                 select_models()$names_dt$full_name))
-        # leaflet::addLayersControl(
-        #   baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
-        #   overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity,
-        #                     select_models()$names_dt$full_name
-        #   ),
-        #   options = leaflet::layersControlOptions(collapsed = FALSE)
-        # )
     } else {
       leaf <- leaf %>%
-        ctmmweb:::add_control(c(ctmmweb:::GRID_GROUP, info$identity))
-        # leaflet::addLayersControl(
-        #   baseGroups = c(ctmmweb:::TILES_INFO$here, ctmmweb:::TILES_INFO$open),
-        #   overlayGroups = c(ctmmweb:::GRID_GROUP, info$identity
-        #   ),
-        #   options = leaflet::layersControlOptions(collapsed = FALSE)
-        # )
+        ctmmweb:::add_control(info$identity)
     }
     return(leaf)
   })
