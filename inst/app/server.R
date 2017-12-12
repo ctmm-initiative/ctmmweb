@@ -2006,7 +2006,8 @@ output:
     info <- select_data()$info
     # the color pallete need to be built upon full data set, not current subset
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
-    withProgress(leaf <- basemap %>% ctmmweb:::add_points(dt, info$identity, values$data$id_pal),
+    withProgress(leaf <- basemap %>%
+                   ctmmweb:::add_points(dt, info$identity, values$data$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
@@ -2014,11 +2015,11 @@ output:
       # hr_pal <- model_pal(summary_models()$model_full_names_dt, id_pal)
       # the pallete function came from full data
       hr_pal <- summary_models()$hr_pal
+      selected_names <- names(select_models_hranges())
       leaf <- leaf %>%
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
-                            hr_pal(names(select_models_hranges()))) %>%
-        ctmmweb::add_control(c(info$identity,
-                                select_models()$names_dt$full_name))
+                            hr_pal(selected_names)) %>%
+        ctmmweb::add_control(c(info$identity, selected_names))
     } else {
       leaf <- leaf %>%
         ctmmweb::add_control(info$identity)

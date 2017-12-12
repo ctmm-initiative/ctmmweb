@@ -84,13 +84,11 @@ point_map(selected_dt, dt) %>%
 - need to export add_home_range_list, maybe put names to range_list names.
 ```{r home range, eval=FALSE}
 base_map() %>% 
-  add_home_range_list(leaf, hrange_list, hr_levels,
-                                hr_color_vec, hr_name_vec) %>% 
+  add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>% 
   add_control(model_names)
 
 point_map(selected_dt, dt) %>% 
-  add_home_range_list(leaf, hrange_list, hr_levels,
-                                hr_color_vec, hr_name_vec) %>% 
+  add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>% 
   add_control(c(get_names(selected_dt), model_names))
 ```
 
