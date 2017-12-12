@@ -82,7 +82,8 @@ point_map(selected_dt, dt) %>%
 
 - to add home range, there is no wrapped less parameter version because we need lots of information and need some flexibility (base map, controls have to be added later). It's actually easier to use the app to add home range, since it involves model selection, color assignment etc
 
-```{r home range}
-
+```{r home range, eval=FALSE}
+base_map() %>% add_home_range_list(leaf, hrange_list, hr_levels,
+                                hr_color_vec, hr_name_vec)
 ```
 

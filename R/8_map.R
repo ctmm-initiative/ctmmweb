@@ -17,7 +17,7 @@ TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
 #'
 #' @return A leaflet widget object.
 #' @export
-init_base_maps <- function(tiles_info = ctmmweb:::TILES_INFO) {
+base_map <- function(tiles_info = ctmmweb:::TILES_INFO) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
     attributionControl = FALSE))
   for (prov in tiles_info$here) {
@@ -47,7 +47,7 @@ add_measure <- function(leaf) {
       activeColor = "#3D535D",
       completedColor = "#e74c3c")
 }
-# the layer control need to wait home range, so not added here. id_pal is color pallete function from full data set. used different parameter name specifically to hint the difference.
+# the layer control need to wait home range, so not added here. id_pal is color pallete function from full data set. used different parameter name specifically to hint the difference. Always use id to hint the full context since id is a factor. leaflet need a factor function to apply on id column. In comparison, home ranges are added one by one and used plain color vector.
 add_points <- function(leaf, dt, name_vec, id_pal) {
   leaf <- leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
@@ -107,10 +107,10 @@ add_home_range <- function(leaf, hrange, hr_levels, hr_color, hr_name){
 }
 # given a map object, add layers and return the map object
 add_home_range_list <- function(leaf, hrange_list, hr_levels,
-                                color_list, hr_name_vec) {
+                                hr_color_vec, hr_name_vec) {
   for (i in seq_along(hrange_list)) {
     leaf <- leaf %>% add_home_range(hrange_list[[i]], hr_levels,
-                                    color_list[[i]], hr_name_vec[i])
+                                    hr_color_vec[i], hr_name_vec[i])
   }
   return(leaf)
 }
@@ -130,7 +130,7 @@ point_map <- function(selected_dt, dt) {
   full_id_vec <- get_names(dt)
   id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
                                  full_id_vec, ordered = TRUE)
-  init_base_maps() %>% add_points(selected_dt, get_names(selected_dt), id_pal)
+  base_map() %>% add_points(selected_dt, get_names(selected_dt), id_pal)
 }
 # heat map ----
 # base map layer control added here

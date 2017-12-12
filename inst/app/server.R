@@ -1993,7 +1993,7 @@ output:
   #                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
   # )
   # used for both point and heat map
-  base_map <- ctmmweb::init_base_maps()
+  basemap <- ctmmweb::base_map()
   # use dynamic UI so we can adjust map height
   output$point_map_holder <- renderUI(
     leaflet::leafletOutput("point_map",
@@ -2005,7 +2005,7 @@ output:
     info <- select_data()$info
     # the color pallete need to be built upon full data set, not current subset
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
-    withProgress(leaf <- base_map %>% ctmmweb:::add_points(dt, info$identity, values$data$id_pal),
+    withProgress(leaf <- basemap %>% ctmmweb:::add_points(dt, info$identity, values$data$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
@@ -2039,8 +2039,8 @@ output:
   # get_heat_map() ----
   # need reactive here because save map button need to access it outside render function
   get_heat_map <- reactive({
-    # we didn't use the package function here because we can reuse base_map
-    base_map %>% ctmmweb:::add_heat(select_data()$data)
+    # we didn't use the package function here because we can reuse basemap
+    basemap %>% ctmmweb:::add_heat(select_data()$data)
   })
   output$heat_map <- leaflet::renderLeaflet({
     leaf <- get_heat_map()
