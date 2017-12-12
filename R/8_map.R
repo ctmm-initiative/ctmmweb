@@ -105,9 +105,10 @@ add_home_range <- function(leaf, hrange, hr_levels, hr_color, hr_name){
     leaflet::addPolygons(data = hrange_spdf_other, weight = 1.2, opacity = 0.4,
                          fillOpacity = 0.05, color = hr_color, group = hr_name)
 }
-# given a map object, add layers and return the map object
+# given a map object, add layers and return the map object. use simple color_vec instead of pallete function so user can customize it easier.
 add_home_range_list <- function(leaf, hrange_list, hr_levels,
-                                hr_color_vec, hr_name_vec) {
+                                hr_color_vec) {
+  hr_name_vec <- names(hrange_list)
   for (i in seq_along(hrange_list)) {
     leaf <- leaf %>% add_home_range(hrange_list[[i]], hr_levels,
                                     hr_color_vec[i], hr_name_vec[i])

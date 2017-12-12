@@ -1914,9 +1914,10 @@ output:
         }
         return(write_f)
       }
-      ctmmweb:::build_shapefile_zip(file, save_shapefiles(select_models_hranges(),
-                                                get_hr_levels()),
-                          session_tmpdir)
+      ctmmweb:::build_shapefile_zip(file,
+                                    save_shapefiles(select_models_hranges(),
+                                                    get_hr_levels()),
+                                    session_tmpdir)
       # LOG build shapefiles
       log_msg("Shapefiles built and downloaded")
     }
@@ -2011,11 +2012,11 @@ output:
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
       # hr_pal <- model_pal(summary_models()$model_full_names_dt, id_pal)
+      # the pallete function came from full data
       hr_pal <- summary_models()$hr_pal
       leaf <- leaf %>%
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
-                            hr_pal(select_models()$names_dt$full_name),
-                            select_models()$names_dt$full_name) %>%
+                            hr_pal(names(select_models_hranges()))) %>%
         ctmmweb::add_control(c(info$identity,
                                 select_models()$names_dt$full_name))
     } else {
