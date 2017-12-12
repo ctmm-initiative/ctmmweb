@@ -1988,6 +1988,7 @@ output:
   #                    here_app_id = 'ehftALetcOLjvopsXsZP',
   #                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
   # )
+  # used for both point and heat map
   base_map <- ctmmweb:::init_base_maps()
   output$point_map_holder <- renderUI(
     leaflet::leafletOutput("point_map",
@@ -2047,6 +2048,7 @@ output:
   )
   # get_heat_map() ----
   get_heat_map <- reactive({
+    # we didn't use the package function here because we can reuse base_map
     base_map %>% ctmmweb:::add_heat(select_data()$data)
   })
   output$heat_map <- leaflet::renderLeaflet({

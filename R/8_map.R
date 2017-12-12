@@ -91,15 +91,8 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
   }
   return(leaf)
 }
-# take and return rgb strings. given a base color, create variations in different values, ordered from bright to dark.
-vary_color <- function(base_color, count) {
-  if (count == 1) {
-    return(base_color)
-  } else {
-    hsv_vec <- grDevices::rgb2hsv(grDevices::col2rgb(base_color))[, 1]
-    return(grDevices::hsv(hsv_vec[1], hsv_vec[2], seq(1, 0.5, length.out = count)))
-  }
-}
+
+# heat map ----
 # base map layer control added here
 add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
   leaf %>%
@@ -114,6 +107,45 @@ add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
       overlayGroups = c(GRID_GROUP, "Heatmap"),
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
+#' Generate heat map from animal location data table
+#'
+#' An interactive map will shown in RStudio Viewer pane when running in
+#' interactive session. You can also further augment it with `leaflet`
+#' operations, or save to a html with [export_map].
+#'
+#' @param dt `data.table` of animal locations from [merge_tele]
+#'
+#' @return A `Leaflet` map widget.
+#' @export
+heat_map <- function(dt) {
+  init_base_maps() %>% add_heat(dt)
+}
+# export map, just a wrapper around htmlwidget. the app save_map have more details.
+#' Export leaflet map into standalone html file
+#'
+#' @param leaf
+#' @param file_name
+#'
+#' @return
+#' @export
+#'
+#' @examples
+export_map <- function(leaf, file_name) {
+
+}
+# point map
+
+# heat map
+# utilities ----
+# take and return rgb strings. given a base color, create variations in different values, ordered from bright to dark.
+vary_color <- function(base_color, count) {
+  if (count == 1) {
+    return(base_color)
+  } else {
+    hsv_vec <- grDevices::rgb2hsv(grDevices::col2rgb(base_color))[, 1]
+    return(grDevices::hsv(hsv_vec[1], hsv_vec[2], seq(1, 0.5, length.out = count)))
+  }
+}
 get_bounds <- function(dt) {
   return(list(lng1 = min(dt$longitude), lat1 = min(dt$latitude),
               lng2 = max(dt$longitude), lat2 = max(dt$latitude)))
@@ -121,4 +153,3 @@ get_bounds <- function(dt) {
 apply_bounds <- function(leaf, bounds) {
   leaflet::fitBounds(leaf, bounds$east, bounds$north, bounds$west, bounds$south)
 }
-# export map, just a wrapper around htmlwidget. the app save_map have more details.
