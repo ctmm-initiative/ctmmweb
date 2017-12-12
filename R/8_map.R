@@ -120,10 +120,13 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
 
 #' Build point map from animal location data table
 #'
-#' The full data set is also needed to maintain color consistency.
+#' An interactive map will shown in RStudio Viewer pane when running in
+#' interactive session. You can also further augment it with `leaflet`
+#' operations, or save to a html with `htmlwidgets::saveWidget`.
 #'
 #' @param selected_dt `data.table` subset of `dt`.
-#' @param dt Full data set of `data.table` of animal locations from [merge_tele].
+#' @param dt Full data set of `data.table` of animal locations from
+#'   [merge_tele]. This is needed to maintain color consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export

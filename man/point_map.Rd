@@ -9,11 +9,14 @@ point_map(selected_dt, dt)
 \arguments{
 \item{selected_dt}{\code{data.table} subset of \code{dt}.}
 
-\item{dt}{Full data set of \code{data.table} of animal locations from \link{merge_tele}.}
+\item{dt}{Full data set of \code{data.table} of animal locations from
+\link{merge_tele}. This is needed to maintain color consistency.}
 }
 \value{
 A \code{Leaflet} map widget.
 }
 \description{
-The full data set is also needed to maintain color consistency.
+An interactive map will shown in RStudio Viewer pane when running in
+interactive session. You can also further augment it with \code{leaflet}
+operations, or save to a html with \code{htmlwidgets::saveWidget}.
 }

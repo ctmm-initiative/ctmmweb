@@ -99,7 +99,7 @@
     </div>
 
     
-    <p>Plot a group of empirical or modeled variograms.</p>
+    <p>This is a wrapper over <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/plot.variogram'>ctmm::plot.variogram</a></code> to make group plot easier.</p>
     
 
     <pre class="usage"><span class='fu'>plot_vario</span>(<span class='no'>vario_list</span>, <span class='kw'>model_list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fraction</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
@@ -120,8 +120,9 @@ figure titles. Draw modeled variogram if provided. The models list should
 match <code>vario_list</code> in length and animal, so that <code>i</code>th model is for <code>i</code>th
 variogram.
 Possible values:</p><ul>
-<li><p><code>NULL</code>, only draw empirical variogram. <code>vario_list</code> names will
-be used as figure title.</p></li>
+<li><p>It can be skipped to use default value <code>NULL</code>, and only empirical
+variograms are drawn. <code>vario_list</code> names will be used as figure title.
+Better use named parameters for others in this case.</p></li>
 <li><p>list of guesstimated models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/variogram.fit'>ctmm::ctmm.guess</a></code> on <code>vario_list</code>,
 overlay guesstimate variogram.</p></li>
 <li><p>list of fitted models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/ctmm.fit'>ctmm::ctmm.select</a></code> on <code>vario_list</code>, overlay

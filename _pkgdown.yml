@@ -30,6 +30,10 @@ reference:
 - title: "Map"
   desc: ~
   contents:
+  - '`base_map`'
+  - '`point_map`'
+  - '`heat_map`'
+  - '`add_control`'
 - title: "Parallel Computing"
   desc: ~
   contents:
@@ -48,6 +52,7 @@ reference:
   - '`JS.logify`'
   - '`JS.onload`'
   - '`compress_folder`'
+  - '`get_names`'
 
 navbar:
   title: ctmmweb

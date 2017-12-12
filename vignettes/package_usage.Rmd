@@ -78,11 +78,14 @@ point_map(selected_dt, dt)
 # add control. This is not a part of point_map function because we can only add control once and after all layers are added. If we want to overlay home range over points, we need to add control after home range layer are added.
 point_map(selected_dt, dt) %>% 
   add_control(get_names(selected_dt))
+
+# save map to html
+
 ```
 
 - to add home range, there is no wrapped less parameter version because we need lots of information and need some flexibility (base map, controls have to be added later). It's actually easier to use the app to add home range, since it involves model selection, color assignment etc
 - need to export add_home_range_list, maybe put names to range_list names.
-```{r home range, eval=FALSE}
+```{r home range map, eval=FALSE}
 base_map() %>% 
   add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>% 
   add_control(model_names)
@@ -90,5 +93,8 @@ base_map() %>%
 point_map(selected_dt, dt) %>% 
   add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>% 
   add_control(c(get_names(selected_dt), model_names))
+
+# save to html
+
 ```
 

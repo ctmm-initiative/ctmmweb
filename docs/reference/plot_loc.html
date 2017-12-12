@@ -119,8 +119,10 @@ information, which is needed to color each animal consistently.</p></td>
     <tr>
       <th>dt</th>
       <td><p>The full data set of all animals location in merged <code>data.table</code>
-format. Usually came from merge_animals. Default <code>NULL</code> means no full
-data as background.</p></td>
+format. Usually came from merge_animals. If background is not needed, it
+can be skipped and take the default <code>NULL</code> value. In this case better use
+named parameter for <code>point_size</code> if needed, like <code>plot_loc(selected_dt, point_size = 0.2)</code> instead of <code>plot_loc(selected_dt, 0.2)</code> otherwise the
+second parameter will be interpreted as <code>dt</code>.</p></td>
     </tr>
     <tr>
       <th>point_size</th>
