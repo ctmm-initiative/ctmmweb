@@ -76,7 +76,7 @@ add_control <- function(leaf, layer_vec) {
   )
 }
 # home range ----
-add_home_range <- function(leaf, hrange, hr_levels, hr_color, group_name){
+add_home_range <- function(leaf, hrange, hr_levels, hr_color, hr_name){
   hrange_spdf <- sp::spTransform(
     ctmm::SpatialPolygonsDataFrame.UD(hrange, level.UD = hr_levels),
     sp::CRS("+proj=longlat +datum=WGS84"))
@@ -85,30 +85,27 @@ add_home_range <- function(leaf, hrange, hr_levels, hr_color, group_name){
   hrange_spdf_other <- hrange_spdf[-ML_indice, ]
   leaf %>%
     leaflet::addPolygons(data = hrange_spdf_ML, weight = 2.2, opacity = 0.7,
-                         fillOpacity = 0.05, color = hr_color, group = group_name) %>%
+                         fillOpacity = 0.05, color = hr_color, group = hr_name) %>%
     leaflet::addPolygons(data = hrange_spdf_other, weight = 1.2, opacity = 0.4,
-                         fillOpacity = 0.05, color = hr_color, group = group_name)
+                         fillOpacity = 0.05, color = hr_color, group = hr_name)
 }
 # given a map object, add layers and return the map object
 add_home_range_list <- function(leaf, hrange_list, hr_levels,
-                                color_list, group_vec) {
+                                color_list, hr_name_vec) {
   for (i in seq_along(hrange_list)) {
     leaf <- leaf %>% add_home_range(hrange_list[[i]], hr_levels,
-                                    color_list[[i]], group_vec[i])
+                                    color_list[[i]], hr_name_vec[i])
   }
   return(leaf)
 }
 # point map ----
-# exported user friendly version. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
-point_map <- function(leaf, selected_dt, dt, name_vec, id_pal,
-                            hrange, hr_levels, hr_color, group_name) {
-
+# exported user friendly version ends with map and don't use verb in beginning. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
+point_map <- function(selected_dt, dt) {
+  name_vec <- unique(selected_dt[, identity])
+  id_pal <- leaflet::colorFactor(
+    scales::hue_pal()(length(name_vec)),
+    name_vec)
 }
-point_map <- function() {
-
-}
-
-
 # heat map ----
 # base map layer control added here
 add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {

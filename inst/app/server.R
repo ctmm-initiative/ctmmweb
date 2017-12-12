@@ -254,7 +254,9 @@ output:
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     values$data$id_pal <- leaflet::colorFactor(
       scales::hue_pal()(nrow(values$data$merged$info)),
-      unique(values$data$merged$data$id))
+      # unique(values$data$merged$data$id)
+      values$data$merged$info$identity, ordered = TRUE
+      )
     shinydashboard::updateTabItems(session, "tabs", "plots")
     # LOG input data updated
     log_msg("Input data updated")

@@ -71,3 +71,11 @@ summary_model_fit(model_fit_res)
 
 ```
 
+### map
+
+```{r point map}
+
+```
+
+
+- to add home range, there is no wrapped less parameter version because we need lots of information and need some flexibility (base map, controls have to be added later). It's actually easier to use the app to add home range, since it involves model selection, color assignment etc
