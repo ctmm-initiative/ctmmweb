@@ -9,6 +9,14 @@ TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
 )
 # build map ----
+
+#' Build a leaflet base map
+#'
+#' @param tiles_info A list holding tiles information. To customize it,
+#'   check and modify the default value `ctmmweb:::TILES_INFO`.
+#'
+#' @return A leaflet widget object.
+#' @export
 init_base_maps <- function(tiles_info = ctmmweb:::TILES_INFO) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
     attributionControl = FALSE))
@@ -39,7 +47,7 @@ add_measure <- function(leaf) {
       activeColor = "#3D535D",
       completedColor = "#e74c3c")
 }
-# the layer control need to wait home range, so not added here. id_pal is color pallete function from full data set.
+# the layer control need to wait home range, so not added here. id_pal is color pallete function from full data set. used different parameter name specifically to hint the difference.
 add_points <- function(leaf, dt, name_vec, id_pal) {
   leaf <- leaf %>%
     leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
@@ -49,8 +57,10 @@ add_points <- function(leaf, dt, name_vec, id_pal) {
   for (current_id in name_vec) {
     leaf <- leaf %>%
       leaflet::addCircles(data = dt[identity == current_id], group = current_id,
-                          lng = ~longitude, lat = ~latitude, radius = 0.3, weight = 2,
-                          color = ~id_pal(id), opacity = 0.4, fillOpacity = 0.05)
+                          lng = ~longitude, lat = ~latitude,
+                          radius = 0.3, weight = 2,
+                          color = ~id_pal(id),
+                          opacity = 0.4, fillOpacity = 0.05)
   }
   leaf %>%
     leaflet::addLegend(pal = id_pal, values = name_vec,
@@ -67,7 +77,13 @@ add_points <- function(leaf, dt, name_vec, id_pal) {
     add_measure()
 }
 
-# add layer controls. layer_vec is the vector of user data layers, usually are animal id vec, model names. graticule is added by default.
+#' Add layer control for leaflet map
+#'
+#' @param leaf leaflet map widget object.
+#' @param layer_vec character vector of user data layers. For example animal
+#'   names, model names etc.
+#'
+#' @export
 add_control <- function(leaf, layer_vec) {
   leaf %>% leaflet::addLayersControl(
     baseGroups = c(TILES_INFO$here, TILES_INFO$open),
@@ -100,11 +116,21 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
 }
 # point map ----
 # exported user friendly version ends with map and don't use verb in beginning. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
+
+#' Build point map from animal location data table
+#'
+#' The full data set is also needed to maintain color consistency.
+#'
+#' @param selected_dt `data.table` subset of `dt`.
+#' @param dt Full data set of `data.table` of animal locations from [merge_tele].
+#'
+#' @return A `Leaflet` map widget.
+#' @export
 point_map <- function(selected_dt, dt) {
-  name_vec <- unique(selected_dt[, identity])
-  id_pal <- leaflet::colorFactor(
-    scales::hue_pal()(length(name_vec)),
-    name_vec)
+  full_id_vec <- get_names(dt)
+  id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
+                                 full_id_vec, ordered = TRUE)
+  init_base_maps() %>% add_points(selected_dt, get_names(selected_dt), id_pal)
 }
 # heat map ----
 # base map layer control added here
@@ -121,7 +147,7 @@ add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
       overlayGroups = c(GRID_GROUP, "Heatmap"),
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
-#' Generate heat map from animal location data table
+#' Build heat map from animal location data table
 #'
 #' An interactive map will shown in RStudio Viewer pane when running in
 #' interactive session. You can also further augment it with `leaflet`
@@ -138,6 +164,18 @@ heat_map <- function(selected_dt) {
   init_base_maps() %>% add_heat(selected_dt)
 }
 # utilities ----
+# need a helper so it's easier for user not familiar with data.table.
+
+#' Extract vector of names from `data.table`
+#'
+#' @param dt `data.table` of animal locations from [merge_tele]
+#'
+#' @return A character vector of animal names from `identity` column in `dt`.
+#'   Order is not changed.
+#' @export
+get_names <- function(dt) {
+  unique(dt, by = "identity")$identity
+}
 # check if a reactive value is valid yet
 reactive_validated <- function(reactive_value) {
   res <- try(reactive_value, silent = TRUE)

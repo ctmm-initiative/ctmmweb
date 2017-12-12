@@ -73,9 +73,16 @@ summary_model_fit(model_fit_res)
 
 ### map
 
-```{r point map}
+```{r point map, eval=FALSE}
+point_map(selected_dt, dt)
+# add control. This is not a part of point_map function because we can only add control once and after all layers are added. If we want to overlay home range over points, we need to add control after home range layer are added.
+point_map(selected_dt, dt) %>% 
+  add_control(get_names(selected_dt))
+```
+
+- to add home range, there is no wrapped less parameter version because we need lots of information and need some flexibility (base map, controls have to be added later). It's actually easier to use the app to add home range, since it involves model selection, color assignment etc
+
+```{r home range}
 
 ```
 
-
-- to add home range, there is no wrapped less parameter version because we need lots of information and need some flexibility (base map, controls have to be added later). It's actually easier to use the app to add home range, since it involves model selection, color assignment etc

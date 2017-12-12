@@ -564,7 +564,8 @@ output:
       move_bank_dt <- try(fread(res$res_cont, sep = ","))
       removeNotification(note_parse)
       row_count <- formatC(move_bank_dt[, .N], format = "d", big.mark = ",")
-      individual_count <- length(unique(move_bank_dt[, individual_id]))
+      # individual_count <- length(unique(move_bank_dt[, individual_id]))
+      individual_count <- nrow(unique(move_bank_dt, by = "individual_id"))
       values$study_data_response <- paste0(
           "Data downloaded with ", row_count, " rows, ",
           individual_count, " individuals. ", "Preview:")
@@ -1991,7 +1992,7 @@ output:
   #                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
   # )
   # used for both point and heat map
-  base_map <- ctmmweb:::init_base_maps()
+  base_map <- ctmmweb::init_base_maps()
   # use dynamic UI so we can adjust map height
   output$point_map_holder <- renderUI(
     leaflet::leafletOutput("point_map",
@@ -2014,11 +2015,11 @@ output:
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
                             hr_pal(select_models()$names_dt$full_name),
                             select_models()$names_dt$full_name) %>%
-        ctmmweb:::add_control(c(info$identity,
+        ctmmweb::add_control(c(info$identity,
                                 select_models()$names_dt$full_name))
     } else {
       leaf <- leaf %>%
-        ctmmweb:::add_control(info$identity)
+        ctmmweb::add_control(info$identity)
     }
     return(leaf)
   })

@@ -2,7 +2,7 @@
 % Please edit documentation in R/8_map.R
 \name{heat_map}
 \alias{heat_map}
-\title{Generate heat map from animal location data table}
+\title{Build heat map from animal location data table}
 \usage{
 heat_map(selected_dt)
 }
