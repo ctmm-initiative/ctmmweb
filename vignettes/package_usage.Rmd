@@ -72,8 +72,9 @@ summary_model_fit(model_fit_res)
 # need to prepare model list dt like in app.
 ```
 
-- operations on model table
-- model list, names of list
+- generate proper dt with model list column, or just the model list with names? which should be enough for command line usage.
+- select models, use the model summary table for selection, model number?
+- check the parameter needed for following code
 
 ## variogram, home range, occurrence
 
@@ -120,6 +121,9 @@ point_map(selected_dt, dt) %>%
 ```
 
 ## Other utility functions
+code example for each function since we didn't put code example in help.
+- disctance, speed outlier
+
 ### generic parallel function usage
 ```{r parallel, eval=FALSE}
 # generic parallel usage
