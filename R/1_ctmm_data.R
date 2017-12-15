@@ -203,15 +203,15 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' A Telemetry list hold mutiple animal data in separate list items, each item
 #' have the animal location data in a data frame, and other information in
 #' various slots. This structure supports flexible S3 methods for telemetry
-#' object. However to plot multiple animals location together with `ggplot2`
-#' it's better to merge all location data into single data frame with an animal
-#' id column.
+#' object. However to plot multiple animals location together with `ggplot2` we
+#' need to merge all location data into a single `data.frame` with an animal id
+#' column.
 #'
-#' Thus any input telemetry object/List need to be merged into a `data.table` of
+#' This function merge any input telemetry object/List into a `data.table` of
 #' location data, and another information `data.table` for animals. `data.table`
-#' is chosen over `data.frame` for much better performance. This is the main
-#' data structure in app. The app works on any selected subset of it in almost
-#' all steps.
+#' is chosen over `data.frame` for much better performance. This data structure
+#' is also used in a lot of places in app, which works on any selected subset of
+#' full data in almost all steps.
 #'
 #' @param tele_obj_list telemetry object/list
 #'

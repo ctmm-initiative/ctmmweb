@@ -12,9 +12,8 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
-  # ,
-  # fig.width = 6, fig.height = 6
+  comment = "#>",
+  fig.path = "fig/"
 )
 ```
 
@@ -28,16 +27,30 @@ knitr::opts_chunk$set(
 library(ctmm)
 library(ctmmweb)
 data(buffalo)
+```
 
+- To plot multiple animals location with `ggplot2`, we need to merge all location data into a single `data.frame`. `merge_tele` will merge ctmm telemetry object/list into a list of location `data.table` and information `data.table`. `data.table` is compatible with `data.frame` but with much better performance.
+
+
+```{r basic data structure}
 # basic data structure
 merged_data <- merge_tele(buffalo)
+# a list of locations data.table/data.frame and information table
+head(merged_data)
 dt <- merged_data$data
 info <- merged_data$info
 ```
 
+
+
 basic intro on data structure
 
 ## Visualization
+- The location `data.table` `dt` have `identity` column which is character vectors of animal names. `id` column are factorized names. In app we can select a subset of full data by slecting rows in the data summary table 1.
+
+    ![](pic/01_summary_table.png)
+
+
 
 ```{r plot location and time, eval=TRUE}
 # how to take subset, this is to simulate the row selection in app
