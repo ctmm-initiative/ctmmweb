@@ -29,37 +29,37 @@ library(ctmmweb)
 data(buffalo)
 ```
 
-- To plot multiple animals location with `ggplot2`, we need to merge all location data into a single `data.frame`. `merge_tele` will merge ctmm telemetry object/list into a list of location `data.table` and information `data.table`. `data.table` is compatible with `data.frame` but with much better performance.
-
+To plot multiple animals location with `ggplot2`, we need to merge all location data into a single `data.frame`. `merge_tele` will merge ctmm telemetry object/list into a list of location `data.table` and information `data.table`. `data.table` is compatible with `data.frame` but with much better performance.
 
 ```{r basic data structure}
 # basic data structure
 merged_data <- merge_tele(buffalo)
 # a list of locations data.table/data.frame and information table
+# 
 head(merged_data)
 dt <- merged_data$data
 info <- merged_data$info
 ```
 
+In app we can select a subset of full data by slecting rows in the data summary table 1.
+
+![](pic/01_summary_table.png)
 
 
-basic intro on data structure
+To select a subset in script, we can select animal names for `identity` column or numbers for `id` factor column in `dt` with `data.table` syntax. `data.table` is also `data.frame` so you can use `data.frame` synatax too.
 
-## Visualization
-- The location `data.table` `dt` have `identity` column which is character vectors of animal names. `id` column are factorized names. In app we can select a subset of full data by slecting rows in the data summary table 1.
-
-    ![](pic/01_summary_table.png)
-
-
-
-```{r plot location and time, eval=TRUE}
-# how to take subset, this is to simulate the row selection in app
+```{r select subset}
 # select by identity column
 selected_dt <- dt[identity %in% c("Gabs", "Queen")]
 # select by id factor column value
 dt[as.numeric(id) %in% c(1, 3)]
+```
 
-# plot
+## Visualization
+
+Plot the location, sampling time with these functions to reproduce the plots in `Visualization` page. Note some functions need both the selected subset and the full data set, because we need to know all animals to maintain a consistent color mapping to animals in various selections..
+
+```{r plot location and time, eval=TRUE}
 plot_loc(selected_dt, dt)
 plot_loc_facet(selected_dt)
 plot_time(selected_dt)
@@ -70,8 +70,7 @@ plot_loc(selected_dt, dt) +
   ctmmweb:::CENTER_TITLE
 # export plot
 g <- plot_loc(selected_dt, dt)
-# it's commented out to avoid the file generation in folder
-# ggplot2::ggsave("test.png", g)
+ggplot2::ggsave("pic/test.png", g)
 ```
 
 ## model summary table
