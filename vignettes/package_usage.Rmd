@@ -48,6 +48,8 @@ In app we can select a subset of full data by slecting rows in the data summary 
 
 To select a subset in script, we can select animal names for `identity` column or numbers for `id` factor column in `dt` with `data.table` syntax. `data.table` is also `data.frame` so you can use `data.frame` synatax too.
 
+It's suggested to always select a subset from full data like this, because the subset will carry the `id` column which still hold all animal names in levels, then a consistent color mapping can be maintained(otherwise `ggplot2` will always draw first animal in same color).
+
 ```{r select subset}
 # select by identity column
 selected_dt <- dt[identity %in% c("Gabs", "Queen")]
@@ -57,11 +59,18 @@ dt[as.numeric(id) %in% c(1, 3)]
 
 ## Visualization
 
-Plot the location, sampling time with these functions to reproduce the plots in `Visualization` page. Note some functions need both the selected subset and the full data set, because we need to know all animals to maintain a consistent color mapping to animals in various selections..
+You can reproduce most of the plots in `Visualization` page with functions. 
 
 ```{r plot location and time, eval=TRUE}
+# plot animal locations
+plot_loc(dt)
+# plot a subset only. Note the color mapping is consistent because selected_dt  id column hold all animal names in levels.
+plot_loc(selected_dt)
+# with subset and full data set both provided, subset will be drawn with full data as background. 
 plot_loc(selected_dt, dt)
+# location in facet
 plot_loc_facet(selected_dt)
+# sampling time
 plot_time(selected_dt)
 # take the ggplot2 object to further customize it
 plot_loc(selected_dt, dt) +
