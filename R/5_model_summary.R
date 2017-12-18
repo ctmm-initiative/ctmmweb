@@ -42,6 +42,8 @@ model_fit_res_to_model_list_dt <- function(model_fit_res) {
     data.frame(res)$dAICc
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
+  # add model name col so it can be used to create model color palette
+  models_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
 }
 # generate summary table for models. home range don't have dAICc column
 model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
@@ -54,11 +56,12 @@ model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
   # home range result also used this function, but there is no dAICc column from summary of list of home range.
   if (hrange) {
-    res_dt <- merge(models_dt[, .(identity, model_type, model_no)],
+    res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no)],
                     model_summary_dt,
                     by = "model_no")
   } else {
-    res_dt <- merge(models_dt[, .(identity, model_type, model_no, dAICc)],
+    res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no,
+                                  dAICc)],
                     model_summary_dt,
                     by = "model_no")
   }
@@ -106,8 +109,6 @@ format_model_summary_dt <- function(model_summary_dt) {
          c("tau velocity", "speed") := ""]
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF mean", "DOF area") := NA_real_]
-  # add model full name col so it can be used to create model color palette
-  res_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table
@@ -133,6 +134,15 @@ summary_model_fit <- function(model_fit_res) {
   models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
   # use [] to make sure calling function directly will print in console.
   model_list_dt_to_formated_model_summary_dt(models_dt)[]
+}
+#' Convert nested `ctmm::ctmm.select` result into flatten list with names
+#'
+#' @param model_fit_res
+#'
+#' @return a one level list of models with names
+#' @export
+list_model_fit <- function(model_fit_res) {
+
 }
 # it requires more manual code to assemble a table for home range, temporarily not exporting these function untill requested
 # Build Home Range list table
