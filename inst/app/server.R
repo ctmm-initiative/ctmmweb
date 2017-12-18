@@ -1731,17 +1731,17 @@ output:
       # formated_summary_dt[, estimate := NULL]
     }
     # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table
-    model_full_names_dt <- unique(formated_summary_dt[,
-                            .(identity, model_type, full_name)])
+    model_names_dt <- unique(formated_summary_dt[,
+                            .(identity, model_type, model_name)])
     # prepare model color, identity color function
-    model_full_names_dt[, base_color := values$data$id_pal(identity)]
-    model_full_names_dt[, variation_number := seq_len(.N), by = identity]
-    model_full_names_dt[
-      , color := ctmmweb:::vary_color(base_color, .N)[variation_number],
-      by = identity]
+    model_names_dt[, base_color := values$data$id_pal(identity)]
+    model_names_dt[, variation_number := seq_len(.N), by = identity]
+    model_names_dt[, color :=
+                     ctmmweb:::vary_color(base_color, .N)[variation_number],
+                   by = identity]
     # need ordered = TRUE for character vector not being factor yet.
-    hr_pal <- leaflet::colorFactor(model_full_names_dt$color,
-                          model_full_names_dt$full_name, ordered = TRUE)
+    hr_pal <- leaflet::colorFactor(model_names_dt$color,
+                          model_names_dt$model_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # we don't want the row number to show in the final table
     dt <- copy(formated_summary_dt)
@@ -1782,7 +1782,7 @@ output:
     dt <- copy(summary_models()$summary_dt)
     # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
     dt[, model_no := NULL]
-    dt[, full_name := NULL]
+    dt[, model_name := NULL]
     # LOG fitted models
     log_dt_md(dt, "Fitted Models")
     # need the full info table to keep the color mapping when only a subset is selected
@@ -1807,17 +1807,17 @@ output:
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
-                                           .(identity, model_type, full_name)])
+                                           .(identity, model_type, model_name)])
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     selected_models_list <- selected_models_dt$model
-    names(selected_models_list) <- selected_names_dt$full_name
+    names(selected_models_list) <- selected_names_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
       selected_names_dt$identity]
-    # selected_names_dt[, full_name := stringr::str_c(identity, " - ", model_type)]
+    # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
     selected_vario_layout <- get_vario_layout(selected_vario_list,
                                      input$vario_height, input$vario_columns)
@@ -1842,7 +1842,7 @@ output:
                       CTMM = select_models()$models_list))),
       message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
-    names(res) <- select_models()$names_dt$full_name
+    names(res) <- select_models()$names_dt$model_name
     return(res)
   })
   # home range summary ----
@@ -1885,7 +1885,7 @@ output:
     # lapply(seq_along(selected_tele_list), function(i) {
     #   plot(selected_tele_list[[i]], UD = select_models_hranges()[[i]],
     #        level.UD = get_hr_levels())
-    #   graphics::title(select_models()$names_dt$full_name[i])
+    #   graphics::title(select_models()$names_dt$model_name[i])
     #   # title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
     # })
     # LOG save pic
@@ -1910,7 +1910,7 @@ output:
           for (i in seq_along(hrange_list)) {
             ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
                            folder = folder_path,
-                           file = select_models()$names_dt$full_name[i])
+                           file = select_models()$names_dt$model_name[i])
           }
         }
         return(write_f)
@@ -1938,7 +1938,7 @@ output:
     #   output$occurrence_info <- renderPrint(str(res))
     # }
     # add name so plot can take figure title from it
-    names(res) <- select_models()$names_dt$full_name
+    names(res) <- select_models()$names_dt$model_name
     res
   })
   # function on input didn't update, need a reactive expression?
@@ -1958,10 +1958,10 @@ output:
     #     # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
     #     plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
     #   }, error = function(e) {
-    #     warning(select_models()$names_dt$full_name[i], ": ", e)
+    #     warning(select_models()$names_dt$model_name[i], ": ", e)
     #     plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
     #   })
-    #   graphics::title(select_models()$names_dt$full_name[i])
+    #   graphics::title(select_models()$names_dt$model_name[i])
     # })
     # LOG save pic
     log_save_vario("occurrence", select_models()$vario_layout$row_count,
@@ -2013,7 +2013,7 @@ output:
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
-      # hr_pal <- model_pal(summary_models()$model_full_names_dt, id_pal)
+      # hr_pal <- model_pal(summary_models()$model_names_dt, id_pal)
       # the pallete function came from full data
       hr_pal <- summary_models()$hr_pal
       selected_names <- names(select_models_hranges())

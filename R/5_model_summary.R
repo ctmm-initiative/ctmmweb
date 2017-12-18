@@ -107,7 +107,7 @@ format_model_summary_dt <- function(model_summary_dt) {
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF mean", "DOF area") := NA_real_]
   # add model full name col so it can be used to create model color palette
-  res_dt[, full_name := stringr::str_c(identity, " - ", model_type)]
+  res_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table
