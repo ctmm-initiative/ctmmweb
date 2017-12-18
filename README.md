@@ -29,12 +29,15 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
 3. Run the app in one of following methods:
 
     ```r
+    library(ctmmweb)
     # run app
-    ctmmweb::app()
+    app()
     # run app with path to movebank format csv file
-    ctmmweb::app("path_to_movebank_format_csv")
+    app("path_to_movebank_format_csv")
     # run app with existing telemetry object or list in R environment
-    ctmmweb::app(buffalo)
+    library(ctmm)
+    data(buffalo)
+    app(buffalo)
     ```
   This will start the app locally with RStudio's embeded browser. In windows/Linux this has known compatibility problems. You can click the `open in browser` button in the browser top bar to use system browser instead. Chrome is recommended.
   
