@@ -1706,8 +1706,9 @@ output:
     withProgress(print(system.time(
       values$selected_data_model_fit_res <-
         par_fit_tele_guess_mem(tele_guess_list,
-                                   fallback = option_selected("no_parallel")))),
+                               fallback = option_selected("no_parallel")))),
       message = "Fitting models to find the best ...")
+    # always save model names in list
     names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
@@ -1731,7 +1732,7 @@ output:
     }
     # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table
     model_full_names_dt <- unique(formated_summary_dt[,
-                            .(identity, model_name, full_name)])
+                            .(identity, model_type, full_name)])
     # prepare model color, identity color function
     model_full_names_dt[, base_color := values$data$id_pal(identity)]
     model_full_names_dt[, variation_number := seq_len(.N), by = identity]
@@ -1754,15 +1755,15 @@ output:
   })
   # model summary ----
   # format model summary table as DT
-  render_model_summary_DT <- function(dt, model_names, info_p) {
+  render_model_summary_DT <- function(dt, model_types, info_p) {
     DT::datatable(dt,options = list(scrollX = TRUE,
                                     pageLength = 18,
                                     lengthMenu = c(18, 36, 72)),
                   rownames = FALSE) %>%
       # majority cells in color by model
-      DT::formatStyle('model_name', target = 'row',
+      DT::formatStyle('model_type', target = 'row',
                       color = DT::styleEqual(
-                        model_names, scales::hue_pal()(length(model_names)))
+                        model_types, scales::hue_pal()(length(model_types)))
       ) %>%
       # override the id col color
       DT::formatStyle('identity', target = 'cell',
@@ -1788,8 +1789,8 @@ output:
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
     # base::sort have different result in linux, hosted server.
-    model_names <- stringr::str_sort(unique(dt$model_name))
-    render_model_summary_DT(dt, model_names, info_p)
+    model_types <- stringr::str_sort(unique(dt$model_type))
+    render_model_summary_DT(dt, model_types, info_p)
   })
   proxy_model_dt <- DT::dataTableProxy("model_fit_summary")
   observeEvent(input$clear_models, {
@@ -1806,17 +1807,17 @@ output:
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
-                                           .(identity, model_name, full_name)])
+                                           .(identity, model_type, full_name)])
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
-                                by = c("identity", "model_name"), sort = FALSE)
+                                by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     selected_models_list <- selected_models_dt$model
     names(selected_models_list) <- selected_names_dt$full_name
     selected_vario_list <- select_data_vario()$vario_list[
       selected_names_dt$identity]
-    # selected_names_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
+    # selected_names_dt[, full_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
     selected_vario_layout <- get_vario_layout(selected_vario_list,
                                      input$vario_height, input$vario_columns)
@@ -1862,9 +1863,9 @@ output:
     }
     info_p <- values$data$merged$info
     # still use the full model name table color mapping to make it consistent.
-    model_names <- stringr::str_sort(unique(
-      summary_models()$summary_dt$model_name))
-    render_model_summary_DT(dt, model_names, info_p)
+    model_types <- stringr::str_sort(unique(
+      summary_models()$summary_dt$model_type))
+    render_model_summary_DT(dt, model_types, info_p)
   })
   # function on input didn't update, need a reactive expression?
   get_hr_levels <- reactive({

@@ -13,7 +13,7 @@ par_fit_tele(tele_list, fallback = FALSE)
 problems.}
 }
 \value{
-list of model fitting results on each telemetry object, named by
+list of model fitting results on each telemetry object by \code{ctmm::ctmm.select}, named by
 telemetry object names
 }
 \description{

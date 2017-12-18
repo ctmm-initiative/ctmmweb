@@ -23,16 +23,17 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt[, item := NULL]
 }
 # para_ll_fit fit each animal with ctmm.fit, generate a model list for each animal, saved in a list of list, named by animal
-# this result was converted into a data.table models_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information.
+# this result was converted into a data.table models_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information. model name is just model type, not the full name with the animal name part. we need the separate model name col for coloring of model summary table.
 model_fit_res_to_model_list_dt <- function(model_fit_res) {
   animal_names_dt <- data.table(identity = names(model_fit_res))
-  model_name_list <- lapply(model_fit_res, names)
+  model_type_list <- lapply(model_fit_res, names)
   # must use per row by to create list column, otherwise dt try to apply whole column to function
-  animal_names_dt[, model_name_list := list(list(model_name_list[[identity]])),
+  animal_names_dt[, model_type_list :=
+                    list(list(model_type_list[[identity]])),
                   by = 1:nrow(animal_names_dt)]
-  models_dt <- animal_names_dt[, .(model_name = unlist(model_name_list)),
+  models_dt <- animal_names_dt[, .(model_type = unlist(model_type_list)),
                                by = identity]
-  models_dt[, model := list(list(model_fit_res[[identity]][[model_name]])),
+  models_dt[, model := list(list(model_fit_res[[identity]][[model_type]])),
             by = 1:nrow(models_dt)]
   models_dt[, model_no := .I]
   # also add the AICc col
@@ -53,11 +54,11 @@ model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
   # home range result also used this function, but there is no dAICc column from summary of list of home range.
   if (hrange) {
-    res_dt <- merge(models_dt[, .(identity, model_name, model_no)],
+    res_dt <- merge(models_dt[, .(identity, model_type, model_no)],
                     model_summary_dt,
                     by = "model_no")
   } else {
-    res_dt <- merge(models_dt[, .(identity, model_name, model_no, dAICc)],
+    res_dt <- merge(models_dt[, .(identity, model_type, model_no, dAICc)],
                     model_summary_dt,
                     by = "model_no")
   }
@@ -106,7 +107,7 @@ format_model_summary_dt <- function(model_summary_dt) {
   res_dt[stringr::str_detect(estimate, "CI"),
          c("DOF mean", "DOF area") := NA_real_]
   # add model full name col so it can be used to create model color palette
-  res_dt[, full_name := stringr::str_c(identity, " - ", model_name)]
+  res_dt[, full_name := stringr::str_c(identity, " - ", model_type)]
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table

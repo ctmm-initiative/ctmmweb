@@ -97,7 +97,7 @@ par_lapply <- function(lst, fun, fallback = FALSE,
 # fallback Use regular `lapply`. This is used to test if parallel caused
 #   problems.
 #
-# return list of model fitting results on each telemetry object
+# return list of model fitting results on each telemetry object. didn't add model names to list because the aligned list lost model name information. we added the names in calling code instead. It was only called once.
 par_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict
   fit_models <- function(tele_guess) {
@@ -113,7 +113,7 @@ par_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
 #' @param fallback Use regular `lapply`. This is used to test if parallel caused
 #'   problems.
 #'
-#' @return list of model fitting results on each telemetry object, named by
+#' @return list of model fitting results on each telemetry object by `ctmm::ctmm.select`, named by
 #'   telemetry object names
 #' @export
 par_fit_tele <- function(tele_list, fallback = FALSE) {

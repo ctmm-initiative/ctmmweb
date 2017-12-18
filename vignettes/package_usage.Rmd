@@ -84,18 +84,41 @@ ggplot2::ggsave("pic/test.png", g)
 
 ## model summary table
 
-```{r model summary, eval=FALSE}
-sample_tele(buffalo[[1]], 100)
-data_sample <- sample_tele_list(buffalo, 100)
-model_fit_res <- par_fit_tele(data_sample)
-summary_model_fit(model_fit_res)
+Fit models on data in parallel with `ctmm::ctmm.select`.
 
-# need to prepare model list dt like in app.
+```{r model summary, eval=FALSE}
+# take a 100 point sample from each animal so the model fitting can finish quicker
+data_sample <- sample_tele_list(buffalo, 100)
+# fit models in parallel.
+model_fit_res <- par_fit_tele(data_sample)
+# a data.table of models information summary
+summary_model_fit(model_fit_res)
 ```
+
+`ctmm::ctmm.select` may fit multiple models for each animal if they are validate candidates. In the app you can select a subset of models and check the variograms, home ranges and occurrences based on them. Similarly, in R script you need to select a subset of models first.
+
+The result list from `ctmm::ctmm.select` hold every model for same animal under a list item of animal name. We need to convert it into a flat list to make the selection easier.
+
+![](pic/05_model_res_structure.png)
+
+
+```{r select models}
+# the nested structure of model fit result
+names(model_fit_res)
+names(model_fit_res[[1]])
+
+# select subset in model summary table
+
+# apply model names to model fit res to get subset of model list.
+```
+
+main parameters: model names vec, model list with names.
 
 - generate proper dt with model list column, or just the model list with names? which should be enough for command line usage.
 - select models, use the model summary table for selection, model number?
 - check the parameter needed for following code
+
+
 
 ## variogram, home range, occurrence
 
@@ -147,5 +170,7 @@ code example for each function since we didn't put code example in help.
 
 ### generic parallel function usage
 ```{r parallel, eval=FALSE}
+# sample a telemetry object to test time consuming processes with less time
+sample_tele(buffalo[[1]], 100)
 # generic parallel usage
 ```
