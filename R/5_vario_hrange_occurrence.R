@@ -12,7 +12,7 @@
 #'   - It can be skipped to use default value `NULL`, and only empirical
 #'   variograms are drawn. `vario_list` names will be used as figure title.
 #'   Better use named parameters for others in this case.
-#'   - list of guesstimated models from `ctmm::ctmm.guess` on `vario_list`,
+#'   - list of guesstimated models from `ctmm::ctmm.guess` on telemetry data,
 #'   overlay guesstimate variogram.
 #'   - list of fitted models from `ctmm::ctmm.select` on `vario_list`, overlay
 #'   modeled variogram.
@@ -27,7 +27,7 @@
 #'
 #' @export
 plot_vario <- function(vario_list, model_list = NULL,
-                       fraction = 0.5, relative_zoom = TRUE,
+                       fraction = 0.5, relative_zoom = TRUE, cex = 0.65,
                        model_color = "blue", columns = 2){
   title_vec <- if (is.null(model_list)) names(vario_list)
                    else names(model_list)
@@ -37,7 +37,7 @@ plot_vario <- function(vario_list, model_list = NULL,
   row_count <- ceiling(length(vario_list) / columns)
   def.par <- graphics::par(no.readonly = TRUE)
   graphics::par(mfrow = c(row_count, columns),
-                mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+                mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   if (!relative_zoom) {
     max.lag <- max(sapply(vario_list, function(v){ last(v$lag) } ))
     xlim <- max.lag * fraction

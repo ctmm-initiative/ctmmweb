@@ -10,7 +10,7 @@ list_model_fit(model_fit_res)
 \item{model_fit_res}{}
 }
 \value{
-a one level list of models with names
+A single level list of models with names
 }
 \description{
 Convert nested \code{ctmm::ctmm.select} result into flatten list with names

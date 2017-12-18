@@ -27,6 +27,8 @@ knitr::opts_chunk$set(
 library(ctmm)
 library(ctmmweb)
 data(buffalo)
+# take a 100 point sample from each animal so model fitting can finish quicker
+data_sample <- sample_tele_list(buffalo, 100)
 ```
 
 To plot multiple animals location with `ggplot2`, we need to merge all location data into a single `data.frame`. `merge_tele` will merge ctmm telemetry object/list into a list of location `data.table` and information `data.table`. `data.table` is compatible with `data.frame` but with much better performance.
@@ -82,17 +84,43 @@ g <- plot_loc(selected_dt, dt)
 ggplot2::ggsave("pic/test.png", g)
 ```
 
+
+
+## variogram
+
+We can plot variograms in various modes. 
+
+Empirical variograms based on telemetry data
+```{r variogram 1, fig.height=8}
+vario_list <- lapply(data_sample, ctmm::variogram)
+# names of vario_list are needed for figure titles
+names(vario_list) <- names(data_sample)
+plot_vario(vario_list)
+# sometimes the default figure settings doesn't work in some systems, you can clear the plot device then use a smaller title size
+# dev.off()
+plot_vario(vario_list, cex = 0.55)
+```
+
+Variogram of guesstimated models from `ctmm::ctmm.guess` on telemetry data.
+
+```{r variogram 2, fig.height=8}
+guess_list <- lapply(data_sample,
+                              function(tele) 
+                                ctmm::ctmm.guess(tele, interactive = FALSE))
+plot_vario(vario_list, guess_list)
+```
+
 ## model summary table
 
 Fit models on data in parallel with `ctmm::ctmm.select`.
 
-```{r model summary, eval=FALSE}
-# take a 100 point sample from each animal so the model fitting can finish quicker
-data_sample <- sample_tele_list(buffalo, 100)
+```{r model summary, eval=TRUE}
+
 # fit models in parallel.
 model_fit_res <- par_fit_tele(data_sample)
 # a data.table of models information summary
-summary_model_fit(model_fit_res)
+model_summary_dt <- summary_model_fit(model_fit_res)
+model_summary_dt
 ```
 
 `ctmm::ctmm.select` may fit multiple models for each animal if they are validate candidates. In the app you can select a subset of models and check the variograms, home ranges and occurrences based on them. Similarly, in R script you need to select a subset of models first.
@@ -106,25 +134,33 @@ The result list from `ctmm::ctmm.select` hold every model for same animal under 
 # the nested structure of model fit result
 names(model_fit_res)
 names(model_fit_res[[1]])
-
-# select subset in model summary table
-
-# apply model names to model fit res to get subset of model list.
+# flat list of models
+model_list <- list_model_fit(model_fit_res)
+names(model_list)
+# select subset in model summary table by model_no or model_type
+model_summary_dt[model_no %in% c(1, 3, 10, 11, 12, 13)]
+model_summary_dt[model_type == "OU anisotropic"]
+# get selected model names. Because each model have 3 rows, the `estimte == "ML"` filter can make sure each model only be selected once
+model_summary_dt[estimate == "ML"]
+selected_model_names <- model_summary_dt[(estimate == "ML") &
+  (model_no %in% c(1, 3, 10, 11, 12, 13)), model_name]
+# need animal names to get the corresponding telemetry data
+selected_animal_names <- model_summary_dt[(estimate == "ML") &
+  (model_no %in% c(1, 3, 10, 11, 12, 13)), identity]
+# filter model list by model names to get subset of model list.
+selected_model_list <- model_list[selected_model_names]
 ```
 
-main parameters: model names vec, model list with names.
+We can plot variograms with selected models. Note the `selected_vario_list` need to match with `selected_model_list` in length and animal.
 
-- generate proper dt with model list column, or just the model list with names? which should be enough for command line usage.
-- select models, use the model summary table for selection, model number?
-- check the parameter needed for following code
-
-
-
-## variogram, home range, occurrence
-
-```{r variogram, eval=FALSE}
-
+```{r variogram 3}
+# get corresponding variograms by animal names.
+selected_vario_list <- vario_list[selected_animal_names]
+# specify a different color for model
+plot_vario(selected_vario_list, selected_model_list, model_color = "purple")
 ```
+
+## home range, occurrence
 
 ```{r home range}
 

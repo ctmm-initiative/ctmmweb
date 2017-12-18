@@ -1514,7 +1514,8 @@ output:
                         current_vario_model_list(),
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
-                        model_color = ctmm_color, columns = input$vario_columns)
+                        model_color = ctmm_color, cex = 0.72,
+                        columns = input$vario_columns)
     # def.par <- graphics::par(no.readonly = TRUE)
     # graphics::par(mfrow = c(row_count, input$vario_columns),
     #     mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)

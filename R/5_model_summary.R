@@ -139,10 +139,13 @@ summary_model_fit <- function(model_fit_res) {
 #'
 #' @param model_fit_res
 #'
-#' @return a one level list of models with names
+#' @return A single level list of models with names
 #' @export
 list_model_fit <- function(model_fit_res) {
-
+  models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+  model_list <- models_dt$model
+  names(model_list) <- models_dt$model_name
+  return(model_list)
 }
 # it requires more manual code to assemble a table for home range, temporarily not exporting these function untill requested
 # Build Home Range list table
