@@ -203,7 +203,10 @@ plot_ud(hrange_list, level_vec = c(0.50, 0.95), tele_list = selected_tele_list)
 
 - with 100 sample, the Gabs 2nd model, OUF ani have error in occurrence plot? report this with reproducible code, also test with different sample size.
 ```{r occurrence}
-
+# calculate occurrence in parallel
+occur_list <- par_occur(selected_tele_list, selected_model_list)
+# plot occurrence. Note tele_list is not needed here because the location overlay usually interfere with occurrence plot.
+plot_ud(occur_list, level_vec = c(0.50, 0.95))
 ```
 
 ## map

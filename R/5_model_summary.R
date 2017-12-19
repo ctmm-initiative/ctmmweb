@@ -190,3 +190,12 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
                                                          hrange = TRUE)
   format_hrange_summary_dt(hrange_summary_dt)
 }
+
+summary_home_range <- function(hrange_list) {
+  hrange_list_dt <- build_hrange_list_dt(select_models()$names_dt,
+                                                   select_models_hranges())
+  dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
+  models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+  # use [] to make sure calling function directly will print in console.
+  model_list_dt_to_formated_model_summary_dt(models_dt)[]
+}
