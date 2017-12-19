@@ -4,7 +4,7 @@
 \alias{plot_ud}
 \title{Plot a group of home ranges or occurrences}
 \usage{
-plot_ud(UD_list, level_vec, columns = 2, tele_list = NULL)
+plot_ud(UD_list, level_vec = 0.95, columns = 2, tele_list = NULL)
 }
 \arguments{
 \item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from

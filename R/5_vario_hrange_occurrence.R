@@ -93,7 +93,7 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'   used for home range since it can interfere with occurrence plot.
 #'
 #' @export
-plot_ud <- function(UD_list, level_vec, columns = 2, tele_list = NULL) {
+plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, tele_list = NULL) {
   def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(UD_list) / columns)
   graphics::par(mfrow = c(row_count, columns),

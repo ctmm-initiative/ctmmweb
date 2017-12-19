@@ -2,7 +2,10 @@
 title: "Package Usage"
 author: "Xianghui Dong"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document: 
+    highlight: haddock
+    theme: flatly
 vignette: >
   %\VignetteIndexEntry{Package Usage}
   %\VignetteEngine{knitr::rmarkdown}
@@ -18,34 +21,49 @@ knitr::opts_chunk$set(
 ```
 
 ## Introduction
-- how to use package functions in analysis.
-- Since most functions belong to a workflow, it's easier to put all functions usage examples in a workflow example than giving individual code examples in function help.
-- test code, write document individually, but not to knit document in building site until final version.
-- compare the ctmm vignette
+
+This document demonstrate the usage of package functions in analysis. Since most of the functions are parts of a workflow, it's better to explain them together than giving separate code examples in function help.
+
+First we load the libraries and prepare the data. Note a sample was generated so that the model fitting process can finish in seconds instead of minutes.
 
 ```{r libraries and data, eval=TRUE}
 library(ctmm)
 library(ctmmweb)
 data(buffalo)
-# take a 100 point sample from each animal so model fitting can finish quicker
+# take a 100 point sample from each animal to speed up model fitting etc
 data_sample <- sample_tele_list(buffalo, 100)
 ```
 
-To plot multiple animals location with `ggplot2`, we need to merge all location data into a single `data.frame`. `merge_tele` will merge ctmm telemetry object/list into a list of location `data.table` and information `data.table`. `data.table` is compatible with `data.frame` but with much better performance.
+### Basic data structure
+
+To plot multiple animals location with `ggplot2`, we need to merge all location data into a single `data.frame`. `merge_tele` will merge `ctmm` `telemetry` object/list into a list of location `data.table` and information `data.table`. `data.table` is compatible with `data.frame` but has much better performance.
 
 ```{r basic data structure}
 # basic data structure
 merged_data <- merge_tele(buffalo)
 # a list of locations data.table/data.frame and information table
-# 
-head(merged_data)
 dt <- merged_data$data
 info <- merged_data$info
 ```
 
+In `dt`: 
+
+- `identity` are animal names
+- `id` are animal names as a factor. We will need this when we want to maintain the level information.
+
+```{r dt}
+knitr::kable(head(dt))
+```
+
+
+```{r info}
+knitr::kable(info)
+```
+
+
 In app we can select a subset of full data by slecting rows in the data summary table 1.
 
-![](pic/01_summary_table.png)
+![](pic/01_summary_table.png){ width=75% }
 
 
 To select a subset in script, we can select animal names for `identity` column or numbers for `id` factor column in `dt` with `data.table` syntax. `data.table` is also `data.frame` so you can use `data.frame` synatax too.
@@ -66,7 +84,7 @@ You can reproduce most of the plots in `Visualization` page with functions.
 ```{r plot location and time, eval=TRUE}
 # plot animal locations
 plot_loc(dt)
-# plot a subset only. Note the color mapping is consistent because selected_dt  id column hold all animal names in levels.
+# plot a subset only. Note the color mapping is consistent because selected_dt id column hold all animal names in levels.
 plot_loc(selected_dt)
 # with subset and full data set both provided, subset will be drawn with full data as background. 
 plot_loc(selected_dt, dt)
@@ -86,7 +104,7 @@ ggplot2::ggsave("pic/test.png", g)
 
 
 
-## variogram
+## Variogram
 
 We can plot variograms in various modes. 
 
@@ -98,72 +116,87 @@ names(vario_list) <- names(data_sample)
 plot_vario(vario_list)
 # sometimes the default figure settings doesn't work in some systems, you can clear the plot device then use a smaller title size
 # dev.off()
-plot_vario(vario_list, cex = 0.55)
+# plot_vario(vario_list, cex = 0.55)
 ```
 
 Variogram of guesstimated models from `ctmm::ctmm.guess` on telemetry data.
 
 ```{r variogram 2, fig.height=8}
 guess_list <- lapply(data_sample,
-                              function(tele) 
-                                ctmm::ctmm.guess(tele, interactive = FALSE))
+                     function(tele) 
+                       ctmm::ctmm.guess(tele, interactive = FALSE))
 plot_vario(vario_list, guess_list)
 ```
 
-## model summary table
+## Model summary table
 
-Fit models on data in parallel with `ctmm::ctmm.select`.
+Fit models on data in parallel.
 
 ```{r model summary, eval=TRUE}
-
 # fit models in parallel.
 model_fit_res <- par_fit_tele(data_sample)
 # a data.table of models information summary
 model_summary_dt <- summary_model_fit(model_fit_res)
-model_summary_dt
+knitr::kable(model_summary_dt)
 ```
 
-`ctmm::ctmm.select` may fit multiple models for each animal if they are validate candidates. In the app you can select a subset of models and check the variograms, home ranges and occurrences based on them. Similarly, in R script you need to select a subset of models first.
+There could be multiple models fitted for each animal if they are validate candidates. In the app you can select a subset of models then check their variograms, home ranges and occurrences. You will aslo need to select a subset of models in R script.
 
-The result list from `ctmm::ctmm.select` hold every model for same animal under a list item of animal name. We need to convert it into a flat list to make the selection easier.
+`model_fit_res` hold every model for same animal under a list item of animal name. 
+![](pic/05_model_res_structure.png){ width=50% }
 
-![](pic/05_model_res_structure.png)
+We need to convert it into a flat list to make the selection easier.
 
-
-```{r select models}
+```{r flat model list}
 # the nested structure of model fit result
 names(model_fit_res)
 names(model_fit_res[[1]])
-# flat list of models
+# convert to a flat list
 model_list <- list_model_fit(model_fit_res)
 names(model_list)
-# select subset in model summary table by model_no or model_type
-model_summary_dt[model_no %in% c(1, 3, 10, 11, 12, 13)]
-model_summary_dt[model_type == "OU anisotropic"]
-# get selected model names. Because each model have 3 rows, the `estimte == "ML"` filter can make sure each model only be selected once
-model_summary_dt[estimate == "ML"]
-selected_model_names <- model_summary_dt[(estimate == "ML") &
-  (model_no %in% c(1, 3, 10, 11, 12, 13)), model_name]
-# need animal names to get the corresponding telemetry data
-selected_animal_names <- model_summary_dt[(estimate == "ML") &
-  (model_no %in% c(1, 3, 10, 11, 12, 13)), identity]
-# filter model list by model names to get subset of model list.
-selected_model_list <- model_list[selected_model_names]
 ```
 
-We can plot variograms with selected models. Note the `selected_vario_list` need to match with `selected_model_list` in length and animal.
+Then we can find the model names in model summary table by `model_no` or `model_type`. The code here is in `data.table` syntax, but you can use the table as `data.frame` if you want.
+
+```{r select models in summary table}
+# select subset in model summary table by model_no or model_type
+knitr::kable(model_summary_dt[model_no %in% c(1, 3, 10, 11, 12, 13)])
+knitr::kable(model_summary_dt[model_type == "OU anisotropic"])
+# Because each model have 3 rows, the `estimte == "ML"` filter can make sure each model only be selected once
+knitr::kable(model_summary_dt[estimate == "ML"])
+# The expression is enclosed with () to enable automatical printing of result. Both model_name and identity are selected in same filter. We need the model_name to filter the model list, and the animal name to filter the variograms
+(selected_names <- model_summary_dt[(estimate == "ML") &
+  (model_no %in% c(1, 3, 10, 11, 12, 13)), .(model_name, identity)])
+```
+
+Once you have selected the models in summary table, you can filter the actual models list with model names.
+
+```{r filter model list}
+# filter model list by model names to get subset of model list.
+selected_model_list <- model_list[selected_names$model_name]
+```
+
+Now we can plot variograms with selected models. Note the `selected_vario_list` need to match with `selected_model_list` in length and animal, so they are based on same data.
 
 ```{r variogram 3}
 # get corresponding variograms by animal names.
-selected_vario_list <- vario_list[selected_animal_names]
+selected_vario_list <- vario_list[selected_names$identity]
 # specify a different color for model
 plot_vario(selected_vario_list, selected_model_list, model_color = "purple")
 ```
 
-## home range, occurrence
+## Home range, occurrence
 
 ```{r home range}
-
+# calculate home range with ctmm::akde. Note we didn't use parallel here because we want to calculate all animals together to put them in same grid.
+selected_tele_list <- data_sample[selected_names$identity]
+hrange_list <- akde(selected_tele_list, CTMM = selected_model_list)
+# plot home range
+plot_ud(hrange_list)
+# plot home range with location overlay
+plot_ud(hrange_list, tele_list = selected_tele_list)
+# plot with different level.UD values
+plot_ud(hrange_list, level_vec = c(0.50, 0.95), tele_list = selected_tele_list)
 ```
 
 - with 100 sample, the Gabs 2nd model, OUF ani have error in occurrence plot? report this with reproducible code, also test with different sample size.

@@ -135,7 +135,7 @@ summary_model_fit <- function(model_fit_res) {
   # use [] to make sure calling function directly will print in console.
   model_list_dt_to_formated_model_summary_dt(models_dt)[]
 }
-#' Convert nested `ctmm::ctmm.select` result into flatten list with names
+#' Convert nested [par_fit_tele] result into flatten list with model names
 #'
 #' @param model_fit_res
 #'

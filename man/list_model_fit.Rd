@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_model_summary.R
 \name{list_model_fit}
 \alias{list_model_fit}
-\title{Convert nested \code{ctmm::ctmm.select} result into flatten list with names}
+\title{Convert nested \link{par_fit_tele} result into flatten list with model names}
 \usage{
 list_model_fit(model_fit_res)
 }
@@ -13,5 +13,5 @@ list_model_fit(model_fit_res)
 A single level list of models with names
 }
 \description{
-Convert nested \code{ctmm::ctmm.select} result into flatten list with names
+Convert nested \link{par_fit_tele} result into flatten list with model names
 }
