@@ -128,13 +128,15 @@ par_fit_tele <- function(tele_list, fallback = FALSE) {
 }
 #' Parallel calculate occurrence from telemetry and model list
 #'
-#' @param tele_model_list Aligned list of telemetry list and model list
 #' @param fallback Use regular `lapply`. This is used to test if parallel caused
 #'   problems.
+#' @param tele_list `ctmm` `telemetry` list
+#' @param model_list Corresponding `ctmm` model list for `tele_list`
 #'
 #' @return occurrence results list
 #' @export
-par_occur <- function(tele_model_list, fallback = FALSE) {
+par_occur <- function(tele_list, model_list, fallback = FALSE) {
+  tele_model_list <- align_list(tele_list, model_list)
   occur_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
   }

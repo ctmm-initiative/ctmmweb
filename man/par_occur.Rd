@@ -4,10 +4,12 @@
 \alias{par_occur}
 \title{Parallel calculate occurrence from telemetry and model list}
 \usage{
-par_occur(tele_model_list, fallback = FALSE)
+par_occur(tele_list, model_list, fallback = FALSE)
 }
 \arguments{
-\item{tele_model_list}{Aligned list of telemetry list and model list}
+\item{tele_list}{\code{ctmm} \code{telemetry} list}
+
+\item{model_list}{Corresponding \code{ctmm} model list for \code{tele_list}}
 
 \item{fallback}{Use regular \code{lapply}. This is used to test if parallel caused
 problems.}

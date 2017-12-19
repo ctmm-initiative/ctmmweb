@@ -185,7 +185,7 @@ selected_vario_list <- vario_list[selected_names$identity]
 plot_vario(selected_vario_list, selected_model_list, model_color = "purple")
 ```
 
-## Home range, occurrence
+## Home range
 
 ```{r home range}
 # calculate home range with ctmm::akde. Note we didn't use parallel here because we want to calculate all animals together to put them in same grid.
@@ -198,6 +198,8 @@ plot_ud(hrange_list, tele_list = selected_tele_list)
 # plot with different level.UD values
 plot_ud(hrange_list, level_vec = c(0.50, 0.95), tele_list = selected_tele_list)
 ```
+
+## Occurrence
 
 - with 100 sample, the Gabs 2nd model, OUF ani have error in occurrence plot? report this with reproducible code, also test with different sample size.
 ```{r occurrence}

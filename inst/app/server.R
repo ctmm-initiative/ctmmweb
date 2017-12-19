@@ -1488,7 +1488,7 @@ output:
     switch(input$vario_mode,
            empirical = NULL,
            guesstimate = values$selected_data_guess_list,
-           modeled = select_models()$models_list
+           modeled = select_models()$model_list
     )
   })
   # current_vario() ----
@@ -1814,8 +1814,8 @@ output:
                                 by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
-    selected_models_list <- selected_models_dt$model
-    names(selected_models_list) <- selected_names_dt$model_name
+    selected_model_list <- selected_models_dt$model
+    names(selected_model_list) <- selected_names_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
       selected_names_dt$identity]
     # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
@@ -1827,7 +1827,7 @@ output:
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
                 tele_list = selected_tele_list,
-                models_list = selected_models_list,
+                model_list = selected_model_list,
                 vario_list = selected_vario_list,
                 vario_layout = selected_vario_layout
                 ))
@@ -1840,7 +1840,7 @@ output:
     req(select_models())
     withProgress(print(system.time(
       res <- akde_mem(select_models()$tele_list,
-                      CTMM = select_models()$models_list))),
+                      CTMM = select_models()$model_list))),
       message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
     names(res) <- select_models()$names_dt$model_name
@@ -1931,11 +1931,10 @@ output:
              size = "l", file = "help/7_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
-    tele_model_list <- ctmmweb::align_list(select_models()$tele_list,
-                                        select_models()$models_list)
     withProgress(print(system.time(
-      res <- par_occur_mem(tele_model_list,
-                            fallback = option_selected("no_parallel")))),
+      res <- par_occur_mem(select_models()$tele_list,
+                           select_models()$model_list,
+                           fallback = option_selected("no_parallel")))),
                  message = "Calculating Occurrence ...")
     # if (option_selected("log_error")) {
     #   output$occurrence_info <- renderPrint(str(res))
