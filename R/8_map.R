@@ -14,10 +14,11 @@ TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
 #'
 #' @param tiles_info A list holding tiles information. To customize it,
 #'   check and modify the default value `ctmmweb:::TILES_INFO`.
+#' @param grid Add graticule by `leaflet::addSimpleGraticule`
 #'
 #' @return A leaflet widget object.
 #' @export
-base_map <- function(tiles_info = ctmmweb:::TILES_INFO) {
+base_map <- function(tiles_info = ctmmweb:::TILES_INFO, grid = TRUE) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
     attributionControl = FALSE))
   for (prov in tiles_info$here) {
@@ -32,6 +33,11 @@ base_map <- function(tiles_info = ctmmweb:::TILES_INFO) {
   for (prov in tiles_info$open) {
     leaf <- leaf %>%
       leaflet::addProviderTiles(leaflet::providers[[prov]], group = prov)
+  }
+  if (grid) {
+    leaf <- leaf %>%
+      leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
+                                  redraw = "moveend", group = GRID_GROUP)
   }
   return(leaf)
 }
@@ -49,9 +55,9 @@ add_measure <- function(leaf) {
 }
 # the layer control need to wait home range, so not added here. id_pal is color pallete function from full data set. used different parameter name specifically to hint the difference. Always use id to hint the full context since id is a factor. leaflet need a factor function to apply on id column. In comparison, home ranges are added one by one and used plain color vector.
 add_points <- function(leaf, dt, name_vec, id_pal) {
-  leaf <- leaf %>%
-    leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                                redraw = "moveend", group = GRID_GROUP)
+  # leaf <- leaf %>%
+  #   leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
+  #                               redraw = "moveend", group = GRID_GROUP)
   # add each individual as a layer
   # for loop is better than lapply since we don't need to use <<-
   for (current_id in name_vec) {
@@ -117,31 +123,80 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
 }
 # point map ----
 # exported user friendly version ends with map and don't use verb in beginning. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
-
+# decided to wrap control code inside function, so user will use 3 different functions. no step by step building but it's easier. they can use internal functions if they need more flexibility.
+# the internal shared part of point map
+build_point_map <- function(dt) {
+  full_id_vec <- levels(dt$id)
+  selected_id_vec <- get_names(dt)
+  id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
+                                 full_id_vec, ordered = TRUE)
+  base_map() %>% add_points(dt, selected_id_vec, id_pal)
+}
 #' Build point map from animal location data table
 #'
 #' An interactive map will shown in RStudio Viewer pane when running in
 #' interactive session. You can also further augment it with `leaflet`
-#' operations, or save to a html with `htmlwidgets::saveWidget`.
+#' functions, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param selected_dt `data.table` subset of `dt`.
-#' @param dt Full data set of `data.table` of animal locations from
-#'   [merge_tele]. This is needed to maintain color consistency.
+#' @param dt `data.table` subset of full data set of animal locations from
+#'   [merge_tele]. The `id` column need to keep all animal names in levels to
+#'   maintain color consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-point_map <- function(selected_dt, dt) {
-  full_id_vec <- get_names(dt)
-  id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
-                                 full_id_vec, ordered = TRUE)
-  base_map() %>% add_points(selected_dt, get_names(selected_dt), id_pal)
+point_map <- function(dt) {
+  # full_id_vec <- levels(dt$id)
+  selected_id_vec <- get_names(dt)
+  # id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
+  #                                full_id_vec, ordered = TRUE)
+  # base_map() %>% add_points(dt, selected_id_vec, id_pal) %>%
+  #   add_control(selected_id_vec)
+  build_point_map(dt) %>% add_control(selected_id_vec)
+}
+#' Build home range map
+#'
+#' An interactive map will shown in RStudio Viewer pane when running in
+#' interactive session. You can also further augment it with `leaflet`
+#' functions, or save to a html with `htmlwidgets::saveWidget`.
+#'
+#' @param hrange_list list of home range UD object. The names of list will be
+#'   used as layer names, usually they are model names.
+#' @param hr_levels  The vector of `level.UD` in `ctmm::plot.telemetry`. To be
+#'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
+#'   app UI take values 0 ~ 100 (for example 95) for easier input.
+#' @param hr_color_vec Vector of color names to be used for each home range. The
+#'   length of `hr_color_vec` should match length of `hrange_list`.
+#'
+#' @return A `Leaflet` map widget.
+#' @export
+range_map <- function(hrange_list, hr_levels, hr_color_vec) {
+  base_map() %>%
+    add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>%
+    add_control(names(hrange_list))
+}
+#' Build home range map with animal locations
+#'
+#' An interactive map will shown in RStudio Viewer pane when running in
+#' interactive session. You can also further augment it with `leaflet`
+#' functions, or save to a html with `htmlwidgets::saveWidget`.
+#'
+#' @inheritParams point_map
+#' @inheritParams range_map
+#'
+#' @return A `Leaflet` map widget.
+#' @export
+point_range_map <- function(dt, hrange_list, hr_levels, hr_color_vec) {
+  selected_id_vec <- get_names(dt)
+  build_point_map(dt) %>%
+    add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>%
+    add_control(c(selected_id_vec, names(hrange_list)))
 }
 # heat map ----
 # base map layer control added here
 add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
   leaf %>%
-    leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                                redraw = "moveend", group = GRID_GROUP) %>%
+    # leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
+    #                             redraw = "moveend", group = GRID_GROUP) %>%
     leaflet.extras::addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
                                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
     leaflet::addScaleBar(position = "bottomleft") %>%

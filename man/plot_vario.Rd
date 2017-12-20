@@ -35,6 +35,8 @@ X, Y axes are not synced.
 all others scaled with same X, Y axes for easier comparison.
 }}
 
+\item{cex}{The magnification factor of plot text and symbols. See \link{par}.}
+
 \item{model_color}{The color of model variogram}
 
 \item{columns}{The columns of the group plot layout.}

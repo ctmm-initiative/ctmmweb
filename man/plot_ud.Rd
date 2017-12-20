@@ -4,7 +4,8 @@
 \alias{plot_ud}
 \title{Plot a group of home ranges or occurrences}
 \usage{
-plot_ud(UD_list, level_vec = 0.95, columns = 2, tele_list = NULL)
+plot_ud(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
+  tele_list = NULL)
 }
 \arguments{
 \item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from
@@ -16,6 +17,8 @@ consistent with \code{ctmm} they are values 0 ~ 1 (for example 0.95). Note the
 app UI take values 0 ~ 100 (for example 95) for easier input.}
 
 \item{columns}{The columns of the group plot layout.}
+
+\item{cex}{The magnification factor of plot text and symbols. See \link{par}.}
 
 \item{tele_list}{Overlay animal locations when provided. This should only be
 used for home range since it can interfere with occurrence plot.}

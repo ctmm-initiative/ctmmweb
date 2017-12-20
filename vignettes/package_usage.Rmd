@@ -72,7 +72,7 @@ It's suggested to always select a subset from full data like this, because the s
 
 ```{r select subset}
 # select by identity column
-selected_dt <- dt[identity %in% c("Gabs", "Queen")]
+selected_dt1 <- dt[identity %in% c("Gabs", "Queen")]
 # select by id factor column value
 dt[as.numeric(id) %in% c(1, 3)]
 ```
@@ -84,21 +84,21 @@ You can reproduce most of the plots in `Visualization` page with functions.
 ```{r plot location and time, eval=TRUE}
 # plot animal locations
 plot_loc(dt)
-# plot a subset only. Note the color mapping is consistent because selected_dt id column hold all animal names in levels.
-plot_loc(selected_dt)
+# plot a subset only. Note the color mapping is consistent because selected_dt1 id column hold all animal names in levels.
+plot_loc(selected_dt1)
 # with subset and full data set both provided, subset will be drawn with full data as background. 
-plot_loc(selected_dt, dt)
+plot_loc(selected_dt1, dt)
 # location in facet
-plot_loc_facet(selected_dt)
+plot_loc_facet(selected_dt1)
 # sampling time
-plot_time(selected_dt)
+plot_time(selected_dt1)
 # take the ggplot2 object to further customize it
-plot_loc(selected_dt, dt) +
+plot_loc(selected_dt1, dt) +
   ggplot2::ggtitle("Locations of Buffalos") +
   # override the default left alignment of title and make it bigger
   ctmmweb:::CENTER_TITLE
 # export plot
-g <- plot_loc(selected_dt, dt)
+g <- plot_loc(selected_dt1, dt)
 ggplot2::ggsave("pic/test.png", g)
 ```
 
@@ -137,6 +137,7 @@ Fit models on data in parallel.
 model_fit_res <- par_fit_tele(data_sample)
 # a data.table of models information summary
 model_summary_dt <- summary_model_fit(model_fit_res)
+# you can also open it with RStudio's data.frame viewer
 knitr::kable(model_summary_dt)
 ```
 
@@ -159,17 +160,21 @@ names(model_list)
 Then we can find the model names in model summary table by `model_no` or `model_type`. The code here is in `data.table` syntax, but you can use the table as `data.frame` if you want.
 
 ```{r select models in summary table}
-# select subset in model summary table by model_no or model_type
+# select subset in model summary table by model_no
 knitr::kable(model_summary_dt[model_no %in% c(1, 3, 10, 11, 12, 13)])
+# select by model type
 knitr::kable(model_summary_dt[model_type == "OU anisotropic"])
-# Because each model have 3 rows, the `estimte == "ML"` filter can make sure each model only be selected once
+# select first(best) model for each animal using the smallest AICc value
+knitr::kable(model_summary_dt[dAICc == 0])
+# Because each model have 3 rows, the `estimte == "ML"` filter can make sure each model only be selected once. 
 knitr::kable(model_summary_dt[estimate == "ML"])
+# Combine this condition with filter above to select models
 # The expression is enclosed with () to enable automatical printing of result. Both model_name and identity are selected in same filter. We need the model_name to filter the model list, and the animal name to filter the variograms
 (selected_names <- model_summary_dt[(estimate == "ML") &
   (model_no %in% c(1, 3, 10, 11, 12, 13)), .(model_name, identity)])
 ```
 
-Once you have selected the models in summary table, you can filter the actual models list with model names.
+Once you have selected the models in summary table, you can filter the actual models list with model names. Note this is a different subset from `selected_dt1` above.
 
 ```{r filter model list}
 # filter model list by model names to get subset of model list.
@@ -178,7 +183,7 @@ selected_model_list <- model_list[selected_names$model_name]
 
 Now we can plot variograms with selected models. Note the `selected_vario_list` need to match with `selected_model_list` in length and animal, so they are based on same data.
 
-```{r variogram 3}
+```{r variogram 3, fig.height=8}
 # get corresponding variograms by animal names.
 selected_vario_list <- vario_list[selected_names$identity]
 # specify a different color for model
@@ -187,10 +192,14 @@ plot_vario(selected_vario_list, selected_model_list, model_color = "purple")
 
 ## Home range
 
-```{r home range}
+```{r home range, fig.height=10}
 # calculate home range with ctmm::akde. Note we didn't use parallel here because we want to calculate all animals together to put them in same grid.
 selected_tele_list <- data_sample[selected_names$identity]
 hrange_list <- akde(selected_tele_list, CTMM = selected_model_list)
+# name by model name
+names(hrange_list) <- names(selected_model_list)
+# summary of each home range. There is no summary table function here because we borrowed the model table in app to make the home range summay table. To reproduce that in functions need model table/model_fit_res and the selection as parameters, which will be quite awkward. If there is a strong request from users, a summary table function can be added.
+lapply(hrange_list, summary)
 # plot home range
 plot_ud(hrange_list)
 # plot home range with location overlay
@@ -201,41 +210,34 @@ plot_ud(hrange_list, level_vec = c(0.50, 0.95), tele_list = selected_tele_list)
 
 ## Occurrence
 
-- with 100 sample, the Gabs 2nd model, OUF ani have error in occurrence plot? report this with reproducible code, also test with different sample size.
-```{r occurrence}
+```{r occurrence, fig.height=10}
 # calculate occurrence in parallel
 occur_list <- par_occur(selected_tele_list, selected_model_list)
 # plot occurrence. Note tele_list is not needed here because the location overlay usually interfere with occurrence plot.
 plot_ud(occur_list, level_vec = c(0.50, 0.95))
 ```
 
-## map
+## Map
+
+We can build an interactive online map.
 
 ```{r point map, eval=TRUE}
 # this is needed for using pipe operator
 library(leaflet)
-point_map(selected_dt, dt)
-# add control. This is not a part of point_map function because we can only add control once and after all layers are added. If we want to overlay home range over points, we need to add control after home range layer are added.
-point_map(selected_dt, dt) %>% 
-  add_control(get_names(selected_dt))
-
-# save map to html
-
+# selecte_dt1 is used for visualization plot. all the model selections above are based on a different subset. We need to get corresponding dt subset for model selections
+selected_dt2 <- dt[identity %in% names(selected_tele_list)]
+point_map(selected_dt2)
+point_map(dt)
+# save map to html. It will be self contained and can be shared.
+htmlwidgets::saveWidget(point_map(selected_dt2), file = "point_map.html")
 ```
 
-- to add home range, there is no wrapped less parameter version because we need lots of information and need some flexibility (base map, controls have to be added later). It's actually easier to use the app to add home range, since it involves model selection, color assignment etc
-- need to export add_home_range_list, maybe put names to range_list names.
-```{r home range map, eval=FALSE}
-base_map() %>% 
-  add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>% 
-  add_control(model_names)
+Home range map need more parameters.
 
-point_map(selected_dt, dt) %>% 
-  add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>% 
-  add_control(c(get_names(selected_dt), model_names))
-
-# save to html
-
+```{r home range map, eval=TRUE}
+range_map(hrange_list, 0.95, rainbow(length(hrange_list)))
+# note selected_dt2 is corresponding to hrange_list
+point_range_map(selected_dt2, hrange_list, 0.95, rainbow(length(hrange_list)))
 ```
 
 ## Other utility functions

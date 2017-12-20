@@ -190,12 +190,14 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
                                                          hrange = TRUE)
   format_hrange_summary_dt(hrange_summary_dt)
 }
+# it's difficult to get a home range summary table function, because we reused same summary function and need a model table, which is borrowed from model table. so we have to reuse same model table in home range summary. From user's perspective we can use selected model list, and go a long way inside function to get the table.
+# rebuild model_fit_res from selected_model_list? then build summary. too much hassles. ask user to use regular summary?
 
-summary_home_range <- function(hrange_list) {
-  hrange_list_dt <- build_hrange_list_dt(select_models()$names_dt,
-                                                   select_models_hranges())
-  dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
-  models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
-  # use [] to make sure calling function directly will print in console.
-  model_list_dt_to_formated_model_summary_dt(models_dt)[]
-}
+# summary_home_range <- function(hrange_list) {
+#   hrange_list_dt <- build_hrange_list_dt(names(hrange_list),
+#                                          hrange_list)
+#   dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
+#   models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+#   # use [] to make sure calling function directly will print in console.
+#   model_list_dt_to_formated_model_summary_dt(models_dt)[]
+# }

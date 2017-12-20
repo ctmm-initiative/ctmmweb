@@ -1878,7 +1878,7 @@ output:
     # browser()
     # selected_tele_list <- select_models()$tele_list
     plot_ud(select_models_hranges(), level_vec = get_hr_levels(),
-            columns = input$vario_columns,
+            columns = input$vario_columns, cex = 0.72,
             tele_list = select_models()$tele_list)
     # selected_tele_list <- select_models()$tele_list
     # def.par <- graphics::par(no.readonly = TRUE)
@@ -1949,7 +1949,7 @@ output:
   })
   output$occurrence_plot <- renderPlot({
     plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
-            columns = input$vario_columns)
+            cex = 0.72, columns = input$vario_columns)
     # plot
     # def.par <- graphics::par(no.readonly = TRUE)
     # graphics::par(mfrow = c(select_models()$vario_layout$row_count,

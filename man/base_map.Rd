@@ -4,11 +4,13 @@
 \alias{base_map}
 \title{Build a leaflet base map}
 \usage{
-base_map(tiles_info = ctmmweb:::TILES_INFO)
+base_map(tiles_info = ctmmweb:::TILES_INFO, grid = TRUE)
 }
 \arguments{
 \item{tiles_info}{A list holding tiles information. To customize it,
 check and modify the default value \code{ctmmweb:::TILES_INFO}.}
+
+\item{grid}{Add graticule by \code{leaflet::addSimpleGraticule}}
 }
 \value{
 A leaflet widget object.

@@ -1,3 +1,5 @@
+# the app can use a 0.72 cex but package functions may need a smaller default.
+
 #' Plot a group of empirical or modeled variograms.
 #'
 #' This is a wrapper over `ctmm::plot.variogram` to make group plot easier.
@@ -22,6 +24,7 @@
 #' X, Y axes are not synced.
 #' - Absolute mode operate on the max Time-lag range individual in group, and
 #' all others scaled with same X, Y axes for easier comparison.
+#' @param cex The magnification factor of plot text and symbols. See [par].
 #' @param model_color The color of model variogram
 #' @param columns The columns of the group plot layout.
 #'
@@ -93,11 +96,12 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'   used for home range since it can interfere with occurrence plot.
 #'
 #' @export
-plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, tele_list = NULL) {
+plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
+                    tele_list = NULL) {
   def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(UD_list) / columns)
   graphics::par(mfrow = c(row_count, columns),
-                mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
+                mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   lapply(seq_along(UD_list), function(i) {
     tryCatch({
       # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)

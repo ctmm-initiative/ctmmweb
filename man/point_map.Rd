@@ -4,13 +4,12 @@
 \alias{point_map}
 \title{Build point map from animal location data table}
 \usage{
-point_map(selected_dt, dt)
+point_map(dt)
 }
 \arguments{
-\item{selected_dt}{\code{data.table} subset of \code{dt}.}
-
-\item{dt}{Full data set of \code{data.table} of animal locations from
-\link{merge_tele}. This is needed to maintain color consistency.}
+\item{dt}{\code{data.table} subset of full data set of animal locations from
+\link{merge_tele}. The \code{id} column need to keep all animal names in levels to
+maintain color consistency.}
 }
 \value{
 A \code{Leaflet} map widget.
@@ -18,5 +17,5 @@ A \code{Leaflet} map widget.
 \description{
 An interactive map will shown in RStudio Viewer pane when running in
 interactive session. You can also further augment it with \code{leaflet}
-operations, or save to a html with \code{htmlwidgets::saveWidget}.
+functions, or save to a html with \code{htmlwidgets::saveWidget}.
 }
