@@ -232,7 +232,7 @@ point_map(dt)
 htmlwidgets::saveWidget(point_map(selected_dt2), file = "point_map.html")
 ```
 
-Home range map need more parameters.
+Home range map need more parameters. See their help documents for detailed explanations.
 
 ```{r home range map, eval=TRUE}
 range_map(hrange_list, 0.95, rainbow(length(hrange_list)))
