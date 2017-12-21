@@ -101,8 +101,7 @@
     
     <p>If there are big gaps in sampling time, median center for each time group is
 used. To reduce duplicate calculation, speed calculation will use some
-columns created in distance calculation. Always <code>calculate_distance</code> first
-then <code><a href='calculate_speed.html'>calculate_speed()</a></code>.</p>
+columns created in distance calculation. Always update <code>data.table</code> with <code>calculate_distance</code> first then use <code><a href='calculate_speed.html'>calculate_speed()</a></code>.</p>
     
 
     <pre class="usage"><span class='fu'>calculate_distance</span>(<span class='no'>animals_dt</span>)</pre>
@@ -112,14 +111,13 @@ then <code><a href='calculate_speed.html'>calculate_speed()</a></code>.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>animals_dt</th>
-      <td><p>telemetry data in merged data.table. See <code><a href='merge_tele.html'>merge_tele()</a></code></p></td>
+      <td><p>location <code>data.table</code> from <code><a href='merge_tele.html'>merge_tele()</a></code></p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>data.table with distance columns added. Note the input parameter is
-modified in place.</p>
+    <p><code>data.table</code> with distance columns added.</p>
     
 
   </div>

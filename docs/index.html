@@ -105,12 +105,15 @@ devtools<span class="op">::</span><span class="kw"><a href="http://www.rdocument
 </li>
 <li>
 <p>Run the app in one of following methods:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># run app</span>
-ctmmweb<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/ctmmweb/topics/app">app</a></span>()
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ctmmweb)
+<span class="co"># run app</span>
+<span class="kw"><a href="reference/app.html">app</a></span>()
 <span class="co"># run app with path to movebank format csv file</span>
-ctmmweb<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/ctmmweb/topics/app">app</a></span>(<span class="st">"path_to_movebank_format_csv"</span>)
+<span class="kw"><a href="reference/app.html">app</a></span>(<span class="st">"path_to_movebank_format_csv"</span>)
 <span class="co"># run app with existing telemetry object or list in R environment</span>
-ctmmweb<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/ctmmweb/topics/app">app</a></span>(buffalo)</code></pre></div>
+<span class="kw">library</span>(ctmm)
+<span class="kw">data</span>(buffalo)
+<span class="kw"><a href="reference/app.html">app</a></span>(buffalo)</code></pre></div>
 <p>This will start the app locally with RStudio’s embeded browser. In windows/Linux this has known compatibility problems. You can click the <code>open in browser</code> button in the browser top bar to use system browser instead. Chrome is recommended.</p>
 </li>
 </ol>
@@ -132,7 +135,7 @@ ctmmweb<span class="op">::</span><span class="kw"><a href="http://www.rdocumenta
 
   <div class="col-md-3" id="sidebar">
     <h2>License</h2>
-<p><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a></p>
+<p><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a> + file <a href="LICENSE.html">LICENSE</a></p>
 <h2>Developers</h2>
 <ul class="list-unstyled">
 <li>Xianghui Dong <br><small class="roles"> Author, maintainer </small> </li>

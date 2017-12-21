@@ -50,13 +50,11 @@ tele_list_info <- function(tele_obj_list){
 #'
 #' If there are big gaps in sampling time, median center for each time group is
 #' used. To reduce duplicate calculation, speed calculation will use some
-#' columns created in distance calculation. Always `calculate_distance` first
-#' then [calculate_speed()].
+#' columns created in distance calculation. Always update `data.table` with `calculate_distance` first then use [calculate_speed()].
 #'
-#' @param animals_dt telemetry data in merged data.table. See [merge_tele()]
+#' @param animals_dt location `data.table` from [merge_tele()]
 #'
-#' @return data.table with distance columns added. Note the input parameter is
-#'   modified in place.
+#' @return `data.table` with distance columns added.
 #' @export
 #'
 calculate_distance <- function(animals_dt) {
@@ -147,17 +145,15 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
 #' the function will fall back to simpler method which is more naive but robust.
 #'
 #' To reduce duplicate calculation, speed calculation will use some columns
-#' created in distance calculation. Always [calculate_distance()] first then
-#' [calculate_speed()].
+#' created in distance calculation. Always update `data.table` with `calculate_distance` first then use [calculate_speed()].
 #'
 #' @param animals_dt telemetry data in merged data.table
 #' @param device_error device error if available
 #'
-#' @return data.table with speed columns added. Note the input parameter is
-#'   modified in place.
+#' @return data.table with speed columns added.
 #' @export
 #'
-calculate_speed <- function(animals_dt, device_error) {
+calculate_speed <- function(animals_dt, device_error = 0) {
   setkey(animals_dt, row_no)
   # my speed calculation need distance columns
   test_calc <- function(data, device_error, fun, fun_bak) {

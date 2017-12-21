@@ -105,7 +105,7 @@ most common edge cases reasonably well. When it fails for extreme situations,
 the function will fall back to simpler method which is more naive but robust.</p>
     
 
-    <pre class="usage"><span class='fu'>calculate_speed</span>(<span class='no'>animals_dt</span>, <span class='no'>device_error</span>)</pre>
+    <pre class="usage"><span class='fu'>calculate_speed</span>(<span class='no'>animals_dt</span>, <span class='kw'>device_error</span> <span class='kw'>=</span> <span class='fl'>0</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -122,14 +122,12 @@ the function will fall back to simpler method which is more naive but robust.</p
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>data.table with speed columns added. Note the input parameter is
-modified in place.</p>
+    <p>data.table with speed columns added.</p>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>To reduce duplicate calculation, speed calculation will use some columns
-created in distance calculation. Always <code><a href='calculate_distance.html'>calculate_distance()</a></code> first then
-<code>calculate_speed()</code>.</p>
+created in distance calculation. Always update <code>data.table</code> with <code>calculate_distance</code> first then use <code>calculate_speed()</code>.</p>
     
 
   </div>

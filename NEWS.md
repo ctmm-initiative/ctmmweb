@@ -1,7 +1,9 @@
 
-## version 0.1.0, in progress
+## version 0.1.0, 2017/12/21
 - change repo name to match package name
 - [export most features of app as package functions](https://github.com/ctmm-initiative/ctmmweb/issues/41) 
+- Established workflow with package functions.
+- Finished vignette of `package usage`. 
 
 ## version 0.0.9, 2017/12/04, Package
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.

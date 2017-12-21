@@ -8,8 +8,8 @@ output:
     theme: flatly
 vignette: >
   %\VignetteIndexEntry{Package Usage}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r setup, include = FALSE}
@@ -53,6 +53,16 @@ In `dt`:
 
 ```{r dt}
 knitr::kable(head(dt))
+```
+
+You can calculate distance and speed outliers on `dt`.
+
+```{r outlier}
+# distance_center column is added
+dt_distance <- calculate_distance(dt)
+knitr::kable(head(dt_distance))
+# always calculate distance first then calculate speed outlier with distance columns added
+knitr::kable(head(calculate_speed(dt_distance)))
 ```
 
 
@@ -228,7 +238,7 @@ library(leaflet)
 dt_sub2 <- dt[identity %in% names(tele_list_sub2)]
 point_map(dt_sub2)
 point_map(dt)
-# save map to html. It will be self contained and can be shared.
+# save map to html. It will be self contained single html and can be shared.
 htmlwidgets::saveWidget(point_map(dt_sub2), file = "point_map.html")
 ```
 
@@ -239,18 +249,4 @@ range_map(hrange_list_sub2, 0.95, rainbow(length(hrange_list_sub2)))
 # note dt_sub2 is corresponding to hrange_list_sub2
 point_range_map(dt_sub2, hrange_list_sub2, 0.95,
                 rainbow(length(hrange_list_sub2)))
-```
-
-## Other utility functions
-
-```{r outliers}
-
-```
-
-
-### generic parallel function usage
-```{r parallel, eval=FALSE}
-# sample a telemetry object to test time consuming processes with less time
-sample_tele(buffalo[[1]], 100)
-# generic parallel usage
 ```

@@ -4,7 +4,7 @@
 \alias{calculate_speed}
 \title{Calculate speed for each animal location}
 \usage{
-calculate_speed(animals_dt, device_error)
+calculate_speed(animals_dt, device_error = 0)
 }
 \arguments{
 \item{animals_dt}{telemetry data in merged data.table}
@@ -12,8 +12,7 @@ calculate_speed(animals_dt, device_error)
 \item{device_error}{device error if available}
 }
 \value{
-data.table with speed columns added. Note the input parameter is
-modified in place.
+data.table with speed columns added.
 }
 \description{
 It's difficult to get a simple speed definition yet robust to all kinds of
@@ -23,6 +22,5 @@ the function will fall back to simpler method which is more naive but robust.
 }
 \details{
 To reduce duplicate calculation, speed calculation will use some columns
-created in distance calculation. Always \code{\link[=calculate_distance]{calculate_distance()}} first then
-\code{\link[=calculate_speed]{calculate_speed()}}.
+created in distance calculation. Always update \code{data.table} with \code{calculate_distance} first then use \code{\link[=calculate_speed]{calculate_speed()}}.
 }
