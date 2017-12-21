@@ -4,10 +4,10 @@
 \alias{point_range_map}
 \title{Build home range map with animal locations}
 \usage{
-point_range_map(dt, hrange_list, hr_levels, hr_color_vec)
+point_range_map(dt_subset, hrange_list, hr_levels, hr_color_vec)
 }
 \arguments{
-\item{dt}{\code{data.table} subset of full data set of animal locations from
+\item{dt_subset}{\code{data.table} subset of full data set of animal locations from
 \link{merge_tele}. The \code{id} column need to keep all animal names in levels to
 maintain color consistency.}
 

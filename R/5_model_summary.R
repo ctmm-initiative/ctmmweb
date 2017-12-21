@@ -153,9 +153,6 @@ list_model_fit <- function(model_fit_res) {
 # The table structure is similar to model list table, with model information
 # from model summary table, and home range objects as list column
 #
-# param selected_dt model names `data.table`
-# param selected_hrange_list home range list
-#
 # return a data.table holding model info and home range
 # export
 #

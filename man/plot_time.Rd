@@ -4,10 +4,10 @@
 \alias{plot_time}
 \title{Plot animal sampling time histogram in facet}
 \usage{
-plot_time(selected_dt)
+plot_time(dt_subset)
 }
 \arguments{
-\item{selected_dt}{A subset of animals. A \code{data.table} subset taken from full
+\item{dt_subset}{A subset of animals. A \code{data.table} subset taken from full
 data set of all animals location. Note the \code{id} column is factor with all
 animals identity as levels. So this subset still have all identities
 information, which is needed to color each animal consistently.}

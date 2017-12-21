@@ -4,10 +4,10 @@
 \alias{point_map}
 \title{Build point map from animal location data table}
 \usage{
-point_map(dt)
+point_map(dt_subset)
 }
 \arguments{
-\item{dt}{\code{data.table} subset of full data set of animal locations from
+\item{dt_subset}{\code{data.table} subset of full data set of animal locations from
 \link{merge_tele}. The \code{id} column need to keep all animal names in levels to
 maintain color consistency.}
 }

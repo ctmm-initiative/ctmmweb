@@ -4,13 +4,11 @@
 \alias{heat_map}
 \title{Build heat map from animal location data table}
 \usage{
-heat_map(selected_dt)
+heat_map(dt_subset)
 }
 \arguments{
-\item{selected_dt}{\code{data.table} (subset) of animal locations from
-\link{merge_tele}. The subset parameter name is used for consistency. Even you
-don't really need to use a subset here, the point map still need both the
-subset and full data set.}
+\item{dt_subset}{\code{data.table} subset of animal locations from
+\link{merge_tele}. The subset parameter name is used for consistency.}
 }
 \value{
 A \code{Leaflet} map widget.

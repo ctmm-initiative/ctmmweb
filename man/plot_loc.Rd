@@ -4,10 +4,10 @@
 \alias{plot_loc}
 \title{Plot animal locations subset with all as background}
 \usage{
-plot_loc(selected_dt, dt = NULL, point_size = 0.1)
+plot_loc(dt_subset, dt = NULL, point_size = 0.1)
 }
 \arguments{
-\item{selected_dt}{A subset of animals. A \code{data.table} subset taken from full
+\item{dt_subset}{A subset of animals. A \code{data.table} subset taken from full
 data set of all animals location. Note the \code{id} column is factor with all
 animals identity as levels. So this subset still have all identities
 information, which is needed to color each animal consistently.}
@@ -15,7 +15,7 @@ information, which is needed to color each animal consistently.}
 \item{dt}{The full data set of all animals location in merged \code{data.table}
 format. Usually came from \link{merge_animals}. If background is not needed, it
 can be skipped and take the default \code{NULL} value. In this case better use
-named parameter for \code{point_size} if needed, like \code{plot_loc(selected_dt, point_size = 0.2)} instead of \code{plot_loc(selected_dt, 0.2)} otherwise the
+named parameter for \code{point_size} if needed, like \code{plot_loc(dt_subset, point_size = 0.2)} instead of \code{plot_loc(dt_subset, 0.2)} otherwise the
 second parameter will be interpreted as \code{dt}.}
 
 \item{point_size}{The size of point in plot. Denser plot may need smaller

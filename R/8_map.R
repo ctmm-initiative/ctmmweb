@@ -125,12 +125,12 @@ add_home_range_list <- function(leaf, hrange_list, hr_levels,
 # exported user friendly version ends with map and don't use verb in beginning. the usage in app is already abstract enough, nothing to wrap more. For package users, things can be improved: 1. name_vec came from dt, id_pal came from full dt, so only provide two dt? that will be difficult to customize color. show them the internal usage. so it's easy to get points map with two dt, that's good. next, home range is complex, need lots of parameters, just let user define the color is easier, and keep the separated functions, the add control need to be separated, but with more control.
 # decided to wrap control code inside function, so user will use 3 different functions. no step by step building but it's easier. they can use internal functions if they need more flexibility.
 # the internal shared part of point map
-build_point_map <- function(dt) {
-  full_id_vec <- levels(dt$id)
-  selected_id_vec <- get_names(dt)
+build_point_map <- function(dt_subset) {
+  full_id_vec <- levels(dt_subset$id)
+  selected_id_vec <- get_names(dt_subset)
   id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
                                  full_id_vec, ordered = TRUE)
-  base_map() %>% add_points(dt, selected_id_vec, id_pal)
+  base_map() %>% add_points(dt_subset, selected_id_vec, id_pal)
 }
 #' Build point map from animal location data table
 #'
@@ -138,20 +138,20 @@ build_point_map <- function(dt) {
 #' interactive session. You can also further augment it with `leaflet`
 #' functions, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param dt `data.table` subset of full data set of animal locations from
+#' @param dt_subset `data.table` subset of full data set of animal locations from
 #'   [merge_tele]. The `id` column need to keep all animal names in levels to
 #'   maintain color consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-point_map <- function(dt) {
+point_map <- function(dt_subset) {
   # full_id_vec <- levels(dt$id)
-  selected_id_vec <- get_names(dt)
+  selected_id_vec <- get_names(dt_subset)
   # id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
   #                                full_id_vec, ordered = TRUE)
   # base_map() %>% add_points(dt, selected_id_vec, id_pal) %>%
   #   add_control(selected_id_vec)
-  build_point_map(dt) %>% add_control(selected_id_vec)
+  build_point_map(dt_subset) %>% add_control(selected_id_vec)
 }
 #' Build home range map
 #'
@@ -185,9 +185,9 @@ range_map <- function(hrange_list, hr_levels, hr_color_vec) {
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-point_range_map <- function(dt, hrange_list, hr_levels, hr_color_vec) {
-  selected_id_vec <- get_names(dt)
-  build_point_map(dt) %>%
+point_range_map <- function(dt_subset, hrange_list, hr_levels, hr_color_vec) {
+  selected_id_vec <- get_names(dt_subset)
+  build_point_map(dt_subset) %>%
     add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>%
     add_control(c(selected_id_vec, names(hrange_list)))
 }
@@ -212,15 +212,13 @@ add_heat <- function(leaf, dt, tiles_info = ctmmweb:::TILES_INFO) {
 #' interactive session. You can also further augment it with `leaflet`
 #' operations, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param selected_dt `data.table` (subset) of animal locations from
-#'   [merge_tele]. The subset parameter name is used for consistency. Even you
-#'   don't really need to use a subset here, the point map still need both the
-#'   subset and full data set.
+#' @param dt_subset `data.table` subset of animal locations from
+#'   [merge_tele]. The subset parameter name is used for consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-heat_map <- function(selected_dt) {
-  init_base_maps() %>% add_heat(selected_dt)
+heat_map <- function(dt_subset) {
+  base_map() %>% add_heat(dt_subset)
 }
 # utilities ----
 # need a helper so it's easier for user not familiar with data.table.
