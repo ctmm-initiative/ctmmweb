@@ -104,13 +104,13 @@ Overview in app). To add all animals as background, the full data set of
 animals is also needed.</p>
     
 
-    <pre class="usage"><span class='fu'>plot_loc</span>(<span class='no'>selected_dt</span>, <span class='kw'>dt</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>point_size</span> <span class='kw'>=</span> <span class='fl'>0.1</span>)</pre>
+    <pre class="usage"><span class='fu'>plot_loc</span>(<span class='no'>dt_subset</span>, <span class='kw'>dt</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>point_size</span> <span class='kw'>=</span> <span class='fl'>0.1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>selected_dt</th>
+      <th>dt_subset</th>
       <td><p>A subset of animals. A <code>data.table</code> subset taken from full
 data set of all animals location. Note the <code>id</code> column is factor with all
 animals identity as levels. So this subset still have all identities
@@ -121,7 +121,7 @@ information, which is needed to color each animal consistently.</p></td>
       <td><p>The full data set of all animals location in merged <code>data.table</code>
 format. Usually came from merge_animals. If background is not needed, it
 can be skipped and take the default <code>NULL</code> value. In this case better use
-named parameter for <code>point_size</code> if needed, like <code>plot_loc(selected_dt, point_size = 0.2)</code> instead of <code>plot_loc(selected_dt, 0.2)</code> otherwise the
+named parameter for <code>point_size</code> if needed, like <code>plot_loc(dt_subset, point_size = 0.2)</code> instead of <code>plot_loc(dt_subset, 0.2)</code> otherwise the
 second parameter will be interpreted as <code>dt</code>.</p></td>
     </tr>
     <tr>

@@ -102,9 +102,9 @@
     <p>A Telemetry list hold mutiple animal data in separate list items, each item
 have the animal location data in a data frame, and other information in
 various slots. This structure supports flexible S3 methods for telemetry
-object. However to plot multiple animals location together with <code>ggplot2</code>
-it's better to merge all location data into single data frame with an animal
-id column.</p>
+object. However to plot multiple animals location together with <code>ggplot2</code> we
+need to merge all location data into a single <code>data.frame</code> with an animal id
+column.</p>
     
 
     <pre class="usage"><span class='fu'>merge_tele</span>(<span class='no'>tele_obj_list</span>)</pre>
@@ -128,11 +128,11 @@ id column.</p>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Thus any input telemetry object/List need to be merged into a <code>data.table</code> of
+    <p>This function merge any input telemetry object/List into a <code>data.table</code> of
 location data, and another information <code>data.table</code> for animals. <code>data.table</code>
-is chosen over <code>data.frame</code> for much better performance. This is the main
-data structure in app. The app works on any selected subset of it in almost
-all steps.</p>
+is chosen over <code>data.frame</code> for much better performance. This data structure
+is also used in a lot of places in app, which works on any selected subset of
+full data in almost all steps.</p>
     
 
   </div>

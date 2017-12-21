@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Build heat map from animal location data table — heat_map • ctmmweb</title>
+<title>Convert nested <a href='par_fit_tele.html'>par_fit_tele</a> result into flatten list with model names — list_model_fit • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -95,30 +95,27 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Build heat map from animal location data table</h1>
+    <h1>Convert nested <a href='par_fit_tele.html'>par_fit_tele</a> result into flatten list with model names</h1>
     </div>
 
     
-    <p>An interactive map will shown in RStudio Viewer pane when running in
-interactive session. You can also further augment it with <code>leaflet</code>
-operations, or save to a html with <code><a href='http://www.rdocumentation.org/packages/htmlwidgets/topics/saveWidget'>htmlwidgets::saveWidget</a></code>.</p>
+    <p>Convert nested <a href='par_fit_tele.html'>par_fit_tele</a> result into flatten list with model names</p>
     
 
-    <pre class="usage"><span class='fu'>heat_map</span>(<span class='no'>dt_subset</span>)</pre>
+    <pre class="usage"><span class='fu'>list_model_fit</span>(<span class='no'>model_fit_res</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>dt_subset</th>
-      <td><p><code>data.table</code> subset of animal locations from
-<a href='merge_tele.html'>merge_tele</a>. The subset parameter name is used for consistency.</p></td>
+      <th>model_fit_res</th>
+      <td></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A <code>Leaflet</code> map widget.</p>
+    <p>A single level list of models with names</p>
     
 
   </div>

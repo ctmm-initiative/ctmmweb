@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Build heat map from animal location data table — heat_map • ctmmweb</title>
+<title>Build home range map with animal locations — point_range_map • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -95,24 +95,41 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Build heat map from animal location data table</h1>
+    <h1>Build home range map with animal locations</h1>
     </div>
 
     
     <p>An interactive map will shown in RStudio Viewer pane when running in
 interactive session. You can also further augment it with <code>leaflet</code>
-operations, or save to a html with <code><a href='http://www.rdocumentation.org/packages/htmlwidgets/topics/saveWidget'>htmlwidgets::saveWidget</a></code>.</p>
+functions, or save to a html with <code><a href='http://www.rdocumentation.org/packages/htmlwidgets/topics/saveWidget'>htmlwidgets::saveWidget</a></code>.</p>
     
 
-    <pre class="usage"><span class='fu'>heat_map</span>(<span class='no'>dt_subset</span>)</pre>
+    <pre class="usage"><span class='fu'>point_range_map</span>(<span class='no'>dt_subset</span>, <span class='no'>hrange_list</span>, <span class='no'>hr_levels</span>, <span class='no'>hr_color_vec</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>dt_subset</th>
-      <td><p><code>data.table</code> subset of animal locations from
-<a href='merge_tele.html'>merge_tele</a>. The subset parameter name is used for consistency.</p></td>
+      <td><p><code>data.table</code> subset of full data set of animal locations from
+<a href='merge_tele.html'>merge_tele</a>. The <code>id</code> column need to keep all animal names in levels to
+maintain color consistency.</p></td>
+    </tr>
+    <tr>
+      <th>hrange_list</th>
+      <td><p>list of home range UD object. The names of list will be
+used as layer names, usually they are model names.</p></td>
+    </tr>
+    <tr>
+      <th>hr_levels</th>
+      <td><p>The vector of <code>level.UD</code> in <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/plot.telemetry'>ctmm::plot.telemetry</a></code>. To be
+consistent with <code>ctmm</code> they are values 0 ~ 1 (for example 0.95). Note the
+app UI take values 0 ~ 100 (for example 95) for easier input.</p></td>
+    </tr>
+    <tr>
+      <th>hr_color_vec</th>
+      <td><p>Vector of color names to be used for each home range. The
+length of <code>hr_color_vec</code> should match length of <code>hrange_list</code>.</p></td>
     </tr>
     </table>
     

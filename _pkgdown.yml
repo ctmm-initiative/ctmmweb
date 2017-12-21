@@ -25,6 +25,8 @@ reference:
 - title: "Variograms, Home Range Estimation, Occurrence"
   desc: ~
   contents:
+  - '`summary_model_fit`'
+  - '`list_model_fit`'
   - '`plot_vario`'
   - '`plot_ud`'
 - title: "Map"
@@ -32,6 +34,8 @@ reference:
   contents:
   - '`base_map`'
   - '`point_map`'
+  - '`range_map`'
+  - '`point_range_map`'
   - '`heat_map`'
   - '`add_control`'
 - title: "Parallel Computing"
@@ -48,7 +52,6 @@ reference:
   - '`calculate_speed`'
   - '`sample_tele`'
   - '`sample_tele_list`'
-  - '`summary_model_fit`'
   - '`JS.logify`'
   - '`JS.onload`'
   - '`compress_folder`'

@@ -102,7 +102,7 @@
     <p>Build a leaflet base map</p>
     
 
-    <pre class="usage"><span class='fu'>base_map</span>(<span class='kw'>tiles_info</span> <span class='kw'>=</span> <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'>TILES_INFO</span>)</pre>
+    <pre class="usage"><span class='fu'>base_map</span>(<span class='kw'>tiles_info</span> <span class='kw'>=</span> <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'>TILES_INFO</span>, <span class='kw'>grid</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -111,6 +111,10 @@
       <th>tiles_info</th>
       <td><p>A list holding tiles information. To customize it,
 check and modify the default value <code>ctmmweb:::TILES_INFO</code>.</p></td>
+    </tr>
+    <tr>
+      <th>grid</th>
+      <td><p>Add graticule by <code><a href='http://www.rdocumentation.org/packages/leaflet/topics/addSimpleGraticule'>leaflet::addSimpleGraticule</a></code></p></td>
     </tr>
     </table>
     

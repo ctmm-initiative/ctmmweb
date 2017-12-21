@@ -102,14 +102,18 @@
     <p>Parallel calculate occurrence from telemetry and model list</p>
     
 
-    <pre class="usage"><span class='fu'>par_occur</span>(<span class='no'>tele_model_list</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>par_occur</span>(<span class='no'>tele_list</span>, <span class='no'>model_list</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>tele_model_list</th>
-      <td><p>Aligned list of telemetry list and model list</p></td>
+      <th>tele_list</th>
+      <td><p><code>ctmm</code> <code>telemetry</code> list</p></td>
+    </tr>
+    <tr>
+      <th>model_list</th>
+      <td><p>Corresponding <code>ctmm</code> model list for <code>tele_list</code></p></td>
     </tr>
     <tr>
       <th>fallback</th>

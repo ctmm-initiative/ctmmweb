@@ -103,7 +103,7 @@
     
 
     <pre class="usage"><span class='fu'>plot_vario</span>(<span class='no'>vario_list</span>, <span class='kw'>model_list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>fraction</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
-  <span class='kw'>relative_zoom</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>model_color</span> <span class='kw'>=</span> <span class='st'>"blue"</span>, <span class='kw'>columns</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
+  <span class='kw'>relative_zoom</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>cex</span> <span class='kw'>=</span> <span class='fl'>0.65</span>, <span class='kw'>model_color</span> <span class='kw'>=</span> <span class='st'>"blue"</span>, <span class='kw'>columns</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -123,7 +123,7 @@ Possible values:</p><ul>
 <li><p>It can be skipped to use default value <code>NULL</code>, and only empirical
 variograms are drawn. <code>vario_list</code> names will be used as figure title.
 Better use named parameters for others in this case.</p></li>
-<li><p>list of guesstimated models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/variogram.fit'>ctmm::ctmm.guess</a></code> on <code>vario_list</code>,
+<li><p>list of guesstimated models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/variogram.fit'>ctmm::ctmm.guess</a></code> on telemetry data,
 overlay guesstimate variogram.</p></li>
 <li><p>list of fitted models from <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/ctmm.fit'>ctmm::ctmm.select</a></code> on <code>vario_list</code>, overlay
 modeled variogram.</p></li>
@@ -141,6 +141,10 @@ X, Y axes are not synced.</p></li>
 <li><p>Absolute mode operate on the max Time-lag range individual in group, and
 all others scaled with same X, Y axes for easier comparison.</p></li>
 </ul></td>
+    </tr>
+    <tr>
+      <th>cex</th>
+      <td><p>The magnification factor of plot text and symbols. See par.</p></td>
     </tr>
     <tr>
       <th>model_color</th>

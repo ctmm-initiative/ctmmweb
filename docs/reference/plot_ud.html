@@ -102,7 +102,8 @@
     <p>This is a wrapper over <code><a href='http://www.rdocumentation.org/packages/ctmm/topics/plot.telemetry'>ctmm::plot.telemetry</a></code> to make group plot easier.</p>
     
 
-    <pre class="usage"><span class='fu'>plot_ud</span>(<span class='no'>UD_list</span>, <span class='no'>level_vec</span>, <span class='kw'>columns</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>tele_list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>plot_ud</span>(<span class='no'>UD_list</span>, <span class='kw'>level_vec</span> <span class='kw'>=</span> <span class='fl'>0.95</span>, <span class='kw'>columns</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>cex</span> <span class='kw'>=</span> <span class='fl'>0.65</span>,
+  <span class='kw'>tele_list</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -122,6 +123,10 @@ app UI take values 0 ~ 100 (for example 95) for easier input.</p></td>
     <tr>
       <th>columns</th>
       <td><p>The columns of the group plot layout.</p></td>
+    </tr>
+    <tr>
+      <th>cex</th>
+      <td><p>The magnification factor of plot text and symbols. See par.</p></td>
     </tr>
     <tr>
       <th>tele_list</th>

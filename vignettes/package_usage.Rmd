@@ -242,8 +242,11 @@ point_range_map(dt_sub2, hrange_list_sub2, 0.95,
 ```
 
 ## Other utility functions
-code example for each function since we didn't put code example in help.
-- disctance, speed outlier
+
+```{r outliers}
+
+```
+
 
 ### generic parallel function usage
 ```{r parallel, eval=FALSE}
