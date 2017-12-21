@@ -1,7 +1,7 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.0.9
+Version: 0.1.0
 Authors@R: person("Xianghui", "Dong", email = "xhdong@umd.edu",
                   role = c("aut", "cre"))
 Maintainer: Xianghui Dong <xhdong@umd.edu>
