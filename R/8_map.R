@@ -1,5 +1,5 @@
 # CONFIG ----
-# the layer name of graticule, it need to be consistent across functions. still, use parameter to avoid gloal variables. the default value is still global variable but it's explicit
+# the layer name of graticule, it need to be consistent across functions. so making it parameter will not guarantee consistency. It's less important so using global is OK.
 GRID_GROUP <- "_graticule_"
 # TILES_INFO hold information of tiles needed for initialization. HERE maps need api key and different init code, so they are placed in separate list items, also need to keep here api key. The layer names are also needed in layer control code in other places
 TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
@@ -16,12 +16,11 @@ TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
 #' @param tiles_info A list holding tiles information. To customize it,
 #'   check and modify the default value `ctmmweb:::TILES_INFO`.
 #' @param grid Add graticule by `leaflet::addSimpleGraticule`
-#' @param grid_group graticule layer name, default as `ctmmweb:::GRID_GROUP`
 #'
 #' @return A leaflet widget object.
 #' @export
 base_map <- function(tiles_info = TILES_INFO,
-                     grid = TRUE, grid_group = GRID_GROUP) {
+                     grid = TRUE) {
   leaf <- leaflet::leaflet(options = leaflet::leafletOptions(
     attributionControl = FALSE))
   for (prov in tiles_info$here) {
@@ -40,7 +39,7 @@ base_map <- function(tiles_info = TILES_INFO,
   if (grid) {
     leaf <- leaf %>%
       leaflet::addSimpleGraticule(interval = 1, showOriginLabel = FALSE,
-                                  redraw = "moveend", group = grid_group)
+                                  redraw = "moveend", group = GRID_GROUP)
   }
   return(leaf)
 }
@@ -92,11 +91,10 @@ add_points <- function(leaf, dt, name_vec, id_pal) {
 #'
 #' @export
 add_control <- function(leaf, layer_vec,
-                        tiles_info = TILES_INFO,
-                        grid_group = GRID_GROUP) {
+                        tiles_info = TILES_INFO) {
   leaf %>% leaflet::addLayersControl(
     baseGroups = c(tiles_info$here, tiles_info$open),
-    overlayGroups = c(grid_group, layer_vec),
+    overlayGroups = c(GRID_GROUP, layer_vec),
     options = leaflet::layersControlOptions(collapsed = FALSE)
   )
 }
@@ -196,8 +194,7 @@ point_range_map <- function(dt_subset, hrange_list, hr_levels, hr_color_vec) {
 }
 # heat map ----
 # base map layer control added here
-add_heat <- function(leaf, dt, tiles_info = TILES_INFO,
-                     grid_group = GRID_GROUP) {
+add_heat <- function(leaf, dt, tiles_info = TILES_INFO) {
   leaf %>%
     leaflet.extras::addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
                                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
@@ -205,7 +202,7 @@ add_heat <- function(leaf, dt, tiles_info = TILES_INFO,
     add_measure() %>%
     leaflet::addLayersControl(
       baseGroups = c(tiles_info$here, tiles_info$open),
-      overlayGroups = c(grid_group, "Heatmap"),
+      overlayGroups = c(GRID_GROUP, "Heatmap"),
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
 #' Build heat map from animal location data table

@@ -4,8 +4,7 @@
 \alias{add_control}
 \title{Add layer control for leaflet map}
 \usage{
-add_control(leaf, layer_vec, tiles_info = TILES_INFO,
-  grid_group = GRID_GROUP)
+add_control(leaf, layer_vec, tiles_info = TILES_INFO)
 }
 \arguments{
 \item{leaf}{leaflet map widget object.}
@@ -15,8 +14,6 @@ names, model names etc.}
 
 \item{tiles_info}{A list holding tiles information. To customize it,
 check and modify the default value \code{ctmmweb:::TILES_INFO}.}
-
-\item{grid_group}{graticule layer name, default as \code{ctmmweb:::GRID_GROUP}}
 }
 \description{
 Add layer control for leaflet map
