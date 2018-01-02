@@ -1877,7 +1877,7 @@ output:
   output$range_plot <- renderPlot({
     # browser()
     # selected_tele_list <- select_models()$tele_list
-    plot_ud(select_models_hranges(), level_vec = get_hr_levels(),
+    ctmmweb::plot_ud(select_models_hranges(), level_vec = get_hr_levels(),
             columns = input$vario_columns, cex = 0.72,
             tele_list = select_models()$tele_list)
     # selected_tele_list <- select_models()$tele_list
@@ -1948,7 +1948,7 @@ output:
     ctmmweb:::parse_CI_levels(input$oc_level_text)
   })
   output$occurrence_plot <- renderPlot({
-    plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
+    ctmmweb::plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
             cex = 0.72, columns = input$vario_columns)
     # plot
     # def.par <- graphics::par(no.readonly = TRUE)
