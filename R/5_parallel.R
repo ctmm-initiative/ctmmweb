@@ -57,7 +57,7 @@ align_list <- function(list_a, list_b) {
 #' @param reserved_cores reserve some cores so that not all cores are used.
 #'   Check your platform's core count with
 #'   `parallel::detectCores(logical = FALSE)`. `?parallel::detectCores`
-#'   has more details about physical/logical cores in different platform.
+#'   has more details about physical/logical cores in different platforms.
 #' @param fallback Disable parallel and use regular `lapply`.
 #' @param win_init Expression to be initialized in Windows. Because all
 #'   parameters should be included in the input list already, this usually means

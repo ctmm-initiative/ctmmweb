@@ -102,7 +102,8 @@
     <p>This is a generic parallel lapply that work across all major platforms.</p>
     
 
-    <pre class="usage"><span class='fu'>par_lapply</span>(<span class='no'>lst</span>, <span class='no'>fun</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>win_init</span> <span class='kw'>=</span> <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'>WIN_INIT_ctmm</span>)</pre>
+    <pre class="usage"><span class='fu'>par_lapply</span>(<span class='no'>lst</span>, <span class='no'>fun</span>, <span class='kw'>reserved_cores</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>win_init</span> <span class='kw'>=</span> <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'>WIN_INIT_ctmm</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -121,9 +122,15 @@ parameters in that list accordingly. <code><a href='align_list.html'>align_list(
 align two lists.</p></td>
     </tr>
     <tr>
+      <th>reserved_cores</th>
+      <td><p>reserve some cores so that not all cores are used.
+Check your platform's core count with
+<code><a href='http://www.rdocumentation.org/packages/parallel/topics/detectCores'>parallel::detectCores(logical = FALSE)</a></code>. <code><a href='http://www.rdocumentation.org/packages/parallel/topics/detectCores'>?parallel::detectCores</a></code>
+has more details about physical/logical cores in different platforms.</p></td>
+    </tr>
+    <tr>
       <th>fallback</th>
-      <td><p>Use regular <code>lapply</code>. This is used to test if parallel caused
-problems.</p></td>
+      <td><p>Disable parallel and use regular <code>lapply</code>.</p></td>
     </tr>
     <tr>
       <th>win_init</th>

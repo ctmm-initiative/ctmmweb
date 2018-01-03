@@ -102,7 +102,7 @@
     <p>Parallel fit models on telemetry list</p>
     
 
-    <pre class="usage"><span class='fu'>par_fit_tele</span>(<span class='no'>tele_list</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>par_fit_tele</span>(<span class='no'>tele_list</span>, <span class='kw'>reserved_cores</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -112,9 +112,15 @@
       <td><p>telemetry list</p></td>
     </tr>
     <tr>
+      <th>reserved_cores</th>
+      <td><p>reserve some cores so that not all cores are used.
+Check your platform's core count with
+<code><a href='http://www.rdocumentation.org/packages/parallel/topics/detectCores'>parallel::detectCores(logical = FALSE)</a></code>. <code><a href='http://www.rdocumentation.org/packages/parallel/topics/detectCores'>?parallel::detectCores</a></code>
+has more details about physical/logical cores in different platforms.</p></td>
+    </tr>
+    <tr>
       <th>fallback</th>
-      <td><p>Use regular <code>lapply</code>. This is used to test if parallel caused
-problems.</p></td>
+      <td><p>Disable parallel and use regular <code>lapply</code>.</p></td>
     </tr>
     </table>
     

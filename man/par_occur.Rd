@@ -14,7 +14,7 @@ par_occur(tele_list, model_list, reserved_cores = 0, fallback = FALSE)
 \item{reserved_cores}{reserve some cores so that not all cores are used.
 Check your platform's core count with
 \code{parallel::detectCores(logical = FALSE)}. \code{?parallel::detectCores}
-has more details about physical/logical cores in different platform.}
+has more details about physical/logical cores in different platforms.}
 
 \item{fallback}{Disable parallel and use regular \code{lapply}.}
 }
