@@ -4,7 +4,8 @@
 \alias{par_lapply}
 \title{Parallel apply function to list in all platforms}
 \usage{
-par_lapply(lst, fun, fallback = FALSE, win_init = ctmmweb:::WIN_INIT_ctmm)
+par_lapply(lst, fun, reserved_cores = 0, fallback = FALSE,
+  win_init = ctmmweb:::WIN_INIT_ctmm)
 }
 \arguments{
 \item{lst}{Input list.}
@@ -16,8 +17,12 @@ parameter function into a function take single list parameter, and assign
 parameters in that list accordingly. \code{\link[=align_list]{align_list()}} is a helper function to
 align two lists.}
 
-\item{fallback}{Use regular \code{lapply}. This is used to test if parallel caused
-problems.}
+\item{reserved_cores}{reserve some cores so that not all cores are used.
+Check your platform's core count with
+\code{parallel::detectCores(logical = FALSE)}. \code{?parallel::detectCores}
+has more details about physical/logical cores in different platform.}
+
+\item{fallback}{Disable parallel and use regular \code{lapply}.}
 
 \item{win_init}{Expression to be initialized in Windows. Because all
 parameters should be included in the input list already, this usually means

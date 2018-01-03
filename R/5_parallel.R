@@ -37,6 +37,7 @@ align_list <- function(list_a, list_b) {
   })
 }
 # used to write fallback as last parameter, then para_ll(ll, fun, fallback = TRUE) is interpreted as win_init = {fallback = TRUE}
+
 #' Parallel apply function to list in all platforms
 #'
 #' This is a generic parallel lapply that work across all major platforms.
@@ -53,8 +54,11 @@ align_list <- function(list_a, list_b) {
 #'   parameter function into a function take single list parameter, and assign
 #'   parameters in that list accordingly. [align_list()] is a helper function to
 #'   align two lists.
-#' @param fallback Use regular `lapply`. This is used to test if parallel caused
-#'   problems.
+#' @param reserved_cores reserve some cores so that not all cores are used.
+#'   Check your platform's core count with
+#'   `parallel::detectCores(logical = FALSE)`. `?parallel::detectCores`
+#'   has more details about physical/logical cores in different platform.
+#' @param fallback Disable parallel and use regular `lapply`.
 #' @param win_init Expression to be initialized in Windows. Because all
 #'   parameters should be included in the input list already, this usually means
 #'   library calls, like `{library(ctmm)}` for ctmm related operations, which
@@ -63,13 +67,20 @@ align_list <- function(list_a, list_b) {
 #' @return List of applied results
 #' @export
 #'
-par_lapply <- function(lst, fun, fallback = FALSE,
+par_lapply <- function(lst, fun,
+                       reserved_cores = 0,
+                       fallback = FALSE,
                        win_init = ctmmweb:::WIN_INIT_ctmm
 ) {
   if (!fallback) {
     sysinfo <- Sys.info()
     if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-      win_cluster_size <- min(length(lst), parallel::detectCores())
+      if (reserved_cores == 0) {
+        win_cluster_size <- min(length(lst), parallel::detectCores())
+      } else {
+        win_cluster_size <-
+          max(parallel::detectCores(logical = FALSE) - reserved_cores, 1)
+      }
       cat(crayon::inverse("running parallel in SOCKET cluster of",
                           win_cluster_size, "\n"))
       cl <- parallel::makeCluster(win_cluster_size, outfile = "")
@@ -79,8 +90,13 @@ par_lapply <- function(lst, fun, fallback = FALSE,
       res <- parallel::parLapplyLB(cl, lst, fun)
       parallel::stopCluster(cl)
     } else {
-      cluster_size <- min(length(lst),
-                          parallel::detectCores(logical = FALSE) * 4)
+      if (reserved_cores == 0) {
+        cluster_size <- min(length(lst),
+                            parallel::detectCores(logical = FALSE) * 4)
+      } else {
+        cluster_size <-
+          max(parallel::detectCores(logical = FALSE) - reserved_cores, 1)
+      }
       cat(crayon::inverse("running parallel with mclapply in cluster of",
                           cluster_size, "\n"))
       res <- parallel::mclapply(lst, fun, mc.cores = cluster_size)
@@ -98,49 +114,55 @@ par_lapply <- function(lst, fun, fallback = FALSE,
 #   problems.
 #
 # return list of model fitting results on each telemetry object. didn't add model names to list because the aligned list lost model name information. we added the names in calling code instead. It was only called once.
-par_fit_tele_guess <- function(tele_guess_list, fallback = FALSE) {
+par_fit_tele_guess <- function(tele_guess_list,
+                               reserved_cores = 0,
+                               fallback = FALSE) {
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict
   fit_models <- function(tele_guess) {
     ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                       trace = TRUE, verbose = TRUE)
   }
-  par_lapply(tele_guess_list, fit_models, fallback)
+  par_lapply(tele_guess_list, fit_models, reserved_cores, fallback)
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 #' Parallel fit models on telemetry list
 #'
 #' @param tele_list telemetry list
-#' @param fallback Use regular `lapply`. This is used to test if parallel caused
-#'   problems.
+#' @inheritParams par_lapply
 #'
 #' @return list of model fitting results on each telemetry object by `ctmm::ctmm.select`, named by
 #'   telemetry object names
 #' @export
-par_fit_tele <- function(tele_list, fallback = FALSE) {
+par_fit_tele <- function(tele_list,
+                         reserved_cores = 0,
+                         fallback = FALSE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm.guess(x, interactive = FALSE)
                                 }))
   print(system.time(model_select_res <-
-                      par_fit_tele_guess(tele_guess_list, fallback)))
+                      par_fit_tele_guess(tele_guess_list,
+                                         reserved_cores,
+                                         fallback)))
   names(model_select_res) <- names(tele_list)
   return(model_select_res)
 }
 #' Parallel calculate occurrence from telemetry and model list
 #'
-#' @param fallback Use regular `lapply`. This is used to test if parallel caused
-#'   problems.
 #' @param tele_list `ctmm` `telemetry` list
 #' @param model_list Corresponding `ctmm` model list for `tele_list`
+#' @inheritParams par_lapply
 #'
 #' @return occurrence results list
 #' @export
-par_occur <- function(tele_list, model_list, fallback = FALSE) {
+par_occur <- function(tele_list, model_list,
+                      reserved_cores = 0,
+                      fallback = FALSE) {
   tele_model_list <- align_list(tele_list, model_list)
   occur_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
   }
-  par_lapply(tele_model_list, occur_calc, fallback)
+  par_lapply(tele_model_list, occur_calc, reserved_cores, fallback)
 }
 # sample telemetry data ----
 
