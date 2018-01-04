@@ -210,7 +210,7 @@ plot_vario(vario_list_sub2, model_list_sub2, model_color = "purple")
 
 ## Home range
 
-We can calculate home range UD objects with the telemetry data and the fitted models. Note parallel mode is not used because we want to calculate all animals together to put them in same grid.
+We can estimate home range with the telemetry data and the fitted models. Note parallel mode is not used because we want to calculate all animals together to put them in same grid.
 
 ```{r home range, fig.height=10}
 # calculate home range with ctmm::akde. 
@@ -230,7 +230,7 @@ plot_ud(hrange_list_sub2, level_vec = c(0.50, 0.95), tele_list = tele_list_sub2)
 
 ## Occurrence
 
-Occurrence can be calculated from the telemetry data and the fitted models in parallel.
+Occurrence distribution can be calculated from the telemetry data and the fitted models in parallel.
 
 ```{r occurrence, fig.height=10}
 # calculate occurrence in parallel. parallel can be disabled with fallback = TRUE
