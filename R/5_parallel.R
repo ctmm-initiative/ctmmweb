@@ -166,39 +166,39 @@ par_occur <- function(tele_list, model_list,
 }
 # sample telemetry data ----
 
-#' Resample S3 generic
+#' Pick subset from telemetry object/list
+#'
+#' A dataset subset can have models fitted much quicker. This is used to reduce
+#' waiting time in developing code that involved time consuming modeling
+#' processes. After code is tested and stablized, full size dataset can be used.
+#'
+#' `m` even spaced points are taken from each object.
 #'
 #' @export
-resampling <- function(object, ...) {UseMethod("resampling")}
+pick <- function(object, m) {UseMethod("pick")}
 
-#' Resample telemetry object
-#'
-#' Like image resampling, a resampled dataset can have models
-#' fitted much quicker. This is used to reduce waiting time in developing code
-#' that involved time consuming modeling processes. After code is tested and
-#' stablized, full size dataset can be used.
+#' @describeIn pick subset from telemetry object
 #'
 #' @param tele telemetry object
-#' @param m sample size. `m` even spaced points are taken from data.
+#' @param m subset size
 #'
-#' @return resampled telemetry object
+#' @return telemetry object with m data points
 #' @export
 #' @import ctmm
-resampling.telemetry <- function(tele, m) {
+pick.telemetry <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
-#' Resample each telemetry object in list
-#'
-#' Resample each object with [resampling].
+
+#' @describeIn pick list of subset from each telemetry object
 #'
 #' @param tele_list telemetry list
-#' @param m sample size
+#' @inheritParams pick
 #'
-#' @return resampled telemetry list
+#' @return telemetry list of subsets
 #' @export
-resampling.list <- function(tele_list, m) {
+pick.list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
-    resampling(x, m)
+    pick(x, m)
   })
 }

@@ -1,6 +1,7 @@
 # ctmm data processing ----
+
 # get single animal info in one row data frame
-single_tele_info <- function(object) {
+report_tele <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
   sampling_interval <- ifelse(length(diffs) == 0,
@@ -34,16 +35,16 @@ wrap_single_telemetry <- function(tele_obj){
 sort_tele_list <- function(tele_list) {
   tele_list[stringr::str_sort(names(tele_list))]
 }
-#' Get information table for telemetry object or list
+#' Report data summary on telemetry object/list
 #'
 #' @param tele_obj_list telemetry object or list
 #'
 #' @return An information `data.table` for input
 #' @export
 #'
-tele_list_info <- function(tele_obj_list){
+report <- function(tele_obj_list){
   tele_list <- wrap_single_telemetry(tele_obj_list)
-  animal_info_list <- lapply(tele_list, single_tele_info)
+  animal_info_list <- lapply(tele_list, report_tele)
   rbindlist(animal_info_list)
 }
 #' Calculate distance to median center for each animal location
@@ -217,14 +218,14 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' @export
 merge_tele <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
-              info = tele_list_info(tele_obj_list)))
+              info = report(tele_obj_list)))
 }
 # to test if tele_list is in sync with merged data.
 # this will not work when there are NA cols introduced by merge with different cols. need to clean those cols first
 match_tele_merged <- function(tele_list, merged) {
   req(!is.null(tele_list) | (!is.null(merged)))
   # verify info match dt, this is not garranted since sometimes they are processed separately
-  stopifnot(all.equal(merged$info, tele_list_info(tele_list)))
+  stopifnot(all.equal(merged$info, report(tele_list)))
   # verify data part matches, also the name must match
   dt_list <- split(merged$data, by = "identity")
   lapply(names(tele_list), function(x) {

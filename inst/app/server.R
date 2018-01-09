@@ -1031,7 +1031,7 @@ output:
       x[!(row.names(x) %in% points_to_remove[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-    info <- ctmmweb::tele_list_info(tele_list)
+    info <- ctmmweb::report(tele_list)
     # distance/speed calculation need to be updated. row_no not updated.
     # animals_dt <- ctmmweb::calculate_distance(animals_dt)
     # animals_dt <- ctmmweb::calculate_speed(animals_dt)
@@ -1436,7 +1436,7 @@ output:
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
     values$data$input_tele_list <- ctmmweb:::sort_tele_list(values$data$input_tele_list)
-    values$data$merged$info <- ctmmweb::tele_list_info(values$data$tele_list)
+    values$data$merged$info <- ctmmweb::report(values$data$tele_list)
     values$time_ranges <- NULL
     verify_global_data()
     # LOG subset added
