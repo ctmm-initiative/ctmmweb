@@ -31,7 +31,7 @@ library(ctmm)
 library(ctmmweb)
 data(buffalo)
 # take a 100 point sample from each animal to speed up model fitting etc
-data_sample <- sample_tele_list(buffalo, 100)
+data_sample <- resampling.list(buffalo, 100)
 ```
 
 ### Basic data structure
@@ -171,7 +171,7 @@ To make selecting a subset easier, we first convert this nested list structure t
 names(model_fit_res)
 names(model_fit_res[[1]])
 # convert to a flat list
-model_list <- list_model_fit(model_fit_res)
+model_list <- flatten_models(model_fit_res)
 names(model_list)
 ```
 

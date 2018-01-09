@@ -349,7 +349,7 @@ output:
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
     data("buffalo", package = "ctmm", envir = environment())
-    sample_data <- ctmmweb::sample_tele_list(buffalo, input$sample_size)
+    sample_data <- ctmmweb::resampling.list(buffalo, input$sample_size)
     # LOG use sample
     log_msg("Using data", "buffalo sample from ctmm")
     update_input_data(sample_data)
@@ -845,8 +845,8 @@ output:
     req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data
-    animals_dt <- ctmmweb::calculate_distance(animals_dt)
-    animals_dt <- ctmmweb::calculate_speed(animals_dt,
+    animals_dt <- ctmmweb::calc_distance(animals_dt)
+    animals_dt <- ctmmweb::calc_speed(animals_dt,
                                            as.numeric(input$device_error))
     outlier_page_data$data <- animals_dt
     return(outlier_page_data)
@@ -2160,7 +2160,7 @@ output:
         # LOG save cache
         log_msg("Saving cache data")
         # pack and save cache
-        cache_zip_path <- ctmmweb::compress_folder(cache_path, "cache.zip")
+        cache_zip_path <- ctmmweb::zip_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
         saved <- list(data = values$data
                       # chosen_row_nos = select_data()$chosen_row_nos,
@@ -2181,7 +2181,7 @@ output:
         #           overwrite = TRUE)
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # pack to saved.zip, this is a temp name anyway.
-        saved_zip_path <- ctmmweb:::compress_relative_files(
+        saved_zip_path <- ctmmweb:::zip_relative_files(
           session_tmpdir, c("cache.zip", "saved.rds", "report.html"),
           "saved.zip")
         file.copy(saved_zip_path, file)
@@ -2261,7 +2261,7 @@ output:
       # LOG download report zip
       log_msg("Downloading work report zip")
       generate_report(preview = FALSE)
-      zip_path <- ctmmweb::compress_folder(LOG_folder, "report.zip")
+      zip_path <- ctmmweb::zip_folder(LOG_folder, "report.zip")
       file.copy(zip_path, file)
     }
   )

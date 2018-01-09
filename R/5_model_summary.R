@@ -141,7 +141,7 @@ summary_model_fit <- function(model_fit_res) {
 #'
 #' @return A single level list of models with names
 #' @export
-list_model_fit <- function(model_fit_res) {
+flatten_models <- function(model_fit_res) {
   models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
   model_list <- models_dt$model
   names(model_list) <- models_dt$model_name

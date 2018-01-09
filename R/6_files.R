@@ -23,7 +23,7 @@ create_folder <- function(folder_path) {
 #' @return The absolute path of result zip file
 #' @export
 #'
-compress_folder <- function(folder_path, zip_name) {
+zip_folder <- function(folder_path, zip_name) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip
   setwd(dirname(folder_path))
@@ -39,7 +39,7 @@ compress_folder <- function(folder_path, zip_name) {
   return(zip_path)
 }
 # compress select files under one folder with relative path. zip will be put in same folder
-compress_relative_files <- function(base_folder, relative_paths, zip_name) {
+zip_relative_files <- function(base_folder, relative_paths, zip_name) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip
   setwd(base_folder)
@@ -57,7 +57,7 @@ build_shapefile_zip <- function(file, write_f, session_tmpdir) {
                            stringr::str_c("Range_", current_time))
   create_folder(folder_path)
   write_f(folder_path)
-  zip_path <- compress_folder(folder_path,
+  zip_path <- zip_folder(folder_path,
                               paste0("Home Range ", current_time, ".zip"))
   file.copy(zip_path, file)
 }

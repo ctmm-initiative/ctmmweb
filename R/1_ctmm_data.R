@@ -50,14 +50,14 @@ tele_list_info <- function(tele_obj_list){
 #'
 #' If there are big gaps in sampling time, median center for each time group is
 #' used. To reduce duplicate calculation, speed calculation will use some
-#' columns created in distance calculation. Always update `data.table` with `calculate_distance` first then use [calculate_speed()].
+#' columns created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed()].
 #'
 #' @param animals_dt location `data.table` from [merge_tele()]
 #'
 #' @return `data.table` with distance columns added.
 #' @export
 #'
-calculate_distance <- function(animals_dt) {
+calc_distance <- function(animals_dt) {
   find_boundary <- function(data) {
     time_gap_threshold <- stats::quantile((diff(data$t)), 0.8) * 100
     # increase 1 sec because interval boundry is right open [ )
@@ -78,7 +78,7 @@ calculate_distance <- function(animals_dt) {
   return(animals_dt)
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
-calculate_speed_leaving <- function(animals_dt, device_error) {
+calc_speed_leaving <- function(animals_dt, device_error) {
   animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
   animals_dt[is.infinite(speed), speed := NaN]
   # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
@@ -89,7 +89,7 @@ calculate_speed_leaving <- function(animals_dt, device_error) {
   return(animals_dt)
 }
 # the pmin method
-calculate_speed_pmin <- function(animals_dt, device_error) {
+calc_speed_pmin <- function(animals_dt, device_error) {
   # TODO deal with dt==0 cases
   # dt == 0, use the sampling resolution to estimate the time difference
   # animals_dt[inc_t == 0]
@@ -129,7 +129,7 @@ calculate_speed_pmin <- function(animals_dt, device_error) {
   return(animals_dt)
 }
 # using ctmm util functions
-calculate_speed_ctmm <- function(animals_dt, device_error) {
+calc_speed_ctmm <- function(animals_dt, device_error) {
   setkey(animals_dt, row_no)
   animals_dt[, speed := ctmm:::assign_speeds(.SD,
                                              dt = ctmm:::time_res(.SD),
@@ -145,7 +145,7 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
 #' the function will fall back to simpler method which is more naive but robust.
 #'
 #' To reduce duplicate calculation, speed calculation will use some columns
-#' created in distance calculation. Always update `data.table` with `calculate_distance` first then use [calculate_speed()].
+#' created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed()].
 #'
 #' @param animals_dt telemetry data in merged data.table
 #' @param device_error device error if available
@@ -153,7 +153,7 @@ calculate_speed_ctmm <- function(animals_dt, device_error) {
 #' @return data.table with speed columns added.
 #' @export
 #'
-calculate_speed <- function(animals_dt, device_error = 0) {
+calc_speed <- function(animals_dt, device_error = 0) {
   setkey(animals_dt, row_no)
   # my speed calculation need distance columns
   test_calc <- function(data, device_error, fun, fun_bak) {
@@ -166,8 +166,8 @@ calculate_speed <- function(animals_dt, device_error = 0) {
   }
   # we didn't use the third fallback, pmin should be robust enough.
   animals_dt <- test_calc(animals_dt, device_error,
-                          calculate_speed_ctmm, calculate_speed_pmin)
-  # animals_dt <- calculate_speed_ctmm(animals_dt)
+                          calc_speed_ctmm, calc_speed_pmin)
+  # animals_dt <- calc_speed_ctmm(animals_dt)
   return(animals_dt)
 }
 # merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
@@ -190,8 +190,8 @@ tele_list_to_dt <- function(tele_obj_list) {
   if (any_dup != 0) {
     message("duplicated row name found:\n", animals_data_dt[any_dup])
   }
-  # animals_data_dt <- calculate_distance(animals_data_dt)
-  # animals_data_dt <- calculate_speed(animals_data_dt)
+  # animals_data_dt <- calc_distance(animals_data_dt)
+  # animals_data_dt <- calc_speed(animals_data_dt)
   return(animals_data_dt)
 }
 #' Generate merged location and info `data.table` from telemetry object/list

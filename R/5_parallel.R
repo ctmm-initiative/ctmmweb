@@ -166,33 +166,39 @@ par_occur <- function(tele_list, model_list,
 }
 # sample telemetry data ----
 
-#' Sample from telemetry object
+#' Resample S3 generic
 #'
-#' A sampled dataset can have models fitted much quicker. This is used to reduce
-#' waiting time in developing code that involved time consuming modeling
-#' processes. After code is tested and stablized, full size dataset can be used.
+#' @export
+resampling <- function(object, ...) {UseMethod("resampling")}
+
+#' Resample telemetry object
+#'
+#' Like image resampling, a resampled dataset can have models
+#' fitted much quicker. This is used to reduce waiting time in developing code
+#' that involved time consuming modeling processes. After code is tested and
+#' stablized, full size dataset can be used.
 #'
 #' @param tele telemetry object
 #' @param m sample size. `m` even spaced points are taken from data.
 #'
-#' @return sampled telemetry object
+#' @return resampled telemetry object
 #' @export
 #' @import ctmm
-sample_tele <- function(tele, m) {
+resampling.telemetry <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
-#' Sample each telemetry object in list
+#' Resample each telemetry object in list
 #'
-#' Sample each object with [sample_tele].
+#' Resample each object with [resampling].
 #'
 #' @param tele_list telemetry list
 #' @param m sample size
 #'
-#' @return sampled telemetry list
+#' @return resampled telemetry list
 #' @export
-sample_tele_list <- function(tele_list, m) {
+resampling.list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
-    sample_tele(x, m)
+    resampling(x, m)
   })
 }
