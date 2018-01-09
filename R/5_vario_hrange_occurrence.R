@@ -1,4 +1,8 @@
 # the app can use a 0.72 cex but package functions may need a smaller default.
+# S3 generic on list https://github.com/ctmm-initiative/ctmm/blob/master/R/generic.R#L109
+# plot.list <- ctmm:::plot.list
+# S3 example, https://github.com/ctmm-initiative/ctmm/blob/master/R/1.R#L34
+# plot <- function(object,...) UseMethod("plot")
 
 #' Plot a group of empirical or modeled variograms.
 #'
@@ -80,6 +84,9 @@ plot_vario <- function(vario_list, model_list = NULL,
   }
   graphics::par(def.par)
 }
+
+# S3 generic, https://github.com/ctmm-initiative/ctmm/blob/master/R/emulate.R
+# plot.variogram
 
 #' Plot a group of home ranges or occurrences
 #'

@@ -4,12 +4,12 @@
 \alias{plot_loc_facet}
 \title{Plot animal locations in facet}
 \usage{
-plot_loc_facet(dt_subset)
+plot_loc_facet(loc_data_subset)
 }
 \arguments{
-\item{dt_subset}{A subset of animals. A \code{data.table} subset taken from full
-data set of all animals location. Note the \code{id} column is factor with all
-animals identity as levels. So this subset still have all identities
+\item{loc_data_subset}{A subset of animals. A \code{data.table} subset taken from
+full data set of all animals location. Note the \code{id} column is factor with
+all animals identity as levels. So this subset still have all identities
 information, which is needed to color each animal consistently.}
 }
 \value{

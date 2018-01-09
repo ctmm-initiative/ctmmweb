@@ -139,20 +139,20 @@ build_point_map <- function(dt_subset) {
 #' interactive session. You can also further augment it with `leaflet`
 #' functions, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param dt_subset `data.table` subset of full data set of animal locations from
+#' @param loc_data_subset `data.table` subset of full data set of animal locations from
 #'   [merge_tele]. The `id` column need to keep all animal names in levels to
 #'   maintain color consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-point_map <- function(dt_subset) {
-  # full_id_vec <- levels(dt$id)
-  selected_id_vec <- get_names(dt_subset)
+point_map <- function(loc_data_subset) {
+  # full_id_vec <- levels(loc_data$id)
+  selected_id_vec <- get_names(loc_data_subset)
   # id_pal <- leaflet::colorFactor(scales::hue_pal()(length(full_id_vec)),
   #                                full_id_vec, ordered = TRUE)
-  # base_map() %>% add_points(dt, selected_id_vec, id_pal) %>%
+  # base_map() %>% add_points(loc_data, selected_id_vec, id_pal) %>%
   #   add_control(selected_id_vec)
-  build_point_map(dt_subset) %>% add_control(selected_id_vec)
+  build_point_map(loc_data_subset) %>% add_control(selected_id_vec)
 }
 #' Build home range map
 #'
@@ -186,17 +186,18 @@ range_map <- function(hrange_list, hr_levels, hr_color_vec) {
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-point_range_map <- function(dt_subset, hrange_list, hr_levels, hr_color_vec) {
-  selected_id_vec <- get_names(dt_subset)
-  build_point_map(dt_subset) %>%
+point_range_map <- function(loc_data_subset, hrange_list,
+                            hr_levels, hr_color_vec) {
+  selected_id_vec <- get_names(loc_data_subset)
+  build_point_map(loc_data_subset) %>%
     add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>%
     add_control(c(selected_id_vec, names(hrange_list)))
 }
 # heat map ----
 # base map layer control added here
-add_heat <- function(leaf, dt, tiles_info = TILES_INFO) {
+add_heat <- function(leaf, loc_data, tiles_info = TILES_INFO) {
   leaf %>%
-    leaflet.extras::addHeatmap(data = dt, lng = ~longitude, lat = ~latitude,
+    leaflet.extras::addHeatmap(data = loc_data, lng = ~longitude, lat = ~latitude,
                                blur = 8, max = 1, radius = 5, group = "Heatmap") %>%
     leaflet::addScaleBar(position = "bottomleft") %>%
     add_measure() %>%
@@ -211,26 +212,26 @@ add_heat <- function(leaf, dt, tiles_info = TILES_INFO) {
 #' interactive session. You can also further augment it with `leaflet`
 #' operations, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param dt_subset `data.table` subset of animal locations from
+#' @param loc_data_subset `data.table` subset of animal locations from
 #'   [merge_tele]. The subset parameter name is used for consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
-heat_map <- function(dt_subset) {
-  base_map() %>% add_heat(dt_subset)
+heat_map <- function(loc_data_subset) {
+  base_map() %>% add_heat(loc_data_subset)
 }
 # utilities ----
 # need a helper so it's easier for user not familiar with data.table.
 
 #' Extract vector of names from `data.table`
 #'
-#' @param dt `data.table` of animal locations from [merge_tele]
+#' @param loc_data `data.table` of animal locations from [merge_tele]
 #'
-#' @return A character vector of animal names from `identity` column in `dt`.
+#' @return A character vector of animal names from `identity` column in `loc_data`.
 #'   Order is not changed.
 #' @export
-get_names <- function(dt) {
-  unique(dt, by = "identity")$identity
+get_names <- function(loc_data) {
+  unique(loc_data, by = "identity")$identity
 }
 # check if a reactive value is valid yet
 reactive_validated <- function(reactive_value) {

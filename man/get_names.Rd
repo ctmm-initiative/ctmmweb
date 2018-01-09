@@ -4,13 +4,13 @@
 \alias{get_names}
 \title{Extract vector of names from \code{data.table}}
 \usage{
-get_names(dt)
+get_names(loc_data)
 }
 \arguments{
-\item{dt}{\code{data.table} of animal locations from \link{merge_tele}}
+\item{loc_data}{\code{data.table} of animal locations from \link{merge_tele}}
 }
 \value{
-A character vector of animal names from \code{identity} column in \code{dt}.
+A character vector of animal names from \code{identity} column in \code{loc_data}.
 Order is not changed.
 }
 \description{

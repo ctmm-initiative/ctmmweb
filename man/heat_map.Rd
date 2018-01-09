@@ -4,10 +4,10 @@
 \alias{heat_map}
 \title{Build heat map from animal location data table}
 \usage{
-heat_map(dt_subset)
+heat_map(loc_data_subset)
 }
 \arguments{
-\item{dt_subset}{\code{data.table} subset of animal locations from
+\item{loc_data_subset}{\code{data.table} subset of animal locations from
 \link{merge_tele}. The subset parameter name is used for consistency.}
 }
 \value{
