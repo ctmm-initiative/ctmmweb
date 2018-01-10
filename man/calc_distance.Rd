@@ -7,7 +7,7 @@
 calc_distance(animals_dt)
 }
 \arguments{
-\item{animals_dt}{location \code{data.table} from \code{\link[=merge_tele]{merge_tele()}}}
+\item{animals_dt}{location \code{data.table} from \link{combine}}
 }
 \value{
 \code{data.table} with distance columns added.
@@ -15,5 +15,5 @@ calc_distance(animals_dt)
 \description{
 If there are big gaps in sampling time, median center for each time group is
 used. To reduce duplicate calculation, speed calculation will use some
-columns created in distance calculation. Always update \code{data.table} with \code{calc_distance} first then use \code{\link[=calc_speed]{calc_speed()}}.
+columns created in distance calculation. Always update \code{data.table} with \code{calc_distance} first then use \link{calc_speed}.
 }

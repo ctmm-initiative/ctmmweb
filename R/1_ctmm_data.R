@@ -39,7 +39,7 @@ sort_tele_list <- function(tele_list) {
 #'
 #' @param tele_obj_list telemetry object or list
 #'
-#' @return An information `data.table` for input
+#' @return A summary `data.table`
 #' @export
 #'
 report <- function(tele_obj_list){
@@ -51,9 +51,9 @@ report <- function(tele_obj_list){
 #'
 #' If there are big gaps in sampling time, median center for each time group is
 #' used. To reduce duplicate calculation, speed calculation will use some
-#' columns created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed()].
+#' columns created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed].
 #'
-#' @param animals_dt location `data.table` from [merge_tele()]
+#' @param animals_dt location `data.table` from [combine]
 #'
 #' @return `data.table` with distance columns added.
 #' @export
@@ -195,16 +195,16 @@ tele_list_to_dt <- function(tele_obj_list) {
   # animals_data_dt <- calc_speed(animals_data_dt)
   return(animals_data_dt)
 }
-#' Generate merged location and info `data.table` from telemetry object/list
+#' Generate combined location and info `data.table` from telemetry object/list
 #'
 #' A Telemetry list hold mutiple animal data in separate list items, each item
 #' have the animal location data in a data frame, and other information in
 #' various slots. This structure supports flexible S3 methods for telemetry
 #' object. However to plot multiple animals location together with `ggplot2` we
-#' need to merge all location data into a single `data.frame` with an animal id
+#' need to combine all location data into a single `data.frame` with an animal id
 #' column.
 #'
-#' This function merge any input telemetry object/List into a `data.table` of
+#' This function combine any input telemetry object/List into a `data.table` of
 #' location data, and another information `data.table` for animals. `data.table`
 #' is chosen over `data.frame` for much better performance. This data structure
 #' is also used in a lot of places in app, which works on any selected subset of
@@ -213,10 +213,10 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' @param tele_obj_list telemetry object/list
 #'
 #' @return list of
-#' - `data`: all animals merged in one data.table
+#' - `data`: all animals combined in one data.table
 #' - `info`: animal information table
 #' @export
-merge_tele <- function(tele_obj_list) {
+combine <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
               info = report(tele_obj_list)))
 }

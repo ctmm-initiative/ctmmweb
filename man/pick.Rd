@@ -20,7 +20,7 @@ pick(object, m)
 \item{tele_list}{telemetry list}
 }
 \value{
-telemetry object with less data points
+telemetry object with m data points
 
 telemetry list of subsets
 }
