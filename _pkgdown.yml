@@ -13,8 +13,8 @@ reference:
 - title: "Basic Data Structure for app"
   desc: Input ctmm telemetry data need to be converted to `data.table` for app uses
   contents:
-  - '`tele_list_info`'
-  - '`merge_tele`'
+  - '`report`'
+  - '`combine`'
 - title: "Plot Location and Time"
   desc: ~
   contents:
@@ -26,7 +26,7 @@ reference:
   desc: ~
   contents:
   - '`summary_model_fit`'
-  - '`list_model_fit`'
+  - '`flatten_models`'
   - '`plot_vario`'
   - '`plot_ud`'
 - title: "Map"
@@ -48,13 +48,12 @@ reference:
 - title: "Misc Utilitiy Functions"
   desc: ~
   contents:
-  - '`calculate_distance`'
-  - '`calculate_speed`'
-  - '`sample_tele`'
-  - '`sample_tele_list`'
+  - '`calc_distance`'
+  - '`calc_speed`'
+  - '`pick`'
   - '`JS.logify`'
   - '`JS.onload`'
-  - '`compress_folder`'
+  - '`zip_folder`'
   - '`get_names`'
 
 navbar:

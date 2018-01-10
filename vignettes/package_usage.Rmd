@@ -31,7 +31,7 @@ library(ctmm)
 library(ctmmweb)
 data(buffalo)
 # take a 100 point sample from each animal to speed up model fitting etc
-data_sample <- resampling.list(buffalo, 100)
+data_sample <- pick(buffalo, 100)
 ```
 
 ### Basic data structure
@@ -42,10 +42,10 @@ To plot the locations of multiple animals simultaneously with `ggplot2`, we need
 
 ```{r basic data structure}
 # basic data structure
-merged_data <- merge_tele(buffalo)
+combined_data <- combine(buffalo)
 # a list of locations data.table/data.frame and information table
-loc_data <- merged_data$data
-info <- merged_data$info
+loc_data <- combined_data$data
+info <- combined_data$info
 ```
 
 In `loc_data`: 
@@ -61,10 +61,10 @@ You can calculate distance and speed outliers in the data via:
 
 ```{r outlier}
 # distance_center column is added
-loc_data_distance <- calculate_distance(loc_data)
+loc_data_distance <- calc_distance(loc_data)
 knitr::kable(head(loc_data_distance))
 # always calculate distance first then calculate speed outlier with distance columns added
-loc_data_speed <- calculate_speed(loc_data_distance)
+loc_data_speed <- calc_speed(loc_data_distance)
 knitr::kable(head(loc_data_speed))
 ```
 

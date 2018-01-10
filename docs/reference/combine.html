@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Build heat map from animal location data table — heat_map • ctmmweb</title>
+<title>Generate combined location and info <code>data.table</code> from telemetry object/list — combine • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -95,30 +95,44 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Build heat map from animal location data table</h1>
+    <h1>Generate combined location and info <code>data.table</code> from telemetry object/list</h1>
     </div>
 
     
-    <p>An interactive map will shown in RStudio Viewer pane when running in
-interactive session. You can also further augment it with <code>leaflet</code>
-operations, or save to a html with <code><a href='http://www.rdocumentation.org/packages/htmlwidgets/topics/saveWidget'>htmlwidgets::saveWidget</a></code>.</p>
+    <p>A Telemetry list hold mutiple animal data in separate list items, each item
+have the animal location data in a data frame, and other information in
+various slots. This structure supports flexible S3 methods for telemetry
+object. However to plot multiple animals location together with <code>ggplot2</code> we
+need to combine all location data into a single <code>data.frame</code> with an animal id
+column.</p>
     
 
-    <pre class="usage"><span class='fu'>heat_map</span>(<span class='no'>loc_data_subset</span>)</pre>
+    <pre class="usage"><span class='fu'>combine</span>(<span class='no'>tele_obj_list</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>loc_data_subset</th>
-      <td><p><code>data.table</code> subset of animal locations from
-merge_tele. The subset parameter name is used for consistency.</p></td>
+      <th>tele_obj_list</th>
+      <td><p>telemetry object/list</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A <code>Leaflet</code> map widget.</p>
+    <p>list of</p><ul>
+<li><p><code>data</code>: all animals combined in one data.table</p></li>
+<li><p><code>info</code>: animal information table</p></li>
+</ul>
+
+    
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function combine any input telemetry object/List into a <code>data.table</code> of
+location data, and another information <code>data.table</code> for animals. <code>data.table</code>
+is chosen over <code>data.frame</code> for much better performance. This data structure
+is also used in a lot of places in app, which works on any selected subset of
+full data in almost all steps.</p>
     
 
   </div>
@@ -128,6 +142,8 @@ merge_tele. The subset parameter name is used for consistency.</p></td>
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
+
+      <li><a href="#details">Details</a></li>
           </ul>
 
   </div>

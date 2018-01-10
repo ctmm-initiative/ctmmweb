@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Build heat map from animal location data table — heat_map • ctmmweb</title>
+<title>Compress a folder into zip — zip_folder • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -95,30 +95,35 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Build heat map from animal location data table</h1>
+    <h1>Compress a folder into zip</h1>
     </div>
 
     
-    <p>An interactive map will shown in RStudio Viewer pane when running in
-interactive session. You can also further augment it with <code>leaflet</code>
-operations, or save to a html with <code><a href='http://www.rdocumentation.org/packages/htmlwidgets/topics/saveWidget'>htmlwidgets::saveWidget</a></code>.</p>
+    <p><a href='https://github.com/r-lib/zip'>zip</a> package is used so this is platform
+independent. It will keep the relative path structure in zip, include
+<code>folder_path</code> itself so the zip can be extracted directly without need of
+creating a folder to hold contents. The zip file will be saved to the parent
+folder of <code>folder_path</code>.</p>
     
 
-    <pre class="usage"><span class='fu'>heat_map</span>(<span class='no'>loc_data_subset</span>)</pre>
+    <pre class="usage"><span class='fu'>zip_folder</span>(<span class='no'>folder_path</span>, <span class='no'>zip_name</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>loc_data_subset</th>
-      <td><p><code>data.table</code> subset of animal locations from
-merge_tele. The subset parameter name is used for consistency.</p></td>
+      <th>folder_path</th>
+      <td><p>The folder to be compressed</p></td>
+    </tr>
+    <tr>
+      <th>zip_name</th>
+      <td><p>The name of zip</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A <code>Leaflet</code> map widget.</p>
+    <p>The absolute path of result zip file</p>
     
 
   </div>
