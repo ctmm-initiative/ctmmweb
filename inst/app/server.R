@@ -248,7 +248,7 @@ output:
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
-    values$data$merged <- ctmmweb::combine(tele_list)
+    values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
     values$data$all_removed_outliers <- NULL
     values$selected_data_model_fit_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
@@ -349,7 +349,7 @@ output:
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
     data("buffalo", package = "ctmm", envir = environment())
-    sample_data <- ctmmweb::pick(buffalo, input$sample_size)
+    sample_data <- ctmmweb:::pick_tele_list(buffalo, input$sample_size)
     # LOG use sample
     log_msg("Using data", "buffalo sample from ctmm")
     update_input_data(sample_data)
@@ -1031,7 +1031,7 @@ output:
       x[!(row.names(x) %in% points_to_remove[, row_name]),]
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
-    info <- ctmmweb::report(tele_list)
+    info <- ctmmweb:::info_tele_list(tele_list)
     # distance/speed calculation need to be updated. row_no not updated.
     # animals_dt <- ctmmweb::calculate_distance(animals_dt)
     # animals_dt <- ctmmweb::calculate_speed(animals_dt)
@@ -1239,7 +1239,7 @@ output:
   # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
     values$data$tele_list <- values$data$input_tele_list
-    values$data$merged <- ctmmweb::combine(values$data$tele_list)
+    values$data$merged <- ctmmweb:::combine_tele_list(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
     # LOG reset removal
     log_msg("All Removed Outliers Restored")
@@ -1436,7 +1436,7 @@ output:
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
     values$data$input_tele_list <- ctmmweb:::sort_tele_list(values$data$input_tele_list)
-    values$data$merged$info <- ctmmweb::report(values$data$tele_list)
+    values$data$merged$info <- ctmmweb:::info_tele_list(values$data$tele_list)
     values$time_ranges <- NULL
     verify_global_data()
     # LOG subset added

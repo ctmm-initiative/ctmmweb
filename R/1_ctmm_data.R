@@ -1,7 +1,7 @@
 # ctmm data processing ----
 
 # get single animal info in one row data frame
-report_tele <- function(object) {
+info_tele <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
   sampling_interval <- ifelse(length(diffs) == 0,
@@ -42,10 +42,10 @@ sort_tele_list <- function(tele_list) {
 #' @return A summary `data.table`
 #' @export
 #'
-report <- function(tele_obj_list){
+report <- info_tele_list <- function(tele_obj_list){
   tele_list <- wrap_single_telemetry(tele_obj_list)
-  animal_info_list <- lapply(tele_list, report_tele)
-  rbindlist(animal_info_list)
+  info_list <- lapply(tele_list, info_tele)
+  rbindlist(info_list)
 }
 #' Calculate distance to median center for each animal location
 #'
@@ -216,7 +216,7 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' - `data`: all animals combined in one data.table
 #' - `info`: animal information table
 #' @export
-combine <- function(tele_obj_list) {
+combine <- combine_tele_list <- function(tele_obj_list) {
   return(list(data = tele_list_to_dt(tele_obj_list),
               info = report(tele_obj_list)))
 }

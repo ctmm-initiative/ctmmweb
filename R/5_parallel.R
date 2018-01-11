@@ -185,7 +185,7 @@ pick <- function(object, m) {UseMethod("pick")}
 #' @return telemetry object with m data points
 #' @export
 #' @import ctmm
-pick.telemetry <- function(tele, m) {
+pick.telemetry <- pick_tele <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
@@ -197,7 +197,7 @@ pick.telemetry <- function(tele, m) {
 #'
 #' @return telemetry list of subsets
 #' @export
-pick.list <- function(tele_list, m) {
+pick.list <- pick_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {
     pick(x, m)
   })
