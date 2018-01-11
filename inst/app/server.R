@@ -1982,6 +1982,7 @@ output:
     # LOG saving map
     log_msg(stringr::str_c("Saving map: ", map_type))
     map_path <- file.path(LOG_folder, map_file_name)
+    # the library folder is still saved even with selfcontained = TRUE. This didn't happen in vignettes script. the source code said pandoc is needed for selfcontained option, but there is no error message.
     htmlwidgets::saveWidget(leaf, file = map_path, selfcontained = TRUE)
     # add link in rmd, difficult to embed map itself.
     log_add_rmd(stringr::str_c("\n[", map_type, "](", map_file_name, ")\n"))
