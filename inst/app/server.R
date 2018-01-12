@@ -1691,7 +1691,7 @@ output:
   observeEvent(input$try_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
     # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
-    # freezeReactiveValue(input, "model_fit_summary_rows_selected")
+    # freezeReactiveValue(input, "tried_models_summary_rows_selected")
     # instead, we clear the table selection, which should solve both needs. the clear is not executed until fitting finished, but it's queued before actual selecting, so table did update.
     DT::selectRows(proxy_model_dt, list())
     # guess_list is updated inside select_data_vario_list, but select_data_vario_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
@@ -1773,7 +1773,7 @@ output:
                         c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
       )
   }
-  output$model_fit_summary <- DT::renderDataTable({
+  output$tried_models_summary <- DT::renderDataTable({
     # should not need to use req on reactive expression if that expression have req inside.
     dt <- copy(summary_models()$summary_dt)
     # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
@@ -1788,7 +1788,7 @@ output:
     model_types <- stringr::str_sort(unique(dt$model_type))
     render_model_summary_DT(dt, model_types, info_p)
   })
-  proxy_model_dt <- DT::dataTableProxy("model_fit_summary")
+  proxy_model_dt <- DT::dataTableProxy("tried_models_summary")
   observeEvent(input$clear_models, {
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
     DT::selectRows(proxy_model_dt, list())
@@ -1798,9 +1798,9 @@ output:
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   select_models <- reactive({
     # req(!is.null(values$selected_data_model_try_res))
-    req(length(input$model_fit_summary_rows_selected) > 0)
+    req(length(input$tried_models_summary_rows_selected) > 0)
     # sort the rows selected so same individual models are together
-    rows_selected_sorted <- sort(input$model_fit_summary_rows_selected)
+    rows_selected_sorted <- sort(input$tried_models_summary_rows_selected)
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
@@ -2166,8 +2166,8 @@ output:
                       # selected_data_guess_list =
                       #   values$selected_data_guess_list
                       # didn't sort this, need to sort it when restoring
-                      # model_fit_summary_rows_selected =
-                      #   input$model_fit_summary_rows_selected
+                      # tried_models_summary_rows_selected =
+                      #   input$tried_models_summary_rows_selected
                       )
         saved_rds_path <- file.path(session_tmpdir, "saved.rds")
         saveRDS(saved, file = saved_rds_path)
@@ -2203,8 +2203,8 @@ output:
     values$data <- loaded$data
     # values$selected_data_model_try_res <- loaded$selected_data_model_try_res
     # values$selected_data_guess_list <- loaded$selected_data_guess_list
-    # freezeReactiveValue(input, "model_fit_summary_rows_selected")
-    # selectRows(proxy_model_dt, loaded$model_fit_summary_rows_selected)
+    # freezeReactiveValue(input, "tried_models_summary_rows_selected")
+    # selectRows(proxy_model_dt, loaded$tried_models_summary_rows_selected)
     shinydashboard::updateTabItems(session, "tabs", "plots")
     # freezeReactiveValue(input, "individuals_rows_selected")
     # cat("selecting rows\n")

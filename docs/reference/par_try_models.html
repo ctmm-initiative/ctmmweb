@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Parallel apply function to list in all platforms — par_lapply • ctmmweb</title>
+<title>Parallel selecting models on telemetry list — par_try_models • ctmmweb</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -95,31 +95,22 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Parallel apply function to list in all platforms</h1>
+    <h1>Parallel selecting models on telemetry list</h1>
     </div>
 
     
-    <p>This is a generic parallel lapply that work across all major platforms.</p>
+    <p><code><a href='http://www.rdocumentation.org/packages/ctmm/topics/ctmm.fit'>ctmm::ctmm.select</a></code> fit multiple models on telemetry object and output list
+of all attempted models. This can be parallelized on each object in list.</p>
     
 
-    <pre class="usage"><span class='fu'>par_lapply</span>(<span class='no'>lst</span>, <span class='no'>fun</span>, <span class='kw'>reserved_cores</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>parallel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>win_init</span> <span class='kw'>=</span> <span class='kw pkg'>ctmmweb</span><span class='kw ns'>:::</span><span class='no'>WIN_INIT_ctmm</span>)</pre>
+    <pre class="usage"><span class='fu'>par_try_models</span>(<span class='no'>tele_list</span>, <span class='kw'>reserved_cores</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>parallel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>lst</th>
-      <td><p>Input list.</p></td>
-    </tr>
-    <tr>
-      <th>fun</th>
-      <td><p>Function to be applied on <code>lst</code>. Note only single parameter
-function is accepted, otherwise it's difficult to determine how to assign
-input parameters to each list item and worker. You need to convert multiple
-parameter function into a function take single list parameter, and assign
-parameters in that list accordingly. <code><a href='align_list.html'>align_list()</a></code> is a helper function to
-align two lists.</p></td>
+      <th>tele_list</th>
+      <td><p>telemetry list</p></td>
     </tr>
     <tr>
       <th>reserved_cores</th>
@@ -132,25 +123,12 @@ has more details about physical/logical cores in different platforms.</p></td>
       <th>parallel</th>
       <td><p>Use regular <code>lapply</code> when FALSE</p></td>
     </tr>
-    <tr>
-      <th>win_init</th>
-      <td><p>Expression to be initialized in Windows. Because all
-parameters should be included in the input list already, this usually means
-library calls, like <code>{library(ctmm)}</code> for ctmm related operations, which
-has been taken care of with the default value <code>ctmmweb:::WIN_INIT_ctmm</code>.</p></td>
-    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>List of applied results</p>
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>In Windows <code><a href='http://www.rdocumentation.org/packages/parallel/topics/clusterApply'>parallel::parLapplyLB</a></code> is used, which is a socket cluster and
-need to initialize each session manually with <code>win_init</code> if needed. In
-Linux/Mac <code><a href='http://www.rdocumentation.org/packages/parallel/topics/mclapply'>parallel::mclapply</a></code> is used, where each worker will inherit the
-current environment through forking, so no additional setup is required.</p>
+    <p>list of items named by animal names, each item hold the attempted
+models as sub items with model type as name</p>
     
 
   </div>
@@ -160,8 +138,6 @@ current environment through forking, so no additional setup is required.</p>
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
           </ul>
 
   </div>

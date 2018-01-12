@@ -25,7 +25,7 @@ reference:
 - title: "Variograms, Home Range Estimation, Occurrence"
   desc: ~
   contents:
-  - '`summary_model_fit`'
+  - '`summary_tried_models`'
   - '`flatten_models`'
   - '`plot_vario`'
   - '`plot_ud`'
@@ -43,7 +43,8 @@ reference:
   contents:
   - '`align_list`'
   - '`par_lapply`'
-  - '`par_fit_tele`'
+  - '`par_fit_models`'
+  - '`par_try_models`'
   - '`par_occur`'
 - title: "Misc Utilitiy Functions"
   desc: ~

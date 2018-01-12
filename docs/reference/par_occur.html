@@ -102,7 +102,7 @@
     <p>Parallel calculate occurrence from telemetry and model list</p>
     
 
-    <pre class="usage"><span class='fu'>par_occur</span>(<span class='no'>tele_list</span>, <span class='no'>model_list</span>, <span class='kw'>reserved_cores</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>fallback</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>par_occur</span>(<span class='no'>tele_list</span>, <span class='no'>model_list</span>, <span class='kw'>reserved_cores</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>parallel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -123,8 +123,8 @@ Check your platform's core count with
 has more details about physical/logical cores in different platforms.</p></td>
     </tr>
     <tr>
-      <th>fallback</th>
-      <td><p>Disable parallel and use regular <code>lapply</code>.</p></td>
+      <th>parallel</th>
+      <td><p>Use regular <code>lapply</code> when FALSE</p></td>
     </tr>
     </table>
     

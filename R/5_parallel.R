@@ -143,7 +143,7 @@ par_try_models <- function(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm.guess(x, interactive = FALSE)
                                 }))
-  print(system.time(model_select_res <-
+  print(system.time(model_try_res <-
                       par_try_tele_guess(tele_guess_list,
                                          reserved_cores,
                                          parallel)))
@@ -171,7 +171,7 @@ par_fit_models <- function(tele_list,
   fit_model <- function(tele_guess) {
     ctmm::ctmm.fit(tele_guess$a, CTMM = tele_guess$b, trace = TRUE)
   }
-  print(system.time(model_select_res <-
+  print(system.time(model_fit_res <-
                       par_lapply(tele_guess_list, fit_model,
                                  reserved_cores, parallel)
                     ))

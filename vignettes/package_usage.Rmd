@@ -143,12 +143,12 @@ plot_vario(vario_list, guess_list)
 
 ## Model summary table
 
-We can fit models with multiple animals in parallel. 
+We can try different models on multiple animals in parallel.
 
 ```{r model summary, eval=TRUE}
-# fit single model in parallel
+# fit single model in parallel with ctmm.fit. This is not used in later anlaysis
 model_fit_res <- par_fit_models(data_sample)
-# try multiple models in parallel. 
+# try multiple models in parallel with ctmm.select
 model_try_res <- par_try_models(data_sample)
 # parallel mode can be turned off
 # par_fit_tele(data_sample, fallback = TRUE)
@@ -161,19 +161,20 @@ model_summary <- summary_tried_models(model_try_res)
 knitr::kable(model_summary)
 ```
 
-There could be multiple models fitted for each animal. In the webapp you can select a subset of models then check their variograms, home ranges and occurrences. You can also select a subset of fitted models via in a script as:
+There could be multiple models attempted for each animal. In the webapp you can select a subset of models then check their variograms, home ranges and occurrences. You can also select a subset of fitted models via in a script as:
 
-`model_fit_res` holds every model for each animal under a list item associated with each animal's name. 
+`model_try_res` holds a list of items named by animal names. Each item hold the attempted models for that animal as a sub list, named by model type.
+ 
 ![](pic/05_model_res_structure.png){ width=50% }
 
 To make selecting a subset easier, we first convert this nested list structure to a flat list:
 
 ```{r flat model list}
 # the nested structure of model fit result
-names(model_fit_res)
-names(model_fit_res[[1]])
+names(model_try_res)
+names(model_try_res[[1]])
 # convert to a flat list
-model_list <- flatten_models(model_fit_res)
+model_list <- flatten_models(model_try_res)
 names(model_list)
 ```
 
@@ -220,7 +221,7 @@ tele_list_sub2 <- data_sample[names_sub2$identity]
 hrange_list_sub2 <- akde(tele_list_sub2, CTMM = model_list_sub2)
 # name by model name
 names(hrange_list_sub2) <- names(model_list_sub2)
-# summary of each home range. There is no summary table function here because we borrowed the model table in app to make the home range summay table. To reproduce that in functions need model table/model_fit_res and the selection as parameters, which will be quite awkward. If there is a strong request from users, a summary table function can be added.
+# summary of each home range. There is no summary table function here because we borrowed the model table in app to make the home range summay table. To reproduce that in functions need model table/model_try_res and the selection as parameters, which will be quite awkward. If there is a strong request from users, a summary table function can be added.
 lapply(hrange_list_sub2, summary)
 # plot home range
 plot_ud(hrange_list_sub2)

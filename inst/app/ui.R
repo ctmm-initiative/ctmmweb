@@ -487,8 +487,7 @@ model_selection_box <- shinydashboard::box(title = "Model Selection",
                                          "Hide Confidence Intervals")),
            column(2, offset = 3, help_button("model_selection")),
            column(12, br()),
-           column(12, DT::dataTableOutput("model_fit_summary")))
-           # column(12, verbatimTextOutput("model_fit_results")))
+           column(12, DT::dataTableOutput("tried_models_summary")))
   )
 # p6. home range ----
 range_plot_box <- shinydashboard::box(title = "Home Range Estimation",
