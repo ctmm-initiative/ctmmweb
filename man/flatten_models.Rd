@@ -4,10 +4,10 @@
 \alias{flatten_models}
 \title{Convert nested \link{par_fit_tele} result into flatten list with model names}
 \usage{
-flatten_models(model_fit_res)
+flatten_models(model_try_res)
 }
 \arguments{
-\item{model_fit_res}{}
+\item{model_try_res}{}
 }
 \value{
 A single level list of models with names

@@ -156,7 +156,7 @@ model_try_res <- par_try_models(data_sample)
 # parallel::detectCores(logical = FALSE)
 # par_fit_tele(data_sample, reserved_cores = 1)
 # a data.table of models information summary
-model_summary <- summary_model_fit(model_try_res)
+model_summary <- summary_tried_models(model_try_res)
 # you can also open it with RStudio's data.frame viewer
 knitr::kable(model_summary)
 ```

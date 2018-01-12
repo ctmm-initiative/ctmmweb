@@ -22,18 +22,18 @@ ctmm_obj_to_summary_dt <- function(model) {
   res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
-# para_ll_fit fit each animal with ctmm.fit, generate a model list for each animal, saved in a list of list, named by animal
+# par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, named by animal
 # this result was converted into a data.table models_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information. model name is just model type, not the full name with the animal name part. we need the separate model name col for coloring of model summary table.
-model_fit_res_to_model_list_dt <- function(model_fit_res) {
-  animal_names_dt <- data.table(identity = names(model_fit_res))
-  model_type_list <- lapply(model_fit_res, names)
+model_try_res_to_model_list_dt <- function(model_try_res) {
+  animal_names_dt <- data.table(identity = names(model_try_res))
+  model_type_list <- lapply(model_try_res, names)
   # must use per row by to create list column, otherwise dt try to apply whole column to function
   animal_names_dt[, model_type_list :=
                     list(list(model_type_list[[identity]])),
                   by = 1:nrow(animal_names_dt)]
   models_dt <- animal_names_dt[, .(model_type = unlist(model_type_list)),
                                by = identity]
-  models_dt[, model := list(list(model_fit_res[[identity]][[model_type]])),
+  models_dt[, model := list(list(model_try_res[[identity]][[model_type]])),
             by = 1:nrow(models_dt)]
   models_dt[, model_no := .I]
   # also add the AICc col
@@ -124,25 +124,25 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 }
 # exported version, make the interface simpler. our internal version need intermediate steps because we need the intermediate data
 
-#' Generate formated model summary table from model fit results
+#' Generate formated model summary table from tried models results
 #'
-#' @param model_fit_res list of applying `ctmm::ctmm.select` on telemetry objects
+#' @param model_try_res list of applying `ctmm::ctmm.select` on telemetry objects
 #'
 #' @return A `data.table` of model summary
 #' @export
-summary_model_fit <- function(model_fit_res) {
-  models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+summary_tried_models <- function(model_try_res) {
+  models_dt <- model_try_res_to_model_list_dt(model_try_res)
   # use [] to make sure calling function directly will print in console.
   model_list_dt_to_formated_model_summary_dt(models_dt)[]
 }
 #' Convert nested [par_fit_tele] result into flatten list with model names
 #'
-#' @param model_fit_res
+#' @param model_try_res
 #'
 #' @return A single level list of models with names
 #' @export
-flatten_models <- function(model_fit_res) {
-  models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+flatten_models <- function(model_try_res) {
+  models_dt <- model_try_res_to_model_list_dt(model_try_res)
   model_list <- models_dt$model
   names(model_list) <- models_dt$model_name
   return(model_list)
@@ -188,13 +188,13 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
   format_hrange_summary_dt(hrange_summary_dt)
 }
 # it's difficult to get a home range summary table function, because we reused same summary function and need a model table, which is borrowed from model table. so we have to reuse same model table in home range summary. From user's perspective we can use selected model list, and go a long way inside function to get the table.
-# rebuild model_fit_res from selected_model_list? then build summary. too much hassles. ask user to use regular summary?
+# rebuild model_try_res from selected_model_list? then build summary. too much hassles. ask user to use regular summary?
 
 # summary_home_range <- function(hrange_list) {
 #   hrange_list_dt <- build_hrange_list_dt(names(hrange_list),
 #                                          hrange_list)
 #   dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
-#   models_dt <- model_fit_res_to_model_list_dt(model_fit_res)
+#   models_dt <- model_try_res_to_model_list_dt(model_try_res)
 #   # use [] to make sure calling function directly will print in console.
 #   model_list_dt_to_formated_model_summary_dt(models_dt)[]
 # }

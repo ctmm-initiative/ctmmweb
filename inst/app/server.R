@@ -244,13 +244,13 @@ output:
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
-  # current_model_sel_res is updated in model fitting stage, need to be cleared when input change too.
+  # selected_model_try_res is updated in model fitting stage, need to be cleared when input change too.
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
     values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
     values$data$all_removed_outliers <- NULL
-    values$selected_data_model_fit_res <- NULL
+    values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     values$data$id_pal <- leaflet::colorFactor(
       scales::hue_pal()(nrow(values$data$merged$info)),
@@ -698,7 +698,7 @@ output:
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
     info <- values$data$merged$info[subset_indice]
     # need to clear model fit result, change to original mode instead of modeled mode
-    values$selected_data_model_fit_res <- NULL
+    values$selected_data_model_try_res <- NULL
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
     log_dt_md(info[, .(identity, start, end, interval, duration, points)],
@@ -1683,7 +1683,7 @@ output:
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
-  # $selected_model_fit_res ----
+  # $selected_model_try_res ----
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the model fit(model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   # observeEvent(input$test_digest, {
@@ -1691,7 +1691,7 @@ output:
   #   print(fit_models)
   #   cat("fit_models: ", digest::digest(fit_models), "\n")
   # })
-  values$selected_data_model_fit_res <- NULL  # need to clear this at input change too
+  values$selected_data_model_try_res <- NULL  # need to clear this at input change too
   # fit models ----
   observeEvent(input$fit_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
@@ -1709,12 +1709,12 @@ output:
     # LOG fit models
     log_msg("Fitting models")
     withProgress(print(system.time(
-      values$selected_data_model_fit_res <-
+      values$selected_data_model_try_res <-
         par_try_tele_guess_mem(tele_guess_list,
                                parallel = option_selected("parallel")))),
       message = "Fitting models to find the best ...")
     # always save names in list
-    names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
+    names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
     DT::selectRows(proxy_model_dt, summary_models()$first_models)
@@ -1723,8 +1723,8 @@ output:
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- ctmmweb:::model_fit_res_to_model_list_dt(
-      req(values$selected_data_model_fit_res))
+    models_dt <- ctmmweb:::model_try_res_to_model_list_dt(
+      req(values$selected_data_model_try_res))
     # the model summary table
     # model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
     # formated_summary_dt <- format_model_summary_dt(model_summary_dt)
@@ -1806,7 +1806,7 @@ output:
   # this is the manual selecting rows in model summary table. use sel for ctmm.select process, use select for the manual selection.
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   select_models <- reactive({
-    # req(!is.null(values$selected_data_model_fit_res))
+    # req(!is.null(values$selected_data_model_try_res))
     req(length(input$model_fit_summary_rows_selected) > 0)
     # sort the rows selected so same individual models are together
     rows_selected_sorted <- sort(input$model_fit_summary_rows_selected)
@@ -2170,8 +2170,8 @@ output:
         # data in .rds format, pack multiple variables into list first.
         saved <- list(data = values$data
                       # chosen_row_nos = select_data()$chosen_row_nos,
-                      # selected_data_model_fit_res =
-                      #   values$selected_data_model_fit_res,
+                      # selected_data_model_try_res =
+                      #   values$selected_data_model_try_res,
                       # selected_data_guess_list =
                       #   values$selected_data_guess_list
                       # didn't sort this, need to sort it when restoring
@@ -2210,7 +2210,7 @@ output:
     loaded <- readRDS(file.path(session_tmpdir, "saved.rds"))
     # restore variables in order, may need to freeze some
     values$data <- loaded$data
-    # values$selected_data_model_fit_res <- loaded$selected_data_model_fit_res
+    # values$selected_data_model_try_res <- loaded$selected_data_model_try_res
     # values$selected_data_guess_list <- loaded$selected_data_guess_list
     # freezeReactiveValue(input, "model_fit_summary_rows_selected")
     # selectRows(proxy_model_dt, loaded$model_fit_summary_rows_selected)
