@@ -218,8 +218,8 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  par_sel_tele_guess_mem <- memoise::memoise(
-    ctmmweb:::par_sel_tele_guess,
+  par_try_tele_guess_mem <- memoise::memoise(
+    ctmmweb:::par_try_tele_guess,
     cache = memoise::cache_filesystem(cache_path))
   akde_mem <- memoise::memoise(
     ctmm::akde,
@@ -1710,7 +1710,7 @@ output:
     log_msg("Fitting models")
     withProgress(print(system.time(
       values$selected_data_model_fit_res <-
-        par_sel_tele_guess_mem(tele_guess_list,
+        par_try_tele_guess_mem(tele_guess_list,
                                parallel = option_selected("parallel")))),
       message = "Fitting models to find the best ...")
     # always save names in list

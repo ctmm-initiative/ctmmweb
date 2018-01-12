@@ -147,16 +147,16 @@ We can fit models with multiple animals in parallel.
 
 ```{r model summary, eval=TRUE}
 # fit single model in parallel
-model_fit
-# select models in parallel. 
-model_fit_res <- par_select_models(data_sample)
+model_fit_res <- par_fit_models(data_sample)
+# try multiple models in parallel. 
+model_try_res <- par_try_models(data_sample)
 # parallel mode can be turned off
 # par_fit_tele(data_sample, fallback = TRUE)
 # you can also reserve some cores so it will not use up all available cpu cores
 # parallel::detectCores(logical = FALSE)
 # par_fit_tele(data_sample, reserved_cores = 1)
 # a data.table of models information summary
-model_summary <- summary_model_fit(model_fit_res)
+model_summary <- summary_model_fit(model_try_res)
 # you can also open it with RStudio's data.frame viewer
 knitr::kable(model_summary)
 ```

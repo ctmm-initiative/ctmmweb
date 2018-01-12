@@ -6,6 +6,16 @@
 \usage{
 par_fit_models(tele_list, reserved_cores = 0, parallel = TRUE)
 }
+\arguments{
+\item{tele_list}{telemetry list}
+
+\item{reserved_cores}{reserve some cores so that not all cores are used.
+Check your platform's core count with
+\code{parallel::detectCores(logical = FALSE)}. \code{?parallel::detectCores}
+has more details about physical/logical cores in different platforms.}
+
+\item{parallel}{Use regular \code{lapply} when FALSE}
+}
 \value{
 list of models named by animal names
 }
