@@ -1685,15 +1685,10 @@ output:
              size = "l", file = "help/5_c_model_selection.md")
   # $selected_model_try_res ----
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
-  # this is the model fit(model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
-  # observeEvent(input$test_digest, {
-  #   # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
-  #   print(fit_models)
-  #   cat("fit_models: ", digest::digest(fit_models), "\n")
-  # })
+  # this is the try model (model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   values$selected_data_model_try_res <- NULL  # need to clear this at input change too
   # fit models ----
-  observeEvent(input$fit_models, {
+  observeEvent(input$try_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
     # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
     # freezeReactiveValue(input, "model_fit_summary_rows_selected")
@@ -1702,17 +1697,13 @@ output:
     # guess_list is updated inside select_data_vario_list, but select_data_vario_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
     tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
                                   values$selected_data_guess_list)
-    # cat("tele_guess_list: ", digest::digest(tele_guess_list), "\n")
-    # print(fit_models)
-    # cat("fit_models: ", digest::digest(fit_models), "\n")
-    # cat("test fun:", digest::digest(test_fun), "\n")
-    # LOG fit models
-    log_msg("Fitting models")
+    # LOG try models
+    log_msg("Trying different models")
     withProgress(print(system.time(
       values$selected_data_model_try_res <-
         par_try_tele_guess_mem(tele_guess_list,
                                parallel = option_selected("parallel")))),
-      message = "Fitting models to find the best ...")
+      message = "Trying different models to find the best ...")
     # always save names in list
     names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
