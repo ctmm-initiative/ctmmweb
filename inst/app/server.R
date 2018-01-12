@@ -1505,6 +1505,7 @@ output:
     return(current)
   })
   # plot variograms ----
+  # modeled variogram based on model summary table selection, this only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
   output$vario_plot_zoom <- renderPlot({
     ctmm_color <- switch(input$vario_mode,
                          guesstimate = "green",
@@ -1694,7 +1695,10 @@ output:
   # fit models ----
   observeEvent(input$fit_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
-    freezeReactiveValue(input, "model_fit_summary_rows_selected")
+    # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
+    # freezeReactiveValue(input, "model_fit_summary_rows_selected")
+    # instead, we clear the table selection, which should solve both needs. the clear is not executed until fitting finished, but it's queued before actual selecting, so table did update.
+    DT::selectRows(proxy_model_dt, list())
     # guess_list is updated inside select_data_vario_list, but select_data_vario_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
     tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
                                   values$selected_data_guess_list)
@@ -1799,7 +1803,7 @@ output:
     DT::selectRows(proxy_model_dt, list())
   })
   # select_models() ----
-  # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this.
+  # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   select_models <- reactive({
     # req(!is.null(values$selected_data_model_fit_res))
     req(length(input$model_fit_summary_rows_selected) > 0)
