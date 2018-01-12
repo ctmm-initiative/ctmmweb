@@ -187,12 +187,12 @@ output:
     }
   })
   # just log option changes, the value is taken directly when needed.
-  observeEvent(input$no_parallel, {
-    if (input$no_parallel) {
+  observeEvent(input$parallel, {
+    if (input$parallel) {
+      log_msg("Parallel mode enabled")
+    } else {
       # try(log("a"))  # for testing error log
       log_msg("Parallel mode disabled")
-    } else {
-      log_msg("Parallel mode enabled")
     }
   })
   observeEvent(input$show_error, {
@@ -218,8 +218,8 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  par_fit_tele_guess_mem <- memoise::memoise(
-    ctmmweb:::par_fit_tele_guess,
+  par_select_tele_guess_mem <- memoise::memoise(
+    ctmmweb:::par_select_tele_guess,
     cache = memoise::cache_filesystem(cache_path))
   akde_mem <- memoise::memoise(
     ctmm::akde,
@@ -1706,10 +1706,10 @@ output:
     log_msg("Fitting models")
     withProgress(print(system.time(
       values$selected_data_model_fit_res <-
-        par_fit_tele_guess_mem(tele_guess_list,
-                               fallback = option_selected("no_parallel")))),
+        par_select_tele_guess_mem(tele_guess_list,
+                               parallel = option_selected("parallel")))),
       message = "Fitting models to find the best ...")
-    # always save model names in list
+    # always save names in list
     names(values$selected_data_model_fit_res) <- names(select_data()$tele_list)
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
@@ -1934,7 +1934,7 @@ output:
     withProgress(print(system.time(
       res <- par_occur_mem(select_models()$tele_list,
                            select_models()$model_list,
-                           fallback = option_selected("no_parallel")))),
+                           parallel = option_selected("parallel")))),
                  message = "Calculating Occurrence ...")
     # if (option_selected("log_error")) {
     #   output$occurrence_info <- renderPrint(str(res))

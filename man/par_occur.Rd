@@ -4,7 +4,7 @@
 \alias{par_occur}
 \title{Parallel calculate occurrence from telemetry and model list}
 \usage{
-par_occur(tele_list, model_list, reserved_cores = 0, fallback = FALSE)
+par_occur(tele_list, model_list, reserved_cores = 0, parallel = TRUE)
 }
 \arguments{
 \item{tele_list}{\code{ctmm} \code{telemetry} list}
@@ -16,7 +16,7 @@ Check your platform's core count with
 \code{parallel::detectCores(logical = FALSE)}. \code{?parallel::detectCores}
 has more details about physical/logical cores in different platforms.}
 
-\item{fallback}{Disable parallel and use regular \code{lapply}.}
+\item{parallel}{Use regular \code{lapply} when FALSE}
 }
 \value{
 occurrence results list
