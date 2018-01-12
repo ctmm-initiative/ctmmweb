@@ -218,8 +218,8 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  par_select_tele_guess_mem <- memoise::memoise(
-    ctmmweb:::par_select_tele_guess,
+  par_sel_tele_guess_mem <- memoise::memoise(
+    ctmmweb:::par_sel_tele_guess,
     cache = memoise::cache_filesystem(cache_path))
   akde_mem <- memoise::memoise(
     ctmm::akde,
@@ -244,7 +244,7 @@ output:
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
-  # current_model_fit_res is updated in model fitting stage, need to be cleared when input change too.
+  # current_model_sel_res is updated in model fitting stage, need to be cleared when input change too.
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
@@ -1571,21 +1571,21 @@ output:
     }
   )
   # select individual plot to fine tune
-  output$fit_selector <- renderUI({
+  output$tune_selector <- renderUI({
     tele_list <- req(select_data()$tele_list)
     if (input$vario_mode == "guesstimate") {
       identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("fit_selected", NULL,
+      selectInput("tune_selected", NULL,
                   c("Fine-tune" = "", identities))
     }
   })
   # fine tune fit start ----
-  observeEvent(input$fit_selected, {
-    if (input$fit_selected != "") {
+  observeEvent(input$tune_selected, {
+    if (input$tune_selected != "") {
       # LOG fine tune start
-      log_msg("Fine-tune Parameters for", input$fit_selected)
+      log_msg("Fine-tune Parameters for", input$tune_selected)
       showModal(modalDialog(title = paste0("Fine-tune parameters for ",
-                                           input$fit_selected),
+                                           input$tune_selected),
                       fluidRow(column(4, uiOutput("fit_sliders")),
                                column(8, plotOutput("fit_plot")),
                                column(4, offset = 2, uiOutput("fit_zoom"))),
@@ -1606,8 +1606,8 @@ output:
   init_slider_values <- reactive({
     vario_list <- req(select_data_vario()$vario_list)
     ids <- names(vario_list)
-    vario <- vario_list[ids == input$fit_selected][[1]]
-    CTMM <- values$selected_data_guess_list[ids == input$fit_selected][[1]]
+    vario <- vario_list[ids == input$tune_selected][[1]]
+    CTMM <- values$selected_data_guess_list[ids == input$tune_selected][[1]]
     fraction <- 10 ^ input$zoom_lag_fraction
     STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = CTMM,
                                           fraction = fraction, b = 10)
@@ -1676,7 +1676,7 @@ output:
     removeModal()
     ids <- sapply(select_data_vario()$vario_list,
                   function(vario) vario@info$identity)
-    values$selected_data_guess_list[ids == input$fit_selected][[1]] <-
+    values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
       slider_to_CTMM()
   })
   # fine tune fit end ----
@@ -1710,7 +1710,7 @@ output:
     log_msg("Fitting models")
     withProgress(print(system.time(
       values$selected_data_model_fit_res <-
-        par_select_tele_guess_mem(tele_guess_list,
+        par_sel_tele_guess_mem(tele_guess_list,
                                parallel = option_selected("parallel")))),
       message = "Fitting models to find the best ...")
     # always save names in list
@@ -1803,6 +1803,7 @@ output:
     DT::selectRows(proxy_model_dt, list())
   })
   # select_models() ----
+  # this is the manual selecting rows in model summary table. use sel for ctmm.select process, use select for the manual selection.
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   select_models <- reactive({
     # req(!is.null(values$selected_data_model_fit_res))

@@ -465,7 +465,7 @@ variograms_box <- shinydashboard::box(title = "Variograms", status = "primary",
                              choiceValues = c("empirical", "guesstimate",
                                               "modeled")
                              )),
-      column(3, offset = 0, br(), uiOutput("fit_selector")),
+      column(3, offset = 0, br(), uiOutput("tune_selector")),
       column(3, br(), actionButton("fit_models", "Fit Models",
                              icon = icon("hourglass-start"),
                              style = ctmmweb:::STYLES$page_action)),

@@ -146,8 +146,10 @@ plot_vario(vario_list, guess_list)
 We can fit models with multiple animals in parallel. 
 
 ```{r model summary, eval=TRUE}
-# fit models in parallel. 
-model_fit_res <- par_fit_tele(data_sample)
+# fit single model in parallel
+model_fit
+# select models in parallel. 
+model_fit_res <- par_select_models(data_sample)
 # parallel mode can be turned off
 # par_fit_tele(data_sample, fallback = TRUE)
 # you can also reserve some cores so it will not use up all available cpu cores

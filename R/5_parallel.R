@@ -110,16 +110,18 @@ par_lapply <- function(lst, fun,
 # ctmm.fit: return single best model for each
 # ctmm.select, verbose = TRUE, all attempted models with model type as name, models for same animal as sub items of animal node
 # ctmm.select verbose = FALSE: same structure but no model type as name, with one extra layer compare to ctmm.fit. also the object content is different. there is no sense to use verbose = FALSE. though there may be a need for parallel ctmm.fit
+# trace will print progress, but console output is lost in parallel mode since they are not in master r process. it will be shown in non-parallel mode.
 # didn't add animal names to list because the aligned list lost model name information anyway. we added the names in calling code instead. It was only called once.
-par_select_tele_guess <- function(tele_guess_list,
+par_sel_tele_guess <- function(tele_guess_list,
                                reserved_cores = 0,
                                parallel = TRUE) {
-  # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict. Note this is ctmm.select, not ctmm.fit
-  fit_models <- function(tele_guess) {
+  # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict. fit is also not optimal since it hint ctmm.fit
+  # use sel to refer the ctmm.select, use select to refer the manual select rows in model summary table.
+  sel_models <- function(tele_guess) {
     ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                       trace = TRUE, verbose = TRUE)
   }
-  par_lapply(tele_guess_list, fit_models, reserved_cores, parallel)
+  par_lapply(tele_guess_list, sel_models, reserved_cores, parallel)
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 
@@ -134,20 +136,49 @@ par_select_tele_guess <- function(tele_guess_list,
 #' @return list of items named by animal names, each item hold the attempted
 #'   models as sub items with model type as name
 #' @export
-par_select_models <- function(tele_list,
-                         reserved_cores = 0,
-                         parallel = TRUE) {
+par_try_models <- function(tele_list,
+                              reserved_cores = 0,
+                              parallel = TRUE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm.guess(x, interactive = FALSE)
                                 }))
   print(system.time(model_select_res <-
-                      par_select_tele_guess(tele_guess_list,
+                      par_sel_tele_guess(tele_guess_list,
                                          reserved_cores,
                                          parallel)))
-  names(model_select_res) <- names(tele_list)
-  return(model_select_res)
+  names(model_try_res) <- names(tele_list)
+  return(model_try_res)
 }
+
+#' Parallel fitting model on telemetry list
+#'
+#' `ctmm::ctmm.fit` fit model on telemetry object. This can be parallelized on
+#' each object in list.
+#'
+#' @inheritParams par_select_models
+#'
+#' @return list of models named by animal names
+#' @export
+par_fit_models <- function(tele_list,
+                           reserved_cores = 0,
+                           parallel = TRUE) {
+  tele_guess_list <- align_list(tele_list,
+                                lapply(tele_list, function(x) {
+                                  ctmm.guess(x, interactive = FALSE)
+                                }))
+  # fit single model, no plural
+  fit_model <- function(tele_guess) {
+    ctmm::ctmm.fit(tele_guess$a, CTMM = tele_guess$b, trace = TRUE)
+  }
+  print(system.time(model_select_res <-
+                      par_lapply(tele_guess_list, fit_model,
+                                 reserved_cores, parallel)
+                    ))
+  names(model_fit_res) <- names(tele_list)
+  return(model_fit_res)
+}
+
 #' Parallel calculate occurrence from telemetry and model list
 #'
 #' @param tele_list `ctmm` `telemetry` list

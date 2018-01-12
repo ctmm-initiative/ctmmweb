@@ -6,4 +6,4 @@
 - Once turned on, click `Error Messages` button will show the error messages captured so far and the R session information.
 
 ### Disable Parallel Mode
-- Parallel mode can be tricky. Turning it off can help to verify if problems in app are related to parallel mode.
+- Parallel mode can be tricky. Turning it off can help to verify if problems in app are related to parallel mode. You will also see model fitting progress messages in console, which is not visible in parallel mode because they are in cluster/forked process instead of current R process.
