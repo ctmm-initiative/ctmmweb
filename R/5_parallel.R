@@ -128,7 +128,8 @@ par_try_tele_guess <- function(tele_guess_list,
 #' Parallel selecting models on telemetry list
 #'
 #' `ctmm::ctmm.select` fit multiple models on telemetry object and output list
-#' of all attempted models. This can be parallelized on each object in list.
+#' of all attempted models. This function run `ctmm::ctmm.select` on each object
+#' of list on parallel.
 #'
 #' @param tele_list telemetry list
 #' @inheritParams par_lapply
@@ -153,8 +154,8 @@ par_try_models <- function(tele_list,
 
 #' Parallel fitting model on telemetry list
 #'
-#' `ctmm::ctmm.fit` fit model on telemetry object. This can be parallelized on
-#' each object in list.
+#' `ctmm::ctmm.fit` fit model on telemetry object. This function run
+#' `ctmm::ctmm.fit` on each object of list on parallel.
 #'
 #' @inheritParams par_try_models
 #'
