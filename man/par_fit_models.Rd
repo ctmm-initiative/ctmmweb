@@ -20,6 +20,6 @@ has more details about physical/logical cores in different platforms.}
 list of models named by animal names
 }
 \description{
-\code{ctmm::ctmm.fit} fit model on telemetry object. This can be parallelized on
-each object in list.
+\code{ctmm::ctmm.fit} fit model on telemetry object. This function run
+\code{ctmm::ctmm.fit} on each object of list on parallel.
 }

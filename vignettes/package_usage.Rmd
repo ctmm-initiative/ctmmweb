@@ -259,7 +259,7 @@ The map can be saved as a self contained html file.
 
 ```{r save map}
 # save map to single html file. 
-htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "point_map.html")
+htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "pic/point_map.html")
 ```
 
 

@@ -22,5 +22,6 @@ models as sub items with model type as name
 }
 \description{
 \code{ctmm::ctmm.select} fit multiple models on telemetry object and output list
-of all attempted models. This can be parallelized on each object in list.
+of all attempted models. This function run \code{ctmm::ctmm.select} on each object
+of list on parallel.
 }
