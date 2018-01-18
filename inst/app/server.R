@@ -2143,8 +2143,8 @@ output:
   # p9. report ----
   callModule(click_help, "report", title = "Work Report",
              size = "l", file = "help/9_work_report.md")
-  # save cache ----
-  output$save_cache <- downloadHandler(
+  # save data ----
+  output$save_data <- downloadHandler(
     filename = function() {
       paste0("Saved_", ctmmweb:::current_timestamp(), ".zip")
     },
@@ -2154,23 +2154,31 @@ output:
         showNotification("No data to save", duration = 7,
                          type = "error")
       } else {
-        # LOG save cache
-        log_msg("Saving cache data")
+        # LOG save data
+        log_msg("Saving Data")
         # pack and save cache
         cache_zip_path <- ctmmweb::zip_folder(cache_path, "cache.zip")
         # data in .rds format, pack multiple variables into list first.
-        saved <- list(data = values$data
-                      # chosen_row_nos = select_data()$chosen_row_nos,
-                      # selected_data_model_try_res =
-                      #   values$selected_data_model_try_res,
-                      # selected_data_guess_list =
-                      #   values$selected_data_guess_list
-                      # didn't sort this, need to sort it when restoring
-                      # tried_models_summary_rows_selected =
-                      #   input$tried_models_summary_rows_selected
-                      )
-        saved_rds_path <- file.path(session_tmpdir, "saved.rds")
-        saveRDS(saved, file = saved_rds_path)
+        # saved <- list(data = values$data
+        #               # chosen_row_nos = select_data()$chosen_row_nos,
+        #               # selected_data_model_try_res =
+        #               #   values$selected_data_model_try_res,
+        #               # selected_data_guess_list =
+        #               #   values$selected_data_guess_list
+        #               # didn't sort this, need to sort it when restoring
+        #               # tried_models_summary_rows_selected =
+        #               #   input$tried_models_summary_rows_selected
+        #               )
+        saved_rds_path <- file.path(session_tmpdir, "data.rds")
+        saveRDS(values$data, file = saved_rds_path)
+        # LOG save current telemetry data as csv so it can be imported easier. Only do this in generated report, not in the process to avoid too frequent saves.
+        log_msg("Saving Current Telemetry Data")
+        log_dt_md(values$data$merged$info[,
+                                          .(identity, start, end,
+                                            interval, duration, points)],
+                  "Current Telemetry Data")
+        fwrite(values$data$merged$data,
+               file = file.path(session_tmpdir, "combined_data_table.csv"))
         # also save report for reference
         generate_report(preview = FALSE)
         # move to same directory for easier packing. use rename to reduce effort
@@ -2179,17 +2187,18 @@ output:
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # pack to saved.zip, this is a temp name anyway.
         saved_zip_path <- ctmmweb:::zip_relative_files(
-          session_tmpdir, c("cache.zip", "saved.rds", "report.html"),
+          session_tmpdir, c("cache.zip", "data.rds", "report.html",
+                            "combined_data_table.csv"),
           "saved.zip")
         file.copy(saved_zip_path, file)
       }
     }
   )
-  # load cache ----
-  observeEvent(input$load_cache, {
-    # LOG load cache
-    log_msg("Loading cache data", input$load_cache$name)
-    # saved.zip -> cache.zip, saved.rds, report.html
+  # load data ----
+  observeEvent(input$load_data, {
+    # LOG load data
+    log_msg("Loading data", input$load_cache$name)
+    # saved.zip -> cache.zip, data.rds, report.html, combined_data_table.csv
     utils::unzip(input$load_cache$datapath, exdir = session_tmpdir)
     if (APP_local) {
       utils::browseURL(file.path(session_tmpdir, "report.html"))
@@ -2198,9 +2207,9 @@ output:
     reset_cache(cache_path)
     # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up
     utils::unzip(file.path(session_tmpdir, "cache.zip"), exdir = session_tmpdir)
-    loaded <- readRDS(file.path(session_tmpdir, "saved.rds"))
+    loaded_data <- readRDS(file.path(session_tmpdir, "data.rds"))
     # restore variables in order, may need to freeze some
-    values$data <- loaded$data
+    values$data <- loaded_data
     # values$selected_data_model_try_res <- loaded$selected_data_model_try_res
     # values$selected_data_guess_list <- loaded$selected_data_guess_list
     # freezeReactiveValue(input, "tried_models_summary_rows_selected")
@@ -2212,16 +2221,6 @@ output:
   })
   # view_report ----
   generate_report <- function(preview) {
-    # LOG save telemetry data if selected, so cleaned data can be saved. Only do this in generated report, not in the process to avoid too frequent saves.
-    if (input$save_tele) {
-      log_msg("Saving Current Telemetry Data")
-      log_dt_md(values$data$merged$info[,
-                                        .(identity, start, end,
-                                          interval, duration, points)],
-                "Current Data")
-      fwrite(values$data$merged$data,
-             file = file.path(LOG_folder, "combined_data_table.csv"))
-    }
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
     log_msg("Work Report Generated")
     # write markdown file

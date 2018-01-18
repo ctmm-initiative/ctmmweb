@@ -75,7 +75,7 @@ upload_box <- shinydashboard::box(title = "Local Data Import",
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
           column(12, fileInput('tele_file', label = NULL)),
-          column(12, fileInput("load_cache", label = "Load Saved Cache"
+          column(12, fileInput("load_data", label = "Load Saved Data"
                                # ,
                                # placeholder = "Session zip"
                            # buttonLabel = "Load Session ..."
@@ -559,15 +559,15 @@ report_box <- shinydashboard::box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
     column(3,
-           downloadButton("save_cache",
-                          "Save Cache",
+           downloadButton("save_data",
+                          "Save Data",
                           style = ctmmweb:::STYLES$download_button),
            br(), br(),
            uiOutput("view_report")
            ),
-    column(4, offset = 1, checkboxInput("save_tele",
-                                        "Save Telemetry Data")),
-    column(4, offset = 0,
+    # column(4, offset = 1, checkboxInput("save_tele",
+    #                                     "Save Telemetry Data")),
+    column(4, offset = 5,
            downloadButton("download_report_zip",
                           "Download Report as zip",
                           style = ctmmweb:::STYLES$download_button),
