@@ -565,9 +565,11 @@ report_box <- shinydashboard::box(title = "Report", status = "info",
            br(), br(),
            uiOutput("view_report")
            ),
-    column(4, offset = 5,
+    column(4, offset = 1, checkboxInput("save_tele",
+                                        "Save Telemetry Data")),
+    column(4, offset = 0,
            downloadButton("download_report_zip",
-                          "Download Report zip",
+                          "Download Report as zip",
                           style = ctmmweb:::STYLES$download_button),
            br(), br(),
            help_button("report"))

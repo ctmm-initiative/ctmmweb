@@ -2212,6 +2212,16 @@ output:
   })
   # view_report ----
   generate_report <- function(preview) {
+    # LOG save telemetry data if selected, so cleaned data can be saved. Only do this in generated report, not in the process to avoid too frequent saves.
+    if (input$save_tele) {
+      log_msg("Saving Current Telemetry Data")
+      log_dt_md(values$data$merged$info[,
+                                        .(identity, start, end,
+                                          interval, duration, points)],
+                "Current Data")
+      fwrite(values$data$merged$data,
+             file = file.path(LOG_folder, "combined_data_table.csv"))
+    }
     # LOG report generated, need to be placed before the markdown rendering, otherwise will not be included.
     log_msg("Work Report Generated")
     # write markdown file
