@@ -1,8 +1,0 @@
-urls:
-  reference: https://ctmm-initiative.github.io/ctmmweb//reference
-  article: https://ctmm-initiative.github.io/ctmmweb//articles
-articles:
-  demo: demo.html
-  installation: installation.html
-  package_usage: package_usage.html
-
