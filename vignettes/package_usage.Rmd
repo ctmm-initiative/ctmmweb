@@ -111,7 +111,7 @@ plot_loc(loc_data_sub1, loc_data) +
   ctmmweb:::CENTER_TITLE
 # export plot
 g <- plot_loc(loc_data_sub1, loc_data)
-ggplot2::ggsave("pic/test.png", g)
+ggplot2::ggsave("fig/test.png", g)
 ```
 
 
@@ -165,7 +165,7 @@ There could be multiple models attempted for each animal. In the webapp you can 
 
 `model_try_res` holds a list of items named by animal names. Each item hold the attempted models for that animal as a sub list, named by model type.
  
-![](pic/05_model_res_structure.png){ width=50% }
+![](screenshot/05_model_res_structure.png){ width=50% }
 
 To make selecting a subset easier, we first convert this nested list structure to a flat list:
 
@@ -258,8 +258,10 @@ point_map(loc_data)
 The map can be saved as a self contained html file.
 
 ```{r save map}
-# save map to single html file. 
-htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "pic/point_map.html")
+# save map to single html file. file can only be a filename, not a relative path
+htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "point_map.html")
+# move output to temporary folder
+file.rename("point_map.html", "fig/point_map.html")
 ```
 
 
