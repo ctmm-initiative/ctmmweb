@@ -1,9 +1,0 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-inst/doc
-vignettes/fig
-docs
-pkgdown
-_pkgdown.yml
