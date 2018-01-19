@@ -1,0 +1,79 @@
+title: ctmmweb
+url: https://ctmm-initiative.github.io/ctmmweb/
+
+template:
+  params:
+    bootswatch: flatly
+
+reference:
+- title: "Start the app"
+  desc: ~
+  contents:
+  - '`app`'
+- title: "Basic Data Structure for app"
+  desc: Input ctmm telemetry data need to be converted to `data.table` for app uses
+  contents:
+  - '`report`'
+  - '`combine`'
+- title: "Plot Location and Time"
+  desc: ~
+  contents:
+  - '`BIGGER_THEME`'
+  - '`plot_loc`'
+  - '`plot_loc_facet`'
+  - '`plot_time`'
+- title: "Variograms, Home Range Estimation, Occurrence"
+  desc: ~
+  contents:
+  - '`summary_tried_models`'
+  - '`flatten_models`'
+  - '`plot_vario`'
+  - '`plot_ud`'
+- title: "Map"
+  desc: ~
+  contents:
+  - '`base_map`'
+  - '`point_map`'
+  - '`range_map`'
+  - '`point_range_map`'
+  - '`heat_map`'
+  - '`add_control`'
+- title: "Parallel Computing"
+  desc: ~
+  contents:
+  - '`align_list`'
+  - '`par_lapply`'
+  - '`par_fit_models`'
+  - '`par_try_models`'
+  - '`par_occur`'
+- title: "Misc Utilitiy Functions"
+  desc: ~
+  contents:
+  - '`calc_distance`'
+  - '`calc_speed`'
+  - '`pick`'
+  - '`JS.logify`'
+  - '`JS.onload`'
+  - '`zip_folder`'
+  - '`get_names`'
+
+navbar:
+  title: ctmmweb
+  type: inverse
+  left:
+  - text: App Usage
+    menu:
+    - text: Demo
+      href: articles/demo.html
+    - text: Installation
+      href: articles/installation.html
+  - text: Package Usage
+    href: articles/package_usage.html
+  - text: References
+    href: reference/index.html
+  right:
+  - text: News
+    href: news/index.html
+  - icon: fa-github fa-lg
+    href: https://github.com/ctmm-initiative/ctmmweb
+

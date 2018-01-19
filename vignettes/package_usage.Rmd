@@ -111,7 +111,7 @@ plot_loc(loc_data_sub1, loc_data) +
   ctmmweb:::CENTER_TITLE
 # export plot
 g <- plot_loc(loc_data_sub1, loc_data)
-ggplot2::ggsave("pic/test.png", g)
+ggplot2::ggsave("fig/test.png", g)
 ```
 
 
@@ -148,13 +148,10 @@ We can try different models on multiple animals in parallel.
 ```{r model summary, eval=TRUE}
 # fit single model in parallel with ctmm.fit. This is not used in later anlaysis
 model_fit_res <- par_fit_models(data_sample)
-# try multiple models in parallel with ctmm.select
+# try multiple models in parallel with ctmm.select. parallel mode can be turned off with parallel = FALSE
 model_try_res <- par_try_models(data_sample)
-# parallel mode can be turned off
-# par_fit_tele(data_sample, fallback = TRUE)
-# you can also reserve some cores so it will not use up all available cpu cores
-# parallel::detectCores(logical = FALSE)
-# par_fit_tele(data_sample, reserved_cores = 1)
+# `model_try_res` holds a list of items named by animal names. Each item hold the attempted models for that animal as a sub list, named by model type.
+str(model_try_res, max.level = 2)
 # a data.table of models information summary
 model_summary <- summary_tried_models(model_try_res)
 # you can also open it with RStudio's data.frame viewer
@@ -162,10 +159,6 @@ knitr::kable(model_summary)
 ```
 
 There could be multiple models attempted for each animal. In the webapp you can select a subset of models then check their variograms, home ranges and occurrences. You can also select a subset of fitted models via in a script as:
-
-`model_try_res` holds a list of items named by animal names. Each item hold the attempted models for that animal as a sub list, named by model type.
- 
-![](pic/05_model_res_structure.png){ width=50% }
 
 To make selecting a subset easier, we first convert this nested list structure to a flat list:
 
@@ -258,8 +251,10 @@ point_map(loc_data)
 The map can be saved as a self contained html file.
 
 ```{r save map}
-# save map to single html file. 
-htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "pic/point_map.html")
+# save map to single html file. file can only be a filename, not a relative path
+htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "point_map.html")
+# move output to temporary folder
+file.rename("point_map.html", "fig/point_map.html")
 ```
 
 
