@@ -1,10 +1,13 @@
-
 ## version 0.1.0, 2018/01/19
-- changed repo name to match package name
+- Moved package website to separate repo to reduce package download size and time.
+- Overlap page.
+
+## version 0.0.9.9, 2017/12/27
+- Changed repo name to match package name
 - [export most features of app as package functions](https://github.com/ctmm-initiative/ctmmweb/issues/41) 
 - Established workflow with package functions.
 - Finished vignette of `package usage`. 
-- Moved package website to separate repo to reduce package download size and time.
+- Renamed `Save Cache` to `Save Data` to make it easier to save cleaned data.
 
 ## version 0.0.9, 2017/12/04, Package
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.
