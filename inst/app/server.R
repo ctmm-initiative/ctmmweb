@@ -669,7 +669,10 @@ output:
   })
   proxy_individuals <- DT::dataTableProxy("individuals")
   observeEvent(input$select_all, {
-    DT::selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
+    # this is always all rows
+    # DT::selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
+    # this is all rows after filtering. user may want to filter, select, clear filter to compare what are not selected
+    DT::selectRows(proxy_individuals, input$individuals_rows_all)
   })
   observeEvent(input$deselect_all, {
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
