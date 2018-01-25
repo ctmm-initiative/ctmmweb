@@ -516,7 +516,9 @@ range_summary_box <- shinydashboard::box(title = "Home Range Summary",
                         column(12, DT::dataTableOutput("range_summary"))
                         )
 )
-# p7. occurrence ----
+# p7. overlap ----
+
+# p8. occurrence ----
 occurrence_plot_box <- shinydashboard::box(title = "Occurrence Distribution",
                                            status = "info",
                       solidHeader = TRUE, width = 12,
@@ -528,7 +530,7 @@ occurrence_plot_box <- shinydashboard::box(title = "Occurrence Distribution",
                         column(2, offset = 3, br(), help_button("occurrence")),
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
-# p8. map ----
+# p9. map ----
 map_control_box <- shinydashboard::box(title = "Map Controls",
                                        status = "primary",
                            solidHeader = TRUE, width = 12,
@@ -554,7 +556,7 @@ map_box <- shinydashboard::tabBox(title = "Maps", id = "map_tabs", width = 12,
   tabPanel("Heatmap",
            fluidRow(column(12, uiOutput("heat_map_holder"))))
 )
-# p9. work report ----
+# p10. work report ----
 report_box <- shinydashboard::box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(

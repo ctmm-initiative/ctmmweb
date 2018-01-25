@@ -1925,9 +1925,11 @@ output:
       log_msg("Shapefiles built and downloaded")
     }
   )
-  # p7. occurrence ----
+  # p7. overlap ----
+
+  # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
-             size = "l", file = "help/7_occurrence.md")
+             size = "l", file = "help/8_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
     withProgress(print(system.time(
@@ -1970,9 +1972,9 @@ output:
     log_save_UD("occurrence")
     # graphics::par(def.par)
   }, height = function() { select_models()$vario_layout$height })
-  # p8. map ----
+  # p9. map ----
   callModule(click_help, "map", title = "Map",
-             size = "l", file = "help/8_map.md")
+             size = "l", file = "help/9_map.md")
   MAP_NAME_BY_TAB <- list(Point = "point_map", Heatmap = "heat_map")
   CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
   # save map to html, record html path in CURRENT_map_path. this is used in log save, and download map button.
@@ -2143,9 +2145,9 @@ output:
       file.copy(CURRENT_map_path[[input$map_tabs]], file)
     }
   )
-  # p9. report ----
+  # p10. report ----
   callModule(click_help, "report", title = "Work Report",
-             size = "l", file = "help/9_work_report.md")
+             size = "l", file = "help/10_work_report.md")
   # save data ----
   output$save_data <- downloadHandler(
     filename = function() {
