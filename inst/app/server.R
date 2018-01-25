@@ -11,7 +11,7 @@ server <- function(input, output, session) {
   # log functions will use these options, so need to prepare them first
   # each session have one error log file
   values$error_file <- tempfile()
-  # test checkbox status passively, one time read when called. create this function because it can handle both independent checkbox or checkboxgroup
+  # test checkbox status passively, one time read when called. wrap it into a function because if we decided to switch between independent checkbox or checkboxgroup, the changes only happens here, not every calling place.
   option_selected <- function(option) {
     isolate(input[[option]])
   }
