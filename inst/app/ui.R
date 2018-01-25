@@ -26,6 +26,8 @@ sidebar <- shinydashboard::dashboardSidebar(
                              icon = icon("hourglass-start")),
     shinydashboard::menuItem("Home Range", tabName = "homerange",
                              icon = icon("map-o")),
+    shinydashboard::menuItem("Overlap", tabName = "overlap",
+                             icon = icon("clone")),
     shinydashboard::menuItem("Occurrence", tabName = "occurrence",
                              icon = icon("map-marker")),
     shinydashboard::menuItem("Map", tabName = "map", icon = icon("globe")),
@@ -517,7 +519,35 @@ range_summary_box <- shinydashboard::box(title = "Home Range Summary",
                         )
 )
 # p7. overlap ----
-
+overlap_summary_box <- shinydashboard::box(title = "Overlap Summary",
+                                         status = "info",
+                                         solidHeader = TRUE, width = 12,
+         fluidRow(
+           column(4, checkboxInput("hide_ci_overlap",
+                                   "Hide Confidence Intervals")),
+           column(2, offset = 6, help_button("overlap")),
+           column(12, DT::dataTableOutput("overlap_summary"))
+         )
+)
+overlap_plot_box <- shinydashboard::box(title = "Overlap Plot",
+                                      status = "primary",
+                                      solidHeader = TRUE, width = 12
+                                      # ,
+          # fluidRow(
+          #   column(6, offset = 1,
+          #          textInput("hr_level_text",
+          #                    "% Contour level of Home Range",
+          #                    value = 95)),
+          #   column(3, offset = 2, br(),
+          #          downloadButton("export_hrange",
+          #                         "Export Shapefiles",
+          #                         icon = icon("save"),
+          #                         style = ctmmweb:::STYLES$download_button)),
+          #   column(12, plotOutput("range_plot",
+          #                         # less than 100%, otherwise out of boundary
+          #                         width = "99%", height = "98%")))
+          #
+          )
 # p8. occurrence ----
 occurrence_plot_box <- shinydashboard::box(title = "Occurrence Distribution",
                                            status = "info",
@@ -612,21 +642,15 @@ body <- shinydashboard::dashboardBody(
     shinydashboard::tabItem(tabName = "model",
             fluidRow(vario_control_box, variograms_box, model_selection_box)),
     shinydashboard::tabItem(tabName = "homerange",
-            # under_construction_box
-            fluidRow(range_plot_box, range_summary_box)
-            ),
+            fluidRow(range_plot_box, range_summary_box)),
+    shinydashboard::tabItem(tabName = "overlap",
+            fluidRow(overlap_summary_box, overlap_plot_box)),
     shinydashboard::tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
     shinydashboard::tabItem(tabName = "map",
             fluidRow(map_control_box, map_box)),
-    # tabItem(tabName = "report", fluidPage(includeMarkdown("help/workflow1.md")))
     shinydashboard::tabItem(tabName = "report",
-                            fluidRow(report_box
-                                     # ,
-                                     # if (DEBUG_MODE) debug_box)
-                                    # error_log_box
-                                    )
-                            )
+                            fluidRow(report_box))
   )
 )
 # assemble UI
