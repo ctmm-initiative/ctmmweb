@@ -532,22 +532,22 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap Summary",
 overlap_plot_box <- shinydashboard::box(title = "Overlap Plot",
                                       status = "primary",
                                       solidHeader = TRUE, width = 12
-                                      # ,
-          # fluidRow(
-          #   column(6, offset = 1,
-          #          textInput("hr_level_text",
-          #                    "% Contour level of Home Range",
-          #                    value = 95)),
-          #   column(3, offset = 2, br(),
-          #          downloadButton("export_hrange",
-          #                         "Export Shapefiles",
-          #                         icon = icon("save"),
-          #                         style = ctmmweb:::STYLES$download_button)),
-          #   column(12, plotOutput("range_plot",
-          #                         # less than 100%, otherwise out of boundary
-          #                         width = "99%", height = "98%")))
-          #
           )
+overlap_plot_box <- shinydashboard::tabBox(title = "Overlap Plot",
+                                           id = "overlap_tabs", width = 12,
+          tabPanel("Value Range",
+                   fluidRow(column(12,
+                             plotOutput("overlap_plot_value_range",
+                                        width = "99%", height = "100%")))),
+          tabPanel("Location",
+           fluidRow(column(12,
+             plotOutput("overlap_plot_location",
+                        dblclick = "overlap_plot_location_dblclick",
+                        brush = brushOpts(id = "overlap_plot_location_brush",
+                                          resetOnNew = TRUE),
+                        width = "99%", height = "100%"
+             ))))
+)
 # p8. occurrence ----
 occurrence_plot_box <- shinydashboard::box(title = "Occurrence Distribution",
                                            status = "info",
