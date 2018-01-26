@@ -1834,7 +1834,7 @@ output:
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
-  # select_models_hranges ----
+  # select_models_hranges() ----
   select_models_hranges <- reactive({
     req(select_models())
     withProgress(print(system.time(
@@ -1926,7 +1926,36 @@ output:
     }
   )
   # p7. overlap ----
-
+  # select_models_overlap() ----
+  select_models_overlap <- reactive({
+    # home range overlap
+    overlap_hrange <- ctmm::overlap(select_models_hranges(),
+                                    CTMM = select_models()$model_list)
+    # data.table of overlap matrix
+    overlap_matrix_dt <- overlap_matrix_to_dt(overlap_hrange)
+    # rows format instead of 2d table
+    overlap_dt <- melt(overlap_matrix_dt, id.vars = c("rn", "estimate"),
+                       variable.factor = FALSE )
+    # remove the duplicates
+    overlap_dt_unique <- overlap_dt[rn > variable,
+                                    .(v1 = variable, v2 = rn,
+                                      estimate, overlap = value)]
+    # ggplot need the value in columns
+    overlap_gg <- dcast(overlap_dt_unique, ... ~ estimate,
+                        value.var = "overlap")
+    overlap_gg[, Combination := paste(v1, v2, sep = " -")]
+    return(list(matrix_dt = overlap_matrix_dt,
+                # the row format
+                dt = overlap_dt,
+                gg = overlap_gg))
+  })
+  output$overlap_summary <- DT::renderDataTable({
+    DT::datatable(select_models_overlap()$matrix_dt,
+                  options = list(scrollX = TRUE,
+                                 pageLength = 18,
+                                 lengthMenu = c(18, 36, 72)),
+                  rownames = FALSE)
+  })
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/8_occurrence.md")
