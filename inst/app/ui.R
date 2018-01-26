@@ -531,14 +531,13 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
            column(12, DT::dataTableOutput("overlap_summary"))
          )
 )
-overlap_plot_box <- shinydashboard::box(title = "Overlap Plot",
-                                      status = "primary",
-                                      solidHeader = TRUE, width = 12
-          )
 overlap_plot_box <- shinydashboard::tabBox(title = "Overlap Plot",
                                            id = "overlap_tabs", width = 12,
           tabPanel("Value Range",
-                   fluidRow(column(12,
+                   fluidRow(
+                     column(4, checkboxInput("add_overlap_label",
+                                             "Add Value Label")),
+                     column(12,
                              plotOutput("overlap_plot_value_range",
                                         width = "99%", height = "100%")))),
           tabPanel("Location",

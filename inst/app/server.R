@@ -1959,10 +1959,22 @@ output:
     if (input$hide_ci_overlap) {
       dt <- dt[!stringr::str_detect(estimate, "CI")]
     }
+    brks <- seq(0, 1, length.out = 15)
+    clrs <- scales::grey_pal(start = 0.8, end = 0.1)(16)
     DT::datatable(dt, options = list(scrollX = TRUE,
                                      pageLength = 18,
                                      lengthMenu = c(18, 36, 72)),
-                  rownames = FALSE)
+                  rownames = FALSE) %>%
+      # majority cells in color by value
+      DT::formatStyle(3:ncol(dt), target = 'cell',
+                      color = DT::styleInterval(brks, clrs)
+      ) %>%
+      # override the low/high cols with background
+      DT::formatStyle('estimate', target = 'row',
+                      backgroundColor = DT::styleEqual(
+                        c("CI low", "ML" , "CI high"),
+                        c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
+      )
   })
   # overlap plot ---
 

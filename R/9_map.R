@@ -239,6 +239,7 @@ reactive_validated <- function(reactive_value) {
   return(!("try-error" %in% class(res)))
 }
 # take and return rgb strings. given a base color, create variations in different values, ordered from bright to dark.
+# the usual scales::gradient_n_pal take two ends then cut between, this is taking the 1 and 0.5 brightness variation of base color as two ends, otherwise the available color space could be very small when base color is quite dark/bright
 vary_color <- function(base_color, count) {
   if (count == 1) {
     return(base_color)
