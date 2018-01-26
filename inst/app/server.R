@@ -1954,18 +1954,18 @@ output:
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
     dt <- select_models_overlap()$matrix_dt
-    # LOG overlap summary
-    log_dt_md(dt, "Overlap Summary")
     if (input$hide_ci_overlap) {
       dt <- dt[!stringr::str_detect(estimate, "CI")]
     }
+    # LOG overlap summary
+    log_dt_md(dt, "Overlap Summary")
     brks <- seq(0, 1, length.out = 15)
     clrs <- scales::grey_pal(start = 0.8, end = 0.1)(16)
     DT::datatable(dt, options = list(scrollX = TRUE,
                                      pageLength = 18,
                                      lengthMenu = c(18, 36, 72)),
                   rownames = FALSE) %>%
-      # majority cells in color by value
+      # majority cells in color by value. it doesn't make sense to color by aniaml because each cell is intersection of two different animals.
       DT::formatStyle(3:ncol(dt), target = 'cell',
                       color = DT::styleInterval(brks, clrs)
       ) %>%
