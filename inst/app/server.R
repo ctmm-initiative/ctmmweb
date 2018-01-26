@@ -1931,14 +1931,16 @@ output:
     # home range overlap
     overlap_hrange <- ctmm::overlap(select_models_hranges(),
                                     CTMM = select_models()$model_list)
-    # data.table of overlap matrix
-    overlap_matrix_dt <- overlap_matrix_to_dt(overlap_hrange)
+    # data.table of overlap matrix. round 4 digits
+    overlap_matrix_dt <- overlap_matrix_to_dt(round(overlap_hrange, 4),
+                                              input$hide_half_overlap)
     # rows format instead of 2d table
-    overlap_dt <- melt(overlap_matrix_dt, id.vars = c("rn", "estimate"),
+    overlap_dt <- melt(overlap_matrix_dt,
+                       id.vars = c("home_range", "estimate"),
                        variable.factor = FALSE )
     # remove the duplicates
-    overlap_dt_unique <- overlap_dt[rn > variable,
-                                    .(v1 = variable, v2 = rn,
+    overlap_dt_unique <- overlap_dt[home_range < variable,
+                                    .(v1 = home_range, v2 = variable,
                                       estimate, overlap = value)]
     # ggplot need the value in columns
     overlap_gg <- dcast(overlap_dt_unique, ... ~ estimate,
@@ -1949,12 +1951,24 @@ output:
                 dt = overlap_dt,
                 gg = overlap_gg))
   })
+  # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
-    DT::datatable(select_models_overlap()$matrix_dt,
-                  options = list(scrollX = TRUE,
-                                 pageLength = 18,
-                                 lengthMenu = c(18, 36, 72)),
+    dt <- select_models_overlap()$matrix_dt
+    # LOG overlap summary
+    log_dt_md(dt, "Overlap Summary")
+    if (input$hide_ci_overlap) {
+      dt <- dt[!stringr::str_detect(estimate, "CI")]
+    }
+    DT::datatable(dt, options = list(scrollX = TRUE,
+                                     pageLength = 18,
+                                     lengthMenu = c(18, 36, 72)),
                   rownames = FALSE)
+  })
+  # overlap plot ---
+
+  # ovrelap locations ----
+  output$overlap_plot_location <- renderPlot({
+
   })
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",

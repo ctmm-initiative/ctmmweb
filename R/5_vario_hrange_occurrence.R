@@ -153,6 +153,7 @@ overlap_matrix_to_dt <- function(mat_3d, clear_half = FALSE) {
                                       overlap_matrix_dt_ML,
                                       overlap_matrix_dt_high))
   setorder(overlap_matrix_dt, "rn")
+  setnames(overlap_matrix_dt, "rn", "home_range")
   # move estimate col to 2nd
   col_count <- ncol(overlap_matrix_dt)
   setcolorder(overlap_matrix_dt, c(1, col_count, 2:(col_count - 1)))
