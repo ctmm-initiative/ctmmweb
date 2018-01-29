@@ -1932,6 +1932,8 @@ output:
     }
   )
   # p7. overlap ----
+  callModule(click_help, "overlap", title = "Overlap",
+             size = "l", file = "help/7_overlap.md")
   # select_models_overlap() ----
   select_models_overlap <- reactive({
     # home range overlap
