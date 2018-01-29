@@ -236,10 +236,12 @@ output:
     }
   })
   # values$ ----
-  values$data <- NULL  # 4 items need to be synced
+  # data hold various aspects of core data, 4 items need to be synced
+  values$data <- NULL
   # important reactive value and expressions need special comments, use <--. the design need to well thought
   # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. Once it's used, no need to keep the copy. thus add it with the new time subset. We don't need to keep the dt version because we can often just use existing dt and other info. do need to verify tele and dt is synced.
   # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting.
+  # merged hold $data_dt and $info. we used to call $dt but it was renamed because of exported function may have naming conflict with dt. data is a more generic name with more items, data_dt is the main dt.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
@@ -254,7 +256,7 @@ output:
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     values$data$id_pal <- leaflet::colorFactor(
       scales::hue_pal()(nrow(values$data$merged$info)),
-      # unique(values$data$merged$data$id)
+      # unique(values$data$merged$data_dt$id)
       values$data$merged$info$identity, ordered = TRUE
       )
     shinydashboard::updateTabItems(session, "tabs", "plots")
@@ -655,7 +657,7 @@ output:
           !(identity %in% chosen_ids)
           ]
       }
-      values$data$merged$data <- values$data$merged$data[
+      values$data$merged$data_dt <- values$data$merged$data_dt[
         !(identity %in% chosen_ids)
       ]
       remaining_indice <- !(values$data$merged$info$identity %in% chosen_ids)
@@ -697,7 +699,7 @@ output:
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    animals_dt <- values$data$merged$data[identity %in% chosen_ids]
+    animals_dt <- values$data$merged$data_dt[identity %in% chosen_ids]
     subset_indice <- values$data$merged$info$identity %in% chosen_ids
     info <- values$data$merged$info[subset_indice]
     # need to clear model fit result, change to original mode instead of modeled mode
@@ -707,7 +709,7 @@ output:
     log_dt_md(info[, .(identity, start, end, interval, duration, points)],
               "Current selected individuals")
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
-    return(list(data = animals_dt,
+    return(list(data_dt = animals_dt,
                 info = info,
                 chosen_row_nos = chosen_row_nos,
                 tele_list = values$data$tele_list[subset_indice]
@@ -734,10 +736,10 @@ output:
   }
   location_plot_gg_range <- add_zoom("location_plot_gg")
   output$location_plot_gg <- renderPlot({
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(select_data()$data_dt)
     # use dt parameter to determine whether to overlay
     if (input$overlay_all) {
-      dt <- values$data$merged$data
+      dt <- values$data$merged$data_dt
     } else {
       dt <- NULL
     }
@@ -746,7 +748,7 @@ output:
                            ylim = location_plot_gg_range$y)
     # g <- ggplot2::ggplot() +
     #   {if (input$overlay_all) {
-    #     ggplot2::geom_point(data = values$data$merged$data, ggplot2::aes(x, y),
+    #     ggplot2::geom_point(data = values$data$merged$data_dt, ggplot2::aes(x, y),
     #                         size = input$point_size_1, alpha = 0.6,
     #                         colour = "gray")
     #   }} +
@@ -769,7 +771,7 @@ output:
   # 2.3 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(select_data()$data_dt)
     g <- ctmmweb::plot_loc_facet(animals_dt)
     # g <- ggplot2::ggplot(data = animals_dt, ggplot2::aes(x, y)) +
     #   ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
@@ -787,7 +789,7 @@ output:
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.4 individual plot ----
   output$location_plot_individual <- renderPlot({
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(select_data()$data_dt)
     new_ranges <- ctmmweb:::get_ranges_quantile_dt(animals_dt,
                                                    input$include_level)
     id_vector <- select_data()$info$identity
@@ -823,7 +825,7 @@ output:
   }, height = function() { input$canvas_height }, width = "auto")
   # 2.5 histogram facet ----
   output$histogram_facet <- renderPlot({
-    animals_dt <- req(select_data()$data)
+    animals_dt <- req(select_data()$data_dt)
     g <- ctmmweb::plot_time(animals_dt)
     # g <- ggplot2::ggplot(data = animals_dt,
     #                      ggplot2::aes(x = timestamp, fill = id)) +
@@ -847,18 +849,18 @@ output:
     # exclude non-numeric input
     req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
-    animals_dt <- outlier_page_data$data
+    animals_dt <- outlier_page_data$data_dt
     animals_dt <- ctmmweb::calc_distance(animals_dt)
     animals_dt <- ctmmweb::calc_speed(animals_dt,
                                            as.numeric(input$device_error))
-    outlier_page_data$data <- animals_dt
+    outlier_page_data$data_dt <- animals_dt
     return(outlier_page_data)
   })
   # p3.a.1 distance histogram ----
   # note this also add bin factor column
   bin_by_distance <- reactive({
-    # animals_dt <- req(select_data()$data)
-    animals_dt <- req(calc_outlier()$data)
+    # animals_dt <- req(select_data()$data_dt)
+    animals_dt <- req(calc_outlier()$data_dt)
     return(ctmmweb:::color_break(input$distance_his_bins, animals_dt,
                                  "distance_center",
                                  ctmmweb:::format_distance_f))
@@ -1019,13 +1021,13 @@ output:
   # use side effect, update values$data, not chose animal. assuming row_name is always unique. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns in all_removed_points, but build dt by subset with row_name only, so no extra column transferred.
   remove_outliers <- function(points_to_remove) {
     # update the all outlier table, always start from original - all outliers.
-    # removed_points <- values$data$merged$data[
+    # removed_points <- values$data$merged$data_dt[
     #   row_name %in% row_names_to_remove]
     # distance and speed color_break will add each own factor column, so two tab have different columns. we only need the extra columns minus these factor column in summary table
     points_to_remove <- points_to_remove[, timestamp:speed]
     values$data$all_removed_outliers <- rbindlist(list(
       values$data$all_removed_outliers, points_to_remove))
-    animals_dt <- values$data$merged$data[
+    animals_dt <- values$data$merged$data_dt[
       !(row_name %in% values$data$all_removed_outliers[, row_name])]
     # update tele obj. more general apporach is update them according to data frame changes.
     changed <- unique(points_to_remove$identity)
@@ -1040,7 +1042,7 @@ output:
     # animals_dt <- ctmmweb::calculate_speed(animals_dt)
     values$data$tele_list <- tele_list
     values$data$merged <- NULL
-    values$data$merged <- list(data = animals_dt, info = info)
+    values$data$merged <- list(data_dt = animals_dt, info = info)
     verify_global_data()
   }
   proxy_points_in_distance_range <- DT::dataTableProxy(
@@ -1067,8 +1069,8 @@ output:
   # p3.b.1 speed histogram ----
   # bin_by_speed() ----
   bin_by_speed <- reactive({
-    # animals_dt <- req(select_data()$data)
-    animals_dt <- req(calc_outlier()$data)
+    # animals_dt <- req(select_data()$data_dt)
+    animals_dt <- req(calc_outlier()$data_dt)
     # too large UERE value will result calculated speed in 0
     zero_speeds <- all(range(animals_dt$speed) == c(0,0))
     if (zero_speeds) {
@@ -1179,7 +1181,7 @@ output:
   # points without valid speed values
   # output$points_speed_non_valid <- DT::renderDataTable({
   #   # only render table when there is a selection. otherwise it will be all data.
-  #   animals_dt <- req(values$data$merged$data)
+  #   animals_dt <- req(values$data$merged$data_dt)
   #   cols <- c("row_no", "timestamp", "id", "speed")
   #   datatable(animals_dt[is.na(speed), cols, with = FALSE],
   #             options = list(pageLength = 6,
@@ -1226,8 +1228,8 @@ output:
   output$all_removed_outliers <- DT::renderDataTable({
     # only render table when there is a selection. otherwise it will be all data.
     req(values$data$all_removed_outliers)
-    # animals_dt <- req(select_data()$data)
-    animals_dt <- req(calc_outlier()$data)
+    # animals_dt <- req(select_data()$data_dt)
+    animals_dt <- req(calc_outlier()$data_dt)
     dt <- format_outliers(values$data$all_removed_outliers, animals_dt)
     log_dt_md(dt, "All Removed Outliers")
     DT::datatable(dt,
@@ -1259,24 +1261,24 @@ output:
     req(values$data)
     req(length(input$individuals_rows_selected) == 1)
     selected_id <- select_data()$info$identity
-    data_i <- select_data()$data
-    data_i[, color_bin_start :=
+    data_i_dt <- select_data()$data_dt
+    data_i_dt[, color_bin_start :=
              ctmmweb:::cut_date_time(timestamp, input$time_color_bins)]  # a factor
-    color_bin_start_vec_time <- lubridate::ymd_hms(levels(data_i$color_bin_start))
+    color_bin_start_vec_time <- lubridate::ymd_hms(levels(data_i_dt$color_bin_start))
     color_bin_breaks <- c(color_bin_start_vec_time,
-                                     data_i[t == max(t), timestamp])
+                                     data_i_dt[t == max(t), timestamp])
     # initital selection is full range
     # the manual set of date range triggered this whole expression to calculate again, and reset it to full range.
     isolate({
       values$selected_time_range <- list(
-        select_start = data_i[t == min(t), timestamp],
-        select_end = data_i[t == max(t), timestamp])
+        select_start = data_i_dt[t == min(t), timestamp],
+        select_end = data_i_dt[t == max(t), timestamp])
       updateDateRangeInput(session, "date_range",
                            start = values$selected_time_range$select_start,
                            end = values$selected_time_range$select_end)
     })
     # using id internally to make code shorter, in data frame id is factor
-    return(list(identity = selected_id, data = data_i,
+    return(list(identity = selected_id, data_dt = data_i_dt,
                 # single tele object, not list, other places use tele_list
                 tele = select_data()$tele_list[[1]],
                 color_bin_start_vec_time = color_bin_start_vec_time,
@@ -1287,12 +1289,12 @@ output:
   # histogram cut by color bins. default with less groups since color difference is limited.
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
-    g <- ggplot2::ggplot(data = animal_binned$data, ggplot2::aes(x = timestamp)) +
+    g <- ggplot2::ggplot(data = animal_binned$data_dt, ggplot2::aes(x = timestamp)) +
       ggplot2::geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
                      fill = scales::hue_pal()(input$time_color_bins)) +
       ggplot2::scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = scales::date_format("%Y-%m-%d %H:%M:%S")) +
-      ggplot2::ggtitle(animal_binned$data[1, identity]) + ctmmweb:::CENTER_TITLE +
+      ggplot2::ggtitle(animal_binned$data_dt[1, identity]) + ctmmweb:::CENTER_TITLE +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_histogram")
@@ -1343,17 +1345,17 @@ output:
   output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- values$selected_time_range
-    animal_selected_data <- animal_binned$data[
+    animal_selected_data <- animal_binned$data_dt[
       (timestamp >= time_range$select_start) &
         (timestamp <= time_range$select_end)]
-    g <- ggplot2::ggplot(data = animal_binned$data, ggplot2::aes(x, y)) +
+    g <- ggplot2::ggplot(data = animal_binned$data_dt, ggplot2::aes(x, y)) +
       ggplot2::geom_point(size = 0.01, alpha = 0.5, colour = "gray") +
       ggplot2::geom_point(size = input$point_size_time_loc, alpha = 0.9,
                  data = animal_selected_data,
                  ggplot2::aes(colour = color_bin_start)) +
       ctmmweb:::factor_color(animal_selected_data$color_bin_start) +
-      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$x)) +
-      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data$y)) +
+      ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data_dt$x)) +
+      ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data_dt$y)) +
       ggplot2::coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
       ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
@@ -1397,7 +1399,7 @@ output:
     req(values$time_ranges)
     animal_binned <- color_bin_animal()
     # skip the new added column color_bin_start. the name of last column may change depend on other changes in data structure
-    dt <- animal_binned$data[, timestamp:row_no]
+    dt <- animal_binned$data_dt[, timestamp:row_no]
     new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     res <- vector("list", length = nrow(values$time_ranges))
     for (i in 1:nrow(values$time_ranges)) {
@@ -1423,12 +1425,12 @@ output:
     # update the row name in tele data frame by new row_name column
     row.names(new_tele) <- new_dt$row_name
     # update data
-    all_dt <- values$data$merged$data
+    all_dt <- values$data$merged$data_dt
     all_dt <- rbindlist(list(all_dt, new_dt))
     # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
     all_dt[, id := factor(identity)]
     all_dt[, row_no := .I]
-    values$data$merged$data <- all_dt
+    values$data$merged$data_dt <- all_dt
     # need to wrap single obj otherwise it was flattened by c
     values$data$tele_list <- c(values$data$tele_list,
                                ctmmweb:::wrap_single_telemetry(new_tele))
@@ -1813,6 +1815,9 @@ output:
                                 by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
+    # data.table of further selection of models on row selection select_data()
+    selected_data_dt <- select_data()$data_dt[
+      identity %in% selected_names_dt$identity]
     selected_model_list <- selected_models_dt$model
     names(selected_model_list) <- selected_names_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
@@ -1826,6 +1831,7 @@ output:
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
                 tele_list = selected_tele_list,
+                data_dt = selected_data_dt,
                 model_list = selected_model_list,
                 vario_list = selected_vario_list,
                 vario_layout = selected_vario_layout
@@ -1979,9 +1985,17 @@ output:
   # overlap plot ---
 
   # ovrelap locations ----
+  overlap_plot_location_range <- add_zoom("overlap_plot_location")
   output$overlap_plot_location <- renderPlot({
-
-  })
+    animals_dt <- req(select_models()$data_dt)
+    # no global data overlay in background
+    g <- ctmmweb::plot_loc(animals_dt, loc_data = NULL, input$point_size_1) +
+      ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
+                           ylim = overlap_plot_location_range$y)
+    # LOG save pic
+    log_save_ggplot(g, "overlap_plot_location")
+  }, height = function() { input$canvas_height }, width = "auto"
+  )
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/8_occurrence.md")
@@ -2062,7 +2076,7 @@ output:
   )
   # get_point_map() ----
   get_point_map <- reactive({
-    dt <- select_data()$data
+    dt <- select_data()$data_dt
     info <- select_data()$info
     # the color pallete need to be built upon full data set, not current subset
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
@@ -2102,7 +2116,7 @@ output:
   # need reactive here because save map button need to access it outside render function
   get_heat_map <- reactive({
     # we didn't use the package function here because we can reuse basemap
-    basemap %>% ctmmweb:::add_heat(select_data()$data)
+    basemap %>% ctmmweb:::add_heat(select_data()$data_dt)
   })
   output$heat_map <- leaflet::renderLeaflet({
     leaf <- get_heat_map()
@@ -2122,8 +2136,8 @@ output:
   observeEvent(input$tabs, {
     if (input$tabs == "map") {
       # buffalo 17k, gulls 32k start to be slow. set threshold to 25k.
-      # cat(nrow(select_data()$data), "\n")
-      if (nrow(select_data()$data) > 25000) {
+      # cat(nrow(select_data()$data_dt), "\n")
+      if (nrow(select_data()$data_dt) > 25000) {
         # need the tab title to identify tab
         updateTabsetPanel(session, "map_tabs", selected = "Heatmap")
       }
@@ -2172,7 +2186,7 @@ output:
   # reset map view ----
   observeEvent(input$reset_map_view, {
     # fitBounds will have some allowance so no need to add padding here.
-    bounds <- ctmmweb:::get_bounds(select_data()$data)
+    bounds <- ctmmweb:::get_bounds(select_data()$data_dt)
     leaflet::leafletProxy(MAP_NAME_BY_TAB[[input$map_tabs]], session) %>%
       leaflet::fitBounds(bounds$lng1, bounds$lat1, bounds$lng2, bounds$lat2)
   })
@@ -2237,7 +2251,7 @@ output:
                                           .(identity, start, end,
                                             interval, duration, points)],
                   "Current Telemetry Data")
-        fwrite(values$data$merged$data,
+        fwrite(values$data$merged$data_dt,
                file = file.path(session_tmpdir, "combined_data_table.csv"))
         # also save report for reference
         generate_report(preview = FALSE)

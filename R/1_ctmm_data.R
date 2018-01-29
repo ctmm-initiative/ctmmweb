@@ -213,11 +213,11 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' @param tele_obj_list telemetry object/list
 #'
 #' @return list of
-#' - `data`: all animals combined in one data.table
+#' - `data_dt`: all animals combined in one data.table
 #' - `info`: animal information table
 #' @export
 combine <- combine_tele_list <- function(tele_obj_list) {
-  return(list(data = tele_list_to_dt(tele_obj_list),
+  return(list(data_dt = tele_list_to_dt(tele_obj_list),
               info = report(tele_obj_list)))
 }
 # to test if tele_list is in sync with merged data.

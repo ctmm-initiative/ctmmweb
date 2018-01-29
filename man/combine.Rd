@@ -12,7 +12,7 @@ combine(tele_obj_list)
 \value{
 list of
 \itemize{
-\item \code{data}: all animals combined in one data.table
+\item \code{data_dt}: all animals combined in one data.table
 \item \code{info}: animal information table
 }
 }
