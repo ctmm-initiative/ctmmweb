@@ -4,7 +4,7 @@
 
 
 ### Value Range Plot
-
+- The plot height is also controlled by the `Canvas Height` control in `Visualization` page box 2.
 
 ### Location Plot
 - When multiple models for same individual are selection, the location points are same so only one individual is shown in plot.

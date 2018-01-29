@@ -139,6 +139,7 @@ output:
                      subset = "Time Subsetting",
                      model = "Model Selection",
                      homerange = "Home Range",
+                     overlap = "Overlap",
                      occurrence = "Occurrence",
                      map = "Map",
                      report = "Work Report")
@@ -1703,7 +1704,7 @@ output:
     tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
                                   values$selected_data_guess_list)
     # LOG try models
-    log_msg("Trying different models")
+    log_msg("Trying different models...")
     withProgress(print(system.time(
       values$selected_data_model_try_res <-
         par_try_tele_guess_mem(tele_guess_list,
@@ -1843,6 +1844,8 @@ output:
   # select_models_hranges() ----
   select_models_hranges <- reactive({
     req(select_models())
+    # LOG home range calculation
+    log_msg("Calculating Home Range ...")
     withProgress(print(system.time(
       res <- akde_mem(select_models()$tele_list,
                       CTMM = select_models()$model_list))),
@@ -1943,20 +1946,18 @@ output:
     overlap_matrix_dt <- overlap_matrix_to_dt(round(overlap_hrange, 4),
                                               input$hide_half_overlap)
     # rows format instead of 2d table
-    overlap_dt <- melt(overlap_matrix_dt,
+    overlap_rows_dt <- melt(overlap_matrix_dt,
                        id.vars = c("home_range", "estimate"),
                        variable.factor = FALSE )
     # remove the duplicates
-    overlap_dt_unique <- overlap_dt[home_range < variable,
+    overlap_rows_dt_unique <- overlap_rows_dt[home_range < variable,
                                     .(v1 = home_range, v2 = variable,
                                       estimate, overlap = value)]
     # ggplot need the value in columns
-    overlap_gg <- dcast(overlap_dt_unique, ... ~ estimate,
+    overlap_gg <- dcast(overlap_rows_dt_unique, ... ~ estimate,
                         value.var = "overlap")
-    overlap_gg[, Combination := paste(v1, v2, sep = " -")]
+    overlap_gg[, Combination := paste(v1, v2, sep = " / ")]
     return(list(matrix_dt = overlap_matrix_dt,
-                # the row format
-                dt = overlap_dt,
                 gg = overlap_gg))
   })
   # overlap table ----
@@ -1984,8 +1985,21 @@ output:
                         c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
       )
   })
-  # overlap plot ---
-
+  # overlap value range ----
+  output$overlap_plot_value_range <- renderPlot({
+    overlap_gg <- select_models_overlap()$gg
+    g <- ggplot2::ggplot(overlap_gg, ggplot2::aes(x = ML, y = Combination)) +
+      ggplot2::geom_point(size = 2, color = "blue") +
+      {if (input$add_overlap_label) {
+        ggplot2::geom_text(ggplot2::aes(label = ML),hjust = 0, vjust = -0.5)
+      }} +
+      ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
+                     color = "red", size = 0.3, height = 0.4) +
+      ggplot2::xlab("Overlap")
+    # LOG save pic
+    log_save_ggplot(g, "overlap_plot_value_range")
+  }, height = function() { input$canvas_height }, width = "auto"
+  )
   # ovrelap locations ----
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
   output$overlap_plot_location <- renderPlot({
@@ -2003,6 +2017,8 @@ output:
              size = "l", file = "help/8_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
+    # LOG Occurrence calculation
+    log_msg("Calculating Occurrence ...")
     withProgress(print(system.time(
       res <- par_occur_mem(select_models()$tele_list,
                            select_models()$model_list,

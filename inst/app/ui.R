@@ -12,7 +12,7 @@ header <- shinydashboard::dashboardHeader(title = "Animal Movement")
 sidebar <- shinydashboard::dashboardSidebar(
   shinydashboard::sidebarMenu(
     id = "tabs",
-    # match tabItem
+    # match tabItem, page_title in server.R need to sync with this.
     # menuItem("Introduction", tabName = "intro", icon = icon("info")),
     shinydashboard::menuItem("Import Data", tabName = "import",
                              icon = icon("upload"), selected = TRUE),
@@ -525,18 +525,18 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
          fluidRow(
            column(4, checkboxInput("hide_ci_overlap",
                                    "Hide Confidence Intervals")),
-           column(4, checkboxInput("hide_half_overlap",
+           column(3, checkboxInput("hide_half_overlap",
                                    "Hide Duplicate Half")),
-           column(2, offset = 2, help_button("overlap")),
+           column(2, offset = 0, help_button("overlap")),
            column(12, DT::dataTableOutput("overlap_summary"))
          )
 )
-overlap_plot_box <- shinydashboard::tabBox(title = "Overlap Plot",
+overlap_plot_box <- shinydashboard::tabBox(title = "Plot",
                                            id = "overlap_tabs", width = 12,
           tabPanel("Value Range",
                    fluidRow(
                      column(4, checkboxInput("add_overlap_label",
-                                             "Add Value Label")),
+                                             "Add Value Label", value = TRUE)),
                      column(12,
                              plotOutput("overlap_plot_value_range",
                                         width = "99%", height = "100%")))),
