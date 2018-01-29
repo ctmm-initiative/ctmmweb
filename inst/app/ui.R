@@ -397,7 +397,7 @@ selected_ranges_box <- shinydashboard::box(title = "Time Range List",
                                        icon = icon("ban"),
                                        style = ctmmweb:::STYLES$page_action)),
                    column(3, offset = 3,
-                          actionButton("generate_time_sub", "Combine to New",
+                          actionButton("generate_time_sub", "Generate Subset",
                                        icon = icon("pie-chart"),
                                        style = ctmmweb:::STYLES$page_action))
                    ),
