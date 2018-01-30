@@ -528,7 +528,8 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
            column(3, checkboxInput("hide_half_overlap",
                                    "Hide Duplicate Half")),
            column(2, offset = 0, help_button("overlap")),
-           column(12, DT::dataTableOutput("overlap_summary"))
+           column(12, DT::dataTableOutput("overlap_summary")),
+           column(12, DT::dataTableOutput("overlap_summary_2"))
          )
 )
 overlap_plot_box <- shinydashboard::tabBox(title = "Plot",
