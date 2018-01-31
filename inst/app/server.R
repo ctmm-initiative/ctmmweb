@@ -1964,16 +1964,17 @@ output:
                                               .(v1 = home_range, v2 = variable,
                                                 estimate, overlap = value)]
     # ggplot need the low/ML/high value in columns, now it's not totaly tidy
-    overlap_gg <- dcast(overlap_rows_dt_unique, ... ~ estimate,
+    overlap_dt <- dcast(overlap_rows_dt_unique, ... ~ estimate,
                         value.var = "overlap")
-    setcolorder(overlap_gg, c("v1", "v2", "CI low", "ML", "CI high"))
-    overlap_gg[, Combination := paste(v1, v2, sep = " / ")]
+    setcolorder(overlap_dt, c("v1", "v2", "CI low", "ML", "CI high"))
+    overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
+    # COPY end --
     return(list(matrix_dt = overlap_matrix_dt,
-                gg = overlap_gg))
+                dt = overlap_dt))
   })
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
-    dt <- copy(select_models_overlap()$gg)
+    dt <- copy(select_models_overlap()$dt)
     # don't need the combination column
     dt[, Combination := NULL]
     # LOG overlap summary
@@ -1992,14 +1993,14 @@ output:
   })
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
-    overlap_gg <- select_models_overlap()$gg
-    g <- ggplot2::ggplot(overlap_gg, ggplot2::aes(x = ML, y = Combination)) +
+    overlap_dt <- select_models_overlap()$dt
+    g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination)) +
       ggplot2::geom_point(size = 2, color = "blue") +
       {if (input$add_overlap_label) {
         ggplot2::geom_text(ggplot2::aes(label = ML),hjust = 0, vjust = -0.5)
       }} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
-                              color = "coral", size = 0.3, height = 0.35) +
+                              color = "coral", size = 0.45, height = 0.35) +
       ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_value_range")
