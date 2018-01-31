@@ -1994,7 +1994,10 @@ output:
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()$dt
+    current_order <- overlap_dt[rev(req(input$overlap_summary_rows_all)),
+                                Combination]
     g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination)) +
+      ggplot2::scale_y_discrete(limits = current_order) +
       ggplot2::geom_point(size = 2, color = "blue") +
       {if (input$add_overlap_label) {
         ggplot2::geom_text(ggplot2::aes(label = ML),hjust = 0, vjust = -0.5)
