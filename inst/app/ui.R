@@ -523,11 +523,7 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
                                          status = "info",
                                          solidHeader = TRUE, width = 12,
          fluidRow(
-           column(4, checkboxInput("hide_ci_overlap",
-                                   "Hide Confidence Intervals")),
-           column(3, checkboxInput("hide_half_overlap",
-                                   "Hide Duplicate Half")),
-           column(2, offset = 0, help_button("overlap")),
+           column(2, offset = 10, help_button("overlap")),
            column(12, DT::dataTableOutput("overlap_summary"))
          )
 )

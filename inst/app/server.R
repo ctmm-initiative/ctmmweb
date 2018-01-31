@@ -153,8 +153,8 @@ output:
     req(values$data)
     # since we req data, so it will not record pages without data. This is good.
     log_page(page_title[[input$tabs]])
+    # time subset page need single animal be selected
     if (input$tabs == "subset") {
-      # must select single animal to proceed
       if (length(input$individuals_rows_selected) != 1) {
         shinydashboard::updateTabItems(session, "tabs", "plots")
         showNotification(
@@ -162,6 +162,15 @@ output:
           type = "error", duration = 6)
       }
     }
+    # # overlap page will jump to home range if it's not calculated yt
+    # if (input$tabs == "overlap") {
+    #   if (!ctmmweb:::reactive_validated(select_models_hranges())) {
+    #     shinydashboard::updateTabItems(session, "tabs", "homerange")
+    #     showNotification(
+    #       "Please check home range first",
+    #       type = "warning", duration = 5)
+    #   }
+    # }
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
@@ -1943,9 +1952,8 @@ output:
     overlap_hrange <- ctmm::overlap(select_models_hranges(),
                                     CTMM = select_models()$model_list)
     # data.table of overlap matrix. round 4 digits
-    # TODO remove the hide half option
     overlap_matrix_dt <- overlap_matrix_to_dt(round(overlap_hrange, 4),
-                                              input$hide_half_overlap)
+                                              clear_half = TRUE)
     # COPY from overlap.Rmd - plot point range --
     # rows format instead of 2d table. need to avoid factor so we can compare string
     overlap_rows_dt <- melt(overlap_matrix_dt,
@@ -1965,31 +1973,6 @@ output:
   })
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
-    dt <- select_models_overlap()$matrix_dt
-    if (input$hide_ci_overlap) {
-      dt <- dt[!stringr::str_detect(estimate, "CI")]
-    }
-    # LOG overlap summary
-    log_dt_md(dt, "Overlap Summary")
-    # shared part in rmd begin --
-    brks <- seq(0, 1, length.out = 15)
-    clrs <- scales::grey_pal(start = 0.8, end = 0.1)(16)
-    DT::datatable(dt, options = list(scrollX = TRUE,
-                                     pageLength = 18,
-                                     lengthMenu = c(18, 36, 72)),
-                  rownames = FALSE) %>%
-      # majority cells in color by value. it doesn't make sense to color by aniaml because each cell is intersection of two different animals.
-      DT::formatStyle(3:ncol(dt), target = 'cell',
-                      color = DT::styleInterval(brks, clrs)
-      ) %>%
-      # override the low/high cols with background
-      DT::formatStyle('estimate', target = 'row',
-                      backgroundColor = DT::styleEqual(
-                        c("CI low", "ML" , "CI high"),
-                        c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-      )
-  })
-  output$overlap_summary <- DT::renderDataTable({
     dt <- copy(select_models_overlap()$gg)
     # don't need the combination column
     dt[, Combination := NULL]
@@ -2002,8 +1985,8 @@ output:
                                  lengthMenu = c(18, 36, 72)),
                   rownames = TRUE) %>%
       # override the low/high cols with background
-      DT::formatStyle("CI low", color = "green") %>%
-      DT::formatStyle("CI high", color = "red") %>%
+      DT::formatStyle(c("CI low", "CI high"), color = "coral") %>%
+      # DT::formatStyle("CI high", color = "red") %>%
       DT::formatStyle("ML", color = "blue")
     # COPY end --
   })
@@ -2016,8 +1999,8 @@ output:
         ggplot2::geom_text(ggplot2::aes(label = ML),hjust = 0, vjust = -0.5)
       }} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
-                     color = "red", size = 0.3, height = 0.4) +
-      ggplot2::xlab("Overlap")
+                              color = "coral", size = 0.3, height = 0.35) +
+      ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_value_range")
   }, height = function() { input$canvas_height }, width = "auto"
