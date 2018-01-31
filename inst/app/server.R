@@ -1947,25 +1947,20 @@ output:
     overlap_matrix_dt <- overlap_matrix_to_dt(round(overlap_hrange, 4),
                                               input$hide_half_overlap)
     # COPY from overlap.Rmd - plot point range --
-    # rows format instead of 2d table
+    # rows format instead of 2d table. need to avoid factor so we can compare string
     overlap_rows_dt <- melt(overlap_matrix_dt,
                             id.vars = c("home_range", "estimate"),
-                            na.rm = TRUE)
-    # remove the duplicates
+                            variable.factor = FALSE, na.rm = TRUE)
+    # < removes both duplicate combination and same animal combination, also make sure the combination is sorted.
     overlap_rows_dt_unique <- overlap_rows_dt[home_range < variable,
-                                    .(v1 = home_range, v2 = variable,
-                                      estimate, overlap = value)]
-    # ggplot need the low/ML/high value in columns
+                                              .(v1 = home_range, v2 = variable,
+                                                estimate, overlap = value)]
+    # ggplot need the low/ML/high value in columns, now it's not totaly tidy
     overlap_gg <- dcast(overlap_rows_dt_unique, ... ~ estimate,
                         value.var = "overlap")
-    # this version is good as summary table since low/ML/high take less space
-    # make some aesthetic changes
-    # summary table version
-    overlap_summary_dt <- copy(overlap_gg)
-    setcolorder(overlap_summary_dt, c("v1", "v2", "CI low", "ML", "CI high"))
+    setcolorder(overlap_gg, c("v1", "v2", "CI low", "ML", "CI high"))
     overlap_gg[, Combination := paste(v1, v2, sep = " / ")]
     return(list(matrix_dt = overlap_matrix_dt,
-                summary_dt = overlap_summary_dt,
                 gg = overlap_gg))
   })
   # overlap table ----
@@ -1994,12 +1989,23 @@ output:
                         c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
       )
   })
-  output$overlap_summary_2 <- DT::renderDataTable({
-    dt <- select_models_overlap()$summary_dt
-    DT::datatable(dt, options = list(
-                                     pageLength = 18,
-                                     lengthMenu = c(18, 36, 72)),
-                  rownames = FALSE)
+  output$overlap_summary <- DT::renderDataTable({
+    dt <- copy(select_models_overlap()$gg)
+    # don't need the combination column
+    dt[, Combination := NULL]
+    # LOG overlap summary
+    log_dt_md(dt, "Overlap Summary")
+    # COPY start --
+    DT::datatable(dt,
+                  # class = 'table-bordered',
+                  options = list(pageLength = 18,
+                                 lengthMenu = c(18, 36, 72)),
+                  rownames = TRUE) %>%
+      # override the low/high cols with background
+      DT::formatStyle("CI low", color = "green") %>%
+      DT::formatStyle("CI high", color = "red") %>%
+      DT::formatStyle("ML", color = "blue")
+    # COPY end --
   })
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
