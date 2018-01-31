@@ -1943,12 +1943,14 @@ output:
     overlap_hrange <- ctmm::overlap(select_models_hranges(),
                                     CTMM = select_models()$model_list)
     # data.table of overlap matrix. round 4 digits
+    # TODO remove the hide half option
     overlap_matrix_dt <- overlap_matrix_to_dt(round(overlap_hrange, 4),
                                               input$hide_half_overlap)
+    # COPY from overlap.Rmd - plot point range --
     # rows format instead of 2d table
     overlap_rows_dt <- melt(overlap_matrix_dt,
-                       id.vars = c("home_range", "estimate"),
-                       variable.factor = FALSE )
+                            id.vars = c("home_range", "estimate"),
+                            na.rm = TRUE)
     # remove the duplicates
     overlap_rows_dt_unique <- overlap_rows_dt[home_range < variable,
                                     .(v1 = home_range, v2 = variable,

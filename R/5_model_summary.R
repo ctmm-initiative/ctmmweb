@@ -198,3 +198,37 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
 #   # use [] to make sure calling function directly will print in console.
 #   model_list_dt_to_formated_model_summary_dt(models_dt)[]
 # }
+
+# convert ctmm::overlap result matrix into data.table ----
+
+#' Convert overlap result matrix to data.table
+#'
+#' @param mat_3d the 3d matrix result from `ctmm::overlap`
+#' @param clear_half whether to clear the lower triangular part, including the
+#'   diagonal
+#'
+#' @return a `data.table` of overlap results
+#' @export
+overlap_matrix_to_dt <- function(mat_3d, clear_half = FALSE) {
+  matrix_to_dt <- function(mat, estimate_level, clear_half = FALSE) {
+    if (clear_half) {
+      # clear lower triangular part
+      mat[lower.tri(mat, diag = TRUE)] <- NA
+    }
+    # rownames need to kept explicitly, and it become a column.
+    matrix_dt <- data.table(mat, keep.rownames = TRUE)
+    matrix_dt[, estimate := estimate_level]
+  }
+  # need the data.table of full data, for overview table. 3 versions in columns can only work by tags which is not reliable. add another column of low/ML/high and save 3 version in rows, just like the model summary table
+  overlap_matrix_dt_low <- matrix_to_dt(mat_3d[ , , 1], "CI low", clear_half)
+  overlap_matrix_dt_ML <- matrix_to_dt(mat_3d[ , , 2], "ML", clear_half)
+  overlap_matrix_dt_high <- matrix_to_dt(mat_3d[ , , 3], "CI high", clear_half)
+  overlap_matrix_dt <- rbindlist(list(overlap_matrix_dt_low,
+                                      overlap_matrix_dt_ML,
+                                      overlap_matrix_dt_high))
+  setorder(overlap_matrix_dt, "rn")
+  setnames(overlap_matrix_dt, "rn", "home_range")
+  # move estimate col to 2nd
+  col_count <- ncol(overlap_matrix_dt)
+  setcolorder(overlap_matrix_dt, c(1, col_count, 2:(col_count - 1)))
+}
