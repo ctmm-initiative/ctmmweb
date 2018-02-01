@@ -1741,7 +1741,7 @@ output:
         !stringr::str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
     }
-    # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table
+    # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table. the color pallete and mapping function must be based on full table, not current selected subset.
     model_names_dt <- unique(formated_summary_dt[,
                             .(identity, model_type, model_name)])
     # prepare model color, identity color function
@@ -2124,13 +2124,22 @@ output:
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
       # hr_pal <- model_pal(summary_models()$model_names_dt, id_pal)
-      # the pallete function came from full data
+      # the pallete function always came from full data
       hr_pal <- summary_models()$hr_pal
-      selected_names <- names(select_models_hranges())
+      # so we need to use full model_name as domains
+      selected_model_names <- select_models()$names_dt$model_name
+      # though the layer name can be different. they are all just vectors in certain order, the home range/model_name/mapped color/display name all in same order.
+      # use display name as layer name, but need to add post fix in simple format, when identity is not duplicated and used as display name directly
+      if (anyDuplicated(select_models()$names_dt, by = "identity") == 0) {
+       hrange_layer_names <- stringr::str_c(select_models()$names_dt$identity,
+                                            " - Home Range")
+      } else {
+        hrange_layer_names <- selected_model_names
+      }
       leaf <- leaf %>%
         ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
-                            hr_pal(selected_names)) %>%
-        ctmmweb::add_control(c(info$identity, selected_names))
+                            hr_pal(selected_model_names)) %>%
+        ctmmweb::add_control(c(info$identity, hrange_layer_names))
     } else {
       leaf <- leaf %>%
         ctmmweb::add_control(info$identity)
