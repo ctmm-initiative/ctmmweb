@@ -1771,7 +1771,7 @@ output:
                                     pageLength = 18,
                                     lengthMenu = c(18, 36, 72)),
                   rownames = FALSE) %>%
-      # majority cells in color by model
+      # majority cells in color by model type
       DT::formatStyle('model_type', target = 'row',
                       color = DT::styleEqual(
                         model_types, scales::hue_pal()(length(model_types)))
@@ -1820,6 +1820,13 @@ output:
     model_summary_dt <- summary_models()$summary_dt
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
                                            .(identity, model_type, model_name)])
+    # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
+    # display_name is a dynamic column depend on selection, so it's created here, not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
+    if (anyDuplicated(selected_names_dt, by = "identity") != 0) {
+      selected_names_dt[, display_name := model_name]
+    } else {
+      selected_names_dt[, display_name := identity]
+    }
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
@@ -1829,6 +1836,7 @@ output:
     selected_data_dt <- select_data()$data_dt[
       identity %in% selected_names_dt$identity]
     selected_model_list <- selected_models_dt$model
+    # the modeled variogram plot title come from here. For now it's model_name.
     names(selected_model_list) <- selected_names_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
       selected_names_dt$identity]
@@ -1860,7 +1868,8 @@ output:
                       CTMM = select_models()$model_list))),
       message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
-    names(res) <- select_models()$names_dt$model_name
+    # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
+    names(res) <- select_models()$names_dt$display_name
     return(res)
   })
   # home range summary ----
@@ -2037,7 +2046,8 @@ output:
     #   output$occurrence_info <- renderPrint(str(res))
     # }
     # add name so plot can take figure title from it
-    names(res) <- select_models()$names_dt$model_name
+    # # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
+    names(res) <- select_models()$names_dt$display_name
     res
   })
   # function on input didn't update, need a reactive expression?

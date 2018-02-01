@@ -42,7 +42,7 @@ model_try_res_to_model_list_dt <- function(model_try_res) {
     data.frame(res)$dAICc
   }
   models_dt[, dAICc := get_aicc_col(model), by = identity]
-  # add model name col so it can be used to create model color palette
+  # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
   models_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
 }
 # generate summary table for models. home range don't have dAICc column
