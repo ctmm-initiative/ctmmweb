@@ -2029,6 +2029,7 @@ output:
   )
   # ovrelap locations ----
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
+  # just catch the error of data mismatch, since it will update to correction soon and didn't find a better solution to control execution order yet. but we have to include the whole renderplot because there will not be ggplot object when error happened. still not caught.
   output$overlap_plot_location <- renderPlot({
     animals_dt <- req(select_models()$data_dt)
     # show overview when no rows selected
