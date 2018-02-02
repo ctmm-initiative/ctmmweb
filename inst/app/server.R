@@ -1992,7 +1992,8 @@ output:
     DT::datatable(dt,
                   # class = 'table-bordered',
                   options = list(pageLength = 18,
-                                 lengthMenu = c(18, 36, 72)),
+                                 lengthMenu = c(18, 36, 72),
+                                 order = list(list(4, 'desc'))),
                   rownames = TRUE) %>%
       # override the low/high cols with background
       DT::formatStyle(c("CI low", "CI high"),
