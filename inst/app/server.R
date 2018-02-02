@@ -1984,7 +1984,7 @@ output:
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
     dt <- copy(select_models_overlap()$dt)
-    # don't need the combination column
+    # don't need the combination column. we can hide columns in DT but it's quite complex with 1 index trap
     dt[, Combination := NULL]
     # LOG overlap summary
     log_dt_md(dt, "Overlap Summary")
@@ -1995,28 +1995,36 @@ output:
                                  lengthMenu = c(18, 36, 72)),
                   rownames = TRUE) %>%
       # override the low/high cols with background
-      DT::formatStyle(c("CI low", "CI high"), color = "coral") %>%
-      # DT::formatStyle("CI high", color = "red") %>%
+      DT::formatStyle(c("CI low", "CI high"),
+                      color = scales::hue_pal()(1)) %>%
       DT::formatStyle("ML", color = "blue")
     # COPY end --
   })
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()$dt
+    # COPY start --
+    # need to wait until table is finished
     current_order <- overlap_dt[rev(req(input$overlap_summary_rows_all)),
                                 Combination]
-    g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination)) +
+    overlap_dt[, selected := FALSE]
+    overlap_dt[input$overlap_summary_rows_selected, selected := TRUE]
+    g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination,
+                                                  color = selected)) +
+      # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
-      ggplot2::geom_point(size = 2, color = "blue") +
-      {if (input$add_overlap_label) {
-        ggplot2::geom_text(ggplot2::aes(label = ML),hjust = 0, vjust = -0.5)
-      }} +
+      # na.rm in point, text, errorbar otherwise will warning in filtering
+      ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
+      {if (input$show_overlap_label) {
+        ggplot2::geom_text(ggplot2::aes(label = ML), hjust = 0, vjust = -0.5,
+                           show.legend = FALSE, na.rm = TRUE)}} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
-                              color = "coral", size = 0.45, height = 0.35) +
+                              size = 0.45, height = 0.35, na.rm = TRUE) +
       ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
+    # COPY end --
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_value_range")
-  }, height = function() { input$canvas_height }, width = "auto"
+  }, height = function() { input$overlap_plot_height }, width = "auto"
   )
   # ovrelap locations ----
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
@@ -2028,7 +2036,7 @@ output:
                            ylim = overlap_plot_location_range$y)
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_location")
-  }, height = function() { input$canvas_height }, width = "auto"
+  }, height = function() { input$overlap_loc_height }, width = "auto"
   )
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
