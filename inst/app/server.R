@@ -2003,10 +2003,11 @@ output:
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()$dt
-    # COPY start --
     # need to wait until table is finished
     current_order <- overlap_dt[rev(req(input$overlap_summary_rows_all)),
                                 Combination]
+    # tried to move the dynamic column part to reactive expression, which would cause the table refresh twice in start (update after table is built), and row selection caused data change, table refresh and lost row selection.
+    # COPY start --
     overlap_dt[, selected := FALSE]
     overlap_dt[input$overlap_summary_rows_selected, selected := TRUE]
     g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination,
@@ -2030,10 +2031,31 @@ output:
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
   output$overlap_plot_location <- renderPlot({
     animals_dt <- req(select_models()$data_dt)
-    # no global data overlay in background
-    g <- ctmmweb::plot_loc(animals_dt, loc_data = NULL, input$point_size_1) +
-      ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
-                           ylim = overlap_plot_location_range$y)
+    # show overview when no rows selected
+    if (length(input$overlap_summary_rows_selected) == 0) {
+      # no global data overlay in background
+      g <- ctmmweb::plot_loc(animals_dt, loc_data = NULL, input$point_size_1) +
+        ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
+                             ylim = overlap_plot_location_range$y)
+    } else {# show grouped plot of pairs when rows selected
+      # because data.table modify by reference, the plot code actually added selected column already, though we can use the selection number directly and not relying on this implicitly.
+      # want to sort the plot in same order of table, even if user clicked some top rows later, or sorted table later, or filtered table
+      # need to req, otherwise if we stay in this tab and updated data, for a brief period the value is not available yet. some other usages actually don't have problem with NULL value so req is not needed.
+      # when there is row selection and group plots, then data updated and table updated, the row selection cleared. The row selection values are not cleared after it's gone and before new table generated, thus generate empty plot and warnings. Newer DT fixed this problem by my suggestion #457 -- not really. the problem is when data is updating, both table and plot are in same page, and plot started to use existing row selection to plot when the table is not cleared yet. plot should wait for table finish. tried to use the global data instead of current selected model data, but still have problem.
+
+      selected_rows_in_current_order <- intersect(
+        req(input$overlap_summary_rows_current),
+        req(input$overlap_summary_rows_selected))
+      selected_pairs_current_order <- select_models_overlap()$dt[
+        selected_rows_in_current_order, .(v1, v2)]
+      # usling lapply like a loop, so we don't need to initialize the list
+      g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
+        plot_loc(select_models()$data_dt[
+          identity %in% selected_pairs_current_order[i]])
+      })
+      g <- gridExtra::grid.arrange(grobs = g_list,
+                                   ncol = input$overlap_loc_columns)
+    }
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_location")
   }, height = function() { input$overlap_loc_height }, width = "auto"
