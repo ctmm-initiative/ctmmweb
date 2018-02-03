@@ -2030,7 +2030,6 @@ output:
   )
   # ovrelap locations ----
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
-  # just catch the error of data mismatch, since it will update to correction soon and didn't find a better solution to control execution order yet. but we have to include the whole renderplot because there will not be ggplot object when error happened. still not caught.
   output$overlap_plot_location <- renderPlot({
     animals_dt <- req(select_models()$data_dt)
     # show overview when no rows selected
@@ -2040,26 +2039,29 @@ output:
         ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
                              ylim = overlap_plot_location_range$y)
     } else {# show grouped plot of pairs when rows selected
-      # because data.table modify by reference, the plot code actually added selected column already, though we can use the selection number directly and not relying on this implicitly.
-      # want to sort the plot in same order of table, even if user clicked some top rows later, or sorted table later, or filtered table
-      # need to req, otherwise if we stay in this tab and updated data, for a brief period the value is not available yet. some other usages actually don't have problem with NULL value so req is not needed.
-      # when there is row selection and group plots, then data updated and table updated, the row selection cleared. The row selection values are not cleared after it's gone and before new table generated, thus generate empty plot and warnings. Newer DT fixed this problem by my suggestion #457 -- not really. the problem is when data is updating, both table and plot are in same page, and plot started to use existing row selection to plot when the table is not cleared yet. plot should wait for table finish. tried to use the global data instead of current selected model data, but still have problem.
+      # because data.table modify by reference, the plot code actually added selected column already, but we use the selection number directly and not relying on this implicitly.
+      # sort the plot in same order of table, even if user clicked some top rows later, or sorted table later, or filtered table
       selected_rows_in_current_order <- intersect(
         req(input$overlap_summary_rows_current),
         req(input$overlap_summary_rows_selected))
-      # when data updated, the table row selection is always slowest to update/clear. There is a time period when underlying data changed but table selection is old (even newer DT version tried to clear the selection, it's still slower than data change). Now we are using old row numbers on new data.table subsetting, which could be wrong or out of scope.
-      # just to remove the warning/error, we could check data here to make sure no empty data is drawn so no warnings. There could be wrong plot in brief time period but should update after table finished.
-      # there could be NA rows because of index out of scope, and no matching data because selected pairs doesn't exist in new data, or exist but wrong matches because table is changed.
-      # instead of using row index directly, use v1 v2 value to match. or just stop if the index resulted v1 v2 is different from v1 v2 value in previous selection. there is no way to check inconsistence unless we keep some memory of previous data.
       selected_pairs_current_order <- select_models_overlap()$dt[
         selected_rows_in_current_order, .(v1, v2)]
-      # usling lapply like a loop, so we don't need to initialize the list
-      g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
-        plot_loc(select_models()$data_dt[
-          identity %in% selected_pairs_current_order[i]])
+      # when data updated, underlying data changed but the table is still there, row selection applied to new data could cause problem, empty plot and errors. catch them and raise silent error
+      tryCatch({
+        # usling lapply like a loop, so we don't need to initialize the list
+        g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
+          # warning of drawing plot on empty data, not error
+          suppressWarnings(
+            plot_loc(select_models()$data_dt[
+              identity %in% selected_pairs_current_order[i]])
+          )
+        })
+        g <- gridExtra::grid.arrange(grobs = g_list,
+                                     ncol = input$overlap_loc_columns)
+      }, error = function(e) {
+        # silent error and stop
+        req(FALSE)
       })
-      g <- gridExtra::grid.arrange(grobs = g_list,
-                                   ncol = input$overlap_loc_columns)
     }
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_location")
