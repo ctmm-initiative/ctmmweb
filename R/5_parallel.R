@@ -21,6 +21,7 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
+
 # used to write parallel as last parameter, then para_ll(ll, fun, parallel = TRUE) is interpreted as win_init = {parallel = TRUE}
 
 #' Parallel apply function to list in all platforms
@@ -39,11 +40,16 @@ align_list <- function(list_a, list_b) {
 #'   parameter function into a function take single list parameter, and assign
 #'   parameters in that list accordingly. [align_list()] is a helper function to
 #'   align two lists.
-#' @param reserved_cores reserve some cores so that not all cores are used.
-#'   Check your platform's core count with `parallel::detectCores(logical =
-#'   FALSE)`. `?parallel::detectCores` has more details about physical/logical
-#'   cores in different platforms.
-#' @param parallel Use regular `lapply` when FALSE
+#' @param cores the cores count to be used for cluster. Could be a positive
+#'  integer or
+#'   - Default `NULL` value will indicate to use a heuristic value based on detected cores, which is roughly `min(input_size, physical_cores_count * n)`,
+#'   `n` being 2 for windows, 4 for Mac/Linux. See `?parallel::detectCores` for
+#'    more information on physical/logical cores in different platforms.
+#'   - A negative value like `-2` will use `all available cores - 2`, so that 2
+#'    cores are reserved for user's other tasks.
+#' @param parallel Use regular `lapply` when FALSE. You may notice more console
+#'  messages in this mode because the console messages in parallel mode are
+#'  lost by default as they happened in other threads.
 #' @param win_init Expression to be initialized in Windows. Since all parameters
 #'   should be included in the input list already, this usually means library
 #'   calls, like `{library(ctmm)}` for ctmm related operations, which has been
@@ -54,42 +60,47 @@ align_list <- function(list_a, list_b) {
 #' @export
 #'
 par_lapply <- function(lst, fun,
-                       reserved_cores = 0,
+                       cores = NULL,
                        parallel = TRUE,
-                       win_init = expression(
-                         {requireNamespace("ctmm", quietly = TRUE)}
-                         )
-) {
+                       win_init = expression({
+                         requireNamespace("ctmm", quietly = TRUE)
+                         })) {
   if (parallel) {
+    # cores value has 3 cases, 2 of them are platform independent when there is a explicit value
+    # assigned explicitly
+    if (!is.null(cores) && cores > 0) { # NULL>0 become logical(0), not FALSE
+      cluster_size <- cores
+    }
+    # negative value, reserve cores. must be explicit not just else, because NULL is valid input
+    if (!is.null(cores) && cores < 0) {
+      # use max(x, 1) to avoid invalid values like 4 - 5, 4 - 4
+      cluster_size <- max(parallel::detectCores(logical = FALSE) + cores, 1)
+    }
     sysinfo <- Sys.info()
-    if (sysinfo["sysname"] == "Windows")  {  # Darwin / Windows
-      if (reserved_cores == 0) {
-        win_cluster_size <- min(length(lst), parallel::detectCores())
-      } else {
-        win_cluster_size <-
-          max(parallel::detectCores(logical = FALSE) - reserved_cores, 1)
+    # windows ----
+    if (sysinfo["sysname"] == "Windows")  {# Darwin for Mac
+      if (is.null(cores)) {# no input, use heuristic.
+        cluster_size <- min(length(lst),
+                            parallel::detectCores(logical = FALSE) * 2)
       }
       cat(crayon::inverse("running parallel in SOCKET cluster of",
-                          win_cluster_size, "\n"))
-      cl <- parallel::makeCluster(win_cluster_size, outfile = "")
+                          cluster_size, "\n"))
+      cl <- parallel::makeCluster(cluster_size, outfile = "")
       # have to export parameter too because it's not available in remote
       parallel::clusterExport(cl, c("win_init"), envir = environment())
       parallel::clusterEvalQ(cl, eval(win_init))
       res <- parallel::parLapplyLB(cl, lst, fun)
       parallel::stopCluster(cl)
-    } else {
-      if (reserved_cores == 0) {
+    } else {# Mac/Linux ----
+      if (is.null(cores)) {# no input, use heuristic
         cluster_size <- min(length(lst),
                             parallel::detectCores(logical = FALSE) * 4)
-      } else {
-        cluster_size <-
-          max(parallel::detectCores(logical = FALSE) - reserved_cores, 1)
       }
       cat(crayon::inverse("running parallel with mclapply in cluster of",
                           cluster_size, "\n"))
       res <- parallel::mclapply(lst, fun, mc.cores = cluster_size)
     }
-  } else {
+  } else {# non-parallel mode
     res <- lapply(lst, fun)
   }
   return(res)
@@ -101,7 +112,7 @@ par_lapply <- function(lst, fun,
 # trace will print progress, but console output is lost in parallel mode since they are not in master r process. it will be shown in non-parallel mode.
 # didn't add animal names to list because the aligned list lost model name information anyway. we added the names in calling code instead. It was only called once.
 par_try_tele_guess <- function(tele_guess_list,
-                               reserved_cores = 0,
+                               cores = NULL,
                                parallel = TRUE) {
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict. fit is also not optimal since it hint ctmm.fit
   # use try to refer the ctmm.select, use select to refer the manual select rows in model summary table.
@@ -109,7 +120,7 @@ par_try_tele_guess <- function(tele_guess_list,
     ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                       trace = TRUE, verbose = TRUE)
   }
-  par_lapply(tele_guess_list, try_models, reserved_cores, parallel)
+  par_lapply(tele_guess_list, try_models, cores, parallel)
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 
@@ -126,7 +137,7 @@ par_try_tele_guess <- function(tele_guess_list,
 #'   models as sub items with model type as name
 #' @export
 par_try_models <- function(tele_list,
-                              reserved_cores = 0,
+                           cores = NULL,
                               parallel = TRUE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
@@ -134,7 +145,7 @@ par_try_models <- function(tele_list,
                                 }))
   print(system.time(model_try_res <-
                       par_try_tele_guess(tele_guess_list,
-                                         reserved_cores,
+                                         cores,
                                          parallel)))
   names(model_try_res) <- names(tele_list)
   return(model_try_res)
@@ -150,7 +161,7 @@ par_try_models <- function(tele_list,
 #' @return list of models named by animal names
 #' @export
 par_fit_models <- function(tele_list,
-                           reserved_cores = 0,
+                           cores = NULL,
                            parallel = TRUE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
@@ -162,7 +173,7 @@ par_fit_models <- function(tele_list,
   }
   print(system.time(model_fit_res <-
                       par_lapply(tele_guess_list, fit_model,
-                                 reserved_cores, parallel)
+                                 cores, parallel)
                     ))
   names(model_fit_res) <- names(tele_list)
   return(model_fit_res)
@@ -177,13 +188,13 @@ par_fit_models <- function(tele_list,
 #' @return occurrence results list
 #' @export
 par_occur <- function(tele_list, model_list,
-                      reserved_cores = 0,
+                      cores = NULL,
                       parallel = TRUE) {
   tele_model_list <- align_list(tele_list, model_list)
   occur_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
   }
-  par_lapply(tele_model_list, occur_calc, reserved_cores, parallel)
+  par_lapply(tele_model_list, occur_calc, cores, parallel)
 }
 # sample telemetry data ----
 

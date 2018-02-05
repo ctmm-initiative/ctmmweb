@@ -4,8 +4,8 @@
 \alias{par_lapply}
 \title{Parallel apply function to list in all platforms}
 \usage{
-par_lapply(lst, fun, reserved_cores = 0, parallel = TRUE,
-  win_init = ctmmweb:::WIN_INIT_ctmm)
+par_lapply(lst, fun, cores = NULL, parallel = TRUE,
+  win_init = expression({     requireNamespace("ctmm", quietly = TRUE) }))
 }
 \arguments{
 \item{lst}{Input list.}
@@ -17,17 +17,25 @@ parameter function into a function take single list parameter, and assign
 parameters in that list accordingly. \code{\link[=align_list]{align_list()}} is a helper function to
 align two lists.}
 
-\item{reserved_cores}{reserve some cores so that not all cores are used.
-Check your platform's core count with
-\code{parallel::detectCores(logical = FALSE)}. \code{?parallel::detectCores}
-has more details about physical/logical cores in different platforms.}
+\item{cores}{the cores count to be used for cluster. Could be a positive
+integer or
+\itemize{
+\item Default \code{NULL} value will indicate to use a heuristic value based on detected cores, which is roughly \code{min(input_size, physical_cores_count * n)},
+\code{n} being 2 for windows, 4 for Mac/Linux. See \code{?parallel::detectCores} for
+more information on physical/logical cores in different platforms.
+\item A negative value like \code{-2} will use \code{all available cores - 2}, so that 2
+cores are reserved for user's other tasks.
+}}
 
-\item{parallel}{Use regular \code{lapply} when FALSE}
+\item{parallel}{Use regular \code{lapply} when FALSE. You may notice more console
+messages in this mode because the console messages in parallel mode are
+lost by default as they happened in other threads.}
 
-\item{win_init}{Expression to be initialized in Windows. Because all
-parameters should be included in the input list already, this usually means
-library calls, like \code{{library(ctmm)}} for ctmm related operations, which
-has been taken care of with the default value \code{ctmmweb:::WIN_INIT_ctmm}.}
+\item{win_init}{Expression to be initialized in Windows. Since all parameters
+should be included in the input list already, this usually means library
+calls, like \code{{library(ctmm)}} for ctmm related operations, which has been
+taken care of with the default value. Note \code{requireNamespace} is used
+because that's more appropriate inside a package.}
 }
 \value{
 List of applied results
