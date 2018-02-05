@@ -524,6 +524,7 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
                                          solidHeader = TRUE, width = 12,
          fluidRow(
            column(2, offset = 10, help_button("overlap")),
+           br(), br(),
            column(12, DT::dataTableOutput("overlap_summary"))
          )
 )
