@@ -2,8 +2,8 @@
 
 #' Combine two lists into one list by aligning each item
 #'
-#' The generic parallel function [para_ll] can only apply a function with single
-#' parameter to a list. Thus function with multiple parameters need to be
+#' The generic parallel function [par_lapply] can only apply a function with
+#' single parameter to a list. Thus function with multiple parameters need to be
 #' wrapped into a function with single list which hold all the parameters.
 #'
 #' @param list_a list_a. `list_a` and `list_b` need to have same length.
@@ -40,7 +40,7 @@ align_list <- function(list_a, list_b) {
 #'   parameter function into a function take single list parameter, and assign
 #'   parameters in that list accordingly. [align_list()] is a helper function to
 #'   align two lists.
-#' @param cores the cores count to be used for cluster. Could be a positive
+#' @param cores the core count to be used for cluster. Could be a positive
 #'  integer or
 #'   - Default `NULL` value will indicate to use a heuristic value based on detected cores, which is roughly `min(input_size, physical_cores_count * n)`,
 #'   `n` being 2 for windows, 4 for Mac/Linux. See `?parallel::detectCores` for

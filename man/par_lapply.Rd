@@ -17,7 +17,7 @@ parameter function into a function take single list parameter, and assign
 parameters in that list accordingly. \code{\link[=align_list]{align_list()}} is a helper function to
 align two lists.}
 
-\item{cores}{the cores count to be used for cluster. Could be a positive
+\item{cores}{the core count to be used for cluster. Could be a positive
 integer or
 \itemize{
 \item Default \code{NULL} value will indicate to use a heuristic value based on detected cores, which is roughly \code{min(input_size, physical_cores_count * n)},
