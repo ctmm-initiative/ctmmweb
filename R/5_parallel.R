@@ -66,8 +66,7 @@ par_lapply <- function(lst, fun,
                          requireNamespace("ctmm", quietly = TRUE)
                          })) {
   if (parallel) {
-    # cores value has 3 cases, 2 of them are platform independent when there is a explicit value
-    # assigned explicitly
+    # cores value has 3 cases, 2 of them are platform independent when it is a explicit value instead of NULL. we didn't check all possible values like 0.
     if (!is.null(cores) && cores > 0) { # NULL>0 become logical(0), not FALSE
       cluster_size <- cores
     }
