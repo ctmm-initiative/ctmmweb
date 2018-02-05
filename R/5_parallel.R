@@ -1,20 +1,5 @@
 # parallel ----
 
-# Expression to be initialized in windows for `ctmm` related parallel
-# operations
-#
-# Parallel cluter in Windows is a socket cluster, which need to initialize each
-# session manually. Since all parameters should be included in single list
-# parameter, only stuff needed is init libraries.
-#
-# For ctmm related parallel operations, `ctmm` package need to be loaded.
-# Instead of `library(ctmm)`, the expression of `requireNamespace("ctmm",
-# quietly = TRUE)` is more appropriate inside a package.
-WIN_INIT_ctmm <- expression({
-  # library(ctmm)
-  requireNamespace("ctmm", quietly = TRUE)
-})
-
 #' Combine two lists into one list by aligning each item
 #'
 #' The generic parallel function [para_ll] can only apply a function with single
@@ -55,14 +40,15 @@ align_list <- function(list_a, list_b) {
 #'   parameters in that list accordingly. [align_list()] is a helper function to
 #'   align two lists.
 #' @param reserved_cores reserve some cores so that not all cores are used.
-#'   Check your platform's core count with
-#'   `parallel::detectCores(logical = FALSE)`. `?parallel::detectCores`
-#'   has more details about physical/logical cores in different platforms.
+#'   Check your platform's core count with `parallel::detectCores(logical =
+#'   FALSE)`. `?parallel::detectCores` has more details about physical/logical
+#'   cores in different platforms.
 #' @param parallel Use regular `lapply` when FALSE
-#' @param win_init Expression to be initialized in Windows. Because all
-#'   parameters should be included in the input list already, this usually means
-#'   library calls, like `{library(ctmm)}` for ctmm related operations, which
-#'   has been taken care of with the default value `ctmmweb:::WIN_INIT_ctmm`.
+#' @param win_init Expression to be initialized in Windows. Since all parameters
+#'   should be included in the input list already, this usually means library
+#'   calls, like `{library(ctmm)}` for ctmm related operations, which has been
+#'   taken care of with the default value. Note `requireNamespace` is used
+#'   because that's more appropriate inside a package.
 #'
 #' @return List of applied results
 #' @export
@@ -70,7 +56,9 @@ align_list <- function(list_a, list_b) {
 par_lapply <- function(lst, fun,
                        reserved_cores = 0,
                        parallel = TRUE,
-                       win_init = ctmmweb:::WIN_INIT_ctmm
+                       win_init = expression(
+                         {requireNamespace("ctmm", quietly = TRUE)}
+                         )
 ) {
   if (parallel) {
     sysinfo <- Sys.info()
