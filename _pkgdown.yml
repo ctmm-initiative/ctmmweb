@@ -27,6 +27,7 @@ reference:
   contents:
   - '`summary_tried_models`'
   - '`flatten_models`'
+  - '`overlap_matrix_to_dt`'
   - '`plot_vario`'
   - '`plot_ud`'
 - title: "Map"
