@@ -2001,6 +2001,7 @@ output:
       DT::formatStyle("ML", color = "blue")
     # COPY end --
   })
+  # outputOptions(output, "overlap_summary", priority = 10)
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()$dt
@@ -2060,12 +2061,15 @@ output:
                                      ncol = input$overlap_loc_columns)
       }, error = function(e) {
         # silent error and stop
+        # print("error occurred")
         req(FALSE)
       })
     }
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_location")
   }, height = function() { input$overlap_loc_height }, width = "auto")
+  # tried to use priority to make sure location plot update after table update, didn't work, probably because the problem is row selection reset happened slower
+  # outputOptions(output, "overlap_plot_location", priority = 1)
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/8_occurrence.md")
