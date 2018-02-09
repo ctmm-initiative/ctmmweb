@@ -1988,6 +1988,8 @@ output:
     dt[, Combination := NULL]
     # LOG overlap summary
     log_dt_md(dt, "Overlap Summary")
+    # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
+    freezeReactiveValue(input, "overlap_summary_rows_selected")
     # COPY start --
     DT::datatable(dt,
                   # class = 'table-bordered',
@@ -2061,7 +2063,7 @@ output:
                                      ncol = input$overlap_loc_columns)
       }, error = function(e) {
         # silent error and stop
-        # print("error occurred")
+        print("error occurred")
         req(FALSE)
       })
     }
