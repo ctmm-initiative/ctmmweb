@@ -4,10 +4,13 @@
 \alias{calc_distance}
 \title{Calculate distance to median center for each animal location}
 \usage{
-calc_distance(animals_dt, device_error = 0)
+calc_distance(animals_dt, tele_list, device_error = 0)
 }
 \arguments{
 \item{animals_dt}{location \code{data.table} from \link{combine}}
+
+\item{tele_list}{the telemetry obj list. Calculation need error information
+from it.}
 
 \item{device_error}{device error if available}
 }
@@ -17,5 +20,6 @@ calc_distance(animals_dt, device_error = 0)
 \description{
 If there are big gaps in sampling time, median center for each time group is
 used. To reduce duplicate calculation, speed calculation will use some
-columns created in distance calculation. Always update \code{data.table} with \code{calc_distance} first then use \link{calc_speed}.
+columns created in distance calculation. Always update \code{data.table} with
+\code{calc_distance} first then use \link{calc_speed}.
 }

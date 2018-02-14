@@ -47,19 +47,35 @@ report <- info_tele_list <- function(tele_obj_list){
   info_list <- lapply(tele_list, info_tele)
   rbindlist(info_list)
 }
+# get telemetry obj when given a dt, dt subset and original telemetry list (always a list). assume subset only has one animal
+# the common pattern is we have a subset of dt (for speed, by id, for distance, by group), need its telemetry part. We need a function, given .SD, get a telemetry obj. Need identity to find slot in telemetry, then row_name to get subset.
+# stopifnot caused interuption, and the cat before didn't print?
+get_tele <- function(dt, sub_dt, tele_list){
+  animal_name <- unique(sub_dt$identity)
+  cat(animal_name, "\n")
+  # stopifnot(length(animal_name) == 1)
+  tele_obj <- tele_list[[animal_name]]
+  sub_tele <- tele_obj[(row.names(tele_obj) %in% sub_dt$row_name),]
+  # stopifnot(nrow(sub_dt) == nrow(sub_tele))
+  return(sub_tele)
+}
+
 #' Calculate distance to median center for each animal location
 #'
 #' If there are big gaps in sampling time, median center for each time group is
 #' used. To reduce duplicate calculation, speed calculation will use some
-#' columns created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed].
+#' columns created in distance calculation. Always update `data.table` with
+#' `calc_distance` first then use [calc_speed].
 #'
 #' @param animals_dt location `data.table` from [combine]
+#' @param tele_list the telemetry obj list. Calculation need error information
+#'   from it.
 #' @param device_error device error if available
 #'
 #' @return `data.table` with distance columns added.
 #' @export
 #'
-calc_distance <- function(animals_dt, device_error = 0) {
+calc_distance <- function(animals_dt, tele_list, device_error = 0) {
   find_boundary <- function(data) {
     time_gap_threshold <- stats::quantile((diff(data$t)), 0.8) * 100
     # increase 1 sec because interval boundry is right open [ )
@@ -73,17 +89,20 @@ calc_distance <- function(animals_dt, device_error = 0) {
   animals_dt[, group_index := paste0(identity, "_",
                                      findInterval(t, find_boundary(.SD))),
              by = identity]
+  # instead of calculating manually, use ctmm function because the complexity of error values. or use error vector and distanceMLE
   animals_dt[, `:=`(median_x = median(x), median_y = median(y)),
              by = group_index]
   animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
                                          (y - median_y) ** 2)]
   # calibrate error, see issue #5
-  animals_dt[, distance_center := ctmm:::distanceMLE(distance_center,
-                                                     device_error)]
+  # if using outlie/assign_distances function, need to get telemetry obj for each group, use row indexing
+  # if using distanceMLE, need to get error, which came from telemetry obj when data has it, or use user input value repeated for every row if applied by user.
+  # animals_dt[, distance_center := ctmm:::distanceMLE(distance_center,
+  #                                                    device_error)]
   return(animals_dt)
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
-calc_speed_leaving <- function(animals_dt, device_error) {
+calc_speed_leaving <- function(animals_dt, tele_list, device_error) {
   animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
   animals_dt[is.infinite(speed), speed := NaN]
   # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
@@ -94,7 +113,7 @@ calc_speed_leaving <- function(animals_dt, device_error) {
   return(animals_dt)
 }
 # the pmin method
-calc_speed_pmin <- function(animals_dt, device_error) {
+calc_speed_pmin <- function(animals_dt, tele_list, device_error) {
   # TODO deal with dt==0 cases
   # dt == 0, use the sampling resolution to estimate the time difference
   # animals_dt[inc_t == 0]
@@ -134,11 +153,21 @@ calc_speed_pmin <- function(animals_dt, device_error) {
   return(animals_dt)
 }
 # using ctmm util functions
-calc_speed_ctmm <- function(animals_dt, device_error) {
+calc_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   setkey(animals_dt, row_no)
-  animals_dt[, speed := ctmm:::assign_speeds(.SD,
-                                             dt = ctmm:::time_res(.SD),
-                                             UERE = device_error, method = "max"),
+  # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal.
+  # animals_dt[, speed := ctmm:::assign_speeds(.SD,
+  #                                            dt = ctmm:::time_res(.SD),
+  #                                            UERE = device_error, method = "max"),
+  #            by = identity]
+  # assign_speed will use use time_res by itself so no need for dt. return a list, we need v.t since it match original row count. v.dt is for in-between.
+  browser()
+  animals_dt[, nrow(.SD), by = identity]
+  animals_dt[, print(get_tele(animals_dt, .SD, tele_list)), by = identity]
+  animals_dt[, speed := ctmm:::assign_speeds(
+                          get_tele(animals_dt, .SD, tele_list),
+                          UERE = device_error, method = "max"
+                        )$v.t,
              by = identity]
   return(animals_dt)
 }
@@ -157,20 +186,22 @@ calc_speed_ctmm <- function(animals_dt, device_error) {
 #' @return data.table with speed columns added.
 #' @export
 #'
-calc_speed <- function(animals_dt, device_error = 0) {
+calc_speed <- function(animals_dt, tele_list, device_error = 0) {
   setkey(animals_dt, row_no)
+  # note every parameter changes need to be present in every data call, several places
   # my speed calculation need distance columns
-  test_calc <- function(data, device_error, fun, fun_bak) {
-    res <- tryCatch(fun(data, device_error), error = function(e) "error")
+  test_calc <- function(data, tele_list, device_error, fun, fun_bak) {
+    res <- tryCatch(fun(data, tele_list, device_error),
+                    error = function(e) "error")
     if (identical(res, "error")) {
-      res <- fun_bak(data, device_error)
+      res <- fun_bak(data, tele_list, device_error)
       # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
       cat(crayon::white$bgRed("Had error with first speed definition, use alternative instead\n"))
     }
     return(res)
   }
   # we didn't use the third fallback, pmin should be robust enough.
-  animals_dt <- test_calc(animals_dt, device_error,
+  animals_dt <- test_calc(animals_dt, tele_list, device_error,
                           calc_speed_ctmm, calc_speed_pmin)
   # animals_dt <- calc_speed_ctmm(animals_dt)
   return(animals_dt)
@@ -190,6 +221,7 @@ tele_list_to_dt <- function(tele_obj_list) {
   animals_data_dt <- rbindlist(animal_data_list, fill = TRUE)
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
+  # row_no is the 1..n number in dt, used for easy locating, sorting. row_name is the original row name in data frame, after sorting by animal name, row_name usually doesn't start from 1.
   animals_data_dt[, row_no := .I]
   any_dup <- anyDuplicated(animals_data_dt, by = "row_name")
   if (any_dup != 0) {

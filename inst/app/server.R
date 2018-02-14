@@ -860,9 +860,12 @@ output:
     req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data_dt
+    # need telemetry list for error info
     animals_dt <- ctmmweb::calc_distance(animals_dt,
+                                         outlier_page_data$tele_list,
                                          as.numeric(input$device_error))
     animals_dt <- ctmmweb::calc_speed(animals_dt,
+                                      outlier_page_data$tele_list,
                                       as.numeric(input$device_error))
     outlier_page_data$data_dt <- animals_dt
     return(outlier_page_data)

@@ -4,10 +4,13 @@
 \alias{calc_speed}
 \title{Calculate speed for each animal location}
 \usage{
-calc_speed(animals_dt, device_error = 0)
+calc_speed(animals_dt, tele_list, device_error = 0)
 }
 \arguments{
 \item{animals_dt}{location \code{data.table} from \link{combine}}
+
+\item{tele_list}{the telemetry obj list. Calculation need error information
+from it.}
 
 \item{device_error}{device error if available}
 }
