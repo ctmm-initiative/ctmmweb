@@ -161,7 +161,8 @@ calc_speed <- function(animals_dt, device_error = 0) {
     res <- tryCatch(fun(data, device_error), error = function(e) "error")
     if (identical(res, "error")) {
       res <- fun_bak(data, device_error)
-      cat(crayon::red("Had error with first speed definition, use alternative instead\n"))
+      # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
+      cat(crayon::white$bgRed("Had error with first speed definition, use alternative instead\n"))
     }
     return(res)
   }
