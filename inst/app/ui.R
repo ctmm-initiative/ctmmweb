@@ -235,12 +235,13 @@ telemetry_error_box <- shinydashboard::box(title = "Telemetry Errors",
              column(5, offset = 1,
                     textInput("device_error",
                               "Standardized Device Error(meter)", 0),
-                    h5("Example: GPS: 10, VHF: 100")),
-             column(3, offset = 3, br(),
-                    actionButton("standarize_error",
-                                 "Standarize Error",
-                                 icon = icon("trash-o"),
-                                 style = ctmmweb:::STYLES$page_action))
+                    h5("Example: GPS: 10, VHF: 100"))
+             # ,
+             # column(3, offset = 3, br(),
+             #        actionButton("standarize_error",
+             #                     "Standarize Error",
+             #                     icon = icon("trash-o"),
+             #                     style = ctmmweb:::STYLES$page_action))
            )
 )
 outlier_filter_box <- shinydashboard::tabBox(title = "Outlier Detection",

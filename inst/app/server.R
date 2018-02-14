@@ -853,10 +853,6 @@ output:
              size = "l", file = "help/3_outlier_distance.md")
   callModule(click_help, "outlier_speed", title = "Outliers in Speed",
              size = "l", file = "help/3_outlier_speed.md")
-  # standarize error ----
-  observeEvent(input$standarize_error, {
-
-  })
   # calc_outlier() ----
   # take current subset, add distance and speed columns. everything in this page start from this data. The outlier removal need to apply to whole data then trickle down here
   calc_outlier <- reactive({
