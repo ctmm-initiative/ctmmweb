@@ -4,12 +4,10 @@
 \alias{calc_distance}
 \title{Calculate distance to median center for each animal location}
 \usage{
-calc_distance(animals_dt, device_error = 0)
+calc_distance(animals_dt)
 }
 \arguments{
 \item{animals_dt}{location \code{data.table} from \link{combine}}
-
-\item{device_error}{device error if available}
 }
 \value{
 \code{data.table} with distance columns added.
