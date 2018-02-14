@@ -229,20 +229,6 @@ histogram_facet_box <- shinydashboard::box(title = "5. Sampling Time",
                            plotOutput("histogram_facet",
                                       width = "99%", height = "100%"))
 # p3. outlier ----
-telemetry_error_box <- shinydashboard::box(title = "Telemetry Errors",
-           status = "primary", solidHeader = TRUE, width = 12,
-           fluidRow(
-             column(5, offset = 1,
-                    textInput("device_error",
-                              "Standardized Device Error(meter)", 0),
-                    h5("Example: GPS: 10, VHF: 100")),
-             column(3, offset = 3, br(),
-                    actionButton("standarize_error",
-                                 "Standarize Error",
-                                 icon = icon("trash-o"),
-                                 style = ctmmweb:::STYLES$page_action))
-           )
-)
 outlier_filter_box <- shinydashboard::tabBox(title = "Outlier Detection",
                        id = "outlier_filter_tabs", width = 12,
   # p3.a distance ----
@@ -292,7 +278,7 @@ outlier_filter_box <- shinydashboard::tabBox(title = "Outlier Detection",
              column(4, offset = 0, sliderInput("speed_his_y_limit",
                                   "Limit y axis",
                                   min = 10, max = 50, value = 20, step = 1)),
-             column(2, offset = 1, br(), help_button("outlier_speed"))),
+             column(2, offset = 1, br(), br(), help_button("outlier_speed"))),
     fluidRow(column(12, plotOutput("speed_histogram",
                               brush = brushOpts(
                                 id = "speed_his_brush",
@@ -303,7 +289,11 @@ outlier_filter_box <- shinydashboard::tabBox(title = "Outlier Detection",
                               height = ctmmweb:::STYLES$height_outlier_hist))),
     fluidRow(column(4, offset = 1, sliderInput("speed_point_size",
                                                "Point Size for Selected Range",
-                          min = 0.1, max = 2, value = 1.5, step = 0.1))
+                          min = 0.1, max = 2, value = 1.5, step = 0.1)),
+             column(5, offset = 1,
+                    textInput("device_error",
+                              "Standardized Device Error(meter)", 0),
+                    h5("Example: GPS: 10, VHF: 100, ARGOS: 1000"))
              ),
     fluidRow(column(12, plotOutput("speed_outlier_plot",                                                      dblclick = "speed_outlier_plot_dblclick",
                            brush = brushOpts(
@@ -660,7 +650,7 @@ body <- shinydashboard::dashboardBody(
                      selected_plot_box,
                      selected_ranges_box)),
     shinydashboard::tabItem(tabName = "filter",
-            fluidRow(telemetry_error_box, outlier_filter_box,
+            fluidRow(outlier_filter_box,
                      all_removed_outliers_box)),
     shinydashboard::tabItem(tabName = "model",
             fluidRow(vario_control_box, variograms_box, model_selection_box)),
