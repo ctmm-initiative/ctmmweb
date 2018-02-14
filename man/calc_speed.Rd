@@ -7,7 +7,7 @@
 calc_speed(animals_dt, device_error = 0)
 }
 \arguments{
-\item{animals_dt}{telemetry data in merged data.table}
+\item{animals_dt}{location \code{data.table} from \link{combine}}
 
 \item{device_error}{device error if available}
 }

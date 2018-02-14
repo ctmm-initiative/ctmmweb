@@ -54,11 +54,12 @@ report <- info_tele_list <- function(tele_obj_list){
 #' columns created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed].
 #'
 #' @param animals_dt location `data.table` from [combine]
+#' @param device_error device error if available
 #'
 #' @return `data.table` with distance columns added.
 #' @export
 #'
-calc_distance <- function(animals_dt) {
+calc_distance <- function(animals_dt, device_error = 0) {
   find_boundary <- function(data) {
     time_gap_threshold <- stats::quantile((diff(data$t)), 0.8) * 100
     # increase 1 sec because interval boundry is right open [ )
@@ -76,6 +77,9 @@ calc_distance <- function(animals_dt) {
              by = group_index]
   animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
                                          (y - median_y) ** 2)]
+  # calibrate error, see issue #5
+  animals_dt[, distance_center := ctmm:::distanceMLE(distance_center,
+                                                     device_error)]
   return(animals_dt)
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
@@ -148,8 +152,7 @@ calc_speed_ctmm <- function(animals_dt, device_error) {
 #' To reduce duplicate calculation, speed calculation will use some columns
 #' created in distance calculation. Always update `data.table` with `calc_distance` first then use [calc_speed()].
 #'
-#' @param animals_dt telemetry data in merged data.table
-#' @param device_error device error if available
+#' @inheritParams calc_distance
 #'
 #' @return data.table with speed columns added.
 #' @export
