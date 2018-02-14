@@ -78,8 +78,8 @@ calc_distance <- function(animals_dt, device_error = 0) {
   animals_dt[, distance_center := sqrt((x - median_x) ** 2 +
                                          (y - median_y) ** 2)]
   # calibrate error, see issue #5
-  animals_dt[, distance_center := ctmm:::distanceMLE(distance_center,
-                                                     device_error)]
+  # animals_dt[, distance_center := ctmm:::distanceMLE(distance_center,
+  #                                                    device_error)]
   return(animals_dt)
 }
 # the naive definition of leaving speed. the NA cleaning is not ideal
