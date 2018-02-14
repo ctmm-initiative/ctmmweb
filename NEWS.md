@@ -1,6 +1,11 @@
+## current
+- Update outlier page to use latest ctmm functions which take errors into account for both distance and speed.
+- Use home range plot for overlap location plot tab.
+
 ## version 0.1.0, 2018/02/08
 - Moved package website to separate repo to reduce package download size and time.
 - Overlap page finished.
+- Changed cores parameter for `par_lapply`
 
 ## version 0.0.9.9, 2017/12/27
 - Changed repo name to match package name
