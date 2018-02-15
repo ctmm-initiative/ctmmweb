@@ -47,19 +47,6 @@ report <- info_tele_list <- function(tele_obj_list){
   info_list <- lapply(tele_list, info_tele)
   rbindlist(info_list)
 }
-# get telemetry obj when given a dt, dt subset and original telemetry list (always a list). assume subset only has one animal
-# the common pattern is we have a subset of dt (for speed, by id, for distance, by group), need its telemetry part. We need a function, given .SD, get a telemetry obj. Need identity to find slot in telemetry, then row_name to get subset.
-# stopifnot caused interuption, and the cat before didn't print?
-get_tele <- function(dt, sub_dt, tele_list){
-  animal_name <- unique(sub_dt$identity)
-  cat(animal_name, "\n")
-  # stopifnot(length(animal_name) == 1)
-  tele_obj <- tele_list[[animal_name]]
-  sub_tele <- tele_obj[(row.names(tele_obj) %in% sub_dt$row_name),]
-  # stopifnot(nrow(sub_dt) == nrow(sub_tele))
-  return(sub_tele)
-}
-
 #' Calculate distance to median center for each animal location
 #'
 #' If there are big gaps in sampling time, median center for each time group is
@@ -155,17 +142,14 @@ calc_speed_pmin <- function(animals_dt, tele_list, device_error) {
 # using ctmm util functions
 calc_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   setkey(animals_dt, row_no)
-  # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal.
+  # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal. will use use time_res by itself so no need for dt. return a list, we need v.t since it match original row count. v.dt is for in-between.
   # animals_dt[, speed := ctmm:::assign_speeds(.SD,
   #                                            dt = ctmm:::time_res(.SD),
   #                                            UERE = device_error, method = "max"),
   #            by = identity]
-  # assign_speed will use use time_res by itself so no need for dt. return a list, we need v.t since it match original row count. v.dt is for in-between.
-  browser()
-  animals_dt[, nrow(.SD), by = identity]
-  animals_dt[, print(get_tele(animals_dt, .SD, tele_list)), by = identity]
+  # when using by = identity, each .SD don't have identity column, it's outside.
   animals_dt[, speed := ctmm:::assign_speeds(
-                          get_tele(animals_dt, .SD, tele_list),
+                          tele_list[[identity]][row_name,],
                           UERE = device_error, method = "max"
                         )$v.t,
              by = identity]
@@ -268,7 +252,7 @@ match_tele_merged <- function(tele_list, merged) {
     stopifnot(all.equal(dt_list[[x]][, timestamp:y],
                         data.table(data.frame(tele_list[[x]]))))
   })
-  print("data consistency verified")
+  cat(crayon::white$bgGreen("data consistency verified"))
 }
 # ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22
 extent_dt <- function(animals_dt, level = 1, ...) {

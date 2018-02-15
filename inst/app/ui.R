@@ -233,8 +233,9 @@ telemetry_error_box <- shinydashboard::box(title = "Telemetry Errors",
            status = "primary", solidHeader = TRUE, width = 12,
            fluidRow(
              column(5, offset = 1,
-                    textInput("device_error", value = "10",
-                              "Standardized Device Error(meter)", 0),
+                    textInput("device_error",
+                              "Standardized Device Error(meter)",
+                              value = "10"),
                     h5("Example: GPS: 10, VHF: 100"))
              # ,
              # column(3, offset = 3, br(),

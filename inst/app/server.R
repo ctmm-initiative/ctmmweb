@@ -1414,7 +1414,6 @@ output:
     animal_binned <- color_bin_animal()
     # skip the new added column color_bin_start. the name of last column may change depend on other changes in data structure
     dt <- animal_binned$data_dt[, timestamp:row_no]
-    new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     res <- vector("list", length = nrow(values$time_ranges))
     for (i in 1:nrow(values$time_ranges)) {
       res[[i]] <- dt[(timestamp >= values$time_ranges[i, select_start]) &
@@ -1431,8 +1430,10 @@ output:
     new_suffix <- paste0("_subset_", last_index + 1)
     new_id <- paste0(animal_binned$identity, new_suffix)
     new_dt[, identity := new_id]
+    new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     # subset tele by row_name before it changes
-    new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
+    # new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
+    new_tele <- new_tele[new_dt$row_name,]
     new_tele@info$identity <- new_id
     # update other columns
     new_dt[, row_name := paste0(row_name, new_suffix)]
