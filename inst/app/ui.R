@@ -236,7 +236,8 @@ telemetry_error_box <- shinydashboard::box(title = "Telemetry Errors",
                     textInput("device_error",
                               "Standardized Device Error(meter)",
                               value = "10"),
-                    h5("Example: GPS: 10, VHF: 100"))
+                    h5("Example: GPS: 10, VHF: 100")),
+             column(2, offset = 4, br(), help_button("telemetry_errors"))
              # ,
              # column(3, offset = 3, br(),
              #        actionButton("standarize_error",

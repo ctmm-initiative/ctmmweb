@@ -60,12 +60,15 @@ knitr::kable(head(loc_data))
 You can calculate distance and speed outliers in the data via:
 
 ```{r outlier}
-# distance_center column is added after calculation. Note the telemetry list is needed for error information
-loc_data_distance <- calc_distance(loc_data, buffalo)
-knitr::kable(head(loc_data_distance))
+# To save memory, data.table modify reference by default. The incoming data.table was modified and distance_center column is added after calculation. Note the telemetry list is needed for error information
+assign_distance(loc_data, buffalo)
+knitr::kable(head(loc_data))
 # always calculate distance first then calculate speed outlier with distance columns added
-loc_data_speed <- calc_speed(loc_data_distance, buffalo)
-knitr::kable(head(loc_data_speed))
+assign_speed(loc_data, buffalo)
+knitr::kable(head(loc_data))
+# Or you can use pipe operator
+loc_data %>% assign_distance(buffalo) %>% assign_speed(buffalo)
+knitr::kable(head(loc_data))
 ```
 
 `info` summarize some basic information on data.

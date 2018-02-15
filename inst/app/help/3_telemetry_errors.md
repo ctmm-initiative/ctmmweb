@@ -1,0 +1,3 @@
+- `Standardized Device Error` specifies the error in meters for data with `HDOP=1` (regular data). 
+    - The usual values are 10 meters for GPS, 100 meters for VHF. 
+    - Note the input have to be numeric. A regular `numericInput` is not used here because it will respond to mouse wheel, so scrolling after input could trigger a series of unintended updates.

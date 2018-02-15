@@ -1,8 +1,4 @@
 - Every point is assigned an estimated speed value. Points with extreme speeds could be outliers due to error.
-- `Standardized Device Error` specifies the error in meters for data with `HDOP=1` (regular data). 
-    - The usual values are 10 meters for GPS, 100 meters for VHF, 1000 meters for ARGOS. 
-    - Note the input have to be numeric. A regular `numericInput` is not used here because it will respond to mouse wheel, so scrolling after input could trigger a series of unintended updates.
-    - The calculated speed could become all 0s if the device error value was too large.
 - The UI is very similar to the *distance to median center* tab, except there are two checkboxs for selected points (selected rows in table of selected range):
     - `Draw Path Around Selected Rows` will add paths with arrows for points before and after the selected points. You can zoom in plot for more details.
     - `Label Row Number in Path` further add row number of points, which is sorted by timestamp. This only works when path is drawn.
