@@ -142,7 +142,7 @@ calc_speed_pmin <- function(animals_dt, tele_list, device_error) {
 # using ctmm util functions
 calc_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   setkey(animals_dt, row_no)
-  # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal. will use use time_res by itself so no need for dt. return a list, we need v.t since it match original row count. v.dt is for in-between.
+  # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal. will use time_res by itself so no need for dt, also method default to max so no need for that. return a list, we need v.t since it match original row count. v.dt is for in-between.
   # animals_dt[, speed := ctmm:::assign_speeds(.SD,
   #                                            dt = ctmm:::time_res(.SD),
   #                                            UERE = device_error, method = "max"),
@@ -150,8 +150,7 @@ calc_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   # when using by = identity, each .SD don't have identity column, it's outside.
   animals_dt[, speed := ctmm:::assign_speeds(
                           tele_list[[identity]][row_name,],
-                          UERE = device_error, method = "max"
-                        )$v.t,
+                          UERE = device_error)$v.t,
              by = identity]
   return(animals_dt)
 }
