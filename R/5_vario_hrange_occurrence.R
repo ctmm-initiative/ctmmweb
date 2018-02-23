@@ -42,6 +42,7 @@ plot_vario <- function(vario_list, model_list = NULL,
     stop("names of input list is needed for figure title")
   }
   row_count <- ceiling(length(vario_list) / columns)
+  # the shared group code is not much, and it involves env setup and restoration, would need on.exit if abstracted to function. just copy, basically 3 lines.
   def.par <- graphics::par(no.readonly = TRUE)
   graphics::par(mfrow = c(row_count, columns),
                 mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
@@ -105,8 +106,8 @@ plot_vario <- function(vario_list, model_list = NULL,
 #' @export
 plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
                     tele_list = NULL) {
-  def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(UD_list) / columns)
+  def.par <- graphics::par(no.readonly = TRUE)
   graphics::par(mfrow = c(row_count, columns),
                 mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   lapply(seq_along(UD_list), function(i) {
