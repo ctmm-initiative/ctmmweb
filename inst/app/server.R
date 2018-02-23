@@ -1973,8 +1973,8 @@ output:
     overlap_hrange <- ctmm::overlap(select_models_hranges(),
                                     CTMM = select_models()$model_list)
     # data.table of overlap matrix. round 4 digits
-    overlap_matrix_dt <- overlap_matrix_to_dt(round(overlap_hrange, 4),
-                                              clear_half = TRUE)
+    overlap_matrix_dt <- ctmmweb::overlap_matrix_to_dt(
+      round(overlap_hrange, 4), clear_half = TRUE)
     # COPY from overlap.Rmd - plot point range --
     # rows format instead of 2d table. need to avoid factor so we can compare string
     overlap_rows_dt <- melt(overlap_matrix_dt,
