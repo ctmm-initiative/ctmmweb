@@ -20,5 +20,5 @@ app <- function(shiny_app_data = NULL) {
   source(file.path(app_DIR, "ui.R"), local = TRUE, chdir = TRUE)
   source(file.path(app_DIR, "server.R"), local = TRUE, chdir = TRUE)
   shiny_app <- shiny::shinyApp(ui = ui, server = server)
-  shiny::runApp(shiny_app, display.mode = "normal")
+  shiny::runApp(shiny_app, launch.browser = TRUE, display.mode = "normal")
 }

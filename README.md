@@ -40,7 +40,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
     app(buffalo)
     ```
   
-    This will start the app locally with RStudio's embeded browser. In windows/Linux this has known compatibility problems. You can click the `open in browser` button in the browser top bar to use system browser instead. Chrome is recommended.
+    This will launch the app locally with system default browser. Chrome is recommended for compatibility reasons. You can copy the url into Chrome if it was not launched by Chrome.
   
   More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html) 
 
