@@ -17,5 +17,7 @@ app(shiny_app_data = NULL)
 }}
 }
 \description{
-Start ctmm web app
+The app is started with system default browser, while usually Shiny app is
+launched with RStudio builtin browser. The builtin browser has some
+compatibility problems so Chrome is recommended.
 }

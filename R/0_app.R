@@ -1,5 +1,9 @@
 #' Start ctmm web app
 #'
+#' The app is started with system default browser, while usually Shiny app is
+#' launched with RStudio builtin browser. The builtin browser has some
+#' compatibility problems so Chrome is recommended.
+#'
 #' @param data Data to be loaded with app. It could be anything can be taken by `ctmm::as.telemetry`:
 #' - Path to MoveBank csv file
 #' - MoveBank `data.frame` object
