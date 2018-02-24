@@ -35,9 +35,9 @@ Sometimes you need to restart R session in the process of install/upgrade lots o
   
 ## Known limitations
 - The app is started with system browser, while usually Shiny app is launched with RStudio builtin browser. The builtin browser has these known limitations:
-      - `Windows`: log scale slider not shown properly; download dialog don't prompt proper file name by default.
-      - `Mac`: download file will open a blank page, and the dowload function was executed twice so there will be two entries in report.
-      - `Linux`: download dialog do not respond.
+    - `Windows`: log scale slider not shown properly; download dialog don't prompt proper file name by default.
+    - `Mac`: download file will open a blank page, and the dowload function was executed twice so there will be two entries in report.
+    - `Linux`: download dialog do not respond.
     Firefox is also known to have some limitations.
 - There is a [known bug](https://github.com/Rdatatable/data.table/issues/2137) caused by `data.table`, `openMP` and `mcapply` in R 3.4. So it's possible to see this error when fitting models in parallel under Mac/Linux:
 
