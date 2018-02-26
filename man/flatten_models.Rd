@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_model_summary.R
 \name{flatten_models}
 \alias{flatten_models}
-\title{Convert nested \link{par_fit_tele} result into flatten list with model names}
+\title{Convert nested \link{par_fit_models} result into flatten list with model names}
 \usage{
 flatten_models(model_try_res)
 }
@@ -13,5 +13,5 @@ flatten_models(model_try_res)
 A single level list of models with names
 }
 \description{
-Convert nested \link{par_fit_tele} result into flatten list with model names
+Convert nested \link{par_fit_models} result into flatten list with model names
 }

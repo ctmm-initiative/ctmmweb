@@ -135,7 +135,7 @@ summary_tried_models <- function(model_try_res) {
   # use [] to make sure calling function directly will print in console.
   model_list_dt_to_formated_model_summary_dt(models_dt)[]
 }
-#' Convert nested [par_fit_tele] result into flatten list with model names
+#' Convert nested [par_fit_models] result into flatten list with model names
 #'
 #' @param model_try_res
 #'

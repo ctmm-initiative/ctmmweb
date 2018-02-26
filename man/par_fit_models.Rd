@@ -24,7 +24,8 @@ messages in this mode because the console messages in parallel mode are
 lost by default as they happened in other threads.}
 }
 \value{
-list of models named by animal names
+list of models named by animal names. Note the structure is different
+from \link{par_try_models} result.
 }
 \description{
 \code{ctmm::ctmm.fit} fit model on telemetry object. This function run

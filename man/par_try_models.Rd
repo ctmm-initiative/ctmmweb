@@ -25,7 +25,8 @@ lost by default as they happened in other threads.}
 }
 \value{
 list of items named by animal names, each item hold the attempted
-models as sub items with model type as name
+models as sub items with model type as name. Note the structure is
+different from \link{par_fit_models} result.
 }
 \description{
 \code{ctmm::ctmm.select} fit multiple models on telemetry object and output list

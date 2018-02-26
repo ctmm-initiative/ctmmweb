@@ -133,7 +133,8 @@ par_try_tele_guess <- function(tele_guess_list,
 #' @inheritParams par_lapply
 #'
 #' @return list of items named by animal names, each item hold the attempted
-#'   models as sub items with model type as name
+#'   models as sub items with model type as name. Note the structure is
+#'   different from [par_fit_models] result.
 #' @export
 par_try_models <- function(tele_list,
                            cores = NULL,
@@ -157,7 +158,8 @@ par_try_models <- function(tele_list,
 #'
 #' @inheritParams par_try_models
 #'
-#' @return list of models named by animal names
+#' @return list of models named by animal names. Note the structure is different
+#'   from [par_try_models] result.
 #' @export
 par_fit_models <- function(tele_list,
                            cores = NULL,
