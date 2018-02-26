@@ -67,6 +67,7 @@ knitr::kable(head(loc_data))
 assign_speed(loc_data, buffalo)
 knitr::kable(head(loc_data))
 # Or you can use pipe operator
+library(magrittr)
 loc_data %>% assign_distance(buffalo) %>% assign_speed(buffalo)
 knitr::kable(head(loc_data))
 ```
@@ -147,6 +148,8 @@ plot_vario(vario_list, guess_list)
 ## Model summary table
 
 We can try different models on multiple animals in parallel.
+
+Note there could be [some known errors](https://github.com/Rdatatable/data.table/issues/2418) with `data.table`, R 3.4 and parallel operations. You can try to restart R session if met with same error.
 
 ```{r model summary, eval=TRUE}
 # fit single model in parallel with ctmm.fit. This is not used in later anlaysis
