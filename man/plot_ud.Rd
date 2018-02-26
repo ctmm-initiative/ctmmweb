@@ -9,20 +9,21 @@ plot_ud(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
 }
 \arguments{
 \item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from
-\code{ctmm::akde} or occurrences from \code{ctmm::occurrence}. The names of list are
-needed for title of figures.}
+\code{\link[ctmm:akde]{ctmm::akde()}} or occurrences from \code{\link[ctmm:occurrence]{ctmm::occurrence()}}. The names of list
+are needed for title of figures.}
 
-\item{level_vec}{The vector of \code{level.UD} in \code{ctmm::plot.telemetry}. To be
+\item{level_vec}{The vector of \code{level.UD} in \code{\link[ctmm:plot.telemetry]{ctmm::plot.telemetry()}}. To be
 consistent with \code{ctmm} they are values 0 ~ 1 (for example 0.95). Note the
 app UI take values 0 ~ 100 (for example 95) for easier input.}
 
 \item{columns}{The columns of the group plot layout.}
 
-\item{cex}{The magnification factor of plot text and symbols. See \link{par}.}
+\item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.}
 
-\item{tele_list}{Overlay animal locations when provided. This should only be
-used for home range since it can interfere with occurrence plot.}
+\item{tele_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list. When provided, animal
+locations are overlayed in plot. This should only be used for home range
+since it can interfere with occurrence plot.}
 }
 \description{
-This is a wrapper over \code{ctmm::plot.telemetry} to make group plot easier.
+This is a wrapper over \code{\link[ctmm:plot.telemetry]{ctmm::plot.telemetry()}} to make group plot easier.
 }

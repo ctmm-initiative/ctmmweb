@@ -7,7 +7,7 @@
 overlap_matrix_to_dt(mat_3d, clear_half = FALSE)
 }
 \arguments{
-\item{mat_3d}{the 3d matrix result from \code{ctmm::overlap}}
+\item{mat_3d}{the 3d matrix result from \code{\link[ctmm:overlap]{ctmm::overlap()}}}
 
 \item{clear_half}{whether to clear the lower triangular part, including the
 diagonal}

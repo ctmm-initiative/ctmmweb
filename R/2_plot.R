@@ -47,13 +47,13 @@ factor_alpha <- function(fac) {
 #' animals is also needed.
 #'
 #' @param loc_data_subset A subset of animals. A `data.table` subset taken from
-#'   full data set of all animals location. Note the `id` column is factor with
-#'   all animals identity as levels. So this subset still have all identities
-#'   information, which is needed to color each animal consistently.
-#' @param loc_data The full data set of all animals location in merged
-#'   `data.table` format. Usually came from [combine]. If background is
-#'   not needed, it can be skipped and take the default `NULL` value. In this
-#'   case better use named parameter for `point_size` if needed, like
+#'   full data set of all animals location `loc_data`. Note the `id` column is
+#'   factor with all animals identity as levels. So this subset still have all
+#'   identities information, which is needed to color each animal consistently.
+#' @param loc_data The full data set of all animals location in combined
+#'   `data.table` format, usually came from [combine()]. If background is not
+#'   needed, this parameter can be skipped and take the default `NULL` value. In
+#'   this case better use named parameter for `point_size` if needed, like
 #'   `plot_loc(loc_data_subset, point_size = 0.2)` instead of
 #'   `plot_loc(loc_data_subset, 0.2)` otherwise the second parameter will be
 #'   interpreted as `loc_data`.

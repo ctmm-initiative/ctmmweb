@@ -16,7 +16,7 @@ A list of same length of input list. Each item is a list of \itemize{
 \item \code{a: list_a[[i]]} \item \code{b: list_b[[i]]} }
 }
 \description{
-The generic parallel function \link{par_lapply} can only apply a function with
+The generic parallel function \code{\link[=par_lapply]{par_lapply()}} can only apply a function with
 single parameter to a list. Thus function with multiple parameters need to be
 wrapped into a function with single list which hold all the parameters.
 }

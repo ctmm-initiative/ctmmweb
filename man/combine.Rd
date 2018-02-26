@@ -7,22 +7,19 @@
 combine(tele_obj_list)
 }
 \arguments{
-\item{tele_obj_list}{telemetry object/list}
+\item{tele_obj_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object/list}
 }
 \value{
-list of
-\itemize{
-\item \code{data_dt}: all animals combined in one data.table
-\item \code{info}: animal information table
-}
+list of - \code{data_dt}: all animals combined in one data.table - \code{info}:
+animal information table
 }
 \description{
-A Telemetry list hold mutiple animal data in separate list items, each item
-have the animal location data in a data frame, and other information in
-various slots. This structure supports flexible S3 methods for telemetry
-object. However to plot multiple animals location together with \code{ggplot2} we
-need to combine all location data into a single \code{data.frame} with an animal id
-column.
+A \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list hold mutiple animal data in separate
+list items, each item have the animal location data in a data frame, and
+other information in various slots. This structure supports flexible S3
+methods for telemetry object. However to plot multiple animals location
+together with \code{ggplot2} we need to combine all location data into a single
+\code{data.frame} with an animal id column.
 }
 \details{
 This function combine any input telemetry object/List into a \code{data.table} of

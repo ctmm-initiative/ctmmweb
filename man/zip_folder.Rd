@@ -15,9 +15,8 @@ zip_folder(folder_path, zip_name)
 The absolute path of result zip file
 }
 \description{
-\href{https://github.com/r-lib/zip}{zip} package is used so this is platform
-independent. It will keep the relative path structure in zip, include
-\code{folder_path} itself so the zip can be extracted directly without need of
-creating a folder to hold contents. The zip file will be saved to the parent
-folder of \code{folder_path}.
+\code{\link[zip:zip]{zip::zip()}} is used so this is platform independent. It will keep the
+relative path structure in zip, include \code{folder_path} itself so the zip can
+be extracted directly without need of creating a folder to hold contents. The
+zip file will be saved to the parent folder of \code{folder_path}.
 }

@@ -6,10 +6,10 @@
 
 #' Plot a group of empirical or modeled variograms.
 #'
-#' This is a wrapper over `ctmm::plot.variogram` to make group plot easier.
+#' This is a wrapper over [ctmm::plot.variogram()] to make group plot easier.
 #'
-#' @param vario_list list of `ctmm::variogram`. The `names` of list will be used
-#'   as figure title if in empirical variogram mode.
+#' @param vario_list list of [ctmm::variogram()]. The `names` of list will be
+#'  used as figure title in empirical variogram mode.
 #' @param model_list `CTMM` models list. The `names` of list are needed for
 #'   figure titles. Draw modeled variogram if provided. The models list should
 #'   match `vario_list` in length and animal, so that `i`th model is for `i`th
@@ -18,9 +18,9 @@
 #'   - It can be skipped to use default value `NULL`, and only empirical
 #'   variograms are drawn. `vario_list` names will be used as figure title.
 #'   Better use named parameters for others in this case.
-#'   - list of guesstimated models from `ctmm::ctmm.guess` on telemetry data,
+#'   - list of guesstimated models from [ctmm::ctmm.guess()] on telemetry data,
 #'   overlay guesstimate variogram.
-#'   - list of fitted models from `ctmm::ctmm.select` on `vario_list`, overlay
+#'   - list of fitted models from [ctmm::ctmm.select()] on `vario_list`, overlay
 #'   modeled variogram.
 #' @param fraction Fraction of time-lag range, 0 ~ 1.
 #' @param relative_zoom
@@ -28,7 +28,7 @@
 #' X, Y axes are not synced.
 #' - Absolute mode operate on the max Time-lag range individual in group, and
 #' all others scaled with same X, Y axes for easier comparison.
-#' @param cex The magnification factor of plot text and symbols. See [par].
+#' @param cex The magnification factor of plot text and symbols. See [par()].
 #' @param model_color The color of model variogram
 #' @param columns The columns of the group plot layout.
 #'
@@ -91,17 +91,18 @@ plot_vario <- function(vario_list, model_list = NULL,
 
 #' Plot a group of home ranges or occurrences
 #'
-#' This is a wrapper over `ctmm::plot.telemetry` to make group plot easier.
+#' This is a wrapper over [ctmm::plot.telemetry()] to make group plot easier.
 #'
 #' @param UD_list `ctmm` `UD` object list, which can be home range from
-#'   `ctmm::akde` or occurrences from `ctmm::occurrence`. The names of list are
-#'   needed for title of figures.
-#' @param level_vec The vector of `level.UD` in `ctmm::plot.telemetry`. To be
+#'   [ctmm::akde()] or occurrences from [ctmm::occurrence()]. The names of list
+#'   are needed for title of figures.
+#' @param level_vec The vector of `level.UD` in [ctmm::plot.telemetry()]. To be
 #'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
 #'   app UI take values 0 ~ 100 (for example 95) for easier input.
 #' @inheritParams plot_vario
-#' @param tele_list Overlay animal locations when provided. This should only be
-#'   used for home range since it can interfere with occurrence plot.
+#' @param tele_list [ctmm::as.telemetry] telemetry list. When provided, animal
+#'   locations are overlayed in plot. This should only be used for home range
+#'   since it can interfere with occurrence plot.
 #'
 #' @export
 plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,

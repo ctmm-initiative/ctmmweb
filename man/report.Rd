@@ -7,7 +7,7 @@
 report(tele_obj_list)
 }
 \arguments{
-\item{tele_obj_list}{telemetry object or list}
+\item{tele_obj_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object or list}
 }
 \value{
 A summary \code{data.table}

@@ -7,7 +7,7 @@
 get_names(loc_data)
 }
 \arguments{
-\item{loc_data}{\code{data.table} of animal locations from \link{combine}}
+\item{loc_data}{\code{data.table} of animal locations from \code{\link[=combine]{combine()}}}
 }
 \value{
 A character vector of animal names from \code{identity} column in

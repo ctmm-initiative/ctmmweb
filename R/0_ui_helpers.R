@@ -1,15 +1,17 @@
 # JS for log slider ----
 
-#' JS Function To Logify A `sliderInput`
+#' JS Functions To Logify A `sliderInput`
 #'
-#' Make Shiny `sliderInput` [support logarithmic
-#' scale](https://stackoverflow.com/a/39028280/3718827). `JS.logify` create a
-#' Javascript function in string, and [JS.onload] register the function to
-#' `sliderInput`. Search the usage in `/inst/app/ui.R` for examples.
+#' Make Shiny `sliderInput` support
+#' [logarithmic scale](https://stackoverflow.com/a/39028280/3718827).
+#' `JS.logify` create a Javascript function in string, and `JS.onload` register
+#' the functions to `sliderInput`. Search the usage in `/inst/app/ui.R` for
+#' examples.
 #'
+#' @describeIn JS.logify JS Function To Logify A `sliderInput`
 #' @param digits digits after numerical point
 #'
-#' @return JS code
+#' @return JS code in string to logify `sliderInput`
 #' @export
 #'
 JS.logify <- function(digits = 2) {
@@ -30,17 +32,14 @@ JS.logify <- function(digits = 2) {
            }
            }")
 }
-#' Register JS logify function for each `sliderInput`
+#' @describeIn JS.logify JS code in string to register JS logify functions for
+#'   each `sliderInput`
 #'
-#' Make Shiny `sliderInput` [support logarithmic
-#' scale](https://stackoverflow.com/a/39028280/3718827). `JS.logify` create a
-#' Javascript function in string, and [JS.onload] register the function to
-#' `sliderInput`. Search the usage in `/inst/app/ui.R` for examples.
-#'
-#' @param slider_id_vec slider id vector
+#' @param slider_id_vec vector of slider ids. Multiple functions for multiple
+#'   `sliderInput` can be registered at once.
 #' @param sci use scientific notation
 #'
-#' @return JS code
+#' @return JS code in string to register the JS logify functions
 #' @export
 #'
 JS.onload <- function(slider_id_vec, sci = FALSE) {

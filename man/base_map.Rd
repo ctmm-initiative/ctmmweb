@@ -7,10 +7,11 @@
 base_map(tiles_info = TILES_INFO, grid = TRUE)
 }
 \arguments{
-\item{tiles_info}{A list holding tiles information. To customize it,
-check and modify the default value \code{ctmmweb:::TILES_INFO}.}
+\item{tiles_info}{A list holding tiles information, default to be
+\code{ctmmweb:::TILES_INFO}. To customize it, use \code{ctmmweb:::TILES_INFO} as a
+template.}
 
-\item{grid}{Add graticule by \code{leaflet::addSimpleGraticule}}
+\item{grid}{Add graticule by \code{\link[leaflet:addSimpleGraticule]{leaflet::addSimpleGraticule()}}}
 }
 \value{
 A leaflet widget object.

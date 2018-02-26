@@ -2,18 +2,38 @@
 % Please edit documentation in R/0_ui_helpers.R
 \name{JS.logify}
 \alias{JS.logify}
-\title{JS Function To Logify A \code{sliderInput}}
+\alias{JS.onload}
+\title{JS Functions To Logify A \code{sliderInput}}
 \usage{
 JS.logify(digits = 2)
+
+JS.onload(slider_id_vec, sci = FALSE)
 }
 \arguments{
 \item{digits}{digits after numerical point}
+
+\item{slider_id_vec}{vector of slider ids. Multiple functions for multiple
+\code{sliderInput} can be registered at once.}
+
+\item{sci}{use scientific notation}
 }
 \value{
-JS code
+JS code in string to logify \code{sliderInput}
+
+JS code in string to register the JS logify functions
 }
 \description{
-Make Shiny \code{sliderInput} \href{https://stackoverflow.com/a/39028280/3718827}{support logarithmicscale}. \code{JS.logify} create a
-Javascript function in string, and \link{JS.onload} register the function to
-\code{sliderInput}. Search the usage in \code{/inst/app/ui.R} for examples.
+Make Shiny \code{sliderInput} support
+\href{https://stackoverflow.com/a/39028280/3718827}{logarithmic scale}.
+\code{JS.logify} create a Javascript function in string, and \code{JS.onload} register
+the functions to \code{sliderInput}. Search the usage in \code{/inst/app/ui.R} for
+examples.
 }
+\section{Functions}{
+\itemize{
+\item \code{JS.logify}: JS Function To Logify A \code{sliderInput}
+
+\item \code{JS.onload}: JS code in string to register JS logify functions for
+each \code{sliderInput}
+}}
+

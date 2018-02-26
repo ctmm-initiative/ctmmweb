@@ -11,11 +11,10 @@ create_folder <- function(folder_path) {
 }
 #' Compress a folder into zip
 #'
-#' [`zip`](https://github.com/r-lib/zip) package is used so this is platform
-#' independent. It will keep the relative path structure in zip, include
-#' `folder_path` itself so the zip can be extracted directly without need of
-#' creating a folder to hold contents. The zip file will be saved to the parent
-#' folder of `folder_path`.
+#' [zip::zip()] is used so this is platform independent. It will keep the
+#' relative path structure in zip, include `folder_path` itself so the zip can
+#' be extracted directly without need of creating a folder to hold contents. The
+#' zip file will be saved to the parent folder of `folder_path`.
 #'
 #' @param folder_path The folder to be compressed
 #' @param zip_name The name of zip

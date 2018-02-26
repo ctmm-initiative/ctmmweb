@@ -13,29 +13,27 @@ pick(object, m)
 \method{pick}{list}(tele_list, m)
 }
 \arguments{
-\item{m}{subset size}
+\item{m}{m even spaced points are taken from each object.}
 
-\item{tele}{telemetry object}
+\item{tele}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object}
 
-\item{tele_list}{telemetry list}
+\item{tele_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list}
 }
 \value{
-telemetry object with m data points
+\code{pick.telemetry}: telemetry object with m data points
 
-telemetry list of subsets
+\code{pick.list}: telemetry list of subsets
 }
 \description{
 A dataset subset can have models fitted much quicker. This is used to reduce
 waiting time in developing code that involved time consuming modeling
 processes. After code is tested and stablized, full size dataset can be used.
 }
-\details{
-\code{m} even spaced points are taken from each object.
-}
 \section{Methods (by class)}{
 \itemize{
-\item \code{telemetry}: subset from telemetry object
+\item \code{telemetry}: subset from \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object
 
-\item \code{list}: list of subset from each telemetry object
+\item \code{list}: pick subset from each \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object
+in list
 }}
 

@@ -135,7 +135,7 @@ summary_tried_models <- function(model_try_res) {
   # use [] to make sure calling function directly will print in console.
   model_list_dt_to_formated_model_summary_dt(models_dt)[]
 }
-#' Convert nested [par_fit_models] result into flatten list with model names
+#' Convert nested [par_fit_models()] result into flatten list with model names
 #'
 #' @param model_try_res
 #'
@@ -203,7 +203,7 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
 
 #' Convert overlap result matrix to data.table
 #'
-#' @param mat_3d the 3d matrix result from `ctmm::overlap`
+#' @param mat_3d the 3d matrix result from [ctmm::overlap()]
 #' @param clear_half whether to clear the lower triangular part, including the
 #'   diagonal
 #'

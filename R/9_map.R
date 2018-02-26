@@ -13,9 +13,10 @@ TILES_INFO <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
 
 #' Build a leaflet base map
 #'
-#' @param tiles_info A list holding tiles information. To customize it,
-#'   check and modify the default value `ctmmweb:::TILES_INFO`.
-#' @param grid Add graticule by `leaflet::addSimpleGraticule`
+#' @param tiles_info A list holding tiles information, default to be
+#'   `ctmmweb:::TILES_INFO`. To customize it, use `ctmmweb:::TILES_INFO` as a
+#'   template.
+#' @param grid Add graticule by [leaflet::addSimpleGraticule()]
 #'
 #' @return A leaflet widget object.
 #' @export
@@ -133,15 +134,17 @@ build_point_map <- function(dt_subset) {
                                  full_id_vec, ordered = TRUE)
   base_map() %>% add_points(dt_subset, selected_id_vec, id_pal)
 }
-#' Build point map from animal location data table
+#' Build maps of animal locations
 #'
 #' An interactive map will shown in RStudio Viewer pane when running in
-#' interactive session. You can also further augment it with `leaflet`
-#' functions, or save to a html with `htmlwidgets::saveWidget`.
+#' interactive session. You can also further augment it with
+#' [leaflet](https://github.com/rstudio/leaflet) functions, or save to a html
+#' with [htmlwidgets::saveWidget()].
 #'
+#' @describeIn point_map Build point map of animal locations
 #' @param loc_data_subset `data.table` subset of full data set of animal
-#'   locations from [combine]. The `id` column need to keep all animal names in
-#'   factor levels to maintain color consistency.
+#'   locations from [combine()]. The `id` column need to keep all animal names
+#'   in factor levels to maintain color consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
@@ -154,12 +157,7 @@ point_map <- function(loc_data_subset) {
   #   add_control(selected_id_vec)
   build_point_map(loc_data_subset) %>% add_control(selected_id_vec)
 }
-#' Build home range map
-#'
-#' An interactive map will shown in RStudio Viewer pane when running in
-#' interactive session. You can also further augment it with `leaflet`
-#' functions, or save to a html with `htmlwidgets::saveWidget`.
-#'
+#' @describeIn point_map Build map of home ranges
 #' @param hrange_list list of home range UD object. The names of list will be
 #'   used as layer names, usually they are model names.
 #' @param hr_levels  The vector of `level.UD` in `ctmm::plot.telemetry`. To be
@@ -168,23 +166,16 @@ point_map <- function(loc_data_subset) {
 #' @param hr_color_vec Vector of color names to be used for each home range. The
 #'   length of `hr_color_vec` should match length of `hrange_list`.
 #'
-#' @return A `Leaflet` map widget.
 #' @export
 range_map <- function(hrange_list, hr_levels, hr_color_vec) {
   base_map() %>%
     add_home_range_list(hrange_list, hr_levels, hr_color_vec) %>%
     add_control(names(hrange_list))
 }
-#' Build home range map with animal locations
-#'
-#' An interactive map will shown in RStudio Viewer pane when running in
-#' interactive session. You can also further augment it with `leaflet`
-#' functions, or save to a html with `htmlwidgets::saveWidget`.
-#'
+#' @describeIn point_map Build map of home ranges and animal locations
 #' @inheritParams point_map
 #' @inheritParams range_map
 #'
-#' @return A `Leaflet` map widget.
 #' @export
 point_range_map <- function(loc_data_subset, hrange_list,
                             hr_levels, hr_color_vec) {
@@ -206,15 +197,9 @@ add_heat <- function(leaf, loc_data, tiles_info = TILES_INFO) {
       overlayGroups = c(GRID_GROUP, "Heatmap"),
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
-#' Build heat map from animal location data table
-#'
-#' An interactive map will shown in RStudio Viewer pane when running in
-#' interactive session. You can also further augment it with `leaflet`
-#' operations, or save to a html with `htmlwidgets::saveWidget`.
-#'
+#' @describeIn point_map Build heat map of animal locations
 #' @inheritParams point_map
 #'
-#' @return A `Leaflet` map widget.
 #' @export
 heat_map <- function(loc_data_subset) {
   base_map() %>% add_heat(loc_data_subset)
@@ -224,7 +209,7 @@ heat_map <- function(loc_data_subset) {
 
 #' Extract vector of names from `data.table`
 #'
-#' @param loc_data `data.table` of animal locations from [combine]
+#' @param loc_data `data.table` of animal locations from [combine()]
 #'
 #' @return A character vector of animal names from `identity` column in
 #' `loc_data`. Order is not changed.

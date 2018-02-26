@@ -8,8 +8,8 @@ plot_vario(vario_list, model_list = NULL, fraction = 0.5,
   relative_zoom = TRUE, cex = 0.65, model_color = "blue", columns = 2)
 }
 \arguments{
-\item{vario_list}{list of \code{ctmm::variogram}. The \code{names} of list will be used
-as figure title if in empirical variogram mode.}
+\item{vario_list}{list of \code{\link[ctmm:variogram]{ctmm::variogram()}}. The \code{names} of list will be
+used as figure title in empirical variogram mode.}
 
 \item{model_list}{\code{CTMM} models list. The \code{names} of list are needed for
 figure titles. Draw modeled variogram if provided. The models list should
@@ -20,9 +20,9 @@ Possible values:
 \item It can be skipped to use default value \code{NULL}, and only empirical
 variograms are drawn. \code{vario_list} names will be used as figure title.
 Better use named parameters for others in this case.
-\item list of guesstimated models from \code{ctmm::ctmm.guess} on telemetry data,
+\item list of guesstimated models from \code{\link[ctmm:ctmm.guess]{ctmm::ctmm.guess()}} on telemetry data,
 overlay guesstimate variogram.
-\item list of fitted models from \code{ctmm::ctmm.select} on \code{vario_list}, overlay
+\item list of fitted models from \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on \code{vario_list}, overlay
 modeled variogram.
 }}
 
@@ -35,12 +35,12 @@ X, Y axes are not synced.
 all others scaled with same X, Y axes for easier comparison.
 }}
 
-\item{cex}{The magnification factor of plot text and symbols. See \link{par}.}
+\item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.}
 
 \item{model_color}{The color of model variogram}
 
 \item{columns}{The columns of the group plot layout.}
 }
 \description{
-This is a wrapper over \code{ctmm::plot.variogram} to make group plot easier.
+This is a wrapper over \code{\link[ctmm:plot.variogram]{ctmm::plot.variogram()}} to make group plot easier.
 }

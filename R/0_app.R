@@ -4,11 +4,11 @@
 #' launched with RStudio builtin browser. The builtin browser has some
 #' compatibility problems so Chrome is recommended.
 #'
-#' @param data Data to be loaded with app. It could be anything can be taken by `ctmm::as.telemetry`:
-#' - Path to MoveBank csv file
-#' - MoveBank `data.frame` object
-#' - `Move` object
-#' - `ctmm` `telemetry`` object/list.
+#' @param data Data to be loaded with app. It could be anything can be taken by [ctmm::as.telemetry()]:
+#' - csv file Path of [MoveBank format](https://www.movebank.org/node/13)
+#' - `data.frame` of [MoveBank format](https://www.movebank.org/node/13)
+#' - [move::Move-class] object
+#' - [ctmm::as.telemetry] telemetry object/list.
 #' - Default `NULL` will not load any data.
 #'
 #' @export

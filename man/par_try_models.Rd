@@ -2,18 +2,21 @@
 % Please edit documentation in R/5_parallel.R
 \name{par_try_models}
 \alias{par_try_models}
-\title{Parallel selecting models on telemetry list}
+\alias{par_fit_models}
+\title{Parallel fitting models on telemetry list}
 \usage{
 par_try_models(tele_list, cores = NULL, parallel = TRUE)
+
+par_fit_models(tele_list, cores = NULL, parallel = TRUE)
 }
 \arguments{
-\item{tele_list}{telemetry list}
+\item{tele_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list}
 
 \item{cores}{the core count to be used for cluster. Could be a positive
 integer or
 \itemize{
 \item Default \code{NULL} value will indicate to use a heuristic value based on detected cores, which is roughly \code{min(input_size, physical_cores_count * n)},
-\code{n} being 2 for windows, 4 for Mac/Linux. See \code{?parallel::detectCores} for
+\code{n} being 2 for windows, 4 for Mac/Linux. See \code{\link[parallel:detectCores]{parallel::detectCores()}} for
 more information on physical/logical cores in different platforms.
 \item A negative value like \code{-2} will use \code{all available cores - 2}, so that 2
 cores are reserved for user's other tasks.
@@ -24,12 +27,20 @@ messages in this mode because the console messages in parallel mode are
 lost by default as they happened in other threads.}
 }
 \value{
-list of items named by animal names, each item hold the attempted
-models as sub items with model type as name. Note the structure is
-different from \link{par_fit_models} result.
+\code{par_try_models}: list of items named by animal names, each item hold
+the attempted models as sub items with model type as name.
+
+\code{par_fit_models}: list of models named by animal names.
 }
 \description{
-\code{ctmm::ctmm.select} fit multiple models on telemetry object and output list
-of all attempted models. This function run \code{ctmm::ctmm.select} on each object
-of list on parallel.
+Parallel fitting models on telemetry list
 }
+\section{Functions}{
+\itemize{
+\item \code{par_try_models}: Run \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on each object of list
+on parallel.
+
+\item \code{par_fit_models}: Run \code{\link[ctmm:ctmm.fit]{ctmm::ctmm.fit()}} on each object of list on
+parallel.
+}}
+

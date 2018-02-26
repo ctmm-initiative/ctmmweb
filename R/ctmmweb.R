@@ -2,9 +2,10 @@
 
 #' ctmmweb: A web app package for `ctmm`
 #'
-#' It's a shiny web app built upon
-#' [ctmm](https://github.com/ctmm-initiative/ctmm). This is also a R package so
-#' you can reuse some functionalities in your own R analysis.
+#' A shiny web app built upon [ctmm](https://github.com/ctmm-initiative/ctmm).
+#' The main features of the app are built into a R package so you can reuse
+#' them. The shiny app is included in the package so it's easier to install and
+#' use.
 #'
 #' - [github repo](https://github.com/ctmm-initiative/ctmmweb)
 #' - [reference site](https://ctmm-initiative.github.io/ctmmweb/)

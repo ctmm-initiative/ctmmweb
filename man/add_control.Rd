@@ -12,8 +12,9 @@ add_control(leaf, layer_vec, tiles_info = TILES_INFO)
 \item{layer_vec}{character vector of user data layers. For example animal
 names, model names etc.}
 
-\item{tiles_info}{A list holding tiles information. To customize it,
-check and modify the default value \code{ctmmweb:::TILES_INFO}.}
+\item{tiles_info}{A list holding tiles information, default to be
+\code{ctmmweb:::TILES_INFO}. To customize it, use \code{ctmmweb:::TILES_INFO} as a
+template.}
 }
 \description{
 Add layer control for leaflet map

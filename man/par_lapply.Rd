@@ -21,7 +21,7 @@ align two lists.}
 integer or
 \itemize{
 \item Default \code{NULL} value will indicate to use a heuristic value based on detected cores, which is roughly \code{min(input_size, physical_cores_count * n)},
-\code{n} being 2 for windows, 4 for Mac/Linux. See \code{?parallel::detectCores} for
+\code{n} being 2 for windows, 4 for Mac/Linux. See \code{\link[parallel:detectCores]{parallel::detectCores()}} for
 more information on physical/logical cores in different platforms.
 \item A negative value like \code{-2} will use \code{all available cores - 2}, so that 2
 cores are reserved for user's other tasks.
@@ -34,7 +34,7 @@ lost by default as they happened in other threads.}
 \item{win_init}{Expression to be initialized in Windows. Since all parameters
 should be included in the input list already, this usually means library
 calls, like \code{{library(ctmm)}} for ctmm related operations, which has been
-taken care of with the default value. Note \code{requireNamespace} is used
+taken care of with the default value. Note \code{\link[=requireNamespace]{requireNamespace()}} is used
 because that's more appropriate inside a package.}
 }
 \value{
@@ -44,8 +44,8 @@ List of applied results
 This is a generic parallel lapply that work across all major platforms.
 }
 \details{
-In Windows \code{parallel::parLapplyLB} is used, which is a socket cluster and
+In Windows \code{\link[parallel:parLapplyLB]{parallel::parLapplyLB()}} is used, which is a socket cluster and
 need to initialize each session manually with \code{win_init} if needed. In
-Linux/Mac \code{parallel::mclapply} is used, where each worker will inherit the
+Linux/Mac \code{\link[parallel:mclapply]{parallel::mclapply()}} is used, where each worker will inherit the
 current environment through forking, so no additional setup is required.
 }

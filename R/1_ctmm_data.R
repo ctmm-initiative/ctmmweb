@@ -37,7 +37,7 @@ sort_tele_list <- function(tele_list) {
 }
 #' Report data summary on telemetry object/list
 #'
-#' @param tele_obj_list telemetry object or list
+#' @param tele_obj_list [ctmm::as.telemetry] telemetry object or list
 #'
 #' @return A summary `data.table`
 #' @export
@@ -52,17 +52,17 @@ report <- info_tele_list <- function(tele_obj_list){
 #' If there are big gaps in sampling time, median center for each time group is
 #' used. To reduce duplicate calculation, speed calculation will use some
 #' columns created in distance calculation. Always update `data.table` with
-#' `assign_distance` first then use [assign_speed].
+#' [assign_distance()] first then use [assign_speed()].
 #'
-#' @param animals_dt location `data.table` from [combine]
-#' @param tele_list the telemetry obj list. Calculation need error information
-#'   from it.
+#' @param animals_dt location `data.table` from [combine()]. The original input
+#'   `data.table` will be modified in place by reference after calculation.
+#' @param tele_list the [ctmm::as.telemetry] telemetry obj list. Calculation
+#'   need error information from it.
 #' @param device_error standardized device error in meter. Example: GPS: 10,
 #'   VHF: 100
 #'
-#' @return `data.table` with distance columns added. Note the original input
-#'   parameter is modified in place by reference. The name `assign` hint on this
-#'   nature.
+#' @return The input `data.table` with distance columns added. The name `assign`
+#'   hint on this nature.
 #' @export
 #'
 assign_distance <- function(animals_dt, tele_list, device_error = 10) {
@@ -175,11 +175,12 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
 #'
 #' To reduce duplicate calculation, speed calculation will use some columns
 #' created in distance calculation. Always update `data.table` with
-#' `assign_distance` first then use [assign_speed()].
+#' [assign_distance()] first then use [assign_speed()].
 #'
 #' @inheritParams assign_distance
 #'
-#' @return data.table with speed columns added.
+#' @return The input `data.table` with speed columns added. The name `assign`
+#'   hint on this nature.
 #' @export
 #'
 assign_speed <- function(animals_dt, tele_list, device_error = 10) {
@@ -229,12 +230,12 @@ tele_list_to_dt <- function(tele_obj_list) {
 }
 #' Generate combined location and info `data.table` from telemetry object/list
 #'
-#' A Telemetry list hold mutiple animal data in separate list items, each item
-#' have the animal location data in a data frame, and other information in
-#' various slots. This structure supports flexible S3 methods for telemetry
-#' object. However to plot multiple animals location together with `ggplot2` we
-#' need to combine all location data into a single `data.frame` with an animal id
-#' column.
+#' A [ctmm::as.telemetry] telemetry list hold mutiple animal data in separate
+#' list items, each item have the animal location data in a data frame, and
+#' other information in various slots. This structure supports flexible S3
+#' methods for telemetry object. However to plot multiple animals location
+#' together with `ggplot2` we need to combine all location data into a single
+#' `data.frame` with an animal id column.
 #'
 #' This function combine any input telemetry object/List into a `data.table` of
 #' location data, and another information `data.table` for animals. `data.table`
@@ -242,11 +243,10 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' is also used in a lot of places in app, which works on any selected subset of
 #' full data in almost all steps.
 #'
-#' @param tele_obj_list telemetry object/list
+#' @param tele_obj_list [ctmm::as.telemetry] telemetry object/list
 #'
-#' @return list of
-#' - `data_dt`: all animals combined in one data.table
-#' - `info`: animal information table
+#' @return list of - `data_dt`: all animals combined in one data.table - `info`:
+#'   animal information table
 #' @export
 combine <- combine_tele_list <- function(tele_obj_list) {
   return(list(data_dt = tele_list_to_dt(tele_obj_list),

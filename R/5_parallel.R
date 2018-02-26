@@ -2,7 +2,7 @@
 
 #' Combine two lists into one list by aligning each item
 #'
-#' The generic parallel function [par_lapply] can only apply a function with
+#' The generic parallel function [par_lapply()] can only apply a function with
 #' single parameter to a list. Thus function with multiple parameters need to be
 #' wrapped into a function with single list which hold all the parameters.
 #'
@@ -28,9 +28,9 @@ align_list <- function(list_a, list_b) {
 #'
 #' This is a generic parallel lapply that work across all major platforms.
 #'
-#' In Windows `parallel::parLapplyLB` is used, which is a socket cluster and
+#' In Windows [parallel::parLapplyLB()] is used, which is a socket cluster and
 #' need to initialize each session manually with `win_init` if needed. In
-#' Linux/Mac `parallel::mclapply` is used, where each worker will inherit the
+#' Linux/Mac [parallel::mclapply()] is used, where each worker will inherit the
 #' current environment through forking, so no additional setup is required.
 #'
 #' @param lst Input list.
@@ -43,7 +43,7 @@ align_list <- function(list_a, list_b) {
 #' @param cores the core count to be used for cluster. Could be a positive
 #'  integer or
 #'   - Default `NULL` value will indicate to use a heuristic value based on detected cores, which is roughly `min(input_size, physical_cores_count * n)`,
-#'   `n` being 2 for windows, 4 for Mac/Linux. See `?parallel::detectCores` for
+#'   `n` being 2 for windows, 4 for Mac/Linux. See [parallel::detectCores()] for
 #'    more information on physical/logical cores in different platforms.
 #'   - A negative value like `-2` will use `all available cores - 2`, so that 2
 #'    cores are reserved for user's other tasks.
@@ -53,7 +53,7 @@ align_list <- function(list_a, list_b) {
 #' @param win_init Expression to be initialized in Windows. Since all parameters
 #'   should be included in the input list already, this usually means library
 #'   calls, like `{library(ctmm)}` for ctmm related operations, which has been
-#'   taken care of with the default value. Note `requireNamespace` is used
+#'   taken care of with the default value. Note [requireNamespace()] is used
 #'   because that's more appropriate inside a package.
 #'
 #' @return List of applied results
@@ -123,18 +123,15 @@ par_try_tele_guess <- function(tele_guess_list,
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 
-#' Parallel selecting models on telemetry list
+#' Parallel fitting models on telemetry list
 #'
-#' `ctmm::ctmm.select` fit multiple models on telemetry object and output list
-#' of all attempted models. This function run `ctmm::ctmm.select` on each object
-#' of list on parallel.
-#'
-#' @param tele_list telemetry list
+#' @describeIn par_try_models Run [ctmm::ctmm.select()] on each object of list
+#'   on parallel.
+#' @param tele_list [ctmm::as.telemetry] telemetry list
 #' @inheritParams par_lapply
 #'
-#' @return list of items named by animal names, each item hold the attempted
-#'   models as sub items with model type as name. Note the structure is
-#'   different from [par_fit_models] result.
+#' @return `par_try_models`: list of items named by animal names, each item hold
+#'   the attempted models as sub items with model type as name.
 #' @export
 par_try_models <- function(tele_list,
                            cores = NULL,
@@ -151,15 +148,11 @@ par_try_models <- function(tele_list,
   return(model_try_res)
 }
 
-#' Parallel fitting model on telemetry list
-#'
-#' `ctmm::ctmm.fit` fit model on telemetry object. This function run
-#' `ctmm::ctmm.fit` on each object of list on parallel.
-#'
+#' @describeIn par_try_models Run [ctmm::ctmm.fit()] on each object of list on
+#'   parallel.
 #' @inheritParams par_try_models
 #'
-#' @return list of models named by animal names. Note the structure is different
-#'   from [par_try_models] result.
+#' @return `par_fit_models`: list of models named by animal names.
 #' @export
 par_fit_models <- function(tele_list,
                            cores = NULL,
@@ -182,7 +175,7 @@ par_fit_models <- function(tele_list,
 
 #' Parallel calculate occurrence from telemetry and model list
 #'
-#' @param tele_list `ctmm` `telemetry` list
+#' @param tele_list [ctmm::as.telemetry] telemetry list
 #' @param model_list Corresponding `ctmm` model list for `tele_list`
 #' @inheritParams par_lapply
 #'
@@ -205,17 +198,17 @@ par_occur <- function(tele_list, model_list,
 #' waiting time in developing code that involved time consuming modeling
 #' processes. After code is tested and stablized, full size dataset can be used.
 #'
-#' `m` even spaced points are taken from each object.
+#' @param m m even spaced points are taken from each object.
 #'
 #' @export
 pick <- function(object, m) {UseMethod("pick")}
 
-#' @describeIn pick subset from telemetry object
+#' @describeIn pick subset from [ctmm::as.telemetry] telemetry object
 #'
-#' @param tele telemetry object
-#' @param m subset size
+#' @param tele [ctmm::as.telemetry] telemetry object
+#' @inheritParams pick
 #'
-#' @return telemetry object with m data points
+#' @return `pick.telemetry`: telemetry object with m data points
 #' @export
 #' @import ctmm
 pick.telemetry <- pick_tele <- function(tele, m) {
@@ -223,12 +216,13 @@ pick.telemetry <- pick_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
 
-#' @describeIn pick list of subset from each telemetry object
+#' @describeIn pick pick subset from each [ctmm::as.telemetry] telemetry object
+#'   in list
 #'
-#' @param tele_list telemetry list
+#' @param tele_list [ctmm::as.telemetry] telemetry list
 #' @inheritParams pick
 #'
-#' @return telemetry list of subsets
+#' @return `pick.list`: telemetry list of subsets
 #' @export
 pick.list <- pick_tele_list <- function(tele_list, m) {
   lapply(tele_list, function(x) {

@@ -6,9 +6,10 @@
 \alias{ctmmweb-package}
 \title{ctmmweb: A web app package for \code{ctmm}}
 \description{
-It's a shiny web app built upon
-\href{https://github.com/ctmm-initiative/ctmm}{ctmm}. This is also a R package so
-you can reuse some functionalities in your own R analysis.
+A shiny web app built upon \href{https://github.com/ctmm-initiative/ctmm}{ctmm}.
+The main features of the app are built into a R package so you can reuse
+them. The shiny app is included in the package so it's easier to install and
+use.
 }
 \details{
 \itemize{

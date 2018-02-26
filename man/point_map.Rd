@@ -2,20 +2,51 @@
 % Please edit documentation in R/9_map.R
 \name{point_map}
 \alias{point_map}
-\title{Build point map from animal location data table}
+\alias{range_map}
+\alias{point_range_map}
+\alias{heat_map}
+\title{Build maps of animal locations}
 \usage{
 point_map(loc_data_subset)
+
+range_map(hrange_list, hr_levels, hr_color_vec)
+
+point_range_map(loc_data_subset, hrange_list, hr_levels, hr_color_vec)
+
+heat_map(loc_data_subset)
 }
 \arguments{
 \item{loc_data_subset}{\code{data.table} subset of full data set of animal
-locations from \link{combine}. The \code{id} column need to keep all animal names in
-factor levels to maintain color consistency.}
+locations from \code{\link[=combine]{combine()}}. The \code{id} column need to keep all animal names
+in factor levels to maintain color consistency.}
+
+\item{hrange_list}{list of home range UD object. The names of list will be
+used as layer names, usually they are model names.}
+
+\item{hr_levels}{The vector of \code{level.UD} in \code{ctmm::plot.telemetry}. To be
+consistent with \code{ctmm} they are values 0 ~ 1 (for example 0.95). Note the
+app UI take values 0 ~ 100 (for example 95) for easier input.}
+
+\item{hr_color_vec}{Vector of color names to be used for each home range. The
+length of \code{hr_color_vec} should match length of \code{hrange_list}.}
 }
 \value{
 A \code{Leaflet} map widget.
 }
 \description{
 An interactive map will shown in RStudio Viewer pane when running in
-interactive session. You can also further augment it with \code{leaflet}
-functions, or save to a html with \code{htmlwidgets::saveWidget}.
+interactive session. You can also further augment it with
+\href{https://github.com/rstudio/leaflet}{leaflet} functions, or save to a html
+with \code{\link[htmlwidgets:saveWidget]{htmlwidgets::saveWidget()}}.
 }
+\section{Functions}{
+\itemize{
+\item \code{point_map}: Build point map of animal locations
+
+\item \code{range_map}: Build map of home ranges
+
+\item \code{point_range_map}: Build map of home ranges and animal locations
+
+\item \code{heat_map}: Build heat map of animal locations
+}}
+
