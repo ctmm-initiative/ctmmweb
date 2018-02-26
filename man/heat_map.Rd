@@ -7,8 +7,9 @@
 heat_map(loc_data_subset)
 }
 \arguments{
-\item{loc_data_subset}{\code{data.table} subset of animal locations from
-\link{merge_tele}. The subset parameter name is used for consistency.}
+\item{loc_data_subset}{\code{data.table} subset of full data set of animal
+locations from \link{combine}. The \code{id} column need to keep all animal names in
+factor levels to maintain color consistency.}
 }
 \value{
 A \code{Leaflet} map widget.

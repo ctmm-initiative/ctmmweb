@@ -7,11 +7,11 @@
 get_names(loc_data)
 }
 \arguments{
-\item{loc_data}{\code{data.table} of animal locations from \link{merge_tele}}
+\item{loc_data}{\code{data.table} of animal locations from \link{combine}}
 }
 \value{
-A character vector of animal names from \code{identity} column in \code{loc_data}.
-Order is not changed.
+A character vector of animal names from \code{identity} column in
+\code{loc_data}. Order is not changed.
 }
 \description{
 Extract vector of names from \code{data.table}

@@ -139,9 +139,9 @@ build_point_map <- function(dt_subset) {
 #' interactive session. You can also further augment it with `leaflet`
 #' functions, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param loc_data_subset `data.table` subset of full data set of animal locations from
-#'   [merge_tele]. The `id` column need to keep all animal names in levels to
-#'   maintain color consistency.
+#' @param loc_data_subset `data.table` subset of full data set of animal
+#'   locations from [combine]. The `id` column need to keep all animal names in
+#'   factor levels to maintain color consistency.
 #'
 #' @return A `Leaflet` map widget.
 #' @export
@@ -212,8 +212,7 @@ add_heat <- function(leaf, loc_data, tiles_info = TILES_INFO) {
 #' interactive session. You can also further augment it with `leaflet`
 #' operations, or save to a html with `htmlwidgets::saveWidget`.
 #'
-#' @param loc_data_subset `data.table` subset of animal locations from
-#'   [merge_tele]. The subset parameter name is used for consistency.
+#' @inheritParams point_map
 #'
 #' @return A `Leaflet` map widget.
 #' @export
@@ -225,10 +224,10 @@ heat_map <- function(loc_data_subset) {
 
 #' Extract vector of names from `data.table`
 #'
-#' @param loc_data `data.table` of animal locations from [merge_tele]
+#' @param loc_data `data.table` of animal locations from [combine]
 #'
-#' @return A character vector of animal names from `identity` column in `loc_data`.
-#'   Order is not changed.
+#' @return A character vector of animal names from `identity` column in
+#' `loc_data`. Order is not changed.
 #' @export
 get_names <- function(loc_data) {
   unique(loc_data, by = "identity")$identity

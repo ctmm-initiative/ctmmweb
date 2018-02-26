@@ -40,7 +40,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
     app(buffalo)
     ```
   
-    This will launch the app locally with system default browser. Chrome is recommended for compatibility reasons. You can copy the url into Chrome if it was not launched by Chrome.
+    This will launch the app locally with system default browser. Chrome is recommended for compatibility reasons. You can copy the url into Chrome if it was not launched by Chrome. After the browser windows was closed, you may need to stop the R session in R console manually (`Esc` or `Ctrl+C`) to quit the app.
   
   More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html) 
 

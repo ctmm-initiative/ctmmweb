@@ -13,7 +13,7 @@ all animals identity as levels. So this subset still have all identities
 information, which is needed to color each animal consistently.}
 
 \item{loc_data}{The full data set of all animals location in merged
-\code{data.table} format. Usually came from \link{merge_animals}. If background is
+\code{data.table} format. Usually came from \link{combine}. If background is
 not needed, it can be skipped and take the default \code{NULL} value. In this
 case better use named parameter for \code{point_size} if needed, like
 \code{plot_loc(loc_data_subset, point_size = 0.2)} instead of

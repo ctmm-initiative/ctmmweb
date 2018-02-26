@@ -51,7 +51,7 @@ factor_alpha <- function(fac) {
 #'   all animals identity as levels. So this subset still have all identities
 #'   information, which is needed to color each animal consistently.
 #' @param loc_data The full data set of all animals location in merged
-#'   `data.table` format. Usually came from [merge_animals]. If background is
+#'   `data.table` format. Usually came from [combine]. If background is
 #'   not needed, it can be skipped and take the default `NULL` value. In this
 #'   case better use named parameter for `point_size` if needed, like
 #'   `plot_loc(loc_data_subset, point_size = 0.2)` instead of
