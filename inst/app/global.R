@@ -9,3 +9,5 @@ if (!require("pacman")) install.packages("pacman")
 # the reason to load first line of packages is that they are not really needed for package functions, so are not included in package dependencies. we still need p_load to install them in first run. since they are loaded, no need to use full qualified name in app code.
 pacman::p_load(shiny, shinydashboard, DT,
                ctmm, data.table)
+# package build time in current time zone, not current app modified time. This is used in ui (app info dialog) and server (start info).
+PKG_BUILD_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)

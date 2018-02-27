@@ -17,8 +17,7 @@ header <- dashboardHeader(title = "Animal Movement",
                  href = "https://github.com/ctmm-initiative/ctmmweb"),
                messageItem(
                  from = "Build Date",
-                 # print package build date in current time zone.
-                 message = format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE),
+                 message = PKG_BUILD_TIME,
                  icon = icon("calendar-o")),
                messageItem(
                  from = "Issues",
