@@ -1,4 +1,4 @@
-# helper functions that useful to shiny app. Some are exported for individual uses. All functions are placed in one file for easier search for now.
+# helper functions that too specific to shiny app and no need to be put inside package. Some are exported for individual uses. All functions are placed in one file for easier search for now.
 
 # divide x into interval_count intervals ----
 # Taken from https://github.com/wch/r-source/blob/trunk/src/library/base/R/cut.R

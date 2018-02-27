@@ -7,31 +7,47 @@ help_button <- function(module_id) {
                style = ctmmweb:::STYLES$help_button
   )
 }
-header <- shinydashboard::dashboardHeader(title = "Animal Movement")
+header <- dashboardHeader(title = "Animal Movement",
+                          dropdownMenu(type = "messages",
+                                       messageItem(
+                                         from = "ctmm team",
+                                         message = "About ctmm",
+                                         href = "https://cran.r-project.org/web/packages/ctmm/index.html"),
+                                       messageItem(
+                                         from = "Documentation",
+                                         message = "View Documentation and Source",
+                                         icon = icon("question"),
+                                         href = "https://github.com/xhdong-umd/ctmm-shiny-prototype"),
+                                       messageItem(
+                                         from = "Issues",
+                                         message = "Report Issues Here.",
+                                         icon = icon("life-ring"),
+                                         ## time = "2014-12-01",
+                                         href = "https://github.com/xhdong-umd/ctmm-shiny-prototype/issues")))
 # sidebar ----
-sidebar <- shinydashboard::dashboardSidebar(
-  shinydashboard::sidebarMenu(
+sidebar <- dashboardSidebar(
+  sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
     # menuItem("Introduction", tabName = "intro", icon = icon("info")),
-    shinydashboard::menuItem("Import Data", tabName = "import",
+    menuItem("Import Data", tabName = "import",
                              icon = icon("upload"), selected = TRUE),
-    shinydashboard::menuItem("Visualization", tabName = "plots",
+    menuItem("Visualization", tabName = "plots",
                              icon = icon("line-chart")),
-    shinydashboard::menuItem("Filter Outliers", tabName = "filter",
+    menuItem("Filter Outliers", tabName = "filter",
                              icon = icon("filter")),
-    shinydashboard::menuItem("Time Subsetting", tabName = "subset",
+    menuItem("Time Subsetting", tabName = "subset",
                              icon = icon("pie-chart")),
-    shinydashboard::menuItem("Model Selection", tabName = "model",
+    menuItem("Model Selection", tabName = "model",
                              icon = icon("hourglass-start")),
-    shinydashboard::menuItem("Home Range", tabName = "homerange",
+    menuItem("Home Range", tabName = "homerange",
                              icon = icon("map-o")),
-    shinydashboard::menuItem("Overlap", tabName = "overlap",
+    menuItem("Overlap", tabName = "overlap",
                              icon = icon("clone")),
-    shinydashboard::menuItem("Occurrence", tabName = "occurrence",
+    menuItem("Occurrence", tabName = "occurrence",
                              icon = icon("map-marker")),
-    shinydashboard::menuItem("Map", tabName = "map", icon = icon("globe")),
-    shinydashboard::menuItem("Work Report", tabName = "report",
+    menuItem("Map", tabName = "map", icon = icon("globe")),
+    menuItem("Work Report", tabName = "report",
                              icon = icon("file-text-o"))
   )
   # ,
@@ -40,7 +56,7 @@ sidebar <- shinydashboard::dashboardSidebar(
 
 )
 # p1. import ----
-app_options_box <- shinydashboard::box(title = "App Options",
+app_options_box <- box(title = "App Options",
                                       status = "primary", solidHeader = TRUE,
                                       width = 12,
   fluidRow(
@@ -63,7 +79,7 @@ app_options_box <- shinydashboard::box(title = "App Options",
                            style = ctmmweb:::STYLES$page_action)),
     column(3, offset = 6, help_button("app_options"))
                                       ))
-upload_box <- shinydashboard::box(title = "Local Data Import",
+upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 6,
   fluidRow(column(8, radioButtons('load_option', NULL,
@@ -100,7 +116,7 @@ upload_box <- shinydashboard::box(title = "Local Data Import",
 
            )
     )
-movebank_login_box <- shinydashboard::box(title = "Movebank Login",
+movebank_login_box <- box(title = "Movebank Login",
                           status = "warning", solidHeader = TRUE, width = 6,
                           # height = ctmmweb:::STYLES$height_movebank_login_box,
                           fluidRow(
@@ -117,14 +133,14 @@ movebank_login_box <- shinydashboard::box(title = "Movebank Login",
                             # ,
                             # column(12, br())
                             ))
-movebank_studies_box <- shinydashboard::box(title = "Movebank Studies",
+movebank_studies_box <- box(title = "Movebank Studies",
                                             collapsible = TRUE,
                             status = "primary", solidHeader = TRUE, width = 12,
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                column(3, checkboxInput("data_manager",
                                        "Only show I'm data manager"))),
       fluidRow(column(12, DT::dataTableOutput('studies'))))
-movebank_study_detail_box <- shinydashboard::box(title = "Selected Study Detail",
+movebank_study_detail_box <- box(title = "Selected Study Detail",
                                                  width = 12,
                                  collapsible = TRUE,
                                  status = "primary", solidHeader = TRUE,
@@ -137,7 +153,7 @@ movebank_study_detail_box <- shinydashboard::box(title = "Selected Study Detail"
                      )),
      hr(),
      fluidRow(column(12, DT::dataTableOutput("study_detail"))))
-movebank_study_preview_box <- shinydashboard::box(title = "Selected Study Data",
+movebank_study_preview_box <- box(title = "Selected Study Data",
                                                   width = 12,
                                   status = "primary", solidHeader = TRUE,
                                   collapsible = TRUE,
@@ -152,7 +168,7 @@ movebank_study_preview_box <- shinydashboard::box(title = "Selected Study Data",
       fluidRow(column(12, verbatimTextOutput("study_data_response"))),
       fluidRow(column(12, DT::dataTableOutput('study_preview'))))
 # p2. plots ----
-data_summary_box <- shinydashboard::box(title = "1. Individuals",
+data_summary_box <- box(title = "1. Individuals",
                                         status = "info",
                         solidHeader = TRUE, width = 12,
       fluidRow(column(3, offset = 0, checkboxInput("time_in_sec",
@@ -175,7 +191,7 @@ data_summary_box <- shinydashboard::box(title = "1. Individuals",
                                           style = ctmmweb:::STYLES$page_action))
                ))
 # relying naming convention here. use plot id with postfix for event name.
-location_plot_box <- shinydashboard::tabBox(title = "Animal Locations",
+location_plot_box <- tabBox(title = "Animal Locations",
                             id = "location_plot_tabs",
                             # height = ctmmweb:::STYLES$height_location_box,
                             width = 12,
@@ -223,13 +239,13 @@ location_plot_box <- shinydashboard::tabBox(title = "Animal Locations",
                       width = "99%", height = "100%"))
   # tabPanel("4. Basic Plot", plotOutput("location_plot_basic"))
   )
-histogram_facet_box <- shinydashboard::box(title = "5. Sampling Time",
+histogram_facet_box <- box(title = "5. Sampling Time",
                            # height = ctmmweb:::STYLES$height_hist_box,
                            status = "primary", solidHeader = TRUE, width = 12,
                            plotOutput("histogram_facet",
                                       width = "99%", height = "100%"))
 # p3. outlier ----
-telemetry_error_box <- shinydashboard::box(title = "Telemetry Errors",
+telemetry_error_box <- box(title = "Telemetry Errors",
            status = "primary", solidHeader = TRUE, width = 12,
            fluidRow(
              column(5, offset = 1,
@@ -246,7 +262,7 @@ telemetry_error_box <- shinydashboard::box(title = "Telemetry Errors",
              #                     style = ctmmweb:::STYLES$page_action))
            )
 )
-outlier_filter_box <- shinydashboard::tabBox(title = "Outlier Detection",
+outlier_filter_box <- tabBox(title = "Outlier Detection",
                        id = "outlier_filter_tabs", width = 12,
   # p3.a distance ----
   tabPanel("Distance to center",
@@ -347,7 +363,7 @@ all_removed_outliers_box <- box(title = "Removed Outliers",
                                DT::dataTableOutput("all_removed_outliers"))))
 # p4. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
-histogram_subsetting_box <- shinydashboard::box(title = "Select Time Range",
+histogram_subsetting_box <- box(title = "Select Time Range",
                                                 status = "info",
                                 solidHeader = TRUE, width = 12,
                                 # height = ctmmweb:::STYLES$height_hist_subset_box,
@@ -373,7 +389,7 @@ histogram_subsetting_box <- shinydashboard::box(title = "Select Time Range",
                       actionButton("set_date_range", "Set",
                                    icon = icon("arrow-down"),
                                    style = ctmmweb:::STYLES$page_action))))
-current_range_box <- shinydashboard::box(title = "Current Time Range",
+current_range_box <- box(title = "Current Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
        fluidRow(
          column(10, DT::dataTableOutput("current_range")),
@@ -381,7 +397,7 @@ current_range_box <- shinydashboard::box(title = "Current Time Range",
                  actionButton("add_time",
                     "Add", icon = icon("plus"),
                     style = ctmmweb:::STYLES$page_action))))
-selected_plot_box <- shinydashboard::box(title = "Locations in Selected Time Range",
+selected_plot_box <- box(title = "Locations in Selected Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
                          # height = height_selected_loc_box,
        fluidRow(column(5, offset = 4,
@@ -398,7 +414,7 @@ selected_plot_box <- shinydashboard::box(title = "Locations in Selected Time Ran
                   # width = "99%", height = "100%"
                   ))
 # this is called selected_ranges/time_ranges everywhere, difficult to change as too many places involved, also some implict names.
-selected_ranges_box <- shinydashboard::box(title = "Time Range List",
+selected_ranges_box <- box(title = "Time Range List",
                            status = "primary", solidHeader = TRUE, width = 12,
           fluidRow(column(3, offset = 0,
                           actionButton("delete_time_sub_rows",
@@ -420,7 +436,7 @@ selected_ranges_box <- shinydashboard::box(title = "Time Range List",
 #                              id = "vario_control_tabs", width = 12,
 #    # p5.c.a layout ----
 #    tabPanel("Control",
-vario_control_box <- shinydashboard::box(title = "Plot Controls",
+vario_control_box <- box(title = "Plot Controls",
                            status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
         tags$head(tags$script(HTML(ctmmweb::JS.logify(3)))),
@@ -466,7 +482,7 @@ vario_control_box <- shinydashboard::box(title = "Plot Controls",
     #            ))
 )
 # p5. variograms ----
-variograms_box <- shinydashboard::box(title = "Variograms", status = "primary",
+variograms_box <- box(title = "Variograms", status = "primary",
     solidHeader = TRUE, width = 12,
     fluidRow(
       # column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
@@ -491,7 +507,7 @@ variograms_box <- shinydashboard::box(title = "Variograms", status = "primary",
                          width = "99%", height = "98%")))
 )
 # p5. model selection ----
-model_selection_box <- shinydashboard::box(title = "Model Selection",
+model_selection_box <- box(title = "Model Selection",
                                            status = "info",
                          solidHeader = TRUE, width = 12,
   fluidRow(
@@ -505,7 +521,7 @@ model_selection_box <- shinydashboard::box(title = "Model Selection",
            column(12, DT::dataTableOutput("tried_models_summary")))
   )
 # p6. home range ----
-range_plot_box <- shinydashboard::box(title = "Home Range Estimation",
+range_plot_box <- box(title = "Home Range Estimation",
                                       status = "info",
                  solidHeader = TRUE, width = 12,
    fluidRow(
@@ -521,7 +537,7 @@ range_plot_box <- shinydashboard::box(title = "Home Range Estimation",
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))
-range_summary_box <- shinydashboard::box(title = "Home Range Summary",
+range_summary_box <- box(title = "Home Range Summary",
                                          status = "primary",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
@@ -532,7 +548,7 @@ range_summary_box <- shinydashboard::box(title = "Home Range Summary",
                         )
 )
 # p7. overlap ----
-overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
+overlap_summary_box <- box(title = "Overlap of Home Ranges",
                                          status = "info",
                                          solidHeader = TRUE, width = 12,
          fluidRow(
@@ -541,7 +557,7 @@ overlap_summary_box <- shinydashboard::box(title = "Overlap of Home Ranges",
            column(12, DT::dataTableOutput("overlap_summary"))
          )
 )
-overlap_plot_box <- shinydashboard::tabBox(title = "Plot",
+overlap_plot_box <- tabBox(title = "Plot",
                                            id = "overlap_tabs", width = 12,
           tabPanel("Value Range",
                    fluidRow(
@@ -575,7 +591,7 @@ overlap_plot_box <- shinydashboard::tabBox(title = "Plot",
              ))))
 )
 # p8. occurrence ----
-occurrence_plot_box <- shinydashboard::box(title = "Occurrence Distribution",
+occurrence_plot_box <- box(title = "Occurrence Distribution",
                                            status = "info",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
@@ -587,7 +603,7 @@ occurrence_plot_box <- shinydashboard::box(title = "Occurrence Distribution",
                         column(12, plotOutput("occurrence_plot",
                                 width = "99%", height = "98%"))))
 # p9. map ----
-map_control_box <- shinydashboard::box(title = "Map Controls",
+map_control_box <- box(title = "Map Controls",
                                        status = "primary",
                            solidHeader = TRUE, width = 12,
   fluidRow(column(2, offset = 0,
@@ -605,7 +621,7 @@ map_control_box <- shinydashboard::box(title = "Map Controls",
                                          "Download Map",
                                          style = ctmmweb:::STYLES$download_button))
   ))
-map_box <- shinydashboard::tabBox(title = "Maps", id = "map_tabs", width = 12,
+map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
   tabPanel("Point",
            # use uiOutput because the height is determined in leafletOutput, so we need to move it to server side.
            fluidRow(column(12, uiOutput("point_map_holder")))),
@@ -613,7 +629,7 @@ map_box <- shinydashboard::tabBox(title = "Maps", id = "map_tabs", width = 12,
            fluidRow(column(12, uiOutput("heat_map_holder"))))
 )
 # p10. work report ----
-report_box <- shinydashboard::box(title = "Report", status = "info",
+report_box <- box(title = "Report", status = "info",
                           solidHeader = TRUE, width = 12,
   fluidRow(
     column(3,
@@ -633,7 +649,7 @@ report_box <- shinydashboard::box(title = "Report", status = "info",
            help_button("report"))
   ))
 # show debug information in app, because hosted app log often mess up
-# debug_box <- shinydashboard::box(title = "Debug", status = "primary",
+# debug_box <- box(title = "Debug", status = "primary",
 #                                  solidHeader = TRUE, width = 12,
 #    fluidRow(
 #      column(12, verbatimTextOutput("session_info")),
@@ -641,43 +657,43 @@ report_box <- shinydashboard::box(title = "Report", status = "info",
 #    ))
 error_log_box <- uiOutput("error_log_box")
 # body ----
-body <- shinydashboard::dashboardBody(
+body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
-  shinydashboard::tabItems(
+  tabItems(
     # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
-    shinydashboard::tabItem(tabName = "import",
+    tabItem(tabName = "import",
                             fluidRow(app_options_box,
                                      upload_box, movebank_login_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,
                                      movebank_study_preview_box)),
-    shinydashboard::tabItem(tabName = "plots",
+    tabItem(tabName = "plots",
             fluidRow(data_summary_box,
                      location_plot_box,
                      histogram_facet_box
                      )),
-    shinydashboard::tabItem(tabName = "subset",
+    tabItem(tabName = "subset",
             fluidRow(histogram_subsetting_box,
                      current_range_box,
                      selected_plot_box,
                      selected_ranges_box)),
-    shinydashboard::tabItem(tabName = "filter",
+    tabItem(tabName = "filter",
             fluidRow(telemetry_error_box, outlier_filter_box,
                      all_removed_outliers_box)),
-    shinydashboard::tabItem(tabName = "model",
+    tabItem(tabName = "model",
             fluidRow(vario_control_box, variograms_box, model_selection_box)),
-    shinydashboard::tabItem(tabName = "homerange",
+    tabItem(tabName = "homerange",
             fluidRow(range_plot_box, range_summary_box)),
-    shinydashboard::tabItem(tabName = "overlap",
+    tabItem(tabName = "overlap",
             fluidRow(overlap_summary_box, overlap_plot_box)),
-    shinydashboard::tabItem(tabName = "occurrence",
+    tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
-    shinydashboard::tabItem(tabName = "map",
+    tabItem(tabName = "map",
             fluidRow(map_control_box, map_box)),
-    shinydashboard::tabItem(tabName = "report",
+    tabItem(tabName = "report",
                             fluidRow(report_box))
   )
 )
 # assemble UI
-ui <- shinydashboard::dashboardPage(header, sidebar, body,skin = "green")
+ui <- dashboardPage(header, sidebar, body,skin = "green")
