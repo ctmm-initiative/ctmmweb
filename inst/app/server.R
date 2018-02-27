@@ -18,7 +18,7 @@ server <- function(input, output, session) {
   # global LOG variables ----
   # one time check if app is running in hosted mode
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
-  # to copy from 07_report_save_load.Rmd
+  # to copy from 07_report_save_load.Rmd --
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
                              msg = crayon::green,
@@ -114,7 +114,7 @@ server <- function(input, output, session) {
     log_msg(msg, detail = csv_name)
     log_add_rmd(stringr::str_c("[", csv_name, "](", csv_name, ")"))
   }
-  # copy end ----
+  # copy end --
   # LOG app start
   LOG_folder <- create_log_folder()
   # initialize RMarkdown ----
@@ -174,7 +174,8 @@ output:
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
-  log_msg("App started")
+  # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
+  log_msg("App started", paste0("Build Date: ", PKG_BUILD_TIME))
   # first page need to be added manually since no page switching event fired
   log_page(page_title$import)
   # log app options ----
