@@ -8,22 +8,27 @@ help_button <- function(module_id) {
   )
 }
 header <- dashboardHeader(title = "Animal Movement",
-                          dropdownMenu(type = "messages",
-                                       messageItem(
-                                         from = "ctmm team",
-                                         message = "About ctmm",
-                                         href = "https://cran.r-project.org/web/packages/ctmm/index.html"),
-                                       messageItem(
-                                         from = "Documentation",
-                                         message = "View Documentation and Source",
-                                         icon = icon("question"),
-                                         href = "https://github.com/xhdong-umd/ctmm-shiny-prototype"),
-                                       messageItem(
-                                         from = "Issues",
-                                         message = "Report Issues Here.",
-                                         icon = icon("life-ring"),
-                                         ## time = "2014-12-01",
-                                         href = "https://github.com/xhdong-umd/ctmm-shiny-prototype/issues")))
+            dropdownMenu(type = "messages",
+               # from for first line, message 2nd line smaller font
+               messageItem(
+                 from = "Project in Github",
+                 message = "Documentation, Source, Citation",
+                 icon = icon("github"),
+                 href = "https://github.com/ctmm-initiative/ctmmweb"),
+               messageItem(
+                 from = "Build Date",
+                 # print package build date in current time zone.
+                 message = format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE),
+                 icon = icon("calendar-o")),
+               messageItem(
+                 from = "Issues",
+                 message = "Report Issues",
+                 icon = icon("exclamation-circle"),
+                 href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
+               badgeStatus = NULL,
+               icon = icon("info-circle fa-lg"),
+               headerText = "App Information"
+               ))
 # sidebar ----
 sidebar <- dashboardSidebar(
   sidebarMenu(

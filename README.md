@@ -4,9 +4,16 @@ This is a web app package for analyzing animal tracking data as a continuous-tim
 
 It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). This is also a R package so you can reuse some functionalities in your own R analysis. 
 
-- Check [the videos here](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html) for feature demonstrations. 
+Suggested citation for the app/package:
+
+```
+Dong, X., C.H. Fleming, and J.M. Calabrese. 2018. ctmmweb: A Shiny web app for the ctmm movement analysis package.
+https://github.com/ctmm-initiative/ctmmweb
+```
+
+- Check [the videos](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html) for feature demonstrations. 
 - The `help` buttons in each page also have detailed documentations for the specific feature.
-- [The package reference website](https://ctmm-initiative.github.io/ctmmwebdoc/) provided some installation tips and documentations for package functions.
+- [The package reference website](https://ctmm-initiative.github.io/ctmmwebdoc/) provided some tips on installation and documentations for package functions.
 - [Release History](https://ctmm-initiative.github.io/ctmmwebdoc/news/index.html)
 
 ## Running the app
