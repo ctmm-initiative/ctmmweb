@@ -18,7 +18,11 @@ knitr::opts_chunk$set(
 
 ## Package installation
 
-Sometimes you need to restart R session in the process of install/upgrade lots of packages. Just restart R session and run the installation code again.
+If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem.
+
+### Windows
+
+Some packages need to be built from source, and you need to install RTools in windows. Just follow the instructions when prompted.
 
 ### Linux
 - Following instructions [here for installing R](https://cloud.r-project.org/bin/linux/ubuntu/) (assuming Ubuntu or Linux Mint). Make sure to install `r-base-dev` too.
@@ -49,3 +53,5 @@ Sometimes you need to restart R session in the process of install/upgrade lots o
   The error is pretty random and hard to reproduce, but usually you can restart R session and it should dissappear.
   
   It's also possible to meet mysterious bugs with parallel operations in a long session. Restart R usually can solve the problem. 
+  
+  You can also disable the parallel mode in first box of `Import` page.
