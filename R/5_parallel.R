@@ -76,29 +76,39 @@ par_lapply <- function(lst, fun,
       cluster_size <- max(parallel::detectCores(logical = FALSE) + cores, 1)
     }
     sysinfo <- Sys.info()
-    # windows ----
-    if (sysinfo["sysname"] == "Windows")  {# Darwin for Mac
-      if (is.null(cores)) {# no input, use heuristic.
-        cluster_size <- min(length(lst),
-                            parallel::detectCores(logical = FALSE) * 2)
+    # catch parallel error and suggest to restart R session
+    tryCatch({
+      # windows ----
+      if (sysinfo["sysname"] == "Windows")  {# Darwin for Mac
+        if (is.null(cores)) {# no input, use heuristic.
+          cluster_size <- min(length(lst),
+                              parallel::detectCores(logical = FALSE) * 2)
+        }
+        cat(crayon::inverse("running parallel in SOCKET cluster of",
+                            cluster_size, "\n"))
+        cl <- parallel::makeCluster(cluster_size, outfile = "")
+        # have to export parameter too because it's not available in remote
+        parallel::clusterExport(cl, c("win_init"), envir = environment())
+        parallel::clusterEvalQ(cl, eval(win_init))
+        res <- parallel::parLapplyLB(cl, lst, fun)
+        parallel::stopCluster(cl)
+      } else {# Mac/Linux ----
+        # log("a")  # to test error handling
+        if (is.null(cores)) {# no input, use heuristic
+          cluster_size <- min(length(lst),
+                              parallel::detectCores(logical = FALSE) * 4)
+        }
+        cat(crayon::inverse("running parallel with mclapply in cluster of",
+                            cluster_size, "\n"))
+        res <- parallel::mclapply(lst, fun, mc.cores = cluster_size)
       }
-      cat(crayon::inverse("running parallel in SOCKET cluster of",
-                          cluster_size, "\n"))
-      cl <- parallel::makeCluster(cluster_size, outfile = "")
-      # have to export parameter too because it's not available in remote
-      parallel::clusterExport(cl, c("win_init"), envir = environment())
-      parallel::clusterEvalQ(cl, eval(win_init))
-      res <- parallel::parLapplyLB(cl, lst, fun)
-      parallel::stopCluster(cl)
-    } else {# Mac/Linux ----
-      if (is.null(cores)) {# no input, use heuristic
-        cluster_size <- min(length(lst),
-                            parallel::detectCores(logical = FALSE) * 4)
-      }
-      cat(crayon::inverse("running parallel with mclapply in cluster of",
-                          cluster_size, "\n"))
-      res <- parallel::mclapply(lst, fun, mc.cores = cluster_size)
-    }
+    },
+    error = function(e) {
+      cat(crayon::bgRed$white("Parallel Error, try restart R session\n"))
+      cat(e)
+            }
+     )
+
   } else {# non-parallel mode
     res <- lapply(lst, fun)
   }
