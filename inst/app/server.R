@@ -1936,33 +1936,85 @@ output:
     log_save_UD("home_range")
     # graphics::par(def.par)
   }, height = function() { select_models()$vario_layout$height })
+  # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier.
+  # export raster ----
+  export_rasterfiles <- function(file) {
+    save_rasterfiles <- function(hrange_list) {
+      write_f <- function(folder_path) {
+        # hrange_list came from select_models(), so the order should be synced
+        for (i in seq_along(hrange_list)) {
+          ctmm::writeRaster(hrange_list[[i]], folder = folder_path,
+                            file = file.path(folder_path,
+                                      select_models()$names_dt$model_name[i]))
+        }
+      }
+      return(write_f)
+    }
+    ctmmweb:::build_zip(file, save_rasterfiles(select_models_hranges()),
+                        session_tmpdir, "Home_Range_Raster_")
+    # LOG build raster
+    log_msg("Raster files built and downloaded")
+  }
   # export shapefiles ----
+  export_shapefiles <- function(file) {
+    # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
+    # functional::Curry is misnomer, and it's extra dependency. this function take some data parameters, return a function that only need target path part. that function was called by the write file function in downloadhandler, when part of the target path was provided.
+    save_shapefiles <- function(hrange_list, ud_levels) {
+      write_f <- function(folder_path) {
+        # hrange_list came from select_models(), so the order should be synced
+        for (i in seq_along(hrange_list)) {
+          ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
+                               folder = folder_path,
+                               file = select_models()$names_dt$model_name[i])
+        }
+      }
+      return(write_f)
+    }
+    ctmmweb:::build_zip(file, save_shapefiles(select_models_hranges(),
+                                              get_hr_levels()),
+                        session_tmpdir, "Home_Range_Shape_")
+    # LOG build shapefiles
+    log_msg("Shapefiles built and downloaded")
+  }
+  # raster download ----
+  output$export_raster <- downloadHandler(
+    filename = function() {
+      # up to min so it should be consistent with the folder name inside zip
+      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+      paste0("Home_Range_Raster_", current_time, ".zip")
+    },
+    content = function(file) {
+      export_rasterfiles(file)
+    }
+  )
+  # shapefiles download ----
   output$export_hrange <- downloadHandler(
     filename = function() {
       # up to min so it should be consistent with the folder name inside zip
       current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
-      paste0("Home_Range_", current_time, ".zip")
+      paste0("Home_Range_Shape_", current_time, ".zip")
     },
     content = function(file) {
-      # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
-      # functional::Curry is misnomer, and it's extra dependency.
-      save_shapefiles <- function(hrange_list, ud_levels) {
-        write_f <- function(folder_path) {
-          # hrange_list came from select_models(), so the order should be synced
-          for (i in seq_along(hrange_list)) {
-            ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
-                           folder = folder_path,
-                           file = select_models()$names_dt$model_name[i])
-          }
-        }
-        return(write_f)
-      }
-      ctmmweb:::build_shapefile_zip(file,
-                                    save_shapefiles(select_models_hranges(),
-                                                    get_hr_levels()),
-                                    session_tmpdir)
-      # LOG build shapefiles
-      log_msg("Shapefiles built and downloaded")
+      export_shapefiles(file)
+      # # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
+      # # functional::Curry is misnomer, and it's extra dependency.
+      # save_shapefiles <- function(hrange_list, ud_levels) {
+      #   write_f <- function(folder_path) {
+      #     # hrange_list came from select_models(), so the order should be synced
+      #     for (i in seq_along(hrange_list)) {
+      #       ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
+      #                      folder = folder_path,
+      #                      file = select_models()$names_dt$model_name[i])
+      #     }
+      #   }
+      #   return(write_f)
+      # }
+      # ctmmweb:::build_shapefile_zip(file,
+      #                               save_shapefiles(select_models_hranges(),
+      #                                               get_hr_levels()),
+      #                               session_tmpdir)
+      # # LOG build shapefiles
+      # log_msg("Shapefiles built and downloaded")
     }
   )
   # p7. overlap ----

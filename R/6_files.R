@@ -48,15 +48,16 @@ zip_relative_files <- function(base_folder, relative_paths, zip_name) {
   setwd(previous_wd)
   return(zip_path)
 }
-# file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter.
-build_shapefile_zip <- function(file, write_f, session_tmpdir) {
+# compress multiple files into a zip, copy to target path
+# file is the user chosen file name determined in download, need to prepare a file, copy to that path. write_f is a function that write files, take folder_path determined in build_zip as parameter. prefix is used to separate folder and file names, with "-" to be consistent with other usage.
+build_zip <- function(file, write_f, session_tmpdir, prefix) {
   # use time till min in zip name, use second in folder name, otherwise this function got run twice, will have error running 2nd time writing to same folder.
   current_time <- current_timestamp()  # need this in zip name so save it
   folder_path <- file.path(session_tmpdir,
-                           stringr::str_c("Range_", current_time))
+                           stringr::str_c(prefix, current_time))
   create_folder(folder_path)
   write_f(folder_path)
   zip_path <- zip_folder(folder_path,
-                              paste0("Home Range ", current_time, ".zip"))
+                              paste0(prefix, current_time, ".zip"))
   file.copy(zip_path, file)
 }
