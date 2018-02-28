@@ -1892,22 +1892,27 @@ output:
   }, height = function() { select_models()$vario_layout$height })
   # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier.
   # export raster ----
-  export_rasterfiles <- function(file) {
+  # file_extension doesn't include . so we can use it also in folder name.
+  export_rasterfiles <- function(file, file_extension) {
     save_rasterfiles <- function(hrange_list) {
       write_f <- function(folder_path) {
         # hrange_list came from select_models(), so the order should be synced
         for (i in seq_along(hrange_list)) {
           ctmm::writeRaster(hrange_list[[i]], folder = folder_path,
                             file = file.path(folder_path,
-                                      select_models()$names_dt$model_name[i]))
+          # every component in file.path is a level in folder, file name need to concatenated first.
+              paste0(select_models()$names_dt$model_name[i],
+                     ".", file_extension)
+                                    ))
         }
       }
       return(write_f)
     }
     ctmmweb:::build_zip(file, save_rasterfiles(select_models_hranges()),
-                        session_tmpdir, "Home_Range_Raster_")
+                        session_tmpdir, paste0("Home_Range_",
+                                               file_extension, "_"))
     # LOG build raster
-    log_msg("Raster files built and downloaded")
+    log_msg(paste0(file_extension, " files built and downloaded"))
   }
   # export shapefiles ----
   export_shapefiles <- function(file) {
@@ -1926,51 +1931,95 @@ output:
     }
     ctmmweb:::build_zip(file, save_shapefiles(select_models_hranges(),
                                               get_hr_levels()),
-                        session_tmpdir, "Home_Range_Shape_")
+                        session_tmpdir, "Home_Range_shapefile_")
     # LOG build shapefiles
     log_msg("Shapefiles built and downloaded")
   }
-  # raster download ----
-  output$export_raster <- downloadHandler(
+  # export dialog ----
+  observeEvent(input$export_homerange_dialog, {
+    showModal(modalDialog(title = "Export All Home Ranges to Zip",
+      fluidRow(
+        column(12, radioButtons("homerange_export_format", "Format",
+                    choiceNames = list("Shapefile: Esri shapefile",
+                                    "Raster .grd: Native raster package format",
+                                    "GTiff .tif: GeoTiff"
+                                    ),
+                    # make sure file type name is consistent with extension. we used file type in zip file name, and extension in folder inside zip.
+                    choiceValues = list("shapefile", "grd", "tif")
+                               )
+               ),
+        column(12, h4("See more details about file format in ",
+                      tags$a(href = "https://ctmm-initiative.github.io/ctmm/reference/export.html", "ctmm::export"), ", ",
+                      tags$a(href = "https://www.rdocumentation.org/packages/raster/versions/2.6-7/topics/writeRaster", "raster::writeRaster")
+                      ))
+      ),
+      size = "m",
+      footer = fluidRow(
+        column(3, offset = 0,
+               modalButton("Cancel", icon = icon("ban"))),
+        column(3, offset = 6,
+               downloadButton("download_homerange",
+                              "Save",
+                              icon = icon("save"),
+                              style = ctmmweb:::STYLES$download_button))
+      )
+    ))
+  })
+  # export home ranges ----
+  output$download_homerange <- downloadHandler(
     filename = function() {
       # up to min so it should be consistent with the folder name inside zip
       current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
-      paste0("Home_Range_Raster_", current_time, ".zip")
+      paste0("Home_Range_", input$homerange_export_format, "_", current_time, ".zip")
     },
     content = function(file) {
-      export_rasterfiles(file)
+      switch(input$homerange_export_format,
+             shapefile = export_shapefiles(file),
+             grd = export_rasterfiles(file, "grd"),
+             tif = export_rasterfiles(file, "tif"))
     }
   )
-  # shapefiles download ----
-  output$export_hrange <- downloadHandler(
-    filename = function() {
-      # up to min so it should be consistent with the folder name inside zip
-      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
-      paste0("Home_Range_Shape_", current_time, ".zip")
-    },
-    content = function(file) {
-      export_shapefiles(file)
-      # # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
-      # # functional::Curry is misnomer, and it's extra dependency.
-      # save_shapefiles <- function(hrange_list, ud_levels) {
-      #   write_f <- function(folder_path) {
-      #     # hrange_list came from select_models(), so the order should be synced
-      #     for (i in seq_along(hrange_list)) {
-      #       ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
-      #                      folder = folder_path,
-      #                      file = select_models()$names_dt$model_name[i])
-      #     }
-      #   }
-      #   return(write_f)
-      # }
-      # ctmmweb:::build_shapefile_zip(file,
-      #                               save_shapefiles(select_models_hranges(),
-      #                                               get_hr_levels()),
-      #                               session_tmpdir)
-      # # LOG build shapefiles
-      # log_msg("Shapefiles built and downloaded")
-    }
-  )
+  # # raster download --
+  # output$export_raster <- downloadHandler(
+  #   filename = function() {
+  #     # up to min so it should be consistent with the folder name inside zip
+  #     current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+  #     paste0("Home_Range_Raster_", current_time, ".zip")
+  #   },
+  #   content = function(file) {
+  #     export_rasterfiles(file)
+  #   }
+  # )
+  # # shapefiles download --
+  # output$export_hrange <- downloadHandler(
+  #   filename = function() {
+  #     # up to min so it should be consistent with the folder name inside zip
+  #     current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+  #     paste0("Home_Range_Shape_", current_time, ".zip")
+  #   },
+  #   content = function(file) {
+  #     export_shapefiles(file)
+  #     # # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
+  #     # # functional::Curry is misnomer, and it's extra dependency.
+  #     # save_shapefiles <- function(hrange_list, ud_levels) {
+  #     #   write_f <- function(folder_path) {
+  #     #     # hrange_list came from select_models(), so the order should be synced
+  #     #     for (i in seq_along(hrange_list)) {
+  #     #       ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
+  #     #                      folder = folder_path,
+  #     #                      file = select_models()$names_dt$model_name[i])
+  #     #     }
+  #     #   }
+  #     #   return(write_f)
+  #     # }
+  #     # ctmmweb:::build_shapefile_zip(file,
+  #     #                               save_shapefiles(select_models_hranges(),
+  #     #                                               get_hr_levels()),
+  #     #                               session_tmpdir)
+  #     # # LOG build shapefiles
+  #     # log_msg("Shapefiles built and downloaded")
+  #   }
+  # )
   # p7. overlap ----
   callModule(click_help, "overlap", title = "Overlap",
              size = "l", file = "help/7_overlap.md")
