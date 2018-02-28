@@ -1497,9 +1497,9 @@ output:
     height <- figure_height * row_count
     return(list(row_count = row_count, height = height))
   }
-  # select_data_vario() ----
-  # variogram list and layout for current data. In modeled mode there are multiple models for every animal, need to have additional selection on models and new set of input, layout. The vario mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
-  select_data_vario <- reactive({
+  # select_data_vario_non_model() ----
+  # variogram list and layout for current data in non-model mode. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
+  select_data_vario_non_model <- reactive({
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
@@ -1511,7 +1511,7 @@ output:
     return(list(vario_list = vario_list, vario_layout = vario_layout))
   })
   # current_vario_model_list() ----
-  # if put inside vario_parameters, fine tune didn't trigger changes correctly. maybe because guess_list is defined inside that reactive, new changes didn't override the initialization
+  # if put inside vario_parameters, fine tune didn't trigger changes correctly. Putting an expression used reactive values in function parameter may not work, that's why we need a data.table object call in DT. maybe because guess_list is defined inside that reactive, new changes didn't override the initialization
   current_vario_model_list <- reactive({
     switch(input$vario_mode,
            empirical = NULL,
@@ -1524,9 +1524,9 @@ output:
   current_vario <- reactive({
     current <- list()
     if (input$vario_mode != "modeled") {
-      current <- select_data_vario()
+      current <- select_data_vario_non_model()
     } else {
-      # model mode need each item in different places so not packed in list
+      # model mode take from model selection
       current$vario_list <- select_models()$vario_list
       current$vario_layout <- select_models()$vario_layout
     }
@@ -1545,57 +1545,11 @@ output:
                         relative_zoom = (input$vario_option == "relative"),
                         model_color = ctmm_color, cex = 0.72,
                         columns = input$vario_columns)
-    # def.par <- graphics::par(no.readonly = TRUE)
-    # graphics::par(mfrow = c(row_count, input$vario_columns),
-    #     mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    # if (input$vario_option == "absolute") {
-    #   max.lag <- max(sapply(vario_list, function(v){ last(v$lag) } ))
-    #   xlim <- max.lag * (10 ^ input$zoom_lag_fraction)
-    #   vario_zoomed_list <- lapply(vario_list,
-    #                          function(vario) vario[vario$lag <= xlim, ])
-    #   extent_tele <- ctmm::extent(vario_zoomed_list)
-    #   for (i in seq_along(vario_zoomed_list)) {
-    #     plot(vario_zoomed_list[[i]], CTMM = ctmm_list[[i]],
-    #          col.CTMM = ctmm_color, fraction = 1,
-    #          xlim = c(0, extent_tele["max", "x"]),
-    #          ylim = c(0, extent_tele["max", "y"]))
-    #     graphics::title(title_vec[i])
-    #     # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
-    #     #   title(vario_zoomed_list[[i]]@info$identity, sub = "Error on",
-    #     #         cex.sub = 0.85, col.sub = "red")
-    #     # } else {
-    #     #   title(title_vec[i])
-    #     # }
-    #   }
-    # } else {
-    #   for (i in seq_along(vario_list)) {
-    #     plot(vario_list[[i]], CTMM = ctmm_list[[i]],
-    #          col.CTMM = ctmm_color,
-    #          fraction = 10 ^ input$zoom_lag_fraction)
-    #     # browser()
-    #     graphics::title(title_vec[i])
-    #     # if (!is.null(ctmm_list[[i]]) && ctmm_list[[i]]$error) {
-    #     #   title(vario_list[[i]]@info$identity, sub = "Error on",
-    #     #         cex.sub = 0.85, col.sub = "red")
-    #     # } else {
-    #     #   title(vario_list[[i]]@info$identity)
-    #     # }
-    #     # if (ctmm_list[[i]]$error) {
-    #     #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
-    #     # }
-    #   }
-    # }
     # LOG save pic
     log_save_vario("vario", current_vario()$vario_layout$row_count,
                    input$vario_columns)
-    # graphics::par(def.par)
   }, height = function() {
       current_vario()$vario_layout$height
-      # if (input$vario_mode != "modeled") {
-      #   select_data_vario()$vario_layout$height
-      # } else {
-      #   select_models()$vario_layout$height
-      # }
     }
   )
   # select individual plot to fine tune
@@ -1632,7 +1586,7 @@ output:
   })
   # init values of sliders ----
   init_slider_values <- reactive({
-    vario_list <- req(select_data_vario()$vario_list)
+    vario_list <- req(select_data_vario_non_model()$vario_list)
     ids <- names(vario_list)
     vario <- vario_list[ids == input$tune_selected][[1]]
     CTMM <- values$selected_data_guess_list[ids == input$tune_selected][[1]]
@@ -1702,7 +1656,7 @@ output:
     # LOG fine tune apply
     log_msg("Apply Fine-tuned Parameters")
     removeModal()
-    ids <- sapply(select_data_vario()$vario_list,
+    ids <- sapply(select_data_vario_non_model()$vario_list,
                   function(vario) vario@info$identity)
     values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
       slider_to_CTMM()
@@ -1851,7 +1805,7 @@ output:
     selected_model_list <- selected_models_dt$model
     # the modeled variogram plot title come from here. For now it's model_name.
     names(selected_model_list) <- selected_names_dt$model_name
-    selected_vario_list <- select_data_vario()$vario_list[
+    selected_vario_list <- select_data_vario_non_model()$vario_list[
       selected_names_dt$identity]
     # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
