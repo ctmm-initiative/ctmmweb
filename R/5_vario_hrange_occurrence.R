@@ -128,3 +128,25 @@ plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
   })
   graphics::par(def.par)
 }
+# plot home range pairs. only used pair in app, the function also work on multiple so named as group
+plot_hr_group <- function(hr_group, color_group, level.UD = 0.95) {
+  plot(hr_group, col.level = color_group,
+       col.DF = color_group, col.grid = NA, level.UD = level.UD)
+  # adjust cex.main in group plot
+  graphics::title(paste(names(hr_group), collapse = ", "))
+}
+# plot a list of pairs
+plot_hr_group_list <- function(hr_group_list, color_group_list,
+                               level.UD = 0.95, columns = 2, cex = 0.65) {
+  def.par <- graphics::par(no.readonly = TRUE)
+  row_count <- ceiling(length(hr_group_list) / columns)
+  graphics::par(mfrow = c(row_count, columns),
+                mar = c(5, 5, 4, 1), ps = 14, cex = cex, cex.main = 0.9)
+  lapply(seq_along(hr_group_list), function(i) {
+    # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
+    plot_hr_group(hr_group_list[[i]],
+                  color_group = color_group_list[[i]],
+                  level.UD = level.UD)
+  })
+  graphics::par(def.par)
+}
