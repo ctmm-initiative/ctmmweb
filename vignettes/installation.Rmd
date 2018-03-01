@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ## Package installation
 
-If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem.
+If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem. Sometimes it's also helpful to uninstall existing dependency packages, or replace github version with CRAN version.
 
 ### Windows
 

@@ -36,6 +36,8 @@ Imports: shiny,
     XML,
     xml2,
     zip
+Remotes: rstudio/leaflet,
+    ctmm-initiative/ctmm
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
