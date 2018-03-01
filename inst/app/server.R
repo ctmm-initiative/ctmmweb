@@ -15,6 +15,8 @@ server <- function(input, output, session) {
   option_selected <- function(option) {
     isolate(input[[option]])
   }
+  # inject a browser when debug button is clicked.
+  observeEvent(input$inject_debug, browser())
   # global LOG variables ----
   # one time check if app is running in hosted mode
   APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
