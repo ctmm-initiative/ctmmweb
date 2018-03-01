@@ -9,4 +9,4 @@
 - By default an overview of all individuals involved are shown.
 - If some rows in table are selected, every selected pair is plotted individually.
 - The plot order also match the order of selected rows in table, and respond to the filtering in table.
-
+- Sometimes the changes of plot columns didn't get applied immediately, switching to other tab then switch back will update the plot.

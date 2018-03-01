@@ -1671,7 +1671,7 @@ output:
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the try model (model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   values$selected_data_model_try_res <- NULL  # need to clear this at input change too
-  # fit models ----
+  # try models ----
   observeEvent(input$try_models, {
     # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
     # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
@@ -1690,6 +1690,8 @@ output:
       message = "Trying different models to find the best ...")
     # always save names in list
     names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
+    # sometimes nothing is shown in 3 modes. could be data lock in complex reactive relationship. try to freeze the radio button to make sure it update in last
+    freezeReactiveValue(input, "vario_mode")
     updateRadioButtons(session, "vario_mode", selected = "modeled")
     # we are selecting rows on a table just generated.
     DT::selectRows(proxy_model_dt, summary_models()$first_models)
@@ -1895,6 +1897,7 @@ output:
   # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier.
   # export raster ----
   # file_extension doesn't include . so we can use it also in folder name.
+  # this need to be a function so that we can use different file extension with raster, and the switch call is much simpler. to combine into shapefile function need a lot parameters. could refactor if have more usage.
   export_rasterfiles <- function(file, file_extension) {
     save_rasterfiles <- function(hrange_list) {
       write_f <- function(folder_path) {
@@ -2060,6 +2063,7 @@ output:
     log_dt_md(dt, "Overlap Summary")
     # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
     freezeReactiveValue(input, "overlap_summary_rows_selected")
+    info_p <- values$data$merged$info
     # COPY start --
     DT::datatable(dt,
                   # class = 'table-bordered',
@@ -2070,7 +2074,12 @@ output:
       # override the low/high cols with background
       DT::formatStyle(c("CI low", "CI high"),
                       color = scales::hue_pal()(1)) %>%
-      DT::formatStyle("ML", color = "blue")
+      DT::formatStyle("ML", color = "blue") %>%
+      # override the id col color
+      DT::formatStyle(c("v1", "v2"), target = 'cell',
+                      color = DT::styleEqual(info_p$identity,
+                                             scales::hue_pal()(nrow(info_p)))
+      )
     # COPY end --
   })
   # outputOptions(output, "overlap_summary", priority = 10)
@@ -2081,6 +2090,7 @@ output:
     current_order <- overlap_dt[rev(req(input$overlap_summary_rows_all)),
                                 Combination]
     # tried to move the dynamic column part to reactive expression, which would cause the table refresh twice in start (update after table is built), and row selection caused data change, table refresh and lost row selection.
+    # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
     # COPY start --
     overlap_dt[, selected := FALSE]
     overlap_dt[input$overlap_summary_rows_selected, selected := TRUE]
@@ -2101,17 +2111,40 @@ output:
     log_save_ggplot(g, "overlap_plot_value_range")
   }, height = function() { input$overlap_plot_height }, width = "auto"
   )
+  # select_rows_in_current_order() ----
+  # sort the plot in same order of table, even if user clicked some top rows later, or sorted table later, or filtered table
+  select_rows_in_current_order <- reactive({
+    intersect(
+      req(input$overlap_summary_rows_current),
+      req(input$overlap_summary_rows_selected))
+  })
   # overlap home range ----
-  # output$overlap_plot_hrange <- renderPlot({
-  #
-  #   # LOG save pic
-  #   log_save_vario("Overlap of Home Range", current_vario()$vario_layout$row_count,
-  #                  input$overlap_hrange_columns)
-  #   log_save_UD("Overlap of Home Range")
-  # }, height = function() {
-  #   input$overlap_hrange_height
-  # }
-  # )
+  output$overlap_plot_hrange <- renderPlot({
+    # chose all pairs with overlap > 0 if no rows selected.
+    # prepare all rows select_models_hranges() with overlap or current selected, ud pairs and colors.
+    if (length(input$overlap_summary_rows_selected) == 0) {
+      # first go through the current row numbers to match order and filter
+      chosen_rows <- select_models_overlap()$dt[
+        input$overlap_summary_rows_current][ML != 0, .(v1, v2)]
+    } else {
+      chosen_rows <- select_models_overlap()$dt[
+        select_rows_in_current_order(), .(v1, v2)]
+    }
+    chosen_hranges <- lapply(1:nrow(chosen_rows), function(i) {
+      select_models_hranges()[unlist(chosen_rows[i])]
+    })
+    # just use color for identity, no need to use color for models since two part in plot are always two different animals
+    chosen_colors <- lapply(1:nrow(chosen_rows), function(i) {
+      sapply(chosen_rows[i], values$data$id_pal)
+    })
+    ctmmweb:::plot_hr_group_list(chosen_hranges, chosen_colors,
+                                 level.UD = 0.9,
+                                 columns = input$overlap_hrange_columns)
+    # LOG save pic
+    # log_save_vario("Overlap of Home Range", current_vario()$vario_layout$row_count,
+    #                input$overlap_hrange_columns)
+    log_save_UD("Overlap of Home Range")
+  }, height = function() { input$overlap_hrange_height }, width = "auto")
   # ovrelap locations ----
   # plot using row selection value of table, when data updated, both table and plot start to update but plot can use exsiting old row selection value which is either wrong or doesn't exist in new table. freeze row selection value in table code to make sure the access here is only thawed after all other reactive finish
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
@@ -2125,12 +2158,8 @@ output:
                              ylim = overlap_plot_location_range$y)
     } else {# show grouped plot of pairs when rows selected
       # because data.table modify by reference, the plot code actually added selected column already, but we use the selection number directly and not relying on this.
-      # sort the plot in same order of table, even if user clicked some top rows later, or sorted table later, or filtered table
-      selected_rows_in_current_order <- intersect(
-        req(input$overlap_summary_rows_current),
-        req(input$overlap_summary_rows_selected))
       selected_pairs_current_order <- select_models_overlap()$dt[
-        selected_rows_in_current_order, .(v1, v2)]
+        select_rows_in_current_order(), .(v1, v2)]
       # usling lapply like a loop, so we don't need to initialize the list
       g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
         # warning of drawing plot on empty data, not error

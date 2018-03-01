@@ -141,7 +141,7 @@ plot_hr_group_list <- function(hr_group_list, color_group_list,
   def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(hr_group_list) / columns)
   graphics::par(mfrow = c(row_count, columns),
-                mar = c(5, 5, 4, 1), ps = 14, cex = cex, cex.main = 0.9)
+                mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   lapply(seq_along(hr_group_list), function(i) {
     # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
     plot_hr_group(hr_group_list[[i]],

@@ -598,7 +598,7 @@ overlap_plot_box <- tabBox(title = "Plot",
                                                 step = 100)),
              column(2, offset = 6, numericInput("overlap_hrange_columns",
                                                 "Columns",
-                                                value = 1, min = 1, max = 6,
+                                                value = 2, min = 1, max = 6,
                                                 step = 1)),
              column(12, plotOutput("overlap_plot_hrange",
                         width = "99%", height = "100%")
