@@ -572,7 +572,7 @@ overlap_summary_box <- box(title = "Overlap of Home Ranges",
 )
 overlap_plot_box <- tabBox(title = "Plot",
                                            id = "overlap_tabs", width = 12,
-          tabPanel("Value Range",
+          tabPanel("Overlap Values",
                    fluidRow(
                      column(2, offset = 1, numericInput("overlap_plot_height",
                                                         "Canvas height",
@@ -584,6 +584,20 @@ overlap_plot_box <- tabBox(title = "Plot",
                      column(12,
                              plotOutput("overlap_plot_value_range",
                                         width = "99%", height = "100%")))),
+          tabPanel("Home Range",
+           fluidRow(
+             column(2, offset = 1, numericInput("overlap_hrange_height",
+                                                "Canvas height",
+                                                value = 600,
+                                                min = 200, max = 1200,
+                                                step = 100)),
+             column(2, offset = 6, numericInput("overlap_hrange_columns",
+                                                "Columns",
+                                                value = 1, min = 1, max = 6,
+                                                step = 1)),
+             column(12, plotOutput("overlap_plot_hrange",
+                        width = "99%", height = "100%")
+                    ))),
           tabPanel("Location",
            fluidRow(
              column(2, offset = 1, numericInput("overlap_loc_height",
@@ -597,11 +611,11 @@ overlap_plot_box <- tabBox(title = "Plot",
                                                 step = 1)),
              column(12,
                     plotOutput("overlap_plot_location",
-                        dblclick = "overlap_plot_location_dblclick",
-                        brush = brushOpts(id = "overlap_plot_location_brush",
-                                          resetOnNew = TRUE),
-                        width = "99%", height = "100%"
-             ))))
+                       dblclick = "overlap_plot_location_dblclick",
+                       brush = brushOpts(id = "overlap_plot_location_brush",
+                                         resetOnNew = TRUE),
+                       width = "99%", height = "100%")
+                    )))
 )
 # p8. occurrence ----
 occurrence_plot_box <- box(title = "Occurrence Distribution",

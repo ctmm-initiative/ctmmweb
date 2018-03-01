@@ -1520,7 +1520,7 @@ output:
     )
   })
   # current_vario() ----
-  # switch vario_list, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches.
+  # switch vario_list, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches. in modeled mode, there could be different vario count so layout is different
   current_vario <- reactive({
     current <- list()
     if (input$vario_mode != "modeled") {
@@ -1548,7 +1548,7 @@ output:
     # LOG save pic
     log_save_vario("vario", current_vario()$vario_layout$row_count,
                    input$vario_columns)
-  }, height = function() {
+  }, height = function() { # always use current selected layout
       current_vario()$vario_layout$height
     }
   )
@@ -1888,7 +1888,7 @@ output:
     log_save_vario("home_range", select_models()$vario_layout$row_count,
                    input$vario_columns)
     log_save_UD("home_range")
-    # graphics::par(def.par)
+    # always use model mode vario layout, different from vario plot which have 3 modes.
   }, height = function() { select_models()$vario_layout$height })
   # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier.
   # export raster ----
@@ -2099,6 +2099,17 @@ output:
     log_save_ggplot(g, "overlap_plot_value_range")
   }, height = function() { input$overlap_plot_height }, width = "auto"
   )
+  # overlap home range ----
+  # output$overlap_plot_hrange <- renderPlot({
+  #
+  #   # LOG save pic
+  #   log_save_vario("Overlap of Home Range", current_vario()$vario_layout$row_count,
+  #                  input$overlap_hrange_columns)
+  #   log_save_UD("Overlap of Home Range")
+  # }, height = function() {
+  #   input$overlap_hrange_height
+  # }
+  # )
   # ovrelap locations ----
   # plot using row selection value of table, when data updated, both table and plot start to update but plot can use exsiting old row selection value which is either wrong or doesn't exist in new table. freeze row selection value in table code to make sure the access here is only thawed after all other reactive finish
   overlap_plot_location_range <- add_zoom("overlap_plot_location")
@@ -2122,7 +2133,7 @@ output:
       g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
         # warning of drawing plot on empty data, not error
         suppressWarnings(
-          plot_loc(select_models()$data_dt[
+          ctmmweb::plot_loc(select_models()$data_dt[
             identity %in% selected_pairs_current_order[i]])
         )
       })
@@ -2131,7 +2142,10 @@ output:
     }
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_location")
-  }, height = function() { input$overlap_loc_height }, width = "auto")
+  },
+  # changing canvas and column sometimes doesn't cause update, switching tabs will update. try this parameter, seemed better.
+  execOnResize = TRUE,
+  height = function() { input$overlap_loc_height }, width = "auto")
   # tried to use priority to make sure location plot update after table update, didn't work, probably because the problem is row selection reset happened slower
   # outputOptions(output, "overlap_plot_location", priority = 1)
   # p8. occurrence ----
