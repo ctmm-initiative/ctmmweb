@@ -81,12 +81,11 @@ app_options_box <- box(title = "App Options",
     column(3, actionButton("show_error", "Error Messages",
                            icon = icon("exclamation-triangle"),
                            style = ctmmweb:::STYLES$page_action)),
-    # debug mode
-    column(3, actionButton("inject_debug", "Debug",
-                           icon = icon("bug"))),
-    column(3, offset = 3, help_button("app_options"))
-    # release mode
-    # column(3, offset = 6, help_button("app_options"))
+    if (DEBUG_BUTTON) {
+      # debug mode, to inject browser in running. not sure if it will
+      column(3, actionButton("inject_debug", "Debug", icon = icon("bug")))
+    },
+    column(3, offset = if (DEBUG_BUTTON) 3 else 6, help_button("app_options"))
                                       ))
 upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,

@@ -11,3 +11,5 @@ pacman::p_load(shiny, shinydashboard, DT,
                ctmm, data.table)
 # package build time in current time zone, not current app modified time. This is used in ui (app info dialog) and server (start info).
 PKG_BUILD_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
+# switch to turn on debug button
+DEBUG_BUTTON <- FALSE
