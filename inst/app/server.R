@@ -1494,7 +1494,7 @@ output:
              size = "l", file = "help/5_b_irregular_data.md")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
-  # calculate vario row and height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all.
+  # calculate vario group plot row count and canvas height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all.
   get_vario_layout <- function(vario_list, figure_height, column) {
     fig_count <- length(vario_list)
     row_count <- ceiling(fig_count / column)
@@ -2142,9 +2142,10 @@ output:
     ctmmweb:::plot_hr_group_list(chosen_hranges, chosen_colors,
                                  level.UD = 0.9,
                                  columns = input$overlap_hrange_columns)
-    # LOG save pic
-    # log_save_vario("Overlap of Home Range", current_vario()$vario_layout$row_count,
-    #                input$overlap_hrange_columns)
+    # LOG save plot
+    row_count <- ceiling(nrow(chosen_rows) / input$overlap_hrange_columns)
+    log_save_vario("Overlap of Home Range", row_count,
+                   input$overlap_hrange_columns)
     log_save_UD("Overlap of Home Range")
   }, height = function() { input$overlap_hrange_height }, width = "auto")
   # ovrelap locations ----
@@ -2173,7 +2174,7 @@ output:
       g <- gridExtra::grid.arrange(grobs = g_list,
                                    ncol = input$overlap_loc_columns)
     }
-    # LOG save pic
+    # LOG save plot
     log_save_ggplot(g, "overlap_plot_location")
   },
   # changing canvas and column sometimes doesn't cause update, switching tabs will update. try this parameter, seemed better.
