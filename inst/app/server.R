@@ -2140,7 +2140,9 @@ output:
       sapply(chosen_rows[i], values$data$id_pal)
     })
     ctmmweb:::plot_hr_group_list(chosen_hranges, chosen_colors,
-                                 level.UD = 0.9,
+                                 level.UD = ctmmweb:::parse_CI_levels(
+                                   input$overlap_hrange_level_text),
+                                 show_intervals = input$overlap_hrange_intervals,
                                  columns = input$overlap_hrange_columns)
     # LOG save plot
     row_count <- ceiling(nrow(chosen_rows) / input$overlap_hrange_columns)
