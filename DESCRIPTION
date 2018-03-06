@@ -5,8 +5,8 @@ Version: 0.1.0
 Authors@R: person("Xianghui", "Dong", email = "xhdong@umd.edu",
                   role = c("aut", "cre"))
 Maintainer: Xianghui Dong <xhdong@umd.edu>
-Description: Shiny app for ctmm. Various utility functions can also be used 
-    individually.
+Description: Shiny app for ctmm. Many features are also exported as package 
+    functions.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
