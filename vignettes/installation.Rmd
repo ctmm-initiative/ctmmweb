@@ -18,7 +18,9 @@ knitr::opts_chunk$set(
 
 ## Package installation
 
-If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem. Sometimes it's also helpful to uninstall existing dependency packages, or replace github version with CRAN version.
+If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem. 
+
+If some dependency packages were installed before by `devtools::install_github`, `devtools` will always install the github source version even `ctmmweb` only need the CRAN binary version. Sometimes the source version need compilation which is time consuming or even can cause installation failures. Try to remove these package first so that only CRAN version will be installed.
 
 ### Windows
 

@@ -2,7 +2,11 @@
 - Update outlier page to use latest ctmm functions which take errors into account for both distance and speed.
 - Use home range plot for overlap location plot tab.
 - `app()` now open in system default browser instead of the RStudio embedded browser to avoid compatibility problems.
-- added package build date in message menu, console log and work report.
+- added package installation date in message menu, console log and work report. This can help to identify which version was installed. I didn't find an automatic way to save build date in package building.
+- package can be installed through base R command now
+
+    install.packages("ctmmweb", type = "source", 
+                     repos = "https://ctmm-initiative.github.io/drat/")
 
 ## version 0.1.0, 2018/02/08
 - Moved package website to separate repo to reduce package download size and time.

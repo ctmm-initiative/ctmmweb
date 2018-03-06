@@ -15,8 +15,7 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "fig/"
+  comment = "#>"
 )
 ```
 
@@ -115,7 +114,9 @@ plot_loc(loc_data_sub1, loc_data) +
   ctmmweb:::CENTER_TITLE
 # export plot
 g <- plot_loc(loc_data_sub1, loc_data)
-ggplot2::ggsave("fig/test.png", g)
+ggplot2::ggsave("test.png", g)
+# remove generated file to reduce clutter
+unlink("test.png")
 ```
 
 
@@ -259,8 +260,8 @@ The map can be saved as a self contained html file.
 ```{r save map}
 # save map to single html file. file can only be a filename, not a relative path
 htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "point_map.html")
-# move output to temporary folder
-file.rename("point_map.html", "fig/point_map.html")
+# remove generated file to reduce clutter
+unlink("point_map.html")
 ```
 
 
