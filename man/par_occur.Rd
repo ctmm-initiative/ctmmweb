@@ -7,7 +7,7 @@
 par_occur(tele_list, model_list, cores = NULL, parallel = TRUE)
 }
 \arguments{
-\item{tele_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list}
+\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
 
 \item{model_list}{Corresponding \code{ctmm} model list for \code{tele_list}}
 
@@ -21,7 +21,7 @@ more information on physical/logical cores in different platforms.
 cores are reserved for user's other tasks.
 }}
 
-\item{parallel}{Use regular \code{lapply} when FALSE. You may notice more console
+\item{parallel}{Use regular \code{\link[=lapply]{lapply()}} when FALSE. You may notice more console
 messages in this mode because the console messages in parallel mode are
 lost by default as they happened in other threads.}
 }

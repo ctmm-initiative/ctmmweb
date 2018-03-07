@@ -7,14 +7,14 @@
 combine(tele_obj_list)
 }
 \arguments{
-\item{tele_obj_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object/list}
+\item{tele_obj_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object/list}
 }
 \value{
 list of - \code{data_dt}: all animals combined in one data.table - \code{info}:
 animal information table
 }
 \description{
-A \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list hold mutiple animal data in separate
+A \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list hold mutiple animal data in separate
 list items, each item have the animal location data in a data frame, and
 other information in various slots. This structure supports flexible S3
 methods for telemetry object. However to plot multiple animals location

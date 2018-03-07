@@ -37,7 +37,7 @@ sort_tele_list <- function(tele_list) {
 }
 #' Report data summary on telemetry object/list
 #'
-#' @param tele_obj_list [ctmm::as.telemetry] telemetry object or list
+#' @param tele_obj_list [ctmm::as.telemetry()] telemetry object or list
 #'
 #' @return A summary `data.table`
 #' @export
@@ -56,7 +56,7 @@ report <- info_tele_list <- function(tele_obj_list){
 #'
 #' @param animals_dt location `data.table` from [combine()]. The original input
 #'   `data.table` will be modified in place by reference after calculation.
-#' @param tele_list the [ctmm::as.telemetry] telemetry obj list. Calculation
+#' @param tele_list the [ctmm::as.telemetry()] telemetry obj list. Calculation
 #'   need error information from it.
 #' @param device_error standardized device error in meter. Example: GPS: 10,
 #'   VHF: 100
@@ -230,7 +230,7 @@ tele_list_to_dt <- function(tele_obj_list) {
 }
 #' Generate combined location and info `data.table` from telemetry object/list
 #'
-#' A [ctmm::as.telemetry] telemetry list hold mutiple animal data in separate
+#' A [ctmm::as.telemetry()] telemetry list hold mutiple animal data in separate
 #' list items, each item have the animal location data in a data frame, and
 #' other information in various slots. This structure supports flexible S3
 #' methods for telemetry object. However to plot multiple animals location
@@ -243,7 +243,7 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' is also used in a lot of places in app, which works on any selected subset of
 #' full data in almost all steps.
 #'
-#' @param tele_obj_list [ctmm::as.telemetry] telemetry object/list
+#' @param tele_obj_list [ctmm::as.telemetry()] telemetry object/list
 #'
 #' @return list of - `data_dt`: all animals combined in one data.table - `info`:
 #'   animal information table

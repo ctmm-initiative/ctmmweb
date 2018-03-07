@@ -8,7 +8,7 @@
 #' - csv file Path of [MoveBank format](https://www.movebank.org/node/13)
 #' - `data.frame` of [MoveBank format](https://www.movebank.org/node/13)
 #' - [move::Move-class] object
-#' - [ctmm::as.telemetry] telemetry object/list.
+#' - [ctmm::as.telemetry()] telemetry object/list.
 #' - Default `NULL` will not load any data.
 #'
 #' @export

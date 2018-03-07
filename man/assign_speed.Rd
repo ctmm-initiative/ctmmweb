@@ -10,7 +10,7 @@ assign_speed(animals_dt, tele_list, device_error = 10)
 \item{animals_dt}{location \code{data.table} from \code{\link[=combine]{combine()}}. The original input
 \code{data.table} will be modified in place by reference after calculation.}
 
-\item{tele_list}{the \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry obj list. Calculation
+\item{tele_list}{the \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry obj list. Calculation
 need error information from it.}
 
 \item{device_error}{standardized device error in meter. Example: GPS: 10,

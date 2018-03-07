@@ -27,7 +27,7 @@ more information on physical/logical cores in different platforms.
 cores are reserved for user's other tasks.
 }}
 
-\item{parallel}{Use regular \code{lapply} when FALSE. You may notice more console
+\item{parallel}{Use regular \code{\link[=lapply]{lapply()}} when FALSE. You may notice more console
 messages in this mode because the console messages in parallel mode are
 lost by default as they happened in other threads.}
 

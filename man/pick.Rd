@@ -15,9 +15,9 @@ pick(object, m)
 \arguments{
 \item{m}{m even spaced points are taken from each object.}
 
-\item{tele}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object}
+\item{tele}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object}
 
-\item{tele_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list}
+\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
 }
 \value{
 \code{pick.telemetry}: telemetry object with m data points
@@ -31,9 +31,9 @@ processes. After code is tested and stablized, full size dataset can be used.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{telemetry}: subset from \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object
+\item \code{telemetry}: subset from \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object
 
-\item \code{list}: pick subset from each \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object
+\item \code{list}: pick subset from each \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object
 in list
 }}
 

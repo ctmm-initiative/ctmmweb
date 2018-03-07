@@ -12,7 +12,7 @@ app(shiny_app_data = NULL)
 \item csv file Path of \href{https://www.movebank.org/node/13}{MoveBank format}
 \item \code{data.frame} of \href{https://www.movebank.org/node/13}{MoveBank format}
 \item \link[move:Move-class]{move::Move} object
-\item \link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry object/list.
+\item \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object/list.
 \item Default \code{NULL} will not load any data.
 }}
 }

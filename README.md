@@ -29,8 +29,8 @@ https://github.com/ctmm-initiative/ctmmweb
 2. Start R or RStudio, run these in console to install dependency packages. Sometimes you may need to restart R in the process.
 
     ```r
-    if (!require("devtools")) install.packages("devtools")
-    devtools::install_github("ctmm-initiative/ctmmweb")
+    if (!require("remotes")) install.packages("remotes")
+    remotes::install_github("ctmm-initiative/ctmmweb")
     ```
 
 3. Run the app in one of following methods:

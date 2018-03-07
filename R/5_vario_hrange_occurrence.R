@@ -100,7 +100,7 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
 #'   app UI take values 0 ~ 100 (for example 95) for easier input.
 #' @inheritParams plot_vario
-#' @param tele_list [ctmm::as.telemetry] telemetry list. When provided, animal
+#' @param tele_list [ctmm::as.telemetry()] telemetry list. When provided, animal
 #'   locations are overlayed in plot. This should only be used for home range
 #'   since it can interfere with occurrence plot.
 #'

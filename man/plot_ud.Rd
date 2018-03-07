@@ -20,7 +20,7 @@ app UI take values 0 ~ 100 (for example 95) for easier input.}
 
 \item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.}
 
-\item{tele_list}{\link[ctmm:as.telemetry]{ctmm::as.telemetry} telemetry list. When provided, animal
+\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. When provided, animal
 locations are overlayed in plot. This should only be used for home range
 since it can interfere with occurrence plot.}
 }

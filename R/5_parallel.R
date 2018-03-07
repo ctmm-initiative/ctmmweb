@@ -47,7 +47,7 @@ align_list <- function(list_a, list_b) {
 #'    more information on physical/logical cores in different platforms.
 #'   - A negative value like `-2` will use `all available cores - 2`, so that 2
 #'    cores are reserved for user's other tasks.
-#' @param parallel Use regular `lapply` when FALSE. You may notice more console
+#' @param parallel Use regular [lapply()] when FALSE. You may notice more console
 #'  messages in this mode because the console messages in parallel mode are
 #'  lost by default as they happened in other threads.
 #' @param win_init Expression to be initialized in Windows. Since all parameters
@@ -137,7 +137,7 @@ par_try_tele_guess <- function(tele_guess_list,
 #'
 #' @describeIn par_try_models Run [ctmm::ctmm.select()] on each object of list
 #'   on parallel.
-#' @param tele_list [ctmm::as.telemetry] telemetry list
+#' @param tele_list [ctmm::as.telemetry()] telemetry list
 #' @inheritParams par_lapply
 #'
 #' @return `par_try_models`: list of items named by animal names, each item hold
@@ -185,7 +185,7 @@ par_fit_models <- function(tele_list,
 
 #' Parallel calculate occurrence from telemetry and model list
 #'
-#' @param tele_list [ctmm::as.telemetry] telemetry list
+#' @param tele_list [ctmm::as.telemetry()] telemetry list
 #' @param model_list Corresponding `ctmm` model list for `tele_list`
 #' @inheritParams par_lapply
 #'
@@ -213,9 +213,9 @@ par_occur <- function(tele_list, model_list,
 #' @export
 pick <- function(object, m) {UseMethod("pick")}
 
-#' @describeIn pick subset from [ctmm::as.telemetry] telemetry object
+#' @describeIn pick subset from [ctmm::as.telemetry()] telemetry object
 #'
-#' @param tele [ctmm::as.telemetry] telemetry object
+#' @param tele [ctmm::as.telemetry()] telemetry object
 #' @inheritParams pick
 #'
 #' @return `pick.telemetry`: telemetry object with m data points
@@ -226,10 +226,10 @@ pick.telemetry <- pick_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
 }
 
-#' @describeIn pick pick subset from each [ctmm::as.telemetry] telemetry object
+#' @describeIn pick pick subset from each [ctmm::as.telemetry()] telemetry object
 #'   in list
 #'
-#' @param tele_list [ctmm::as.telemetry] telemetry list
+#' @param tele_list [ctmm::as.telemetry()] telemetry list
 #' @inheritParams pick
 #'
 #' @return `pick.list`: telemetry list of subsets
