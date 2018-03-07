@@ -33,6 +33,16 @@ https://github.com/ctmm-initiative/ctmmweb
     remotes::install_github("ctmm-initiative/ctmmweb")
     ```
 
+    Alternatively, you can install through [drat](https://github.com/eddelbuettel/drat).
+    ```r
+    if (!require("drat")) install.packages("drat")
+    ctmm_repo <- "https://ctmm-initiative.github.io/ctmm_repo/"
+    drat::addRepo("ctmm-initiative", ctmm_repo)
+    # ctmm source version in ctmm_repo should be installed
+    install.packages("ctmmweb")
+    ```
+
+
 3. Run the app in one of following methods:
 
     ```r
