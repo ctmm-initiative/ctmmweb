@@ -31,6 +31,8 @@ library(ctmmweb)
 data(buffalo)
 # take a 100 point sample from each animal to speed up model fitting etc
 data_sample <- pick(buffalo, 100)
+# somehow a line like this can avoid the `Assertion failure at kmp_runtime.cpp(6480): __kmp_thread_pool == __null.` error in knitting the vignette.
+par_lapply(1:2, sqrt)
 ```
 
 ### Basic data structure

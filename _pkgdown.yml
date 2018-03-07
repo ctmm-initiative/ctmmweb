@@ -50,11 +50,10 @@ reference:
 - title: "Misc Utilitiy Functions"
   desc: ~
   contents:
-  - '`calc_distance`'
-  - '`calc_speed`'
+  - '`assign_distance`'
+  - '`assign_speed`'
   - '`pick`'
   - '`JS.logify`'
-  - '`JS.onload`'
   - '`zip_folder`'
   - '`get_names`'
 
