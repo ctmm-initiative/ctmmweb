@@ -148,7 +148,7 @@ par_try_models <- function(tele_list,
                               parallel = TRUE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
-                                  ctmm.guess(x, interactive = FALSE)
+                                  ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
   print(system.time(model_try_res <-
                       par_try_tele_guess(tele_guess_list,
@@ -169,7 +169,7 @@ par_fit_models <- function(tele_list,
                            parallel = TRUE) {
   tele_guess_list <- align_list(tele_list,
                                 lapply(tele_list, function(x) {
-                                  ctmm.guess(x, interactive = FALSE)
+                                  ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
   # fit single model, no plural
   fit_model <- function(tele_guess) {
