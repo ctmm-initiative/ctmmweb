@@ -2150,40 +2150,40 @@ output:
                    input$overlap_hrange_columns)
     log_save_UD("Overlap of Home Range")
   }, height = function() { input$overlap_hrange_height }, width = "auto")
-  # ovrelap locations ----
-  # plot using row selection value of table, when data updated, both table and plot start to update but plot can use exsiting old row selection value which is either wrong or doesn't exist in new table. freeze row selection value in table code to make sure the access here is only thawed after all other reactive finish
-  overlap_plot_location_range <- add_zoom("overlap_plot_location")
-  output$overlap_plot_location <- renderPlot({
-    animals_dt <- req(select_models()$data_dt)
-    # show overview when no rows selected
-    if (length(input$overlap_summary_rows_selected) == 0) {
-      # no global data overlay in background
-      g <- ctmmweb::plot_loc(animals_dt, loc_data = NULL, input$point_size_1) +
-        ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
-                             ylim = overlap_plot_location_range$y)
-    } else {# show grouped plot of pairs when rows selected
-      # because data.table modify by reference, the plot code actually added selected column already, but we use the selection number directly and not relying on this.
-      selected_pairs_current_order <- select_models_overlap()$dt[
-        select_rows_in_current_order(), .(v1, v2)]
-      # usling lapply like a loop, so we don't need to initialize the list
-      g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
-        # warning of drawing plot on empty data, not error
-        suppressWarnings(
-          ctmmweb::plot_loc(select_models()$data_dt[
-            identity %in% selected_pairs_current_order[i]])
-        )
-      })
-      g <- gridExtra::grid.arrange(grobs = g_list,
-                                   ncol = input$overlap_loc_columns)
-    }
-    # LOG save plot
-    log_save_ggplot(g, "overlap_plot_location")
-  },
-  # changing canvas and column sometimes doesn't cause update, switching tabs will update. try this parameter, seemed better.
-  execOnResize = TRUE,
-  height = function() { input$overlap_loc_height }, width = "auto")
-  # tried to use priority to make sure location plot update after table update, didn't work, probably because the problem is row selection reset happened slower
-  # outputOptions(output, "overlap_plot_location", priority = 1)
+  # # ovrelap locations ----
+  # # plot using row selection value of table, when data updated, both table and plot start to update but plot can use exsiting old row selection value which is either wrong or doesn't exist in new table. freeze row selection value in table code to make sure the access here is only thawed after all other reactive finish
+  # overlap_plot_location_range <- add_zoom("overlap_plot_location")
+  # output$overlap_plot_location <- renderPlot({
+  #   animals_dt <- req(select_models()$data_dt)
+  #   # show overview when no rows selected
+  #   if (length(input$overlap_summary_rows_selected) == 0) {
+  #     # no global data overlay in background
+  #     g <- ctmmweb::plot_loc(animals_dt, loc_data = NULL, input$point_size_1) +
+  #       ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
+  #                            ylim = overlap_plot_location_range$y)
+  #   } else {# show grouped plot of pairs when rows selected
+  #     # because data.table modify by reference, the plot code actually added selected column already, but we use the selection number directly and not relying on this.
+  #     selected_pairs_current_order <- select_models_overlap()$dt[
+  #       select_rows_in_current_order(), .(v1, v2)]
+  #     # usling lapply like a loop, so we don't need to initialize the list
+  #     g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
+  #       # warning of drawing plot on empty data, not error
+  #       suppressWarnings(
+  #         ctmmweb::plot_loc(select_models()$data_dt[
+  #           identity %in% selected_pairs_current_order[i]])
+  #       )
+  #     })
+  #     g <- gridExtra::grid.arrange(grobs = g_list,
+  #                                  ncol = input$overlap_loc_columns)
+  #   }
+  #   # LOG save plot
+  #   log_save_ggplot(g, "overlap_plot_location")
+  # },
+  # # changing canvas and column sometimes doesn't cause update, switching tabs will update. try this parameter, seemed better.
+  # execOnResize = TRUE,
+  # height = function() { input$overlap_loc_height }, width = "auto")
+  # # tried to use priority to make sure location plot update after table update, didn't work, probably because the problem is row selection reset happened slower
+  # # outputOptions(output, "overlap_plot_location", priority = 1)
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/8_occurrence.md")
