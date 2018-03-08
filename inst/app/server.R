@@ -2079,9 +2079,9 @@ output:
     # LOG overlap summary
     log_dt_md(dt, "Overlap Summary")
     # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
-    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem.
     # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. see DT_row_update_problem.Rmd for minimal example, also see console output with shiny trace on commit 3.8 2pm.
-    freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem.
+    # freezeReactiveValue(input, "overlap_summary_rows_selected")
     # COPY start note code changed in color part --
     DT::datatable(dt,
                   # class = 'table-bordered',
@@ -2131,7 +2131,8 @@ output:
   }, height = function() { input$overlap_plot_height }, width = "auto"
   )
   # overlap home range ----
-  # there could be double update when stayed in overlap home range plot, back to model page update selection, then come back. the plot was drawn, saved, update again and save again. Trace shows plot update right after home range calculated (used previous rows_current value which are previous values, still valid when table not updated yet), then update after rows_current go to empty then valid values. problem is when home range value is ready, range DT is not rendered, old range DT row values still valid, this plot don't know DT is not rendered at this time. since old row values are still valid, there is no other notification to check DT render status. make DT highest priority?
+  # there could be double update when stayed in overlap home range plot, back to model page update selection, then come back. the plot was drawn, saved, update again and save again. Trace shows plot update right after home range calculated (used previous rows_current value which are previous values, still valid when table not updated yet), then update after rows_current go to empty then valid values. problem is when home range value is ready, range DT is not rendered, old range DT row values still valid, this plot don't know DT is not rendered at this time. since old row values are still valid, there is no other notification to check DT render status. make DT highest priority? see notes in 05_4_overlap.Rmd: range plot update problem
+  # with freeze in overlap table removed, there is brief period that plot use new data and old rows_current. when no rows selected, sometimes caused plot to draw twice. when one big row number is selected, update data to less rows, this cause plot to access empty data, but this get updated once DT finished.
   output$overlap_plot_hrange <- renderPlot({
     # useful debug output for update problems. there is a brief period rows_current is NULL, and plot update halted. later it update to new value, but didn't update again. the print shows continus 3 print, means the access was halted untill update finish, which is what we want.
     # cat("input$overlap_summary_rows_current: ",
@@ -2152,7 +2153,8 @@ output:
         selected_rows_in_current_order, .(v1, v2)]
     }
     chosen_hranges <- lapply(1:nrow(chosen_rows), function(i) {
-      select_models_hranges()[unlist(chosen_rows[i])]
+      # req: temporary hack to prevent empty data selected, when new smaller data used with old big row numbers, certain row vector become NA,NA. there still could be wrong data selected (not intended mismatch), but at least no error in console. There is no better solution now since with freeze sometimes the plot doesn't update after rows update finished.
+      select_models_hranges()[req(unlist(chosen_rows[i]))]
     })
     # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
     chosen_colors <- lapply(1:nrow(chosen_rows), function(i) {
