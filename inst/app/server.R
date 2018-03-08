@@ -1794,7 +1794,8 @@ output:
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
                                            .(identity, model_type, model_name)])
     # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
-    # display_name is a dynamic column depend on selection, so it's created here, not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
+    # display_name is a dynamic column depend on selection so it's created here. use simple animal name when no duplicate, full model name when multiple models from same animal are selected. Although created here, it's not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
+    # home range table, plot, overlap page take display_name. the model page still use modal name even no duplication, because the model table exists.
     if (anyDuplicated(selected_names_dt, by = "identity") != 0) {
       selected_names_dt[, display_name := model_name]
     } else {
@@ -2053,20 +2054,31 @@ output:
     setcolorder(overlap_dt, c("v1", "v2", "CI low", "ML", "CI high"))
     overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
     # COPY end --
+    # we need more than the list name of home ranges. home range name came from select_models()$names_dt$display_name, we just need other columns from that reactive variable dt.
+    # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
+    # DT color utility function require a v1 v2 name levels and color vector in same order, just display_name column and color column
+    color_dt <- copy(select_models()$names_dt)
+    color_dt[, color := values$data$id_pal(identity)]
+    # home range plot need a color vector in same order of each pair, actually a function that map display name to color. we create a named vector [display_name = color] for indexing, and create a function from that vector in home range plot. compare to creating the mapping function here, the indexing vector is created in one time merging instead of each checking need a merge, and the transfered parameter is a static vector instead of a function with enclosed variables.
+    # both needs can be satisfied with this named vector.
+    color_of_display_name <- color_dt$color
+    names(color_of_display_name) <- color_dt$display_name
     return(list(matrix_dt = overlap_matrix_dt,
-                dt = overlap_dt))
+                dt = overlap_dt,
+                color_of_display_name = color_of_display_name))
   })
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
     dt <- copy(select_models_overlap()$dt)
+    # to color the v1 v2 columns, need a function that map from v1 v2 values (could be identity or full model name) to color, when using DT utility function this means a levels (all possible names) vector and color vector in same order.
+    color_of_display_name <- select_models_overlap()$color_of_display_name
     # don't need the combination column. we can hide columns in DT but it's quite complex with 1 index trap
     dt[, Combination := NULL]
     # LOG overlap summary
     log_dt_md(dt, "Overlap Summary")
     # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
     freezeReactiveValue(input, "overlap_summary_rows_selected")
-    info_p <- values$data$merged$info
-    # COPY start --
+    # COPY start note code changed in color part --
     DT::datatable(dt,
                   # class = 'table-bordered',
                   options = list(pageLength = 18,
@@ -2079,8 +2091,8 @@ output:
       DT::formatStyle("ML", color = "blue") %>%
       # override the id col color
       DT::formatStyle(c("v1", "v2"), target = 'cell',
-                      color = DT::styleEqual(info_p$identity,
-                                             scales::hue_pal()(nrow(info_p)))
+                      color = DT::styleEqual(names(color_of_display_name),
+                                             color_of_display_name)
       )
     # COPY end --
   })
@@ -2135,9 +2147,11 @@ output:
     chosen_hranges <- lapply(1:nrow(chosen_rows), function(i) {
       select_models_hranges()[unlist(chosen_rows[i])]
     })
-    # just use color for identity, no need to use color for models since two part in plot are always two different animals
+    # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
     chosen_colors <- lapply(1:nrow(chosen_rows), function(i) {
-      sapply(chosen_rows[i], values$data$id_pal)
+      sapply(chosen_rows[i], function(display_name) {
+        select_models_overlap()$color_of_display_name[display_name]
+      })
     })
     ctmmweb:::plot_hr_group_list(chosen_hranges, chosen_colors,
                                  level.UD = ctmmweb:::parse_CI_levels(
