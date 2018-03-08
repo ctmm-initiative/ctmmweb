@@ -5,8 +5,7 @@
 - You can sort the table by name, value, or filter the table with search keywords. The `Value Range` plot will update accordingly and always in same order.
 - Clicking on rows will highlight the corresponding part in `Value Range` plot.
 
-### Location Plot
-- By default an overview of all individuals involved are shown.
-- If some rows in table are selected, every selected pair is plotted individually.
-- The plot order also match the order of selected rows in table, and respond to the filtering in table.
-- Sometimes the changes of plot columns didn't get applied immediately, switching to other tab then switch back will update the plot.
+### Hom Range Plot
+- By default home range of all non-zero overlap pairs are plotted.
+- If some rows in overlap table are selected, cooresponding pairs will be plotted.
+- When switched back to model page and changed model selection, switching back to overlap page sometimes cause the home range plot to draw twice in a row. The first plot is caused by temporary data mismatch between new home range data and not yet updated overlap table. There is some limitation in Shiny that preventing to fix this problem completely. The second plot will be the intended plot.
