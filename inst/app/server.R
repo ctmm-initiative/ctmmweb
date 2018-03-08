@@ -2078,10 +2078,10 @@ output:
     dt[, Combination := NULL]
     # LOG overlap summary
     log_dt_md(dt, "Overlap Summary")
-    # ~~when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.~~
-    # this freeze will cause this error: overlap home range plot tab selected and show some plot, switch to model page to select different models, switch back, and no plot shown.
-    # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. we can only pick the less harm and not freeze it.
-    # freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
+    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem.
+    # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. see DT_row_update_problem.Rmd for minimal example, also see console output with shiny trace on commit 3.8 2pm.
+    freezeReactiveValue(input, "overlap_summary_rows_selected")
     # COPY start note code changed in color part --
     DT::datatable(dt,
                   # class = 'table-bordered',
@@ -2133,8 +2133,10 @@ output:
   # overlap home range ----
   # there could be double update when stayed in overlap home range plot, back to model page update selection, then come back. the plot was drawn, saved, update again and save again. Trace shows plot update right after home range calculated (used previous rows_current value which are previous values, still valid when table not updated yet), then update after rows_current go to empty then valid values. problem is when home range value is ready, range DT is not rendered, old range DT row values still valid, this plot don't know DT is not rendered at this time. since old row values are still valid, there is no other notification to check DT render status. make DT highest priority?
   output$overlap_plot_hrange <- renderPlot({
-    cat("input$overlap_summary_rows_current: ",
-        input$overlap_summary_rows_current, "\n")
+    # useful debug output for update problems. there is a brief period rows_current is NULL, and plot update halted. later it update to new value, but didn't update again. the print shows continus 3 print, means the access was halted untill update finish, which is what we want.
+    # cat("input$overlap_summary_rows_current: ",
+    #     input$overlap_summary_rows_current, "\n")
+    # cat(is.null(input$overlap_summary_rows_current), "\n")
     # chose all pairs with overlap > 0 if no rows selected. otherwise selected rows with same order. the value ggplot use `selected` column in dt
     # go through rows_current to match order and filter in both case, since order and filter can apply both when rows are selected or not
     # when nothing selected. don't use length == 0 because this is more specific
