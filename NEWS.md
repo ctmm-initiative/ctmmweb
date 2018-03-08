@@ -1,4 +1,4 @@
-## current
+## version 0.1.0.9000, current alpha version
 - Update outlier page to use latest ctmm functions which take errors into account for both distance and speed.
 - Use home range plot for overlap location plot tab.
 - `app()` now open in system default browser instead of the RStudio embedded browser to avoid compatibility problems.
