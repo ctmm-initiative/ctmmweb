@@ -1786,7 +1786,7 @@ output:
   # this is the manual selecting rows in model summary table. use sel for ctmm.select process, use select for the manual selection.
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   select_models <- reactive({
-    freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # freezeReactiveValue(input, "overlap_summary_rows_selected")
     # req(!is.null(values$selected_data_model_try_res))
     req(length(input$tried_models_summary_rows_selected) > 0)
     # sort the rows selected so same individual models are together
