@@ -666,7 +666,8 @@ output:
         return()
       }
       # begin removal. freeze plots to avoid it update before data finish sync. we cannot freeze output, but the key factor is the selected rows which will reset after table updated, which could be slower than data updates. so we freeze the row selection which will also freeze select_data. This row selection is often slower than data update, same in remove outlier
-      freezeReactiveValue(input, "individuals_rows_selected")
+      # tried freeze overlap table rows here to solve the double update problem of home range plot, not working.
+      # freezeReactiveValue(input, "individuals_rows_selected")
       if (!is.null(values$data$all_removed_outliers)) {
         values$data$all_removed_outliers <- values$data$all_removed_outliers[
           !(identity %in% chosen_ids)
@@ -1785,6 +1786,7 @@ output:
   # this is the manual selecting rows in model summary table. use sel for ctmm.select process, use select for the manual selection.
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   select_models <- reactive({
+    freezeReactiveValue(input, "overlap_summary_rows_selected")
     # req(!is.null(values$selected_data_model_try_res))
     req(length(input$tried_models_summary_rows_selected) > 0)
     # sort the rows selected so same individual models are together
@@ -2076,8 +2078,10 @@ output:
     dt[, Combination := NULL]
     # LOG overlap summary
     log_dt_md(dt, "Overlap Summary")
-    # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
-    freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # ~~when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.~~
+    # this freeze will cause this error: overlap home range plot tab selected and show some plot, switch to model page to select different models, switch back, and no plot shown.
+    # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. we can only pick the less harm and not freeze it.
+    # freezeReactiveValue(input, "overlap_summary_rows_selected")
     # COPY start note code changed in color part --
     DT::datatable(dt,
                   # class = 'table-bordered',
@@ -2096,7 +2100,8 @@ output:
       )
     # COPY end --
   })
-  # outputOptions(output, "overlap_summary", priority = 10)
+  # try to make DT render fastest so that other plot update later with proper row information. didn't work. it's only for output, not reactive update order.
+  # outputOptions(output, "overlap_summary", priority = 99)
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()$dt
@@ -2125,24 +2130,24 @@ output:
     log_save_ggplot(g, "overlap_plot_value_range")
   }, height = function() { input$overlap_plot_height }, width = "auto"
   )
-  # select_rows_in_current_order() ----
-  # sort the plot in same order of table, even if user clicked some top rows later, or sorted table later, or filtered table
-  select_rows_in_current_order <- reactive({
-    intersect(
-      req(input$overlap_summary_rows_current),
-      req(input$overlap_summary_rows_selected))
-  })
   # overlap home range ----
+  # there could be double update when stayed in overlap home range plot, back to model page update selection, then come back. the plot was drawn, saved, update again and save again. Trace shows plot update right after home range calculated (used previous rows_current value which are previous values, still valid when table not updated yet), then update after rows_current go to empty then valid values. problem is when home range value is ready, range DT is not rendered, old range DT row values still valid, this plot don't know DT is not rendered at this time. since old row values are still valid, there is no other notification to check DT render status. make DT highest priority?
   output$overlap_plot_hrange <- renderPlot({
-    # chose all pairs with overlap > 0 if no rows selected.
-    # prepare all rows select_models_hranges() with overlap or current selected, ud pairs and colors.
-    if (length(input$overlap_summary_rows_selected) == 0) {
-      # first go through the current row numbers to match order and filter
+    cat("input$overlap_summary_rows_current: ",
+        input$overlap_summary_rows_current, "\n")
+    # chose all pairs with overlap > 0 if no rows selected. otherwise selected rows with same order. the value ggplot use `selected` column in dt
+    # go through rows_current to match order and filter in both case, since order and filter can apply both when rows are selected or not
+    # when nothing selected. don't use length == 0 because this is more specific
+    if (is.null(input$overlap_summary_rows_selected)) {
       chosen_rows <- select_models_overlap()$dt[
-        input$overlap_summary_rows_current][ML != 0, .(v1, v2)]
+        req(input$overlap_summary_rows_current)][ML != 0, .(v1, v2)]
     } else {
+      # req both value to prevent the status when table is not ready
+      selected_rows_in_current_order <-
+        intersect(req(input$overlap_summary_rows_current),
+                  req(input$overlap_summary_rows_selected))
       chosen_rows <- select_models_overlap()$dt[
-        select_rows_in_current_order(), .(v1, v2)]
+        selected_rows_in_current_order, .(v1, v2)]
     }
     chosen_hranges <- lapply(1:nrow(chosen_rows), function(i) {
       select_models_hranges()[unlist(chosen_rows[i])]
@@ -2164,7 +2169,9 @@ output:
                    input$overlap_hrange_columns)
     log_save_UD("Overlap of Home Range")
   }, height = function() { input$overlap_hrange_height }, width = "auto")
-  # # ovrelap locations ----
+  # tried with plot/DT priority to make it update after DT. didn't work, maybe it's only render order, but data change already, still will render with updated data.
+  # outputOptions(output, "overlap_plot_hrange", priority = 1)
+  # # ovrelap locations (disabled) ----
   # # plot using row selection value of table, when data updated, both table and plot start to update but plot can use exsiting old row selection value which is either wrong or doesn't exist in new table. freeze row selection value in table code to make sure the access here is only thawed after all other reactive finish
   # overlap_plot_location_range <- add_zoom("overlap_plot_location")
   # output$overlap_plot_location <- renderPlot({
