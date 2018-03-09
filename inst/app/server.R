@@ -1783,10 +1783,18 @@ output:
     DT::selectRows(proxy_model_dt, list())
   })
   # select_models() ----
-  # this is the manual selecting rows in model summary table. use sel for ctmm.select process, use select for the manual selection.
+  # this is the manual selecting rows in model summary table. previously first models are selected in try models action.
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
+  # singal variable of over lap table rows
+  # overlap_table_ready <- FALSE
+  # reactive value to serve as invalidate signal. The value change serve as signal to recalculate the expression included it
+  # values$overlap_table_updating <- FALSE
+  # clear overlap table selection
+  # proxy_overlap_dt <- DT::dataTableProxy("overlap_summary")
   select_models <- reactive({
-    # freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # change signal variable so that overlap table rows should not be used now. this is similar to the clear row selection action in try models
+    # overlap_table_ready <- FALSE
+    # DT::selectRows(proxy_overlap_dt, list())
     # req(!is.null(values$selected_data_model_try_res))
     req(length(input$tried_models_summary_rows_selected) > 0)
     # sort the rows selected so same individual models are together
@@ -2080,8 +2088,10 @@ output:
     log_dt_md(dt, "Overlap Summary")
     # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
     # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. see DT_row_update_problem.Rmd for minimal example, also see console output with shiny trace on commit 3.8 2pm.
-    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem.
-    # freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem. sometimes this worked? add clear table for additional protection
+    freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # reset signal variable after DT rendering finish
+    # on.exit(overlap_table_ready <- TRUE)
     # COPY start note code changed in color part --
     DT::datatable(dt,
                   # class = 'table-bordered',
@@ -2138,6 +2148,12 @@ output:
     # cat("input$overlap_summary_rows_current: ",
     #     input$overlap_summary_rows_current, "\n")
     # cat(is.null(input$overlap_summary_rows_current), "\n")
+    # cat(overlap_table_ready)
+    # req(overlap_table_ready)
+    # rows_current inside ifelse, may not trigger changes. put one outside. esp test with more rows in 2nd try, more pages lead to slower DT and more prone to update problem.
+    req(input$overlap_summary_rows_current)
+    # ctmmweb:::show_by_name("overlap_table_ready")
+    # ctmmweb:::show_by_name("input$overlap_summary_rows_current")
     # chose all pairs with overlap > 0 if no rows selected. otherwise selected rows with same order. the value ggplot use `selected` column in dt
     # go through rows_current to match order and filter in both case, since order and filter can apply both when rows are selected or not
     # when nothing selected. don't use length == 0 because this is more specific

@@ -64,3 +64,13 @@ parse_CI_levels <- function(levels_text) {
     as.numeric(items[items != ""]) / 100
   }
 }
+# debugging helper ----
+# print variable information. it's difficult to get expression name after transfered as a function parameter. so need to use name string as parameter
+# not working because of environment. tricky with get.
+# show_by_name <- function(var_name_string) {
+#   cat(crayon::white$bgYellow$black(var_name_string), ":",
+#       get(var_name_string, envir = parent.env(environment())), "\n")
+# }
+catn <- function(marker, value) {
+  cat(crayon::white$bgYellow$black(marker), ":", value, "\n")
+}
