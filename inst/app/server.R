@@ -1880,9 +1880,14 @@ output:
       summary_models()$summary_dt$model_type))
     render_model_summary_DT(dt, model_types, info_p)
   })
-  # function on input didn't update, need a reactive expression?
+  # home range levels ----
+  # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update.
   get_hr_levels <- reactive({
-    ctmmweb:::parse_CI_levels(input$hr_level_text)
+    if (input$hrange_contours) {
+      ctmmweb:::parse_levels.UD(input$hr_level_text)
+    } else {
+      NA
+    }
   })
   output$range_plot <- renderPlot({
     # browser()
@@ -2246,8 +2251,13 @@ output:
     res
   })
   # function on input didn't update, need a reactive expression?
+  # occur levels ----
   get_oc_levels <- reactive({
-    ctmmweb:::parse_CI_levels(input$oc_level_text)
+    if (input$oc_contours) {
+      ctmmweb:::parse_levels.UD(input$oc_level_text)
+    } else {
+      NA
+    }
   })
   output$occurrence_plot <- renderPlot({
     ctmmweb::plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
