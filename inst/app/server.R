@@ -1721,11 +1721,11 @@ output:
     # prepare model color, identity color function
     model_names_dt[, base_color := values$data$id_pal(identity)]
     model_names_dt[, variation_number := seq_len(.N), by = identity]
-    model_names_dt[, color :=
+    model_names_dt[, model_color :=
                      ctmmweb:::vary_color(base_color, .N)[variation_number],
                    by = identity]
     # need ordered = TRUE for character vector not being factor yet.
-    hr_pal <- leaflet::colorFactor(model_names_dt$color,
+    hr_pal <- leaflet::colorFactor(model_names_dt$model_color,
                           model_names_dt$model_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # we don't want the row number to show in the final table
@@ -1733,8 +1733,9 @@ output:
     dt[, row_no := .I]
     model_position <- if (input$hide_ci_model) 1 else 2
     first_models <- dt[, row_no[model_position], by = identity]$V1
-    return(list(models_dt = models_dt,
+    return(list(models_dt = models_dt, # with CTMM model in column
                 summary_dt = formated_summary_dt,
+                model_names_dt = model_names_dt, # full name, color
                 hr_pal = hr_pal,
                 first_models = first_models))
   })
@@ -1811,6 +1812,22 @@ output:
     } else {
       selected_names_dt[, display_name := identity]
     }
+    # get color
+    browser()
+    selected_names_dt <- merge(summary_models()$model_names_dt,
+                               selected_names_dt,
+                               by = c("identity", "model_type", "model_name"))
+
+    # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
+    # These information came from model_summary (display name depend on row selection, in select_models)
+    # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
+    # DT color utility function require a v1 v2 name levels and color vector in same order, just display_name column and color column
+    # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
+    # home range/occurrence plot need color vector in same order
+    # we create a named vector [display_name = color] for indexing, and create a function from that vector in home range plot. compare to creating the mapping function here, the indexing vector is created in one time merging instead of each checking need a merge, and the transfered parameter is a static vector instead of a function with enclosed variables.
+    # all needs can be satisfied with this named vector.
+    # color_of_display_name <- color_dt$color
+    # names(color_of_display_name) <- color_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
@@ -2069,18 +2086,8 @@ output:
     setcolorder(overlap_dt, c("v1", "v2", "CI low", "ML", "CI high"))
     overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
     # COPY end --
-    # we need more than the list name of home ranges. home range name came from select_models()$names_dt$display_name, we just need other columns from that reactive variable dt.
-    # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
-    # DT color utility function require a v1 v2 name levels and color vector in same order, just display_name column and color column
-    color_dt <- copy(select_models()$names_dt)
-    color_dt[, color := values$data$id_pal(identity)]
-    # home range plot need a color vector in same order of each pair, actually a function that map display name to color. we create a named vector [display_name = color] for indexing, and create a function from that vector in home range plot. compare to creating the mapping function here, the indexing vector is created in one time merging instead of each checking need a merge, and the transfered parameter is a static vector instead of a function with enclosed variables.
-    # both needs can be satisfied with this named vector.
-    color_of_display_name <- color_dt$color
-    names(color_of_display_name) <- color_dt$display_name
     return(list(matrix_dt = overlap_matrix_dt,
-                dt = overlap_dt,
-                color_of_display_name = color_of_display_name))
+                dt = overlap_dt))
   })
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({

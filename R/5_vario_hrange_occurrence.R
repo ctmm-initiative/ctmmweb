@@ -99,14 +99,18 @@ plot_vario <- function(vario_list, model_list = NULL,
 #' @param level_vec The vector of `level.UD` in [ctmm::plot.telemetry()]. To be
 #'   consistent with `ctmm` they are values 0 ~ 1 (for example 0.95). Note the
 #'   app UI take values 0 ~ 100 (for example 95) for easier input.
+#' @param color_vec The colors for contour and density in each plot by order.
+#'   Single color is used for all plots.
 #' @inheritParams plot_vario
 #' @param tele_list [ctmm::as.telemetry()] telemetry list. When provided, animal
 #'   locations are overlayed in plot. This should only be used for home range
 #'   since it can interfere with occurrence plot.
 #'
 #' @export
-plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
+plot_ud <- function(UD_list, level_vec = 0.95, color_vec = "blue",
+                    columns = 2, cex = 0.65,
                     tele_list = NULL) {
+  if (length(color_vec) == 1) color_vec <- rep(color_vec, length(UD_list))
   row_count <- ceiling(length(UD_list) / columns)
   def.par <- graphics::par(no.readonly = TRUE)
   graphics::par(mfrow = c(row_count, columns),
@@ -115,7 +119,8 @@ plot_ud <- function(UD_list, level_vec = 0.95, columns = 2, cex = 0.65,
     tryCatch({
       # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
       if (is.null(tele_list)) {
-        plot(UD_list[[i]], level.UD = level_vec)
+        plot(UD_list[[i]], level.UD = level_vec,
+             col.level = color_vec[i], col.DF = color_vec[i])
       } else {
         # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
         plot(tele_list[[i]], UD = UD_list[[i]], level.UD = level_vec)
@@ -154,4 +159,59 @@ plot_hr_group_list <- function(hr_group_list, color_group_list,
                   level.UD = level.UD, show_intervals = show_intervals)
   })
   graphics::par(def.par)
+}
+# use multiple color in base plot title. original version use color and string interwined
+# http://r.789695.n4.nabble.com/title-words-in-different-colors-td878698.html#a878700
+multiTitle <- function(...){
+  ###
+  ### multi-coloured title
+  ###
+  ### examples:
+  ###  multiTitle(color="red","Traffic",
+  ###             color="orange"," light ",
+  ###             color="green","signal")
+  ###
+  ### - note triple backslashes needed for embedding quotes:
+  ###
+  ###  multiTitle(color="orange","Hello ",
+  ###             color="red"," \\\"world\\\"!")
+  ###
+  ### Barry Rowlingson <[hidden email]>
+  ###
+  l = list(...)
+  ic = names(l)=='color'
+  colors = unique(unlist(l[ic]))
+
+  for(i in colors){
+    color=par()$col.main
+    strings=c()
+    for(il in 1:length(l)){
+      p = l[[il]]
+      if(ic[il]){ # if this is a color:
+        if(p==i){  # if it's the current color
+          current=TRUE
+        }else{
+          current=FALSE
+        }
+      }else{ # it's some text
+        if(current){
+          # set as text
+          strings = c(strings,paste('"',p,'"',sep=""))
+        }else{
+          # set as phantom
+          strings = c(strings,paste("phantom(\"",p,"\")",sep=""))
+        }
+      }
+    } # next item
+    ## now plot this color
+    prod=paste(strings,collapse="*")
+    express = paste("expression(",prod,")",sep="")
+    e=eval(parse(text=express))
+    title(e,col.main=i)
+  } # next color
+  return()
+}
+# we will want color vector and string vector as parameter
+multi_color_title <- function(color_vec, name_vec)  {
+
 }
