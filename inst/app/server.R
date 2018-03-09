@@ -2522,9 +2522,9 @@ output:
   # load data ----
   observeEvent(input$load_data, {
     # LOG load data
-    log_msg("Loading data", input$load_cache$name)
+    log_msg("Loading data", input$load_data$name)
     # saved.zip -> cache.zip, data.rds, report.html, combined_data_table.csv
-    utils::unzip(input$load_cache$datapath, exdir = session_tmpdir)
+    utils::unzip(input$load_data$datapath, exdir = session_tmpdir)
     if (APP_local) {
       utils::browseURL(file.path(session_tmpdir, "report.html"))
     }
