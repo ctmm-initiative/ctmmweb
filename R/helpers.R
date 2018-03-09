@@ -56,9 +56,10 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 }
 # home range ----
 # take the input in home range page, note the input need to be divided by 100
+# all textinput default at 95. empty or NA is parsed as NA
 parse_CI_levels <- function(levels_text) {
-  if (stringr::str_trim(levels_text) == "") {
-    return(0.95)
+  if (stringr::str_trim(levels_text) %in% c("", "NA")) {
+    return(NA)
   } else {
     items <- stringr::str_trim(stringr::str_split(levels_text, ",")[[1]])
     as.numeric(items[items != ""]) / 100
