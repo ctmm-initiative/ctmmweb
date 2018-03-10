@@ -5,7 +5,8 @@
 \title{Plot a group of home ranges or occurrences}
 \usage{
 plot_ud(UD_list, level_vec = 0.95, color_vec = "blue",
-  hide_contour = FALSE, columns = 2, cex = 0.65, tele_list = NULL)
+  option = c("contour", "interval", "location"), columns = 2, cex = 0.65,
+  tele_list = NULL)
 }
 \arguments{
 \item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from
@@ -14,12 +15,12 @@ are needed for title of figures.}
 
 \item{level_vec}{The vector of \code{level.UD} in \code{\link[ctmm:plot.telemetry]{ctmm::plot.telemetry()}}. To be
 consistent with \code{ctmm} they are values 0 ~ 1 (for example 0.95). Note the
-app UI take values 0 ~ 100 (for example 95) for easier input.}
+app UI take percentage values 0 ~ 100 (for example 95) for easier input.}
 
-\item{color_vec}{The colors for contour and density in each plot by order.
-Single color is used for all plots.}
+\item{color_vec}{The colors for contour, density and location points in each
+plot by order. Single color is used for all plots.}
 
-\item{hide_contour}{If True, hide the contour polygons}
+\item{option}{Whether to show contour, interval or location points.}
 
 \item{columns}{The columns of the group plot layout.}
 
