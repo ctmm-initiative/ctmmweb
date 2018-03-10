@@ -20,7 +20,8 @@ app UI take percentage values 0 ~ 100 (for example 95) for easier input.}
 \item{color_vec}{The colors for contour, density and location points in each
 plot by order. Single color is used for all plots.}
 
-\item{option}{Whether to show contour, interval or location points.}
+\item{option}{Whether to show contour, interval or location points. Note
+interval only take effect when contour exsits.}
 
 \item{columns}{The columns of the group plot layout.}
 

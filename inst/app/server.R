@@ -1898,15 +1898,16 @@ output:
   })
   # home range levels ----
   # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update.
-  get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_level_text)})
+  # get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_level_text)})
   # home range plot ----
   output$range_plot <- renderPlot({
     # browser()
     # selected_tele_list <- select_models()$tele_list
     ctmmweb::plot_ud(select_models_hranges(),
-                     level_vec = ctmmweb:::parse_levels.UD(input$hr_level_text),
+                     level_vec = ctmmweb:::parse_levels.UD(
+                       input$hr_contour_text),
                      color_vec = select_models()$display_color,
-                     hide_contour = input$hrange_hide_contours,
+                     option = input$hrange_option,
                      columns = input$vario_columns, cex = 0.72,
                      tele_list = select_models()$tele_list)
     # selected_tele_list <- select_models()$tele_list
@@ -2177,21 +2178,24 @@ output:
       chosen_rows <- select_models_overlap()$dt[
         selected_rows_in_current_order, .(v1, v2)]
     }
-    chosen_hranges <- lapply(1:nrow(chosen_rows), function(i) {
+    chosen_hranges_list <- lapply(1:nrow(chosen_rows), function(i) {
       # req: temporary hack to prevent empty data selected, when new smaller data used with old big row numbers, certain row vector become NA,NA. there still could be wrong data selected (not intended mismatch), but at least no error in console. There is no better solution now since with freeze sometimes the plot doesn't update after rows update finished.
       select_models_hranges()[req(unlist(chosen_rows[i]))]
     })
+    chosen_tele_list_list <- lapply(1:nrow(chosen_rows), function(i) {
+      select_models()$tele_list[req(unlist(chosen_rows[i]))]
+    })
     # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
-    chosen_colors <- lapply(1:nrow(chosen_rows), function(i) {
+    chosen_colors_list <- lapply(1:nrow(chosen_rows), function(i) {
       sapply(chosen_rows[i], function(display_name) {
         select_models()$display_color[display_name]
       })
     })
-    ctmmweb:::plot_hr_group_list(chosen_hranges, chosen_colors,
+    ctmmweb:::plot_hr_group_list(chosen_hranges_list, chosen_tele_list_list,
+                                 chosen_colors_list,
                      level.UD = ctmmweb:::parse_levels.UD(
-                       input$overlap_hrange_level_text),
-                     hide_contour = input$overlap_hide_contours,
-                     show_envelopes = input$overlap_hrange_envelopes,
+                       input$overlap_hrange_contour_text),
+                     option = input$overlap_hrange_option,
                      columns = input$overlap_hrange_columns)
     # LOG save plot
     row_count <- ceiling(nrow(chosen_rows) / input$overlap_hrange_columns)
@@ -2257,27 +2261,15 @@ output:
   })
   # function on input didn't update, need a reactive expression?
   # occur levels ----
-  get_oc_levels <- reactive({ctmmweb:::parse_levels.UD(input$oc_level_text)})
+  # get_oc_levels <- reactive({ctmmweb:::parse_levels.UD(input$oc_level_text)})
   output$occurrence_plot <- renderPlot({
-    ctmmweb::plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
+    ctmmweb::plot_ud(select_models_occurrences(),
+                     level_vec = ctmmweb:::parse_levels.UD(
+                       input$oc_contour_text),
                      color_vec = select_models()$display_color,
-                     hide_contour = input$oc_hide_contours,
-                     cex = 0.72, columns = input$vario_columns)
-    # plot
-    # def.par <- graphics::par(no.readonly = TRUE)
-    # graphics::par(mfrow = c(select_models()$vario_layout$row_count,
-    #                         input$vario_columns),
-    #     mar = c(5, 5, 4, 1), ps = 18, cex = 0.72, cex.main = 0.9)
-    # lapply(seq_along(select_models_occurrences()), function(i) {
-    #   tryCatch({
-    #     # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
-    #     plot(select_models_occurrences()[[i]], level.UD = get_oc_levels())
-    #   }, error = function(e) {
-    #     warning(select_models()$names_dt$model_name[i], ": ", e)
-    #     plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 10), ylim = c(0, 10))
-    #   })
-    #   graphics::title(select_models()$names_dt$model_name[i])
-    # })
+                     option = input$occur_option,
+                     cex = 0.72, columns = input$vario_columns,
+                     tele_list = select_models()$tele_list)
     # LOG save pic
     log_save_vario("occurrence", select_models()$vario_layout$row_count,
                    input$vario_columns)

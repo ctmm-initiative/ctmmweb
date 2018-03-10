@@ -101,7 +101,8 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'   app UI take percentage values 0 ~ 100 (for example 95) for easier input.
 #' @param color_vec The colors for contour, density and location points in each
 #'   plot by order. Single color is used for all plots.
-#' @param option Whether to show contour, interval or location points.
+#' @param option Whether to show contour, interval or location points. Note
+#'   interval only take effect when contour exsits.
 #' @inheritParams plot_vario
 #' @param tele_list [ctmm::as.telemetry()] telemetry list. When provided, animal
 #'   locations are overlayed in plot. This should only be used for home range
@@ -119,16 +120,16 @@ plot_ud <- function(UD_list, level_vec = 0.95, color_vec = "blue",
                 mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   lapply(seq_along(UD_list), function(i) {
     tryCatch({
-      # without location
+      # without location, also no col parameter. all parameter differences in first line.
       if (is.null(tele_list) || !("location" %in% option)) {
-        plot(UD_list[[i]], level.UD = level_vec,
-             col = color_vec[i], col.DF = color_vec[i],
+        plot(UD_list[[i]],
+             level.UD = level_vec, col.DF = color_vec[i],
              col.level = if ("contour" %in% option) color_vec[i] else NA,
              level = if ("interval" %in% option) 0.95 else NA)
       } else {
         # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
-        plot(tele_list[[i]], UD = UD_list[[i]], level.UD = level_vec,
-             col = color_vec[i], col.DF = color_vec[i],
+        plot(tele_list[[i]], UD = UD_list[[i]], col = color_vec[i],
+             level.UD = level_vec, col.DF = color_vec[i],
              col.level = if ("contour" %in% option) color_vec[i] else NA,
              level = if ("interval" %in% option) 0.95 else NA)
       }
@@ -142,21 +143,19 @@ plot_ud <- function(UD_list, level_vec = 0.95, color_vec = "blue",
 }
 # plot home range pairs. only used pair in app, the function also work on multiple so named as group. note plot_ud take a list but plot one by one.
 # level.UD: Contour level, level: Confidence intervals placed on the contour
-# different from plot_ud: color_group is list of pairs, level.UD is single value. all group parameter are list by order
-# we only use this internally so always have tele input.
+# different from plot_ud: group is list of 2 items, level.UD is single value. all group parameter are list by order. later group_list is list of groups
+# we only use this internally so always have tele input. plotting pairs so grid is off.
 plot_hr_group <- function(hr_group, tele_group, color_group,
                           level.UD = 0.95,
                           option = c("contour", "interval", "location")) {
-  if ("location" %in% option) {
+  if ("location" %in% option) { # all parameter differences in first line.
     plot(tele_group, UD = hr_group, col = color_group,
-         col.DF = color_group, col.grid = NA,
-         level.UD = level.UD,
+         col.DF = color_group, col.grid = NA, level.UD = level.UD,
          col.level = if ("contour" %in% option) color_group else NA,
          level = if ("interval" %in% option) 0.95 else NA)
   } else {
-    plot(hr_group, # col is relate to tele so no use here
-         col.DF = color_group, col.grid = NA,
-         level.UD = level.UD,
+    plot(hr_group,
+         col.DF = color_group, col.grid = NA, level.UD = level.UD,
          col.level = if ("contour" %in% option) color_group else NA,
          level = if ("interval" %in% option) 0.95 else NA)
   }
@@ -165,9 +164,9 @@ plot_hr_group <- function(hr_group, tele_group, color_group,
 }
 
 # plot a list of pairs
-plot_hr_group_list <- function(hr_group_list, color_group_list,
+plot_hr_group_list <- function(hr_group_list, tele_group_list, color_group_list,
                                level.UD = 0.95,
-                               hide_contour = FALSE, show_envelopes = TRUE,
+                               option = c("contour", "interval", "location"),
                                columns = 2, cex = 0.65) {
   def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(hr_group_list) / columns)
@@ -175,10 +174,10 @@ plot_hr_group_list <- function(hr_group_list, color_group_list,
                 mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   lapply(seq_along(hr_group_list), function(i) {
     # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
-    plot_hr_group(hr_group_list[[i]],
+    plot_hr_group(hr_group_list[[i]], tele_group_list[[i]],
                   color_group = color_group_list[[i]],
                   level.UD = level.UD,
-                  hide_contour = hide_contour, show_envelopes = show_envelopes)
+                  option = option)
   })
   graphics::par(def.par)
 }
