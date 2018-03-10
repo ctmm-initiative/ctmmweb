@@ -38,5 +38,6 @@ Imports: shiny,
     zip
 Remotes: ctmm-initiative/ctmm
 Suggests: knitr,
-    rmarkdown
+    rmarkdown,
+    shiny
 VignetteBuilder: knitr

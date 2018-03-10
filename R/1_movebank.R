@@ -1,4 +1,5 @@
 # movebank download ----
+# this function need shiny. it's internal and only used inside app so no need to check.
 # always need the response content in text, also need response status
 request <- function(entity_type, user, pass){
   base_url <- "https://www.movebank.org/movebank/service/direct-read?entity_type="
@@ -6,6 +7,7 @@ request <- function(entity_type, user, pass){
   res <- httr::GET(url, config = httr::add_headers(user = user, password = pass))
   status <- httr::http_status(res)$category
   if (status != "Success") {
+    # need shiny here. no need to check since it's only used inside shiny app
     shiny::showNotification(paste0(httr::http_status(res)$message,
                                    "\nCheck console for more information"),
                             duration = 6, type = "error")

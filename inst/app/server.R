@@ -1813,11 +1813,9 @@ output:
       selected_names_dt[, display_name := identity]
     }
     # get color
-    browser()
     selected_names_dt <- merge(summary_models()$model_names_dt,
                                selected_names_dt,
                                by = c("identity", "model_type", "model_name"))
-
     # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
     # These information came from model_summary (display name depend on row selection, in select_models)
     # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
@@ -1826,8 +1824,8 @@ output:
     # home range/occurrence plot need color vector in same order
     # we create a named vector [display_name = color] for indexing, and create a function from that vector in home range plot. compare to creating the mapping function here, the indexing vector is created in one time merging instead of each checking need a merge, and the transfered parameter is a static vector instead of a function with enclosed variables.
     # all needs can be satisfied with this named vector.
-    # color_of_display_name <- color_dt$color
-    # names(color_of_display_name) <- color_dt$display_name
+    display_color <- selected_names_dt$model_color
+    names(display_color) <- selected_names_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
@@ -1849,6 +1847,7 @@ output:
     log_dt_md(selected_names_dt, "Selected Models")
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
+                display_color = display_color,
                 tele_list = selected_tele_list,
                 data_dt = selected_data_dt,
                 model_list = selected_model_list,
@@ -1899,19 +1898,17 @@ output:
   })
   # home range levels ----
   # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update.
-  get_hr_levels <- reactive({
-    if (input$hrange_contours) {
-      ctmmweb:::parse_levels.UD(input$hr_level_text)
-    } else {
-      NA
-    }
-  })
+  get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_level_text)})
+  # home range plot ----
   output$range_plot <- renderPlot({
     # browser()
     # selected_tele_list <- select_models()$tele_list
-    ctmmweb::plot_ud(select_models_hranges(), level_vec = get_hr_levels(),
-            columns = input$vario_columns, cex = 0.72,
-            tele_list = select_models()$tele_list)
+    ctmmweb::plot_ud(select_models_hranges(),
+                     level_vec = ctmmweb:::parse_levels.UD(input$hr_level_text),
+                     color_vec = select_models()$display_color,
+                     hide_contour = input$hrange_hide_contours,
+                     columns = input$vario_columns, cex = 0.72,
+                     tele_list = select_models()$tele_list)
     # selected_tele_list <- select_models()$tele_list
     # def.par <- graphics::par(no.readonly = TRUE)
     # graphics::par(mfrow = c(select_models()$vario_layout$row_count,
@@ -2093,7 +2090,7 @@ output:
   output$overlap_summary <- DT::renderDataTable({
     dt <- copy(select_models_overlap()$dt)
     # to color the v1 v2 columns, need a function that map from v1 v2 values (could be identity or full model name) to color, when using DT utility function this means a levels (all possible names) vector and color vector in same order.
-    color_of_display_name <- select_models_overlap()$color_of_display_name
+    display_color <- select_models()$display_color
     # don't need the combination column. we can hide columns in DT but it's quite complex with 1 index trap
     dt[, Combination := NULL]
     # LOG overlap summary
@@ -2117,8 +2114,8 @@ output:
       DT::formatStyle("ML", color = "blue") %>%
       # override the id col color
       DT::formatStyle(c("v1", "v2"), target = 'cell',
-                      color = DT::styleEqual(names(color_of_display_name),
-                                             color_of_display_name)
+                      color = DT::styleEqual(names(display_color),
+                                             display_color)
       )
     # COPY end --
   })
@@ -2187,14 +2184,15 @@ output:
     # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
     chosen_colors <- lapply(1:nrow(chosen_rows), function(i) {
       sapply(chosen_rows[i], function(display_name) {
-        select_models_overlap()$color_of_display_name[display_name]
+        select_models()$display_color[display_name]
       })
     })
     ctmmweb:::plot_hr_group_list(chosen_hranges, chosen_colors,
-                                 level.UD = ctmmweb:::parse_CI_levels(
-                                   input$overlap_hrange_level_text),
-                                 show_intervals = input$overlap_hrange_intervals,
-                                 columns = input$overlap_hrange_columns)
+                     level.UD = ctmmweb:::parse_levels.UD(
+                       input$overlap_hrange_level_text),
+                     hide_contour = input$overlap_hide_contours,
+                     show_envelopes = input$overlap_hrange_envelopes,
+                     columns = input$overlap_hrange_columns)
     # LOG save plot
     row_count <- ceiling(nrow(chosen_rows) / input$overlap_hrange_columns)
     log_save_vario("Overlap of Home Range", row_count,
@@ -2259,16 +2257,12 @@ output:
   })
   # function on input didn't update, need a reactive expression?
   # occur levels ----
-  get_oc_levels <- reactive({
-    if (input$oc_contours) {
-      ctmmweb:::parse_levels.UD(input$oc_level_text)
-    } else {
-      NA
-    }
-  })
+  get_oc_levels <- reactive({ctmmweb:::parse_levels.UD(input$oc_level_text)})
   output$occurrence_plot <- renderPlot({
     ctmmweb::plot_ud(select_models_occurrences(), level_vec = get_oc_levels(),
-            cex = 0.72, columns = input$vario_columns)
+                     color_vec = select_models()$display_color,
+                     hide_contour = input$oc_hide_contours,
+                     cex = 0.72, columns = input$vario_columns)
     # plot
     # def.par <- graphics::par(no.readonly = TRUE)
     # graphics::par(mfrow = c(select_models()$vario_layout$row_count,

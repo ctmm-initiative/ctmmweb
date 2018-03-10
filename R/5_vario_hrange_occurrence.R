@@ -101,6 +101,7 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'   app UI take values 0 ~ 100 (for example 95) for easier input.
 #' @param color_vec The colors for contour and density in each plot by order.
 #'   Single color is used for all plots.
+#' @param hide_contour If True, hide the contour polygons
 #' @inheritParams plot_vario
 #' @param tele_list [ctmm::as.telemetry()] telemetry list. When provided, animal
 #'   locations are overlayed in plot. This should only be used for home range
@@ -108,6 +109,7 @@ plot_vario <- function(vario_list, model_list = NULL,
 #'
 #' @export
 plot_ud <- function(UD_list, level_vec = 0.95, color_vec = "blue",
+                    hide_contour = FALSE,
                     columns = 2, cex = 0.65,
                     tele_list = NULL) {
   if (length(color_vec) == 1) color_vec <- rep(color_vec, length(UD_list))
@@ -120,10 +122,13 @@ plot_ud <- function(UD_list, level_vec = 0.95, color_vec = "blue",
       # plot(select_models_occurrences()[[i]], level.UD = input$ud_level)
       if (is.null(tele_list)) {
         plot(UD_list[[i]], level.UD = level_vec,
-             col.level = color_vec[i], col.DF = color_vec[i])
+             col.level = if (hide_contour) NA else color_vec[i],
+             col.DF = color_vec[i])
       } else {
         # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
-        plot(tele_list[[i]], UD = UD_list[[i]], level.UD = level_vec)
+        plot(tele_list[[i]], UD = UD_list[[i]], level.UD = level_vec,
+             col.level = if (hide_contour) NA else color_vec[i],
+             col.DF = color_vec[i])
       }
     }, error = function(e) {
       warning(names(UD_list)[i], ": ", e)
@@ -136,17 +141,20 @@ plot_ud <- function(UD_list, level_vec = 0.95, color_vec = "blue",
 # plot home range pairs. only used pair in app, the function also work on multiple so named as group
 # level.UD: Contour level, level: Confidence intervals placed on the contour
 plot_hr_group <- function(hr_group, color_group,
-                          level.UD = 0.95, show_intervals = TRUE) {
-  level <- if (show_intervals) 0.95 else NA
-  plot(hr_group, col.level = color_group,
-       col.DF = color_group, col.grid = NA, level.UD = level.UD, level = level)
+                          level.UD = 0.95,
+                          hide_contour = FALSE, show_envelopes = TRUE) {
+  plot(hr_group,
+       col.level = if (hide_contour) NA else color_group,
+       col.DF = color_group, col.grid = NA, level.UD = level.UD,
+       level = if (show_envelopes) 0.95 else NA)
   # adjust cex.main in group plot
   graphics::title(paste(names(hr_group), collapse = ", "))
 }
 
 # plot a list of pairs
 plot_hr_group_list <- function(hr_group_list, color_group_list,
-                               level.UD = 0.95, show_intervals = TRUE,
+                               level.UD = 0.95,
+                               hide_contour = FALSE, show_envelopes = TRUE,
                                columns = 2, cex = 0.65) {
   def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(hr_group_list) / columns)
@@ -156,7 +164,8 @@ plot_hr_group_list <- function(hr_group_list, color_group_list,
     # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
     plot_hr_group(hr_group_list[[i]],
                   color_group = color_group_list[[i]],
-                  level.UD = level.UD, show_intervals = show_intervals)
+                  level.UD = level.UD,
+                  hide_contour = hide_contour, show_envelopes = show_envelopes)
   })
   graphics::par(def.par)
 }

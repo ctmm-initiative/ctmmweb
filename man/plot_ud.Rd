@@ -4,8 +4,8 @@
 \alias{plot_ud}
 \title{Plot a group of home ranges or occurrences}
 \usage{
-plot_ud(UD_list, level_vec = 0.95, color_vec = "blue", columns = 2,
-  cex = 0.65, tele_list = NULL)
+plot_ud(UD_list, level_vec = 0.95, color_vec = "blue",
+  hide_contour = FALSE, columns = 2, cex = 0.65, tele_list = NULL)
 }
 \arguments{
 \item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from
@@ -18,6 +18,8 @@ app UI take values 0 ~ 100 (for example 95) for easier input.}
 
 \item{color_vec}{The colors for contour and density in each plot by order.
 Single color is used for all plots.}
+
+\item{hide_contour}{If True, hide the contour polygons}
 
 \item{columns}{The columns of the group plot layout.}
 
