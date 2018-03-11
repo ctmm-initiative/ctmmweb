@@ -161,7 +161,8 @@ plot_hr_group <- function(hr_group, tele_group, color_group,
   }
   # adjust cex.main in group plot
   # graphics::title(paste(names(hr_group), collapse = ", "))
-  multi_color_title(color_group, names(hr_group))
+  # multi_color_title(color_group, names(hr_group))
+  multi_color_multi_line_title(color_group, names(hr_group))
 }
 
 # plot a list of pairs
@@ -173,7 +174,7 @@ plot_hr_group_list <- function(hr_group_list, tele_group_list, color_group_list,
   row_count <- ceiling(length(hr_group_list) / columns)
   graphics::par(mfrow = c(row_count, columns),
                 # cex: font size, cex.main: title relative to font size
-                mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
+                mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 1)
   lapply(seq_along(hr_group_list), function(i) {
     # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
     plot_hr_group(hr_group_list[[i]], tele_group_list[[i]],
@@ -247,4 +248,14 @@ multi_color_title <- function(color_vec, name_vec)  {
   })
   # list() will convert to list with one item holding the vector.
   do.call(multiTitle, as.list(unlist(para_list)))
+}
+# above functions make title in one line, our names could be quite long
+# print each color in separate line. this probably will not work for n > 2 because not enough margin.
+multi_color_multi_line_title <- function(color_vec, name_vec) {
+  # add new line after first n-1 names. need two new lines otherwise not enough space(could depend on font size)
+  name_vec[1:(length(name_vec) - 1)] <- paste0(
+    name_vec[1:(length(name_vec) - 1)], "\n\n")
+  for (i in seq_along(color_vec)) {
+    graphics::title(name_vec[i], col.main = color_vec[i])
+  }
 }
