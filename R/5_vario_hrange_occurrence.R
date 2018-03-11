@@ -160,7 +160,8 @@ plot_hr_group <- function(hr_group, tele_group, color_group,
          level = if ("interval" %in% option) 0.95 else NA)
   }
   # adjust cex.main in group plot
-  graphics::title(paste(names(hr_group), collapse = ", "))
+  # graphics::title(paste(names(hr_group), collapse = ", "))
+  multi_color_title(color_group, names(hr_group))
 }
 
 # plot a list of pairs
@@ -171,6 +172,7 @@ plot_hr_group_list <- function(hr_group_list, tele_group_list, color_group_list,
   def.par <- graphics::par(no.readonly = TRUE)
   row_count <- ceiling(length(hr_group_list) / columns)
   graphics::par(mfrow = c(row_count, columns),
+                # cex: font size, cex.main: title relative to font size
                 mar = c(5, 5, 4, 1), ps = 18, cex = cex, cex.main = 0.9)
   lapply(seq_along(hr_group_list), function(i) {
     # must use named parameter of UD here, since the 2nd parameter by position is for CTMM
@@ -181,14 +183,14 @@ plot_hr_group_list <- function(hr_group_list, tele_group_list, color_group_list,
   })
   graphics::par(def.par)
 }
-# use multiple color in base plot title. original version use color and string interwined
+# use multiple color in base plot title. original version use color and string interwined. the function only check parameter name of color, any other name will be for the text.
 # http://r.789695.n4.nabble.com/title-words-in-different-colors-td878698.html#a878700
 multiTitle <- function(...){
   ###
   ### multi-coloured title
   ###
   ### examples:
-  ###  multiTitle(color="red","Traffic",
+  ###  multiTitle(color="red", "Traffic",
   ###             color="orange"," light ",
   ###             color="green","signal")
   ###
@@ -228,11 +230,21 @@ multiTitle <- function(...){
     prod=paste(strings,collapse="*")
     express = paste("expression(",prod,")",sep="")
     e=eval(parse(text=express))
-    title(e,col.main=i)
+    graphics::title(e,col.main=i)
   } # next color
-  return()
+  # remove this otherwise print NULL in console
+  return(invisible())
 }
-# we will want color vector and string vector as parameter
+# we will want color vector and string vector as parameter. the text parameter name is not needed by multiTitle but easier for us to organize.
+# will need to insert ", " after first n-1 names.
 multi_color_title <- function(color_vec, name_vec)  {
-
+  # our color_vec in app is vector with names like "v1.Cilla". when converted to list then unlist then as.list, that names are reserved instead of "color".
+  names(color_vec) <- NULL
+  name_vec[1:(length(name_vec) - 1)] <- paste0(
+    name_vec[1:(length(name_vec) - 1)], ", ")
+  para_list <- lapply(seq_along(color_vec), function(i) {
+    c(color = color_vec[i], text = name_vec[i])
+  })
+  # list() will convert to list with one item holding the vector.
+  do.call(multiTitle, as.list(unlist(para_list)))
 }
