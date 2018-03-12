@@ -1,6 +1,6 @@
 Variograms of individuals in current subset are plotted here.
 
-- The figure height and columns of figures in `control` box are applied to plots in `variogram`, `home range`, `occurrence` page too.
+- The figure height and columns of figures in `control` box are applied to plots in `variogram`, `home range`, `occurrence` pages.
 - The slider control the Time-lag range in plots. It's in Logarithmic scale, ranged from `0.001 (0.1%)` to `1 (100%)` of the total range. Some browser in certain platform may have compatibility issues and showing the labels wrong. Firefox and Chrome are recommended browsers.
 - The units of X (Time-lag) and Y (Semi-variance) may change according to data to better represent the values.
 - `Absolute` mode operate on the max Time-lag range individual in group, and all others scaled with same X, Y axes for easier comparison.

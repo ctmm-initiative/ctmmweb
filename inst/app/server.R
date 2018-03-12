@@ -2515,7 +2515,7 @@ output:
   # load data ----
   observeEvent(input$load_data, {
     # LOG load data
-    log_msg("Loading data", input$load_data$name)
+    log_msg("Loading previously saved data", input$load_data$name)
     # saved.zip -> cache.zip, data.rds, report.html, combined_data_table.csv
     utils::unzip(input$load_data$datapath, exdir = session_tmpdir)
     if (APP_local) {
