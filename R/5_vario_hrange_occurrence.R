@@ -185,8 +185,24 @@ plot_hr_group_list <- function(hr_group_list, tele_group_list, color_group_list,
   graphics::par(def.par)
 }
 # use multiple color in base plot title. original version use color and string interwined. the function only check parameter name of color, any other name will be for the text.
-# http://r.789695.n4.nabble.com/title-words-in-different-colors-td878698.html#a878700
-multiTitle <- function(...){
+
+#' Multiple Colored Plot Title
+#'
+#' Make multiple colored base plot title.
+#'
+#' @describeIn multi_title The original function taken from
+#' [mailing list by Barry Rowlingson](http://r.789695.n4.nabble.com/title-words-in-different-colors-td878698.html#a878700).
+#' The only change is the `NULL` return value was made invisible.
+#' @param ... Color and text interwoven in order. See example. Note some spaces
+#' need to be placed around text.
+#'
+#' @export
+#'
+#' @examples
+#' multiTitle(color="red", "Traffic",
+#'            color="orange", " light ",
+#'            color="green", "signal")
+multi_title <- function(...){
   ###
   ### multi-coloured title
   ###
@@ -238,24 +254,38 @@ multiTitle <- function(...){
 }
 # we will want color vector and string vector as parameter. the text parameter name is not needed by multiTitle but easier for us to organize.
 # will need to insert ", " after first n-1 names.
-multi_color_title <- function(color_vec, name_vec)  {
+
+#' @describeIn multi_title Instead of taking interwoven color and text input,
+#'   color vector and text vector are used.
+#' @param color_vec Vector of colors. Should have same length with `text_vec`
+#' @param text_vec Vector of text segments. Will have the cooresponding color in
+#'   `color_vec`.
+#' @param sep Separator to be placed among the text segments
+#'
+#' @export
+multi_color_title <- function(color_vec, text_vec, sep = ", ")  {
   # our color_vec in app is vector with names like "v1.Cilla". when converted to list then unlist then as.list, that names are reserved instead of "color".
   names(color_vec) <- NULL
-  name_vec[1:(length(name_vec) - 1)] <- paste0(
-    name_vec[1:(length(name_vec) - 1)], ", ")
+  text_vec[1:(length(text_vec) - 1)] <- paste0(
+    text_vec[1:(length(text_vec) - 1)], sep)
   para_list <- lapply(seq_along(color_vec), function(i) {
-    c(color = color_vec[i], text = name_vec[i])
+    c(color = color_vec[i], text = text_vec[i])
   })
   # list() will convert to list with one item holding the vector.
   do.call(multiTitle, as.list(unlist(para_list)))
 }
 # above functions make title in one line, our names could be quite long
 # print each color in separate line. this probably will not work for n > 2 because not enough margin.
-multi_color_multi_line_title <- function(color_vec, name_vec) {
+
+#' @describeIn multi_title Place each text segment in a new line.
+#' @inheritParams multi_color_title
+#'
+#' @export
+multi_color_multi_line_title <- function(color_vec, text_vec, sep = "\n\n") {
   # add new line after first n-1 names. need two new lines otherwise not enough space(could depend on font size)
-  name_vec[1:(length(name_vec) - 1)] <- paste0(
-    name_vec[1:(length(name_vec) - 1)], "\n\n")
+  text_vec[1:(length(text_vec) - 1)] <- paste0(
+    text_vec[1:(length(text_vec) - 1)], sep)
   for (i in seq_along(color_vec)) {
-    graphics::title(name_vec[i], col.main = color_vec[i])
+    graphics::title(text_vec[i], col.main = color_vec[i])
   }
 }
