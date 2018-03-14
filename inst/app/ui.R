@@ -16,8 +16,8 @@ header <- dashboardHeader(title = "Animal Movement",
                  icon = icon("github"),
                  href = "https://github.com/ctmm-initiative/ctmmweb"),
                messageItem(
-                 from = "Build Date",
-                 message = PKG_BUILD_TIME,
+                 from = "Installation Time",
+                 message = PKG_INSTALLATION_TIME,
                  icon = icon("calendar-o")),
                messageItem(
                  from = "Issues",

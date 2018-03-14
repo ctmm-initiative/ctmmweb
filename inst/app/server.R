@@ -179,7 +179,7 @@ output:
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
   # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
-  log_msg("App started", paste0("Build Date: ", PKG_BUILD_TIME))
+  log_msg("App started", paste0("Installed On: ", PKG_INSTALLATION_TIME))
   # first page need to be added manually since no page switching event fired
   log_page(page_title$import)
   # log app options ----

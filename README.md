@@ -52,7 +52,7 @@ https://github.com/ctmm-initiative/ctmmweb
   More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html) 
 
 ### Hosted app
-Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) with browser (Chrome recommended). 
+Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) ([short url: http://tiny.cc/ctmmweb](http://tiny.cc/ctmmweb)) with browser (Chrome recommended). 
 
 This is more intended for demonstration purposes because
 
