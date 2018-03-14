@@ -107,21 +107,6 @@ upload_box <- box(title = "Local Data Import",
                            # buttonLabel = "Load Session ..."
                            )),
           column(5, offset = 7, help_button("import"))
-          # column(7, checkboxGroupInput("app_options", label = NULL,
-          #             choiceNames = list(div(icon("video-camera"),
-          #                                    HTML('&nbsp;'),
-          #                                    "Record Actions"),
-          #                                div(icon("exclamation-triangle"),
-          #                                    HTML('&nbsp;'),
-          #                                    "Capture Error Messages"),
-          #                                div(icon("cogs"),
-          #                                    HTML('&nbsp;'),
-          #                                    " Disable Parallel Mode")),
-          #             choiceValues = list("record_on",
-          #                                 "log_error",
-          #                                 "no_parallel"),
-          #             selected = "record_on")),
-
            )
     )
 movebank_login_box <- box(title = "Movebank Login",
@@ -214,11 +199,6 @@ location_plot_box <- tabBox(title = "Animal Locations",
             sliderInput("point_size_1", "Size of Points in Plot",
                         min = 0.05, max = 1, value = 0.1, step = 0.05,
                         width = "100%"))
-     # ,
-     #        column(5, offset = 0, br(),
-     #               checkboxInput("overlay_all",
-     #                             "Others in background",
-     #                             value = TRUE))
      ),
    plotOutput("location_plot_gg",
               dblclick = "location_plot_gg_dblclick",
@@ -361,11 +341,6 @@ all_removed_outliers_box <- box(title = "Removed Outliers",
                                       "Reset All",
                                       icon = icon("ban"),
                                       style = ctmmweb:::STYLES$page_action))
-                        # column(3, offset = 6,
-                        #        actionButton("delete_outlier_rows",
-                        #                     "Delete Selected",
-                        #                     icon = icon("trash-o"),
-                        #                     style = ctmmweb:::STYLES$page_action))
                         ),
                fluidRow(column(12,
                                DT::dataTableOutput("all_removed_outliers"))))
