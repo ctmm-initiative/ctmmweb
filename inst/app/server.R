@@ -1489,82 +1489,111 @@ output:
                 list(dom = 't', ordering = FALSE), rownames = FALSE)
   })
   # p5. variogram ----
-  callModule(click_help, "variogram", title = "Variograms",
-             size = "l", file = "help/5_a_variograms.md")
-  callModule(click_help, "vario_irregular", title = "Irregular Data",
-             size = "l", file = "help/5_b_irregular_data.md")
+  callModule(click_help, "vario_control", title = "Plot Controls",
+             size = "l", file = "help/5_a_vario_control.md")
+  callModule(click_help, "variograms", title = "Variograms",
+             size = "l", file = "help/5_b_variograms.md")
+  # callModule(click_help, "vario_irregular", title = "Irregular Data",
+  #            size = "l", file = "help/5_b_irregular_data.md")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
   # calculate vario group plot row count and canvas height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all.
-  get_vario_layout <- function(vario_list, figure_height, column) {
+  layout_vario <- function(vario_list, figure_height, column) {
     fig_count <- length(vario_list)
     row_count <- ceiling(fig_count / column)
     height <- figure_height * row_count
     return(list(row_count = row_count, height = height))
   }
-  # select_data_vario_non_model() ----
-  # variogram list and layout for current data in non-model mode. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
-  select_data_vario_non_model <- reactive({
+  # select_data_vario() ----
+  # variogram list and layout for current data in vario 1 and 2, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
+  select_data_vario <- reactive({
     tele_list <- select_data()$tele_list
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
     vario_list <- lapply(tele_list, ctmm::variogram)
     names(vario_list) <- names(tele_list)  # needed for figure title
-    vario_layout <- get_vario_layout(vario_list,
+    vario_layout <- layout_vario(vario_list,
                                      input$vario_height, input$vario_columns)
     return(list(vario_list = vario_list, vario_layout = vario_layout))
   })
   # current_vario_model_list() ----
   # if put inside vario_parameters, fine tune didn't trigger changes correctly. Putting an expression used reactive values in function parameter may not work, that's why we need a data.table object call in DT. maybe because guess_list is defined inside that reactive, new changes didn't override the initialization
-  current_vario_model_list <- reactive({
-    switch(input$vario_mode,
-           empirical = NULL,
-           guesstimate = values$selected_data_guess_list,
-           modeled = select_models()$model_list
-    )
-  })
+  # current_vario_model_list <- reactive({
+  #   switch(input$vario_mode,
+  #          empirical = NULL,
+  #          guesstimate = values$selected_data_guess_list,
+  #          modeled = select_models()$model_list
+  #   )
+  # })
   # current_vario() ----
   # switch vario_list, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches. in modeled mode, there could be different vario count so layout is different
-  current_vario <- reactive({
-    current <- list()
-    if (input$vario_mode != "modeled") {
-      current <- select_data_vario_non_model()
-    } else {
-      # model mode take from model selection
-      current$vario_list <- select_models()$vario_list
-      current$vario_layout <- select_models()$vario_layout
-    }
-    return(current)
-  })
-  # plot variograms ----
-  # modeled variogram based on model summary table selection, this only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
-  output$vario_plot_zoom <- renderPlot({
-    ctmm_color <- switch(input$vario_mode,
-                         guesstimate = "green",
-                         modeled = "purple")
+  # current_vario <- reactive({
+  #   current <- list()
+  #   if (input$vario_mode != "modeled") {
+  #     current <- select_data_vario()
+  #   } else {
+  #     # model mode take from model selection
+  #     current$vario_list <- select_models()$vario_list
+  #     current$vario_layout <- select_models()$vario_layout
+  #   }
+  #   return(current)
+  # })
+  # variogram 1:empri ----
+  # no model, model_color parameter
+  output$vario_plot_1 <- renderPlot({
     # actual fraction value from slider is not in log, need to convert
-    ctmmweb::plot_vario(current_vario()$vario_list,
-                        current_vario_model_list(),
+    ctmmweb::plot_vario(select_data_vario()$vario_list,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
-                        model_color = ctmm_color, cex = 0.72,
+                        cex = 0.72,
                         columns = input$vario_columns)
     # LOG save pic
-    log_save_vario("vario", current_vario()$vario_layout$row_count,
+    log_save_vario("vario", select_data_vario()$vario_layout$row_count,
                    input$vario_columns)
   }, height = function() { # always use current selected layout
-      current_vario()$vario_layout$height
+    select_data_vario()$vario_layout$height
     }
+  )
+  # variogram 2:guess ----
+  output$vario_plot_2 <- renderPlot({
+    # actual fraction value from slider is not in log, need to convert
+    ctmmweb::plot_vario(select_data_vario()$vario_list,
+                        values$selected_data_guess_list,
+                        fraction = 10 ^ input$zoom_lag_fraction,
+                        relative_zoom = (input$vario_option == "relative"),
+                        model_color = "green", cex = 0.72,
+                        columns = input$vario_columns)
+    # LOG save pic
+    log_save_vario("vario", select_data_vario()$vario_layout$row_count,
+                   input$vario_columns)
+  }, height = function() { # always use current selected layout
+    select_data_vario()$vario_layout$height
+  }
+  )
+  # variogram 3:modeled ----
+  # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
+  output$vario_plot_3 <- renderPlot({
+    # actual fraction value from slider is not in log, need to convert
+    ctmmweb::plot_vario(select_models()$vario_list,
+                        select_models()$model_list,
+                        fraction = 10 ^ input$zoom_lag_fraction,
+                        relative_zoom = (input$vario_option == "relative"),
+                        model_color = "purple", cex = 0.72,
+                        columns = input$vario_columns)
+    # LOG save pic
+    log_save_vario("vario", select_models()$vario_layout$row_count,
+                   input$vario_columns)
+  }, height = function() { # always use current selected layout
+    select_models()$vario_layout$height
+  }
   )
   # select individual plot to fine tune
   output$tune_selector <- renderUI({
     tele_list <- req(select_data()$tele_list)
-    # if (input$vario_mode == "guesstimate") {
-      identities <- sapply(tele_list, function(x) x@info$identity)
-      selectInput("tune_selected", NULL,
-                  c("Fine-tune" = "", identities))
-    }
+    identities <- sapply(tele_list, function(x) x@info$identity)
+    selectInput("tune_selected", NULL,
+                c("Fine-tune" = "", identities))
   })
   # fine tune fit start ----
   observeEvent(input$tune_selected, {
@@ -1591,7 +1620,7 @@ output:
   })
   # init values of sliders ----
   init_slider_values <- reactive({
-    vario_list <- req(select_data_vario_non_model()$vario_list)
+    vario_list <- req(select_data_vario()$vario_list)
     ids <- names(vario_list)
     vario <- vario_list[ids == input$tune_selected][[1]]
     CTMM <- values$selected_data_guess_list[ids == input$tune_selected][[1]]
@@ -1661,7 +1690,7 @@ output:
     # LOG fine tune apply
     log_msg("Apply Fine-tuned Parameters")
     removeModal()
-    ids <- sapply(select_data_vario_non_model()$vario_list,
+    ids <- sapply(select_data_vario()$vario_list,
                   function(vario) vario@info$identity)
     values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
       slider_to_CTMM()
@@ -1837,11 +1866,11 @@ output:
     selected_model_list <- selected_models_dt$model
     # the modeled variogram plot title come from here. For now it's model_name.
     names(selected_model_list) <- selected_names_dt$model_name
-    selected_vario_list <- select_data_vario_non_model()$vario_list[
+    selected_vario_list <- select_data_vario()$vario_list[
       selected_names_dt$identity]
     # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
-    selected_vario_layout <- get_vario_layout(selected_vario_list,
+    selected_vario_layout <- layout_vario(selected_vario_list,
                                      input$vario_height, input$vario_columns)
     # LOG selected models
     log_dt_md(selected_names_dt, "Selected Models")
