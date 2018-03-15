@@ -482,14 +482,25 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
               )
      ),
      tabPanel(div(icon("battery-full"), "3. Modeled"),
-              fluidRow(
+      fluidRow(
         column(3, offset = 0, actionButton("try_models", "Try Models",
                                      icon = icon("hourglass-start"),
                                      style = ctmmweb:::STYLES$page_action),
                br(), br()),
+        column(2, offset = 7, help_button("model_selection")),
         column(12, plotOutput("vario_plot_3",
-                              width = "99%", height = "98%"))
-              )
+                              width = "99%", height = "98%")),
+        # model selection table
+        column(12, hr()),
+        column(3, actionButton("clear_models", "Clear Selection",
+                               icon = icon("square-o"),
+                               style = ctmmweb:::STYLES$page_action)),
+        column(4, checkboxInput("hide_ci_model",
+                                "Hide Confidence Intervals")),
+        # column(2, offset = 3, help_button("model_selection")),
+        column(12, br()),
+        column(12, DT::dataTableOutput("tried_models_summary"))
+      )
      ))
 # variograms_box <- box(title = "Variograms", status = "primary",
 #     solidHeader = TRUE, width = 12,
@@ -514,19 +525,19 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
 #                          width = "99%", height = "98%")))
 # )
 # p5. model selection ----
-model_selection_box <- box(title = "Model Selection",
-                                           status = "info",
-                         solidHeader = TRUE, width = 12,
-  fluidRow(
-           column(3, actionButton("clear_models", "Clear Selection",
-                                 icon = icon("square-o"),
-                                 style = ctmmweb:::STYLES$page_action)),
-           column(4, checkboxInput("hide_ci_model",
-                                         "Hide Confidence Intervals")),
-           column(2, offset = 3, help_button("model_selection")),
-           column(12, br()),
-           column(12, DT::dataTableOutput("tried_models_summary")))
-  )
+# model_selection_box <- box(title = "Model Selection",
+#                                            status = "info",
+#                          solidHeader = TRUE, width = 12,
+#   fluidRow(
+#            column(3, actionButton("clear_models", "Clear Selection",
+#                                  icon = icon("square-o"),
+#                                  style = ctmmweb:::STYLES$page_action)),
+#            column(4, checkboxInput("hide_ci_model",
+#                                          "Hide Confidence Intervals")),
+#            column(2, offset = 3, help_button("model_selection")),
+#            column(12, br()),
+#            column(12, DT::dataTableOutput("tried_models_summary")))
+#   )
 # p6. home range ----
 range_plot_box <- box(title = "Home Range Estimation",
                                       status = "info",
@@ -781,7 +792,9 @@ body <- dashboardBody(
             fluidRow(telemetry_error_box, outlier_filter_box,
                      all_removed_outliers_box)),
     tabItem(tabName = "model",
-            fluidRow(vario_control_box, variograms_box, model_selection_box)),
+            fluidRow(vario_control_box, variograms_box
+                     # , model_selection_box
+                     )),
     tabItem(tabName = "homerange",
             fluidRow(range_plot_box, range_summary_box)),
     tabItem(tabName = "overlap",
