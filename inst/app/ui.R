@@ -441,7 +441,8 @@ vario_control_box <- box(title = "Plot Controls",
         column(2, offset = 0, numericInput("vario_columns",
                                            "Columns",
                                            value = 2, min = 1, max = 6,
-                                           step = 1))
+                                           step = 1)),
+        column(2, offset = 10, help_button("variogram"))
       )
       # )
 # ,
@@ -465,30 +466,50 @@ vario_control_box <- box(title = "Plot Controls",
     #            ))
 )
 # p5. variograms ----
-variograms_box <- box(title = "Variograms", status = "primary",
-    solidHeader = TRUE, width = 12,
-    fluidRow(
-      # column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
-      column(4, radioButtons("vario_mode", NULL,
-                             choiceNames = list(div(icon("battery-empty"),
-                                                    ("Empirical")),
-                                                div(icon("battery-half"),
-                                                    ("Guesstimate")),
-                                                div(icon("battery-full"),
-                                                    ("Modeled"))),
-                             choiceValues = c("empirical", "guesstimate",
-                                              "modeled")
-                             )),
-      column(3, offset = 0, br(), uiOutput("tune_selector")),
-      column(3, br(), actionButton("try_models", "Try Models",
-                             icon = icon("hourglass-start"),
-                             style = ctmmweb:::STYLES$page_action)),
-      # column(3, actionButton("test_digest", "test")),
-      column(2, offset = 0, br(), help_button("variogram")),
-      column(12, plotOutput("vario_plot_zoom",
-                         # less than 100%, otherwise out of boundary because we updated figure size by parameter
-                         width = "99%", height = "98%")))
-)
+variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
+     tabPanel(div(icon("battery-empty"), "1. Empirical"),
+              fluidRow(column(12, plotOutput("vario_plot_1",
+                                             width = "99%", height = "98%"))
+              )
+     ),
+     tabPanel(div(icon("battery-half"), "2. Guesstimate"),
+              fluidRow(
+                column(3, offset = 0, uiOutput("tune_selector")),
+                column(12, plotOutput("vario_plot_2",
+                                      width = "99%", height = "98%"))
+              )
+     ),
+     tabPanel(div(icon("battery-full"), "3. Modeled"),
+              fluidRow(
+        column(3, offset = 9, actionButton("try_models", "Try Models",
+                                     icon = icon("hourglass-start"),
+                                     style = ctmmweb:::STYLES$page_action)),
+        column(12, plotOutput("vario_plot_3",
+                              width = "99%", height = "98%"))
+              )
+     ))
+# variograms_box <- box(title = "Variograms", status = "primary",
+#     solidHeader = TRUE, width = 12,
+#     fluidRow(
+#       # column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
+#       column(4, radioButtons("vario_mode", NULL,
+#                              choiceNames = list(div(icon("battery-empty"),
+#                                                     ("Empirical")),
+#                                                 div(icon("battery-half"),
+#                                                     ("Guesstimate")),
+#                                                 div(icon("battery-full"),
+#                                                     ("Modeled"))),
+#                              choiceValues = c("empirical", "guesstimate",
+#                                               "modeled")
+#                              )),
+#       column(3, offset = 0, br(), uiOutput("tune_selector")),
+#       column(3, br(), actionButton("try_models", "Try Models",
+#                              icon = icon("hourglass-start"),
+#                              style = ctmmweb:::STYLES$page_action)),
+#       column(12, plotOutput("vario_plot_zoom",
+#                          # less than 100%, otherwise out of boundary because we updated figure size by parameter
+#                          width = "99%", height = "98%")))
+# )
 # p5. model selection ----
 model_selection_box <- box(title = "Model Selection",
                                            status = "info",
