@@ -1497,9 +1497,9 @@ output:
   #            size = "l", file = "help/5_b_irregular_data.md")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
-  # calculate vario group plot row count and canvas height from vario length and UI. this is needed in vario mode and model mode. model mode is also used in home range/occurrence, which could coexist with variograms. so we cannot use one layout for all.
-  layout_vario <- function(vario_list, figure_height, column) {
-    fig_count <- length(vario_list)
+  # calculate group plot row count and total canvas height from group list length and UI. this is needed in vario plot, overlap home range plot. vario mode and model mode need different value because model mode can coexist (home range/occur rely on it)
+  layout_group <- function(group_list, figure_height, column) {
+    fig_count <- length(group_list)
     row_count <- ceiling(fig_count / column)
     height <- figure_height * row_count
     return(list(row_count = row_count, height = height))
@@ -1513,7 +1513,7 @@ output:
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
     vario_list <- lapply(tele_list, ctmm::variogram)
     names(vario_list) <- names(tele_list)  # needed for figure title
-    vario_layout <- layout_vario(vario_list,
+    vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
     return(list(vario_list = vario_list, vario_layout = vario_layout))
   })
@@ -1870,7 +1870,7 @@ output:
       selected_names_dt$identity]
     # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
-    selected_vario_layout <- layout_vario(selected_vario_list,
+    selected_vario_layout <- layout_group(selected_vario_list,
                                      input$vario_height, input$vario_columns)
     # LOG selected models
     log_dt_md(selected_names_dt, "Selected Models")
@@ -2179,10 +2179,11 @@ output:
     log_save_ggplot(g, "overlap_plot_value_range")
   }, height = function() { input$overlap_plot_height }, width = "auto"
   )
-  # overlap home range ----
+  # choose_overlap_pairs() ----
+  # plot height cannot use value calculated inside plot function. the height depend on selection count, so move the selection logic into reactive
   # there could be double update when stayed in overlap home range plot, back to model page update selection, then come back. the plot was drawn, saved, update again and save again. Trace shows plot update right after home range calculated (used previous rows_current value which are previous values, still valid when table not updated yet), then update after rows_current go to empty then valid values. problem is when home range value is ready, range DT is not rendered, old range DT row values still valid, this plot don't know DT is not rendered at this time. since old row values are still valid, there is no other notification to check DT render status. make DT highest priority? see notes in 05_4_overlap.Rmd: range plot update problem
   # with freeze in overlap table removed, there is brief period that plot use new data and old rows_current. when no rows selected, sometimes caused plot to draw twice. when one big row number is selected, update data to less rows, this cause plot to access empty data, but this get updated once DT finished.
-  output$overlap_plot_hrange <- renderPlot({
+  choose_overlap_pairs <- reactive({
     # useful debug output for update problems. there is a brief period rows_current is NULL, and plot update halted. later it update to new value, but didn't update again. the print shows continus 3 print, means the access was halted untill update finish, which is what we want.
     # cat("input$overlap_summary_rows_current: ",
     #     input$overlap_summary_rows_current, "\n")
@@ -2220,18 +2221,32 @@ output:
         select_models()$display_color[display_name]
       })
     })
-    ctmmweb:::plot_hr_group_list(chosen_hranges_list, chosen_tele_list_list,
-                                 chosen_colors_list,
-                     level.UD = ctmmweb:::parse_levels.UD(
-                       input$overlap_hrange_contour_text),
-                     option = input$overlap_hrange_option,
-                     columns = input$overlap_hrange_columns)
+    overlap_hrange_layout <- layout_group(chosen_hranges_list,
+                                          input$overlap_hrange_height,
+                                          input$overlap_hrange_columns)
+    return(list(chosen_hranges_list = chosen_hranges_list,
+                chosen_tele_list_list = chosen_tele_list_list,
+                chosen_colors_list = chosen_colors_list,
+                overlap_hrange_layout = overlap_hrange_layout))
+  })
+  # overlap home range ----
+  output$overlap_plot_hrange <- renderPlot({
+    ctmmweb:::plot_hr_group_list(
+      choose_overlap_pairs()$chosen_hranges_list,
+      choose_overlap_pairs()$chosen_tele_list_list,
+      choose_overlap_pairs()$chosen_colors_list,
+      level.UD = ctmmweb:::parse_levels.UD(
+        input$overlap_hrange_contour_text),
+      option = input$overlap_hrange_option,
+      columns = input$overlap_hrange_columns)
     # LOG save plot
-    row_count <- ceiling(nrow(chosen_rows) / input$overlap_hrange_columns)
-    log_save_vario("Overlap of Home Range", row_count,
+    # row_count <- ceiling(nrow(chosen_rows) / input$overlap_hrange_columns)
+    log_save_vario("Overlap of Home Range",
+                   choose_overlap_pairs()$overlap_hrange_layout$row_count,
                    input$overlap_hrange_columns)
     log_save_UD("Overlap of Home Range")
-  }, height = function() { input$overlap_hrange_height }, width = "auto")
+  }, height = function() {choose_overlap_pairs()$overlap_hrange_layout$height},
+     width = "auto")
   # tried with plot/DT priority to make it update after DT. didn't work, maybe it's only render order, but data change already, still will render with updated data.
   # outputOptions(output, "overlap_plot_hrange", priority = 1)
   # # ovrelap locations (disabled) ----
