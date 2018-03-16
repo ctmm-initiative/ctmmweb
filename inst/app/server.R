@@ -2007,12 +2007,17 @@ output:
     showModal(modalDialog(title = "Export All Home Ranges to Zip",
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
-                    choiceNames = list("Shapefile: Esri shapefile",
-                                    "Raster .grd: Native raster package format",
-                                    "GTiff .tif: GeoTiff"
+                    choiceNames = list(
+    div("Esri shapefile", pre("polygons of the low, ML, and high home-range area estimates.")),
+    # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
+    div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
+    # "Native raster package format .grd: pixel values corresponding to the density function.",
+    div("GeoTiff .tif", pre("pixel values corresponding to the density function."))
+    # "GeoTiff .tif: pixel values corresponding to the density function."
                                     ),
                     # make sure file type name is consistent with extension. we used file type in zip file name, and extension in folder inside zip.
-                    choiceValues = list("shapefile", "grd", "tif")
+                    choiceValues = list("shapefile", "grd", "tif"),
+                    width = "100%"
                                )
                ),
         column(12, h4("See more details about file format in ",
