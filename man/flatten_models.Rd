@@ -2,12 +2,12 @@
 % Please edit documentation in R/5_model_summary.R
 \name{flatten_models}
 \alias{flatten_models}
-\title{Convert nested \code{\link[=par_fit_models]{par_fit_models()}} result into flatten list with model names}
+\title{Flatten model list}
 \usage{
 flatten_models(model_try_res)
 }
 \arguments{
-\item{model_try_res}{}
+\item{model_try_res}{result from \code{\link[=par_fit_models]{par_fit_models()}}}
 }
 \value{
 A single level list of models with names

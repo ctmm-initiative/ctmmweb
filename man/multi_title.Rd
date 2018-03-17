@@ -39,7 +39,8 @@ color vector and text vector are used.
 }}
 
 \examples{
-multiTitle(color="red", "Traffic",
+plot(1, 2)
+multi_title(color="red", "Traffic",
            color="orange", " light ",
            color="green", "signal")
 }

@@ -1,5 +1,6 @@
 title: ctmmweb
 url: https://ctmm-initiative.github.io/ctmmwebdoc/
+destination: ../ctmmwebdoc/docs
 
 template:
   params:
@@ -54,6 +55,7 @@ reference:
   - '`assign_speed`'
   - '`pick`'
   - '`JS.logify`'
+  - '`multi_title`'
   - '`zip_folder`'
   - '`get_names`'
 

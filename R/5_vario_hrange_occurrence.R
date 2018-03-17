@@ -199,7 +199,8 @@ plot_hr_group_list <- function(hr_group_list, tele_group_list, color_group_list,
 #' @export
 #'
 #' @examples
-#' multiTitle(color="red", "Traffic",
+#' plot(1, 2)
+#' multi_title(color="red", "Traffic",
 #'            color="orange", " light ",
 #'            color="green", "signal")
 multi_title <- function(...){
