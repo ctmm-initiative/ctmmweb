@@ -1808,6 +1808,9 @@ output:
     render_model_summary_DT(dt, model_types, info_p)
   })
   proxy_model_dt <- DT::dataTableProxy("tried_models_summary")
+  observeEvent(input$select_1st_models, {
+    DT::selectRows(proxy_model_dt, summary_models()$first_models)
+  })
   observeEvent(input$clear_models, {
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
     DT::selectRows(proxy_model_dt, list())
