@@ -636,13 +636,15 @@ output:
   })
   output$individuals <- DT::renderDataTable({
     req(values$data)
-    if (input$time_in_sec) {
-      info_p <- values$data$merged$info[,
-                  .(identity, start, end, interval_s, duration_s, points)]
-    } else {
-      info_p <- values$data$merged$info[,
-                  .(identity, start, end, interval, duration, points)]
-    }
+    # if (input$time_in_sec) {
+    #   info_p <- values$data$merged$info[,
+    #               .(identity, start, end, interval_s, duration_s, points)]
+    # } else {
+    #   info_p <- values$data$merged$info[,
+    #               .(identity, start, end, interval, duration, points)]
+    # }
+    info_p <- values$data$merged$info[,
+                                      .(identity, start, end, interval, duration, points)]
     DT::datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
       DT::formatStyle('identity', target = 'row',
