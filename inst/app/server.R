@@ -1744,6 +1744,7 @@ output:
         !stringr::str_detect(estimate, "CI")]
       # formated_summary_dt[, estimate := NULL]
     }
+    browser()
     # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table. the color pallete and mapping function must be based on full table, not current selected subset.
     model_names_dt <- unique(formated_summary_dt[,
                             .(identity, model_type, model_name)])

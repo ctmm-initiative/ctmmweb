@@ -94,11 +94,11 @@ format_model_summary_dt <- function(model_summary_dt) {
   dt[, dAICc := round(dAICc, 3)]
   format_f_list <- lapply(names(dt), function(col_name) {
     switch(col_name,
-           area = format_area_f(dt[[col_name]], round = TRUE),
-           `tau position` = format_seconds_f(dt[[col_name]], round = TRUE),
-           `tau velocity` = format_seconds_f(dt[[col_name]], round = TRUE),
-           speed = format_speed_f(dt[[col_name]], round = TRUE),
-           error = format_distance_f(dt[[col_name]], round = TRUE)
+           area = format_area_f(dt[[col_name]]),
+           `tau position` = format_seconds_f(dt[[col_name]]),
+           `tau velocity` = format_seconds_f(dt[[col_name]]),
+           speed = format_speed_f(dt[[col_name]]),
+           error = format_distance_f(dt[[col_name]])
     )
   })
   # not really used, but easier to debug
@@ -170,7 +170,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   dt[, `DOF bandwidth` := round(`DOF bandwidth`, 3)]
   format_f_list <- lapply(names(dt), function(col_name) {
     switch(col_name,
-           area = format_area_f(dt[[col_name]], round = TRUE)
+           area = format_area_f(dt[[col_name]])
     )
   })
   # not really used, but easier to debug
