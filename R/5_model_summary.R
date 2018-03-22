@@ -82,6 +82,19 @@ apply_format_f_list <- function(dt, format_f_list) {
   dt[, (old_cols) := NULL]
   setnames(dt, new_cols, old_cols)
 }
+# given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name
+format_dt_unit <- function(dt, name_unit_list) {
+  # the col name list have error, which may not exist in some cases
+  valid_col_names <- intersect(names(dt), names(name_unit_list))
+  lapply(valid_col_names, function(col_name) {
+    best_unit <- name_unit_list[[col_name]](dt[[col_name]])
+    # creating new cols, delete old later, easier to check result
+    # when using pick unit do the convert in dt, need to round digits, this was taken care of by digits parameter in format functions
+    dt[, paste0(col_name, "\n(", best_unit$name, ")") :=
+         round(dt[[col_name]] / best_unit$scale, 2) ]
+  })
+  dt[, (valid_col_names) := NULL]
+}
 # the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
@@ -92,23 +105,32 @@ format_model_summary_dt <- function(model_summary_dt) {
   dt[, `DOF mean` := round(`DOF mean`, 3)]
   dt[, `DOF area` := round(`DOF area`, 3)]
   dt[, dAICc := round(dAICc, 3)]
-  format_f_list <- lapply(names(dt), function(col_name) {
-    switch(col_name,
-           area = format_area_f(dt[[col_name]]),
-           `tau position` = format_seconds_f(dt[[col_name]]),
-           `tau velocity` = format_seconds_f(dt[[col_name]]),
-           speed = format_speed_f(dt[[col_name]]),
-           error = format_distance_f(dt[[col_name]])
-    )
-  })
-  # not really used, but easier to debug
-  names(format_f_list) <- names(dt)
-  res_dt <- apply_format_f_list(dt, format_f_list)
-  # NA cells should have units removed or just empty values
-  res_dt[stringr::str_detect(`tau velocity`, "^NA "),
+  # NA cells should have units removed or just empty values. apply this before the column names changed with units
+  dt[stringr::str_detect(`tau velocity`, "^NA "),
          c("tau velocity", "speed") := ""]
-  res_dt[stringr::str_detect(estimate, "CI"),
+  dt[stringr::str_detect(estimate, "CI"),
          c("DOF mean", "DOF area") := NA_real_]
+  # need a list to hold function as element, c have same effect but list is more verbose
+  name_unit_list <- list("area" = pick_unit_area,
+                         "tau position" = pick_unit_seconds,
+                         "tau velocity" = pick_unit_seconds,
+                         "speed" = pick_unit_speed,
+                         "error" = pick_unit_distance)
+  format_dt_unit(dt, name_unit_list)
+  # format_f_list <- lapply(names(dt), function(col_name) {
+  #   switch(col_name,
+  #          area = format_area_f(dt[[col_name]]),
+  #          `tau position` = format_seconds_f(dt[[col_name]]),
+  #          `tau velocity` = format_seconds_f(dt[[col_name]]),
+  #          speed = format_speed_f(dt[[col_name]]),
+  #          error = format_distance_f(dt[[col_name]])
+  #   )
+  # })
+  # # not really used, but easier to debug
+  # names(format_f_list) <- names(dt)
+  # res_dt <- apply_format_f_list(dt, format_f_list)
+
+
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table
@@ -168,16 +190,20 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   dt <- copy(hrange_summary_dt)
   dt[, `DOF area` := round(`DOF area`, 3)]
   dt[, `DOF bandwidth` := round(`DOF bandwidth`, 3)]
-  format_f_list <- lapply(names(dt), function(col_name) {
-    switch(col_name,
-           area = format_area_f(dt[[col_name]])
-    )
-  })
-  # not really used, but easier to debug
-  # names(format_f_list) <- names(dt)
-  res_dt <- apply_format_f_list(dt, format_f_list)
-  res_dt[stringr::str_detect(estimate, "CI"),
-         c("DOF area", "DOF bandwidth") := NA_real_]
+  dt[stringr::str_detect(estimate, "CI"),
+     c("DOF area", "DOF bandwidth") := NA_real_]
+  name_unit_list <- list("area" = pick_unit_area)
+  format_dt_unit(dt, name_unit_list)
+  # format_f_list <- lapply(names(dt), function(col_name) {
+  #   switch(col_name,
+  #          area = format_area_f(dt[[col_name]])
+  #   )
+  # })
+  # # not really used, but easier to debug
+  # # names(format_f_list) <- names(dt)
+  # res_dt <- apply_format_f_list(dt, format_f_list)
+  # res_dt[stringr::str_detect(estimate, "CI"),
+  #        c("DOF area", "DOF bandwidth") := NA_real_]
 }
 # Generate Formated Home Range Summary Table From Home Range List Table
 #

@@ -31,8 +31,11 @@ format_unit_f <- function(vec, dimension) {
                     digits = 2)
 }
 # we have general functions now, but it's very cumbersome to replace all old usage with new function with additional parameter (simple replace will not work), and we sometimes need a specific function as parameter color_bin_break. so just write wrappers here. this is currying but we don't want additional dependency for functional for this simple usage
+# when using pick unit do the convert in dt, need to round digits, this was taken care of by digits parameter in format functions
 pick_unit_distance <- function(vec) { pick_unit(vec, "length") }
+pick_unit_seconds  <- function(vec) { pick_unit(vec, "time") }
 pick_unit_speed    <- function(vec) { pick_unit(vec, "speed") }
+pick_unit_area     <- function(vec) { pick_unit(vec, "area") }
 format_distance_f <- function(vec) { format_unit_f(vec, "length")}
 format_seconds_f  <- function(vec) { format_unit_f(vec, "time") }
 format_speed_f    <- function(vec) { format_unit_f(vec, "speed") }
