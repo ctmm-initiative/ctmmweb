@@ -11,13 +11,14 @@ info_tele <- function(object) {
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
+  # format the duration/interval units in list to make them use same unit
   data.table(identity = object@info$identity,
              interval = sampling_interval,
              # interval = format_seconds_f(sampling_interval)(sampling_interval),
              duration = sampling_range,
              # duration = format_seconds_f(sampling_range)(sampling_range),
-             sampling_start = t_start,
-             sampling_end = t_end,
+             # sampling_start = t_start,
+             # sampling_end = t_end,
              start = format_datetime(t_start),
              end = format_datetime(t_end),
              points = nrow(object))
@@ -45,7 +46,10 @@ sort_tele_list <- function(tele_list) {
 report <- info_tele_list <- function(tele_obj_list){
   tele_list <- wrap_single_telemetry(tele_obj_list)
   info_list <- lapply(tele_list, info_tele)
-  rbindlist(info_list)
+  dt <- rbindlist(info_list)
+  name_unit_list <- list("interval" = pick_unit_seconds,
+                         "duration" = pick_unit_seconds)
+  format_dt_unit(dt, name_unit_list)
 }
 #' Calculate distance to median center for each animal location
 #'

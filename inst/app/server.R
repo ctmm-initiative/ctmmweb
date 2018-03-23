@@ -643,8 +643,7 @@ output:
     #   info_p <- values$data$merged$info[,
     #               .(identity, start, end, interval, duration, points)]
     # }
-    info_p <- values$data$merged$info[,
-                                      .(identity, start, end, interval, duration, points)]
+    info_p <- values$data$merged$info
     DT::datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
       DT::formatStyle('identity', target = 'row',
@@ -717,20 +716,22 @@ output:
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    animals_dt <- values$data$merged$data_dt[identity %in% chosen_ids]
-    subset_indice <- values$data$merged$info$identity %in% chosen_ids
-    info <- values$data$merged$info[subset_indice]
+    # %in% didn't keep order. since our table update in sort change the data and redraw anyway, let's keep the order. dt have both id, identity, info only has identity
+    # animals_dt <- values$data$merged$data_dt[identity %in% chosen_ids]
+    animals_dt <- values$data$merged$data_dt[.(chosen_ids), on = "identity"]
+    # subset_indice <- values$data$merged$info$identity %in% chosen_ids
+    info <- values$data$merged$info[.(chosen_ids), on = "identity"]
     # need to clear model fit result, change to original mode instead of modeled mode
     values$selected_data_model_try_res <- NULL
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
-    log_dt_md(info[, .(identity, start, end, interval, duration, points)],
+    log_dt_md(info,
               "Current selected individuals")
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     return(list(data_dt = animals_dt,
                 info = info,
                 chosen_row_nos = chosen_row_nos,
-                tele_list = values$data$tele_list[subset_indice]
+                tele_list = values$data$tele_list[chosen_ids]
                 ))
   })
   # 2.2 overview plot ----
@@ -2545,9 +2546,7 @@ output:
         saveRDS(values$data, file = saved_rds_path)
         # LOG save current telemetry data as csv so it can be imported easier. Only do this in generated report, not in the process to avoid too frequent saves.
         log_msg("Saving Current Telemetry Data")
-        log_dt_md(values$data$merged$info[,
-                                          .(identity, start, end,
-                                            interval, duration, points)],
+        log_dt_md(values$data$merged$info,
                   "Current Telemetry Data")
         fwrite(values$data$merged$data_dt,
                file = file.path(session_tmpdir, "combined_data_table.csv"))
