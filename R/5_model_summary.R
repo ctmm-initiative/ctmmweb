@@ -68,20 +68,20 @@ model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # res_dt[, color_target := stringr::str_c(identity, " - " , estimate)]
 }
 # apply units format functions list to columns
-apply_format_f_list <- function(dt, format_f_list) {
-  # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
-  for (i in seq_along(format_f_list)) {
-    # tried to use identity for cols don't need change, but we cannot update existing cols because col type changed
-    if (!is.null(format_f_list[[i]])) {
-      # the data table in shiny printed too many digits.
-      dt[, paste0(names(dt)[i], "_units") := format_f_list[[i]](dt[[names(dt)[i]]])]
-    }
-  }
-  new_cols <- names(dt)[stringr::str_detect(names(dt), "_units")]
-  old_cols <- stringr::str_replace_all(new_cols, "_units", "")
-  dt[, (old_cols) := NULL]
-  setnames(dt, new_cols, old_cols)
-}
+# apply_format_f_list <- function(dt, format_f_list) {
+#   # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
+#   for (i in seq_along(format_f_list)) {
+#     # tried to use identity for cols don't need change, but we cannot update existing cols because col type changed
+#     if (!is.null(format_f_list[[i]])) {
+#       # the data table in shiny printed too many digits.
+#       dt[, paste0(names(dt)[i], "_units") := format_f_list[[i]](dt[[names(dt)[i]]])]
+#     }
+#   }
+#   new_cols <- names(dt)[stringr::str_detect(names(dt), "_units")]
+#   old_cols <- stringr::str_replace_all(new_cols, "_units", "")
+#   dt[, (old_cols) := NULL]
+#   setnames(dt, new_cols, old_cols)
+# }
 # given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name
 format_dt_unit <- function(dt, name_unit_list) {
   # the col name list have error, which may not exist in some cases
@@ -248,12 +248,10 @@ overlap_matrix_to_dt <- function(mat_3d, clear_half = FALSE) {
     matrix_dt[, estimate := estimate_level]
   }
   # need the data.table of full data, for overview table. 3 versions in columns can only work by tags which is not reliable. add another column of low/ML/high and save 3 version in rows, just like the model summary table
-  overlap_matrix_dt_low <- matrix_to_dt(mat_3d[ , , 1], "CI low", clear_half)
-  overlap_matrix_dt_ML <- matrix_to_dt(mat_3d[ , , 2], "ML", clear_half)
-  overlap_matrix_dt_high <- matrix_to_dt(mat_3d[ , , 3], "CI high", clear_half)
-  overlap_matrix_dt <- rbindlist(list(overlap_matrix_dt_low,
-                                      overlap_matrix_dt_ML,
-                                      overlap_matrix_dt_high))
+  overlap_matrix_dt <- rbindlist(list(
+    matrix_to_dt(mat_3d[ , , 1], "CI low", clear_half),
+    matrix_to_dt(mat_3d[ , , 2], "ML", clear_half),
+    matrix_to_dt(mat_3d[ , , 3], "CI high", clear_half)))
   setorder(overlap_matrix_dt, "rn")
   setnames(overlap_matrix_dt, "rn", "home_range")
   # move estimate col to 2nd
