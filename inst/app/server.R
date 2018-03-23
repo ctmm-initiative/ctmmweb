@@ -716,10 +716,13 @@ output:
       chosen_row_nos <- input$individuals_rows_selected
     }
     chosen_ids <- id_vec[chosen_row_nos]
-    # %in% didn't keep order. since our table update in sort change the data and redraw anyway, let's keep the order. dt have both id, identity, info only has identity
+    # %in% didn't keep order. since our table update in sort change the data and redraw anyway, let's keep the order. the other similar usage is in removing outliers. should not have problem with new orders.
     # animals_dt <- values$data$merged$data_dt[identity %in% chosen_ids]
-    animals_dt <- values$data$merged$data_dt[.(chosen_ids), on = "identity"]
+    animals_dt <- values$data$merged$data_dt[.(chosen_ids), on = "id"]
+    # also need to change the order of levels of dt, so that ggplot will plot them in same order. all these are based on selected subset, should not modify original data
+    animals_dt$id <- factor(animals_dt$id, levels = chosen_ids)
     # subset_indice <- values$data$merged$info$identity %in% chosen_ids
+    # info only has identity, no id column
     info <- values$data$merged$info[.(chosen_ids), on = "identity"]
     # need to clear model fit result, change to original mode instead of modeled mode
     values$selected_data_model_try_res <- NULL
