@@ -931,14 +931,20 @@ output:
   format_outliers <- function(animal_selected_data, animals_dt) {
     unit_distance <- ctmmweb:::pick_unit_distance(animals_dt$distance_center)
     unit_speed <- ctmmweb:::pick_unit_speed(animals_dt$speed)
-    animal_selected_data[, .(id, row_no,
+    # get this first otherwise the colname is changed
+    dt <- animal_selected_data[, .(id, row_no,
        timestamp = ctmmweb:::format_datetime(timestamp),
-       distance_center = format(distance_center / unit_distance$scale,
-                                digits = 3),
-       distance_unit = unit_distance$name,
-       speed = format(speed / unit_speed$scale, digits = 3),
-       speed_unit = unit_speed$name
+       distance_center = distance_center,
+       # distance_center = format(distance_center / unit_distance$scale,
+       #                          digits = 3),
+       # distance_unit = unit_distance$name,
+       # speed = format(speed / unit_speed$scale, digits = 3),
+       speed = speed
+       # speed_unit = unit_speed$name
        )]
+    name_unit_list <- list("distance_center" = ctmmweb:::pick_unit_distance,
+                           "speed" = ctmmweb:::pick_unit_speed)
+    ctmmweb:::format_dt_unit(dt, name_unit_list)
   }
   # brush selection function
   select_range <- function(his_type){
@@ -949,13 +955,13 @@ output:
              distance = {
                col_name = quote(distance_center)
                format_f <- ctmmweb:::format_distance_f
-               unit_name <- " m"
+               # unit_name <- " m"
                animals_dt <- req(bin_by_distance()$animals_dt)
              },
              speed = {
                col_name = quote(speed)
                format_f <- ctmmweb:::format_speed_f
-               unit_name <- " m/s"
+               # unit_name <- " m/s"
                animals_dt <- req(bin_by_speed()$animals_dt)
              })
       brush <- input[[paste0(his_type, "_his_brush")]]
@@ -980,16 +986,20 @@ output:
       }
       # LOG selection range, selected points count
       format_f_value <- format_f(c(select_start, select_end))
-      format_raw <- function(value, unit_name) {
-        stringr::str_c(format(value, digits = 3), unit_name)
-      }
-      dt <- data.table(Unit = c("Formated", "SI"),
-        Start = c(format_f_value(select_start),
-                  format_raw(select_start, unit_name)),
-        End = c(format_f_value(select_end),
-                format_raw(select_end, unit_name)))
-      log_dt_md(dt, "Range Selected")
-      log_msg("Points in Selected Range", nrow(animal_selected_data))
+      # format_raw <- function(value, unit_name) {
+      #   stringr::str_c(format(value, digits = 3), unit_name)
+      # }
+      # dt <- data.table(Unit = c("Formated", "SI"),
+      #   Start = c(format_f_value(select_start),
+      #             format_raw(select_start, unit_name)),
+      #   End = c(format_f_value(select_end),
+      #           format_raw(select_end, unit_name)))
+      # log_dt_md(dt, "Range Selected")
+      log_msg("Range Selected", paste0(format_f_value(select_start),
+                                       " ~ ", format_f_value(select_end),
+                                       ", ", nrow(animal_selected_data),
+                                       " points"))
+      # log_msg("Points in Selected Range", nrow(animal_selected_data))
       list(select_start = select_start, select_end = select_end,
            animal_selected_data = animal_selected_data,
            animal_selected_formatted = animal_selected_formatted)
@@ -2109,7 +2119,7 @@ output:
     # home range overlap
     overlap_hrange <- ctmm::overlap(select_models_hranges(),
                                     CTMM = select_models()$model_list)
-    # data.table of overlap matrix. round 4 digits
+    # data.table of overlap matrix. round 4 digits because value is 0 ~ 1
     overlap_matrix_dt <- ctmmweb::overlap_matrix_to_dt(
       round(overlap_hrange, 4), clear_half = TRUE)
     # COPY from overlap.Rmd - plot point range --

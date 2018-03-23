@@ -4,9 +4,10 @@
 # need to round up digits otherwise DT is showing too many digits
 # hardcoded values are round to 4 digits, print 2 digits.
 # scales::unit_format is just this. we can have better control when we can round numbers first.
+# we can transfer format parameters in ..., however nsmall is for minimum, this will make 60 to 60.00. combining digits and nsmall can make 23.98798 to 23.98. it's easier just to use round instead of format to always give 2 digits after decimal place. use 2 digits now.
 unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
   function(x){
-    paste(scales::comma(round(x * scale, 4), ...), unit, sep = sep)
+    paste(scales::comma(round(x * scale, 2), ...), unit, sep = sep)
   }
 }
 # almost all format is applied to a vector so they will have same unit
@@ -27,8 +28,7 @@ pick_unit <- function(vec, dimension){
 # given a vector of values (or single value) and dimension, return a formatting function. many plot or render code need a function
 format_unit_f <- function(vec, dimension) {
   best_unit <- pick_unit(vec, dimension)
-  unit_format_round(unit = best_unit$name, scale = 1 / best_unit$scale,
-                    digits = 2)
+  unit_format_round(unit = best_unit$name, scale = 1 / best_unit$scale)
 }
 # we have general functions now, but it's very cumbersome to replace all old usage with new function with additional parameter (simple replace will not work), and we sometimes need a specific function as parameter color_bin_break. so just write wrappers here. this is currying but we don't want additional dependency for functional for this simple usage
 # when using pick unit do the convert in dt, need to round digits, this was taken care of by digits parameter in format functions
