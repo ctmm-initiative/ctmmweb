@@ -13,14 +13,14 @@ info_tele <- function(object) {
   t_end <- max(object$timestamp, na.rm = TRUE)
   # format the duration/interval units in list to make them use same unit
   data.table(identity = object@info$identity,
-             interval = sampling_interval,
              # interval = format_seconds_f(sampling_interval)(sampling_interval),
-             duration = sampling_range,
              # duration = format_seconds_f(sampling_range)(sampling_range),
              # sampling_start = t_start,
              # sampling_end = t_end,
              start = format_datetime(t_start),
              end = format_datetime(t_end),
+             interval = sampling_interval,
+             duration = sampling_range,
              points = nrow(object))
 }
 wrap_single_telemetry <- function(tele_obj){

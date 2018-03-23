@@ -88,12 +88,15 @@ format_dt_unit <- function(dt, name_unit_list) {
   valid_col_names <- intersect(names(dt), names(name_unit_list))
   lapply(valid_col_names, function(col_name) {
     best_unit <- name_unit_list[[col_name]](dt[[col_name]])
-    # creating new cols, delete old later, easier to check result
-    # when using pick unit do the convert in dt, need to round digits, this was taken care of by digits parameter in format functions
-    dt[, paste0(col_name, "\n(", best_unit$name, ")") :=
-         round(dt[[col_name]] / best_unit$scale, 2) ]
+    # creating new cols, delete old later is easier to check result. though that will cause col order changes, since new cols added in end, old cols removed. updating existing col instead
+    # when using pick unit do the convert in dt, need to round digits, this was taken care of in format functions
+    dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
+    setnames(dt, col_name, paste0(col_name, "\n(", best_unit$name, ")"))
+    # dt[, paste0(col_name, "\n(", best_unit$name, ")") :=
+    #      round(dt[[col_name]] / best_unit$scale, 2) ]
   })
-  dt[, (valid_col_names) := NULL]
+  return(dt)
+  # dt[, (valid_col_names) := NULL]
 }
 # the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
