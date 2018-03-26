@@ -91,7 +91,8 @@ format_dt_unit <- function(dt, name_unit_list) {
     # creating new cols, delete old later is easier to check result. though that will cause col order changes, since new cols added in end, old cols removed. updating existing col instead
     # when using pick unit do the convert in dt, need to round digits, this was taken care of in format functions
     dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
-    setnames(dt, col_name, paste0(col_name, "\n(", best_unit$name, ")"))
+    # \n will cause the table in work report render messed up in html. sometimes DT render colunmn name with \n as same line anyway.
+    setnames(dt, col_name, paste0(col_name, " (", best_unit$name, ")"))
     # dt[, paste0(col_name, "\n(", best_unit$name, ")") :=
     #      round(dt[[col_name]] / best_unit$scale, 2) ]
   })
