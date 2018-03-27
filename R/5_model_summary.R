@@ -110,10 +110,12 @@ format_model_summary_dt <- function(model_summary_dt) {
   dt[, `DOF area` := round(`DOF area`, 3)]
   dt[, dAICc := round(dAICc, 3)]
   # NA cells should have units removed or just empty values. apply this before the column names changed with units
-  dt[stringr::str_detect(`tau velocity`, "^NA "),
-         c("tau velocity", "speed") := ""]
+  # these columns are numeric now, will have real NA instead of text of NA. not needed
+  # dt[stringr::str_detect(`tau velocity`, "^NA "),
+  #        c("tau velocity", "speed") := NA_real_]
+  # remove the duplicated values in CI rows to reduce cluter
   dt[stringr::str_detect(estimate, "CI"),
-         c("DOF mean", "DOF area") := NA_real_]
+         c("dAICc", "DOF mean", "DOF area") := NA_real_]
   # need a list to hold function as element, c have same effect but list is more verbose
   name_unit_list <- list("area" = pick_unit_area,
                          "tau position" = pick_unit_seconds,
