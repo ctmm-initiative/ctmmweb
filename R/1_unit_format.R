@@ -5,6 +5,7 @@
 # hardcoded values are round to 4 digits, print 2 digits.
 # scales::unit_format is just this. we can have better control when we can round numbers first.
 # we can transfer format parameters in ..., however nsmall is for minimum, this will make 60 to 60.00. combining digits and nsmall can make 23.98798 to 23.98. it's easier just to use round instead of format to always give 2 digits after decimal place. use 2 digits now.
+# this create a text string, mainly used in ggplot code. table format use pick_unit instead, and rounding happened in format_dt
 unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
   function(x){
     paste(scales::comma(round(x * scale, 2), ...), unit, sep = sep)
