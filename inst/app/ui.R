@@ -60,7 +60,6 @@ sidebar <- dashboardSidebar(
                                      "Save Data",
                                      style =
   "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
-
       )
     )
   )
@@ -78,15 +77,15 @@ app_options_box <- box(title = "App Options",
                                  HTML('&nbsp;'),
                                  "Record Actions")
                              , value = TRUE)),
-    column(4, checkboxInput("parallel",
+    column(3, offset = 1, checkboxInput("parallel",
                             div(icon("cogs"),
                                 HTML('&nbsp;'),
                                 "Parallel Mode"),
                             value = TRUE)),
-    column(4, checkboxInput("capture_error",
+    column(3, offset = 1, checkboxInput("capture_error",
                             div(icon("exclamation-triangle"),
                                 HTML('&nbsp;'),
-                                "Capture Error Messages"))),
+                                "Capture Errors"))),
     # column(4, checkboxGroupInput("error_log_parallel", label = NULL,
     #                              choiceNames = list(
     #                                div(icon("exclamation-triangle"),
@@ -99,12 +98,12 @@ app_options_box <- box(title = "App Options",
     #                                                  "parallel"),
     #                              selected = "parallel")),
     column(3, uiOutput("view_report")),
-    column(3, offset = 5, actionButton("show_error", "Error Messages",
+    column(3, offset = 6, actionButton("show_error", "Error Messages",
                            icon = icon("exclamation-triangle"),
                            style = ctmmweb:::STYLES$page_action)),
     column(12, br()),
     column(3, offset = 0, help_button("report")),
-    column(3, offset = 5, help_button("app_options"))
+    column(3, offset = 6, help_button("app_options"))
 
     # if (DEBUG_BUTTON) {
     #   # debug mode, to inject browser in running. not sure if it will
@@ -770,7 +769,7 @@ map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
   tabPanel("Heatmap",
            fluidRow(column(12, uiOutput("heat_map_holder"))))
 )
-# p10. work report ----
+# p10. work report ---
 # report_box <- box(title = "Report", status = "info",
 #                           solidHeader = TRUE, width = 12,
 #   fluidRow(
