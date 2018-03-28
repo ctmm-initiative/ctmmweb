@@ -1,5 +1,5 @@
-# increase the uploading file size limit to 200M
-options(shiny.maxRequestSize = 200*1024^2)
+# increase the uploading file size limit to 2000M, now our upload is not just about movebank file, it also include the saved data.
+options(shiny.maxRequestSize = 2000*1024^2)
 # options(shiny.trace = TRUE)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages
@@ -1945,15 +1945,14 @@ output:
     render_model_summary_DT(dt, model_types, info_p)
   })
   # home range levels ----
-  # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update.
-  # get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_level_text)})
+  # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update. don't really need a function but it was referenced 3 times so this is easier to use. compare to occur which only was used once so no need for function
+  get_hr_levels <- reactive({ ctmmweb:::parse_levels.UD(input$hr_contour_text) })
   # home range plot ----
   output$range_plot <- renderPlot({
     # browser()
     # selected_tele_list <- select_models()$tele_list
     ctmmweb::plot_ud(select_models_hranges(),
-                     level_vec = ctmmweb:::parse_levels.UD(
-                       input$hr_contour_text),
+                     level_vec = get_hr_levels(),
                      color_vec = select_models()$display_color,
                      option = input$hrange_option,
                      columns = input$vario_columns, cex = 0.72,
