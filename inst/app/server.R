@@ -2545,7 +2545,6 @@ output:
         saved_rds_path <- file.path(session_tmpdir, "data.rds")
         saveRDS(values$data, file = saved_rds_path)
         # LOG save current telemetry data as csv so it can be imported easier. Only do this in generated report, not in the process to avoid too frequent saves.
-        log_msg("Saving Current Telemetry Data")
         log_dt_md(values$data$merged$info,
                   "Current Telemetry Data")
         fwrite(values$data$merged$data_dt,
@@ -2556,10 +2555,12 @@ output:
         # file.copy(values$html_path, file.path(session_tmpdir, "report.html"),
         #           overwrite = TRUE)
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
+        # the whole LOG folder with plot png/pdf in separate files. zip folder put zip to one level up the target folder, which is session_tmpdir. because the generated report was moved (not copied) to upper level, only other files are put in this zip.
+        ctmmweb::zip_folder(LOG_folder, "plot.zip")
         # pack to saved.zip, this is a temp name anyway.
         saved_zip_path <- ctmmweb:::zip_relative_files(
           session_tmpdir, c("cache.zip", "data.rds", "report.html",
-                            "combined_data_table.csv"),
+                            "combined_data_table.csv", "plot.zip"),
           "saved.zip")
         file.copy(saved_zip_path, file)
       }
@@ -2630,16 +2631,16 @@ output:
       file.copy(values$html_path, file)
     }
   )
-  output$download_report_zip <- downloadHandler(
-    filename = function() {
-      paste0("Report_", ctmmweb:::current_timestamp(), ".zip")
-    },
-    content = function(file) {
-      # LOG download report zip
-      log_msg("Downloading work report zip")
-      generate_report(preview = FALSE)
-      zip_path <- ctmmweb::zip_folder(LOG_folder, "report.zip")
-      file.copy(zip_path, file)
-    }
-  )
+  # output$download_report_zip <- downloadHandler(
+  #   filename = function() {
+  #     paste0("Report_", ctmmweb:::current_timestamp(), ".zip")
+  #   },
+  #   content = function(file) {
+  #     # LOG download report zip
+  #     log_msg("Downloading work report zip")
+  #     generate_report(preview = FALSE)
+  #     zip_path <- ctmmweb::zip_folder(LOG_folder, "report.zip")
+  #     file.copy(zip_path, file)
+  #   }
+  # )
 }

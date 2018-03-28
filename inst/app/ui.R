@@ -33,7 +33,6 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
-    # menuItem("Introduction", tabName = "intro", icon = icon("info")),
     menuItem("Import Data", tabName = "import",
                              icon = icon("upload"), selected = TRUE),
     menuItem("Visualization", tabName = "plots",
@@ -50,14 +49,24 @@ sidebar <- dashboardSidebar(
                              icon = icon("clone")),
     menuItem("Occurrence", tabName = "occurrence",
                              icon = icon("map-marker")),
-    menuItem("Map", tabName = "map", icon = icon("globe")),
-    menuItem("Work Report", tabName = "report",
-                             icon = icon("file-text-o"))
+    menuItem("Map", tabName = "map", icon = icon("globe"))
+    ,
+    # menuItem("Work Report", tabName = "report",
+    #                          icon = icon("file-text-o")),
+    br(), br(),
+    fluidRow(
+      column(6, offset = 0,
+                      downloadButton("save_data",
+                                     "Save Data",
+                                     style =
+  "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
+
+      )
+    )
   )
   # ,
   # uiOutput("outlier_msg", inline = TRUE)
   # h4(" message about outlier")
-
 )
 # p1. import ----
 app_options_box <- box(title = "App Options",
@@ -69,23 +78,39 @@ app_options_box <- box(title = "App Options",
                                  HTML('&nbsp;'),
                                  "Record Actions")
                              , value = TRUE)),
-    column(4, checkboxInput("capture_error",
-                             div(icon("exclamation-triangle"),
-                                 HTML('&nbsp;'),
-                                 "Capture Error Messages"))),
     column(4, checkboxInput("parallel",
-                             div(icon("cogs"),
-                                 HTML('&nbsp;'),
-                                 "Parallel Mode"),
+                            div(icon("cogs"),
+                                HTML('&nbsp;'),
+                                "Parallel Mode"),
                             value = TRUE)),
-    column(3, actionButton("show_error", "Error Messages",
+    column(4, checkboxInput("capture_error",
+                            div(icon("exclamation-triangle"),
+                                HTML('&nbsp;'),
+                                "Capture Error Messages"))),
+    # column(4, checkboxGroupInput("error_log_parallel", label = NULL,
+    #                              choiceNames = list(
+    #                                div(icon("exclamation-triangle"),
+    #                                    HTML('&nbsp;'),
+    #                                    "Capture Error Messages"),
+    #                                div(icon("cogs"),
+    #                                    HTML('&nbsp;'),
+    #                                    "Parallel Mode")),
+    #                              choiceValues = list("capture_error",
+    #                                                  "parallel"),
+    #                              selected = "parallel")),
+    column(3, uiOutput("view_report")),
+    column(3, offset = 5, actionButton("show_error", "Error Messages",
                            icon = icon("exclamation-triangle"),
                            style = ctmmweb:::STYLES$page_action)),
-    if (DEBUG_BUTTON) {
-      # debug mode, to inject browser in running. not sure if it will
-      column(3, actionButton("inject_debug", "Debug", icon = icon("bug")))
-    },
-    column(3, offset = if (DEBUG_BUTTON) 3 else 6, help_button("app_options"))
+    column(12, br()),
+    column(3, offset = 0, help_button("report")),
+    column(3, offset = 5, help_button("app_options"))
+
+    # if (DEBUG_BUTTON) {
+    #   # debug mode, to inject browser in running. not sure if it will
+    #   column(3, actionButton("inject_debug", "Debug", icon = icon("bug")))
+    # },
+    # column(3, offset = if (DEBUG_BUTTON) 0 else 3, help_button("app_options"))
                                       ))
 upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
@@ -746,25 +771,25 @@ map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
            fluidRow(column(12, uiOutput("heat_map_holder"))))
 )
 # p10. work report ----
-report_box <- box(title = "Report", status = "info",
-                          solidHeader = TRUE, width = 12,
-  fluidRow(
-    column(3,
-           downloadButton("save_data",
-                          "Save Data",
-                          style = ctmmweb:::STYLES$download_button),
-           br(), br(),
-           uiOutput("view_report")
-           ),
-    # column(4, offset = 1, checkboxInput("save_tele",
-    #                                     "Save Telemetry Data")),
-    column(4, offset = 5,
-           downloadButton("download_report_zip",
-                          "Download Report as zip",
-                          style = ctmmweb:::STYLES$download_button),
-           br(), br(),
-           help_button("report"))
-  ))
+# report_box <- box(title = "Report", status = "info",
+#                           solidHeader = TRUE, width = 12,
+#   fluidRow(
+#     # column(3,
+#     #        # downloadButton("save_data",
+#     #        #                "Save Data",
+#     #        #                style = ctmmweb:::STYLES$download_button),
+#     #        br(), br(),
+#     #        # uiOutput("view_report")
+#     #        ),
+#     # column(4, offset = 1, checkboxInput("save_tele",
+#     #                                     "Save Telemetry Data")),
+#     column(4, offset = 5,
+#            downloadButton("download_report_zip",
+#                           "Download Report as zip",
+#                           style = ctmmweb:::STYLES$download_button),
+#            br(), br(),
+#            help_button("report"))
+#   ))
 # show debug information in app, because hosted app log often mess up
 # debug_box <- box(title = "Debug", status = "primary",
 #                                  solidHeader = TRUE, width = 12,
@@ -772,7 +797,7 @@ report_box <- box(title = "Report", status = "info",
 #      column(12, verbatimTextOutput("session_info")),
 #      column(12, verbatimTextOutput("occurrence_info"))
 #    ))
-error_log_box <- uiOutput("error_log_box")
+# error_log_box <- uiOutput("error_log_box")
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
@@ -809,9 +834,10 @@ body <- dashboardBody(
     tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
     tabItem(tabName = "map",
-            fluidRow(map_control_box, map_box)),
-    tabItem(tabName = "report",
-                            fluidRow(report_box))
+            fluidRow(map_control_box, map_box))
+    # ,
+    # tabItem(tabName = "report",
+    #                         fluidRow(report_box))
   )
 )
 # assemble UI
