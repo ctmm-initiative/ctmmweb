@@ -5,8 +5,8 @@
 - If app is running locally, `Preview Report` will compile current recordings into a html report, and open it in a new browser window.
 - If app is running in hosted server, report cannot be opened automatically because of security limits. It has to be downloaded with `Download Report` then you can open it.
 
-### Save Data
-- `Save Data` button in side bar will save these data as a zip:
+### Save Progress
+- `Save Progress` button in side bar will save these data as a zip:
   - `combined_data_table.csv`: the current combined telemetry `data.table`. It can be imported into app later as csv.
   - `data.rds`: a list that can be imported into R later with `readRDS`
     - `input_tele_list`: the original input telemetry object list

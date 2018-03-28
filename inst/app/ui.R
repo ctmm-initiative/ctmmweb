@@ -57,7 +57,7 @@ sidebar <- dashboardSidebar(
     fluidRow(
       column(6, offset = 0,
                       downloadButton("save_data",
-                                     "Save Data",
+                                     "Save Progress",
                                      style =
   "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
       )
@@ -117,18 +117,15 @@ upload_box <- box(title = "Local Data Import",
   fluidRow(column(8, radioButtons('load_option', NULL,
                                   c("Use Bufflo Data in ctmm" = 'ctmm',
                                     "Use Sample of Buffalo Data" = 'ctmm_sample',
-                                    "Upload Movebank Format File" = 'upload'),
+                                    "Upload" = 'upload'),
                                   selected = "upload")
-      #             ,
-      # tags$style("input[type='radio']+span{font-weight: 600;font-size: small;}")
                   ),
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
-          column(12, fileInput('tele_file', label = NULL)),
-          column(12, fileInput("load_data", label = "Load Saved Data"
-                               # ,
-                               # placeholder = "Session zip"
-                           # buttonLabel = "Load Session ..."
+          column(12, fileInput('tele_file', label = "Movebank Format File",
+                               placeholder = "csv or zip")),
+          column(12, fileInput("load_data", label = "Restore Progress",
+                               placeholder = "Previously saved zip"
                            )),
           column(5, offset = 7, help_button("import"))
            )
@@ -445,7 +442,7 @@ selected_ranges_box <- box(title = "Time Range List",
 # p5. vario control ----
 # vario_control_box <- tabBox(title = "Plot Controls",
 #                              id = "vario_control_tabs", width = 12,
-#    # p5.c.a layout ----
+#    # p5.1 layout ----
 #    tabPanel("Control",
 vario_control_box <- box(title = "Plot Controls",
                            status = "info", solidHeader = TRUE, width = 12,
@@ -474,7 +471,7 @@ vario_control_box <- box(title = "Plot Controls",
       )
       # )
 # ,
-    # # p5.c.b irregular ----
+    # # p5.2 irregular ----
     # tabPanel("Irregular Data",
     #          fluidRow(
     #            column(3, actionButton("para_dt", "Set dt",
@@ -493,7 +490,7 @@ vario_control_box <- box(title = "Plot Controls",
     #            column(2, offset = 7, help_button("vario_irregular"))
     #            ))
 )
-# p5. variograms ----
+# p5.3 variograms ----
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-empty"), "1. Empirical"),
               fluidRow(
@@ -533,42 +530,6 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
         column(12, DT::dataTableOutput("tried_models_summary"))
       )
      ))
-# variograms_box <- box(title = "Variograms", status = "primary",
-#     solidHeader = TRUE, width = 12,
-#     fluidRow(
-#       # column(4, offset = 0, checkboxInput("guesstimate", "Guesstimate model")),
-#       column(4, radioButtons("vario_mode", NULL,
-#                              choiceNames = list(div(icon("battery-empty"),
-#                                                     ("Empirical")),
-#                                                 div(icon("battery-half"),
-#                                                     ("Guesstimate")),
-#                                                 div(icon("battery-full"),
-#                                                     ("Modeled"))),
-#                              choiceValues = c("empirical", "guesstimate",
-#                                               "modeled")
-#                              )),
-#       column(3, offset = 0, br(), uiOutput("tune_selector")),
-#       column(3, br(), actionButton("try_models", "Try Models",
-#                              icon = icon("hourglass-start"),
-#                              style = ctmmweb:::STYLES$page_action)),
-#       column(12, plotOutput("vario_plot_zoom",
-#                          # less than 100%, otherwise out of boundary because we updated figure size by parameter
-#                          width = "99%", height = "98%")))
-# )
-# p5. model selection ----
-# model_selection_box <- box(title = "Model Selection",
-#                                            status = "info",
-#                          solidHeader = TRUE, width = 12,
-#   fluidRow(
-#            column(3, actionButton("clear_models", "Clear Selection",
-#                                  icon = icon("square-o"),
-#                                  style = ctmmweb:::STYLES$page_action)),
-#            column(4, checkboxInput("hide_ci_model",
-#                                          "Hide Confidence Intervals")),
-#            column(2, offset = 3, help_button("model_selection")),
-#            column(12, br()),
-#            column(12, DT::dataTableOutput("tried_models_summary")))
-#   )
 # p6. home range ----
 range_plot_box <- box(title = "Home Range Estimation",
                                       status = "info",
