@@ -4,7 +4,7 @@
 \alias{overlap_matrix_to_dt}
 \title{Convert overlap result matrix to data.table}
 \usage{
-overlap_matrix_to_dt(mat_3d, clear_half = FALSE)
+overlap_matrix_to_dt(mat_3d, clear_half = TRUE)
 }
 \arguments{
 \item{mat_3d}{the 3d matrix result from \code{\link[ctmm:overlap]{ctmm::overlap()}}}

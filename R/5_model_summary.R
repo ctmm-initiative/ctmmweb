@@ -82,6 +82,24 @@ model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
 #   dt[, (old_cols) := NULL]
 #   setnames(dt, new_cols, old_cols)
 # }
+# given 3 values of CI, round them properly, keep 2 significant digit on difference
+round_CIs <- function(vec, digits = 2) {
+  # if NA in input, need remove. if all NA, there will be warnings.
+  # remove negative sign
+  minimal_diff <- min(abs(diff(vec)), na.rm = TRUE)
+  if (minimal_diff > 1) {
+    # don't need to worry digits.
+    round(vec, 2)
+  } else {
+    formated_diff <- format(minimal_diff, digits = 1, scientific = FALSE)
+    # if exactly 0, will not match 0.xx pattern
+    if (formated_diff == "0") return(vec)
+    # get 0.000, -2 to get the count of 0 after decimal point
+    zeros <- nchar(stringr::str_extract(formated_diff, "0\\.0*")) - 2
+    # need 2 more digits after zeros
+    round(vec, zeros + digits)
+  }
+}
 # given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name
 format_dt_unit <- function(dt, name_unit_list) {
   # the col name list have error, which may not exist in some cases
@@ -90,7 +108,15 @@ format_dt_unit <- function(dt, name_unit_list) {
     best_unit <- name_unit_list[[col_name]](dt[[col_name]])
     # creating new cols, delete old later is easier to check result. though that will cause col order changes, since new cols added in end, old cols removed. updating existing col instead
     # when using pick unit do the convert in dt, need to round digits, this was taken care of in format functions
-    dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
+    # dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
+    # cannot use col_name variable in round_CI call, so use a temp col instead
+    dt[, temp := dt[[col_name]] / best_unit$scale]
+    # could be warnings for NA input
+    suppressWarnings(
+      # note the individual rows rounded at individual points, but data frame print in R used highest precision. checking subset of dt showing proper digits. DT in app is showing them properly
+      dt[, (col_name) := round_CIs(temp), by = model_no]
+    )
+    dt[, temp := NULL]
     # \n will cause the table in work report render messed up in html. sometimes DT render colunmn name with \n as same line anyway.
     setnames(dt, col_name, paste0(col_name, " (", best_unit$name, ")"))
     # dt[, paste0(col_name, "\n(", best_unit$name, ")") :=
@@ -243,8 +269,8 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
 #'
 #' @return a `data.table` of overlap results
 #' @export
-overlap_matrix_to_dt <- function(mat_3d, clear_half = FALSE) {
-  matrix_to_dt <- function(mat, estimate_level, clear_half = FALSE) {
+overlap_matrix_to_dt <- function(mat_3d, clear_half = TRUE) {
+  matrix_to_dt <- function(mat, estimate_level, clear_half = TRUE) {
     if (clear_half) {
       # clear lower triangular part
       mat[lower.tri(mat, diag = TRUE)] <- NA
@@ -263,4 +289,34 @@ overlap_matrix_to_dt <- function(mat_3d, clear_half = FALSE) {
   # move estimate col to 2nd
   col_count <- ncol(overlap_matrix_dt)
   setcolorder(overlap_matrix_dt, c(1, col_count, 2:(col_count - 1)))
+}
+# convert 2d matrix table to 1d row table
+
+#' Convert overlap result 2d table to combination rows
+#'
+#' @param overlap_matrix_dt 2d data.table from [overlap_matrix_to_dt] applied on
+#'   overlap matrix
+#'
+#' @return a data.table with overlap pair combinations in rows
+#' @export
+overlap_2d_to_1d <- function(overlap_matrix_dt) {
+  # COPY from overlap.Rmd - plot point range --
+  # rows format instead of 2d table. need to avoid factor so we can compare string
+  overlap_rows_dt <- melt(overlap_matrix_dt,
+                          id.vars = c("home_range", "estimate"),
+                          variable.factor = FALSE, na.rm = TRUE)
+  # < removes both duplicate combination and same animal combination, also make sure the combination is sorted.
+  overlap_rows_dt_unique <- overlap_rows_dt[home_range < variable,
+                                            .(v1 = home_range, v2 = variable,
+                                              estimate, overlap = value)]
+  # ggplot need the low/ML/high value in columns, now it's not totaly tidy
+  overlap_dt <- dcast(overlap_rows_dt_unique, ... ~ estimate,
+                      value.var = "overlap")
+  setcolorder(overlap_dt, c("v1", "v2", "CI low", "ML", "CI high"))
+  overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
+  # COPY end --
+  # the right side need to be a list to be assigned to multiple columns. need as.list to convert a vector into separate list items.
+  overlap_dt[, c("CI low", "ML", "CI high") :=
+               as.list(round_CIs(c(`CI low`, ML, `CI high`))),
+             by = 1:nrow(overlap_dt)]
 }

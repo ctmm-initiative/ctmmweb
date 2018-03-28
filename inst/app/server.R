@@ -2120,29 +2120,17 @@ output:
     overlap_hrange <- ctmm::overlap(select_models_hranges(),
                                     CTMM = select_models()$model_list)
     # data.table of overlap matrix. round 4 digits because value is 0 ~ 1
-    overlap_matrix_dt <- ctmmweb::overlap_matrix_to_dt(
-      round(overlap_hrange, 4), clear_half = TRUE)
-    # COPY from overlap.Rmd - plot point range --
-    # rows format instead of 2d table. need to avoid factor so we can compare string
-    overlap_rows_dt <- melt(overlap_matrix_dt,
-                            id.vars = c("home_range", "estimate"),
-                            variable.factor = FALSE, na.rm = TRUE)
-    # < removes both duplicate combination and same animal combination, also make sure the combination is sorted.
-    overlap_rows_dt_unique <- overlap_rows_dt[home_range < variable,
-                                              .(v1 = home_range, v2 = variable,
-                                                estimate, overlap = value)]
-    # ggplot need the low/ML/high value in columns, now it's not totaly tidy
-    overlap_dt <- dcast(overlap_rows_dt_unique, ... ~ estimate,
-                        value.var = "overlap")
-    setcolorder(overlap_dt, c("v1", "v2", "CI low", "ML", "CI high"))
-    overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
-    # COPY end --
-    return(list(matrix_dt = overlap_matrix_dt,
-                dt = overlap_dt))
+    overlap_hrange %>%
+      ctmmweb::overlap_matrix_to_dt() %>%
+      ctmmweb:::overlap_2d_to_1d()
+    # overlap_matrix_dt <- ctmmweb::overlap_matrix_to_dt(
+    #   overlap_hrange, clear_half = TRUE)
+    # overlap_dt <- ctmmweb:::overlap_2d_to_1d(overlap_matrix_dt)
+    # return(overlap_dt)
   })
   # overlap table ----
   output$overlap_summary <- DT::renderDataTable({
-    dt <- copy(select_models_overlap()$dt)
+    dt <- copy(select_models_overlap())
     # to color the v1 v2 columns, need a function that map from v1 v2 values (could be identity or full model name) to color, when using DT utility function this means a levels (all possible names) vector and color vector in same order.
     display_color <- select_models()$display_color
     # don't need the combination column. we can hide columns in DT but it's quite complex with 1 index trap
@@ -2177,7 +2165,7 @@ output:
   # outputOptions(output, "overlap_summary", priority = 99)
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
-    overlap_dt <- select_models_overlap()$dt
+    overlap_dt <- select_models_overlap()
     # need to wait until table is finished
     current_order <- overlap_dt[rev(req(input$overlap_summary_rows_all)),
                                 Combination]
@@ -2222,14 +2210,14 @@ output:
     # go through rows_current to match order and filter in both case, since order and filter can apply both when rows are selected or not
     # when nothing selected. don't use length == 0 because this is more specific
     if (is.null(input$overlap_summary_rows_selected)) {
-      chosen_rows <- select_models_overlap()$dt[
+      chosen_rows <- select_models_overlap()[
         req(input$overlap_summary_rows_current)][ML != 0, .(v1, v2)]
     } else {
       # req both value to prevent the status when table is not ready
       selected_rows_in_current_order <-
         intersect(req(input$overlap_summary_rows_current),
                   req(input$overlap_summary_rows_selected))
-      chosen_rows <- select_models_overlap()$dt[
+      chosen_rows <- select_models_overlap()[
         selected_rows_in_current_order, .(v1, v2)]
     }
     chosen_hranges_list <- lapply(1:nrow(chosen_rows), function(i) {
