@@ -117,12 +117,12 @@ upload_box <- box(title = "Local Data Import",
   fluidRow(column(8, radioButtons('load_option', NULL,
                                   c("Use Bufflo Data in ctmm" = 'ctmm',
                                     "Use Sample of Buffalo Data" = 'ctmm_sample',
-                                    "Upload" = 'upload'),
+                                    "Upload File" = 'upload'),
                                   selected = "upload")
                   ),
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
-          column(12, fileInput('tele_file', label = "Movebank Format File",
+          column(12, fileInput('tele_file', label = "Movebank Format",
                                placeholder = "csv or zip")),
           column(12, fileInput("load_data", label = "Restore Progress",
                                placeholder = "Previously saved zip"
@@ -506,7 +506,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                       width = "99%", height = "98%"))
               )
      ),
-     tabPanel(div(icon("battery-full"), "3. Modeled"),
+     tabPanel(div(icon("battery-full"), "3. Modeled"), value = "modeled",
       fluidRow(
         column(3, offset = 0, actionButton("try_models", "Try Models",
                                      icon = icon("hourglass-start"),
