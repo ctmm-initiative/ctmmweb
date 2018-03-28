@@ -100,8 +100,8 @@ round_CIs <- function(vec, digits = 2) {
     round(vec, zeros + digits)
   }
 }
-# given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name
-format_dt_unit <- function(dt, name_unit_list) {
+# given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name. For model summary table, CI rows need to be round properly by each model. There are other tables that don't have CI rows and no model_no column. we have two usage for regular tables: data summary, outlier summary, and two usage of model tables here, make the other usage default as they are spreaded.
+format_dt_unit <- function(dt, name_unit_list, round_by_model = FALSE) {
   # the col name list have error, which may not exist in some cases
   valid_col_names <- intersect(names(dt), names(name_unit_list))
   lapply(valid_col_names, function(col_name) {
@@ -111,11 +111,15 @@ format_dt_unit <- function(dt, name_unit_list) {
     # dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
     # cannot use col_name variable in round_CI call, so use a temp col instead
     dt[, temp := dt[[col_name]] / best_unit$scale]
-    # could be warnings for NA input
-    suppressWarnings(
-      # note the individual rows rounded at individual points, but data frame print in R used highest precision. checking subset of dt showing proper digits. DT in app is showing them properly
-      dt[, (col_name) := round_CIs(temp), by = model_no]
-    )
+    if (round_by_model) {
+      # could be warnings for NA input
+      suppressWarnings(
+        # note the individual rows rounded at individual points, but data frame print in R used highest precision. checking subset of dt showing proper digits. DT in app is showing them properly
+        dt[, (col_name) := round_CIs(temp), by = model_no]
+      )
+    } else {
+      dt[, (col_name) := round(temp, 2)]
+    }
     dt[, temp := NULL]
     # \n will cause the table in work report render messed up in html. sometimes DT render colunmn name with \n as same line anyway.
     setnames(dt, col_name, paste0(col_name, " (", best_unit$name, ")"))
@@ -148,7 +152,7 @@ format_model_summary_dt <- function(model_summary_dt) {
                          "tau velocity" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
-  format_dt_unit(dt, name_unit_list)
+  format_dt_unit(dt, name_unit_list, round_by_model = TRUE)
   # format_f_list <- lapply(names(dt), function(col_name) {
   #   switch(col_name,
   #          area = format_area_f(dt[[col_name]]),
@@ -225,7 +229,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   dt[stringr::str_detect(estimate, "CI"),
      c("DOF area", "DOF bandwidth") := NA_real_]
   name_unit_list <- list("area" = pick_unit_area)
-  format_dt_unit(dt, name_unit_list)
+  format_dt_unit(dt, name_unit_list, round_by_model = TRUE)
   # format_f_list <- lapply(names(dt), function(col_name) {
   #   switch(col_name,
   #          area = format_area_f(dt[[col_name]])
