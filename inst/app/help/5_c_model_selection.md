@@ -1,5 +1,5 @@
 ### Try Models
-- Clicking `Try Models` will start to test possible models for every individual in current subset. It could be time taking so it need to be manually activated.
+- Clicking `Try Models` will start to [test possible models](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way) for every individual in current subset. It could be time taking so it need to be manually activated.
     + Depend on platform (Windows/Mac/Linux), different parallel processes are used. There will be a time report in console when running app in local mode. 
     + If the app was terminated by force, there could be forked R sessions remained active. It's better to clean up all R sessions in your system's task manager after force quitting the app.
     + `data.table` is known to have conflict with `mclapply` in Mac R 3.4 with openMP. The error is 
@@ -10,6 +10,7 @@ somewhat random, restart R session can often make it dissappear.
 - You can use the search box to filter the table. For example, `ML` will show the ML rows only, `OUF` will show OUF models only.
 - The first model for each individual is pre-selected. Selected models are applied to Variograms in modeled mode, `Home Range` and `Occurrence`. Just select models and switch to `Home Range` or `Occurrence` page will calculate by selected models. The figure height and column control also apply to them all.
 - If you selected the checkbox of `Hide Confidence Intervals`, the table will update and no rows are selected, thus the variograms above are empty. You can use the button `Select Best Models` to select first model for each animal.
+- [Related vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way), [function `ctmm.select`](https://ctmm-initiative.github.io/ctmm/reference/ctmm.fit.html)
 - Reference table of models
 
   |Movement Models            |Position Autocorrelation  |Velocity Autocorrelation |Home Range |Parameterization |
