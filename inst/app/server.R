@@ -1947,6 +1947,9 @@ output:
     names(res) <- select_models()$names_dt$display_name
     return(res)
   })
+  # home range levels ----
+  # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update. don't really need a function but it was referenced 3 times so this is easier to use. compare to occur which only was used once so no need for function
+  get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range summary ----
   output$range_summary <- DT::renderDataTable({
     # hrange_summary_dt <- model_list_dt_to_model_summary_dt(
@@ -1955,7 +1958,8 @@ output:
     # dt <- format_hrange_summary_dt(hrange_summary_dt)
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$names_dt,
                                            select_models_hranges())
-    dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
+    dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
+                                                                get_hr_levels())
     # remove extra columns to save space
     dt[, model_no := NULL]
     dt[, model_name := NULL]
@@ -1971,9 +1975,7 @@ output:
       summary_models()$summary_dt$model_type))
     render_model_summary_DT(dt, model_types, info_p)
   })
-  # home range levels ----
-  # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update. don't really need a function but it was referenced 3 times so this is easier to use. compare to occur which only was used once so no need for function
-  get_hr_levels <- reactive({ ctmmweb:::parse_levels.UD(input$hr_contour_text) })
+
   # home range plot ----
   output$range_plot <- renderPlot({
     # browser()

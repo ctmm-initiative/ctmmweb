@@ -61,20 +61,31 @@ model_list_dt_to_model_summary_dt <- function(models_dt) {
                   model_summary_dt,
                   by = "model_no")
 }
-# home range don't have dAICc column, need level.UD for CI areas.
-hrange_list_dt_to_model_summary_dt <- function(models_dt) {
+# home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
+hrange_list_dt_to_model_summary_dt <- function(models_dt, level.UD = 0.95) {
   # make copy first because we will remove column later
-  # a list of converted summary on each model
+  # a list of converted summary on each model. now we have additional level by level, need to combine first
   model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
-    summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
-                                             units = FALSE))
-    summary_dt[, model_no := i]
+    dt_list <- lapply(level.UD, function(level_value) {
+      summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+                                               units = FALSE,
+                                               level.UD = level_value))
+      summary_dt[, model_no := i]
+      summary_dt[, level.UD := level_value]
+    })
+    rbindlist(dt_list, fill = TRUE)
+    # summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+    #                                          units = FALSE))
+    # summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
   # there is no dAICc column from summary of list of home range.
   res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no)],
                   model_summary_dt,
                   by = "model_no")
+  # move level.UD col to after estimate
+  setcolorder(res_dt,
+              c(names(res_dt)[1:(ncol(res_dt) - 2)], "level.UD", "area"))
 }
 # given 3 values of CI, round them properly, keep 2 significant digit on difference
 round_CIs <- function(vec, digits = 2) {
@@ -209,27 +220,19 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
      c("DOF area", "DOF bandwidth") := NA_real_]
   name_unit_list <- list("area" = pick_unit_area)
   format_dt_unit(dt, name_unit_list, round_by_model = TRUE)
-  # format_f_list <- lapply(names(dt), function(col_name) {
-  #   switch(col_name,
-  #          area = format_area_f(dt[[col_name]])
-  #   )
-  # })
-  # # not really used, but easier to debug
-  # # names(format_f_list) <- names(dt)
-  # res_dt <- apply_format_f_list(dt, format_f_list)
-  # res_dt[stringr::str_detect(estimate, "CI"),
-  #        c("DOF area", "DOF bandwidth") := NA_real_]
 }
 # Generate Formated Home Range Summary Table From Home Range List Table
 #
 # param hrange_list_dt a data.table holding model info and home range objects
 #
 # return formated home range summary table
-hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
-  hrange_summary_dt <- hrange_list_dt_to_model_summary_dt(hrange_list_dt)
+hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt,
+                                                        level.UD = 0.95) {
+  hrange_summary_dt <- hrange_list_dt_to_model_summary_dt(hrange_list_dt,
+                                                          level.UD)
   format_hrange_summary_dt(hrange_summary_dt)
 }
-# it's difficult to get a home range summary table function, because we reused same summary function and need a model table, which is borrowed from model table. so we have to reuse same model table in home range summary. From user's perspective we can use selected model list, and go a long way inside function to get the table.
+# it's difficult to get a home range summary table function, because we reused same summary function and need a model name table, which is borrowed from model summary table, see build_hrange_list_dt. unless we put model name in hrange_list names, get id names, now they are combined. only build when needed. From user's perspective we can use selected model list, and go a long way inside function to get the table.
 # rebuild model_try_res from selected_model_list? then build summary. too much hassles. ask user to use regular summary?
 
 # summary_home_range <- function(hrange_list) {
