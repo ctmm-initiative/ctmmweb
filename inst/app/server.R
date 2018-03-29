@@ -731,6 +731,8 @@ output:
     log_dt_md(info,
               "Current selected individuals")
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
+    # switch model selection tab to 1st as modeling need 1st tab data updated
+    updateTabsetPanel(session, "vario_tabs", selected = "1")
     return(list(data_dt = animals_dt,
                 info = info,
                 chosen_row_nos = chosen_row_nos,
@@ -1723,29 +1725,31 @@ output:
   try_models <- reactive({
     # need 1st tab ready. write separately, don't want to check length on req
     req(values$selected_data_guess_list)
+    # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
+    req(length(select_data()$tele_list) ==
+          length(values$selected_data_guess_list))
     # if data changed, using old 1st tab data is also not right. the first error is two list length don't match. use if instead of simple req to give message
-    if (length(select_data()$tele_list) !=
-        length(values$selected_data_guess_list)) {
-      updateTabsetPanel(session, "vario_tabs", selected = "1")
-      req(FALSE)
-    } else {
-      # req guess in case user clicked this tab before guess is ready
-      tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
-                                             values$selected_data_guess_list)
-      # LOG try models
-      log_msg("Trying different models...")
-      withProgress(print(system.time(
-        res <-
-          par_try_tele_guess_mem(tele_guess_list,
-                                 parallel = option_selected("parallel")))),
-        message = "Trying different models to find the best ...")
-      # always save names in list
-      names(res) <- names(select_data()$tele_list)
-      # we are selecting rows on a table just generated.
-      # this line caused update loop, the summary_models changed
-      # DT::selectRows(proxy_model_dt, summary_models()$first_models)
-      return(res)
-    }
+    # if (length(select_data()$tele_list) !=
+    #     length(values$selected_data_guess_list)) {
+    #   updateTabsetPanel(session, "vario_tabs", selected = "1")
+    #   req(FALSE)
+    # } else {
+    tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
+                                           values$selected_data_guess_list)
+    # LOG try models
+    log_msg("Trying different models...")
+    withProgress(print(system.time(
+      res <-
+        par_try_tele_guess_mem(tele_guess_list,
+                               parallel = option_selected("parallel")))),
+      message = "Trying different models to find the best ...")
+    # always save names in list
+    names(res) <- names(select_data()$tele_list)
+    # we are selecting rows on a table just generated.
+    # this line caused update loop, the summary_models changed
+    # DT::selectRows(proxy_model_dt, summary_models()$first_models)
+    return(res)
+    # }
   })
   # observeEvent(input$try_models, {
   #   # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
