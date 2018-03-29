@@ -1,8 +1,9 @@
 # build ctmm model summary table ----
-# each model object is a CTMM object, summary(ctmm_obj) give some information, which can be converted into a table. summary(ctmm_obj_list) give some comparison among models, which is additional info.
-ctmm_obj_to_summary_dt <- function(model) {
+# each model object is a CTMM object, summary(ctmm_obj) give some information in a list, which is converted into a table. summary(ctmm_obj_list) give some comparison among models, dAIIc col.
+# only convert the summary list as we need more flexibility in summary call
+ctmm_summary_to_dt <- function(ctmm_summary) {
   # convert the named vectors into data table, keep relevant info
-  model_summary_list <- lapply(summary(model, units = FALSE), function(item) {
+  model_summary_list <- lapply(ctmm_summary, function(item) {
     data.table(t(data.frame(item)), keep.rownames = TRUE)
   })
   # any modification to dof_dt actually changed the parameter. this cause problems in rerun the function second time.
@@ -50,7 +51,8 @@ model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
   model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
-    summary_dt <- ctmm_obj_to_summary_dt(models_dt$model[[i]])
+    summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+                                             units = FALSE))
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
