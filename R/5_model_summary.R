@@ -46,8 +46,8 @@ model_try_res_to_model_list_dt <- function(model_try_res) {
   # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
   models_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
 }
-# generate summary table for models. home range don't have dAICc column
-model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
+# generate summary table for models. too much difference between model table and home range table, make separate functions
+model_list_dt_to_model_summary_dt <- function(models_dt) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
   model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
@@ -56,34 +56,26 @@ model_list_dt_to_model_summary_dt <- function(models_dt, hrange = FALSE) {
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  # home range result also used this function, but there is no dAICc column from summary of list of home range.
-  if (hrange) {
-    res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no)],
-                    model_summary_dt,
-                    by = "model_no")
-  } else {
-    res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no,
-                                  dAICc)],
-                    model_summary_dt,
-                    by = "model_no")
-  }
-  # res_dt[, color_target := stringr::str_c(identity, " - " , estimate)]
+  res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no,
+                                dAICc)],
+                  model_summary_dt,
+                  by = "model_no")
 }
-# apply units format functions list to columns
-# apply_format_f_list <- function(dt, format_f_list) {
-#   # it's easier to use a for loop since we can use i. with lapply and .SD we don't have col name available
-#   for (i in seq_along(format_f_list)) {
-#     # tried to use identity for cols don't need change, but we cannot update existing cols because col type changed
-#     if (!is.null(format_f_list[[i]])) {
-#       # the data table in shiny printed too many digits.
-#       dt[, paste0(names(dt)[i], "_units") := format_f_list[[i]](dt[[names(dt)[i]]])]
-#     }
-#   }
-#   new_cols <- names(dt)[stringr::str_detect(names(dt), "_units")]
-#   old_cols <- stringr::str_replace_all(new_cols, "_units", "")
-#   dt[, (old_cols) := NULL]
-#   setnames(dt, new_cols, old_cols)
-# }
+# home range don't have dAICc column, need level.UD for CI areas.
+hrange_list_dt_to_model_summary_dt <- function(models_dt) {
+  # make copy first because we will remove column later
+  # a list of converted summary on each model
+  model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
+    summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+                                             units = FALSE))
+    summary_dt[, model_no := i]
+  })
+  model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
+  # there is no dAICc column from summary of list of home range.
+  res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no)],
+                  model_summary_dt,
+                  by = "model_no")
+}
 # given 3 values of CI, round them properly, keep 2 significant digit on difference
 round_CIs <- function(vec, digits = 2) {
   # if NA in input, need remove. if all NA, there will be warnings.
@@ -155,20 +147,6 @@ format_model_summary_dt <- function(model_summary_dt) {
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
   format_dt_unit(dt, name_unit_list, round_by_model = TRUE)
-  # format_f_list <- lapply(names(dt), function(col_name) {
-  #   switch(col_name,
-  #          area = format_area_f(dt[[col_name]]),
-  #          `tau position` = format_seconds_f(dt[[col_name]]),
-  #          `tau velocity` = format_seconds_f(dt[[col_name]]),
-  #          speed = format_speed_f(dt[[col_name]]),
-  #          error = format_distance_f(dt[[col_name]])
-  #   )
-  # })
-  # # not really used, but easier to debug
-  # names(format_f_list) <- names(dt)
-  # res_dt <- apply_format_f_list(dt, format_f_list)
-
-
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table
@@ -178,8 +156,7 @@ format_model_summary_dt <- function(model_summary_dt) {
 #
 # return formated model summary table
 model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
-  model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt,
-                                                        hrange = FALSE)
+  model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
   format_model_summary_dt(model_summary_dt)
 }
 # exported version, make the interface simpler. our internal version need intermediate steps because we need the intermediate data
@@ -249,8 +226,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 #
 # return formated home range summary table
 hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt) {
-  hrange_summary_dt <- model_list_dt_to_model_summary_dt(hrange_list_dt,
-                                                         hrange = TRUE)
+  hrange_summary_dt <- hrange_list_dt_to_model_summary_dt(hrange_list_dt)
   format_hrange_summary_dt(hrange_summary_dt)
 }
 # it's difficult to get a home range summary table function, because we reused same summary function and need a model table, which is borrowed from model table. so we have to reuse same model table in home range summary. From user's perspective we can use selected model list, and go a long way inside function to get the table.
