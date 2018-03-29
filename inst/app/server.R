@@ -267,7 +267,7 @@ output:
     values$data$tele_list <- tele_list
     values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
     values$data$all_removed_outliers <- NULL
-    values$selected_data_model_try_res <- NULL
+    # values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     values$data$id_pal <- leaflet::colorFactor(
       scales::hue_pal()(nrow(values$data$merged$info)),
@@ -725,7 +725,7 @@ output:
     # info only has identity, no id column
     info <- values$data$merged$info[.(chosen_ids), on = "identity"]
     # need to clear model fit result, change to original mode instead of modeled mode
-    values$selected_data_model_try_res <- NULL
+    # values$selected_data_model_try_res <- NULL
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
     log_dt_md(info,
@@ -1715,74 +1715,62 @@ output:
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
-  # $selected_model_try_res ----
+  # $selected_model_try_res ---
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the try model (model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
-  values$selected_data_model_try_res <- NULL  # need to clear this at input change too
-  # try models ----
-  # observeEvent(input$vario_tabs, {
-  #   if (input$vario_tabs == "modeled") {
-  #     # req guess in case user clicked this tab before guess is ready
-  #     tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
-  #                                            req(values$selected_data_guess_list))
-  #     # LOG try models
-  #     log_msg("Trying different models...")
-  #     withProgress(print(system.time(
-  #       res <-
-  #         par_try_tele_guess_mem(tele_guess_list,
-  #                                parallel = option_selected("parallel")))),
-  #       message = "Trying different models to find the best ...")
-  #     # always save names in list
-  #     names(res) <- names(select_data()$tele_list)
-  #     DT::selectRows(proxy_model_dt, summary_models()$first_models)
-  #   }
-  # })
-  model_tab_on <- reactive({ input$vario_tabs == "modeled" })
+  # values$selected_data_model_try_res <- NULL  # need to clear this at input change too
+  # try models() ----
   try_models <- reactive({
-    req(model_tab_on())
-    # req guess in case user clicked this tab before guess is ready
-    tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
-                                           req(values$selected_data_guess_list))
-    # LOG try models
-    log_msg("Trying different models...")
-    withProgress(print(system.time(
-      values$selected_data_model_try_res <-
-        par_try_tele_guess_mem(tele_guess_list,
-                               parallel = option_selected("parallel")))),
-      message = "Trying different models to find the best ...")
-    # always save names in list
-    names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
-    # sometimes nothing is shown in 3 modes. could be data lock in complex reactive relationship. try to freeze the radio button to make sure it update in last
-    # freezeReactiveValue(input, "vario_mode")
-    # updateRadioButtons(session, "vario_mode", selected = "modeled")
-    # we are selecting rows on a table just generated.
-    # DT::selectRows(proxy_model_dt, summary_models()$first_models)
-    return(res)
+    # need 1st tab ready. write separately, don't want to check length on req
+    req(values$selected_data_guess_list)
+    # if data changed, using old 1st tab data is also not right. the first error is two list length don't match. use if instead of simple req to give message
+    if (length(select_data()$tele_list) !=
+        length(values$selected_data_guess_list)) {
+      updateTabsetPanel(session, "vario_tabs", selected = "1")
+      req(FALSE)
+    } else {
+      # req guess in case user clicked this tab before guess is ready
+      tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
+                                             values$selected_data_guess_list)
+      # LOG try models
+      log_msg("Trying different models...")
+      withProgress(print(system.time(
+        res <-
+          par_try_tele_guess_mem(tele_guess_list,
+                                 parallel = option_selected("parallel")))),
+        message = "Trying different models to find the best ...")
+      # always save names in list
+      names(res) <- names(select_data()$tele_list)
+      # we are selecting rows on a table just generated.
+      # this line caused update loop, the summary_models changed
+      # DT::selectRows(proxy_model_dt, summary_models()$first_models)
+      return(res)
+    }
   })
-  observeEvent(input$try_models, {
-    # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
-    # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
-    # freezeReactiveValue(input, "tried_models_summary_rows_selected")
-    # instead, we clear the table selection, which should solve both needs. the clear is not executed until fitting finished, but it's queued before actual selecting, so table did update.
-    DT::selectRows(proxy_model_dt, list())
-    # guess_list is updated inside select_data_vario_list, but select_data_vario_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
-    tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
-                                  values$selected_data_guess_list)
-    # LOG try models
-    log_msg("Trying different models...")
-    withProgress(print(system.time(
-      values$selected_data_model_try_res <-
-        par_try_tele_guess_mem(tele_guess_list,
-                               parallel = option_selected("parallel")))),
-      message = "Trying different models to find the best ...")
-    # always save names in list
-    names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
-    # sometimes nothing is shown in 3 modes. could be data lock in complex reactive relationship. try to freeze the radio button to make sure it update in last
-    # freezeReactiveValue(input, "vario_mode")
-    # updateRadioButtons(session, "vario_mode", selected = "modeled")
-    # we are selecting rows on a table just generated.
-    DT::selectRows(proxy_model_dt, summary_models()$first_models)
-  })
+  # observeEvent(input$try_models, {
+  #   # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
+  #   # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
+  #   # freezeReactiveValue(input, "tried_models_summary_rows_selected")
+  #   # instead, we clear the table selection, which should solve both needs. the clear is not executed until fitting finished, but it's queued before actual selecting, so table did update.
+  #   DT::selectRows(proxy_model_dt, list())
+  #   # guess_list is updated inside select_data_vario_list, but select_data_vario_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
+  #   tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
+  #                                 values$selected_data_guess_list)
+  #   # LOG try models
+  #   log_msg("Trying different models...")
+  #   withProgress(print(system.time(
+  #     values$selected_data_model_try_res <-
+  #       par_try_tele_guess_mem(tele_guess_list,
+  #                              parallel = option_selected("parallel")))),
+  #     message = "Trying different models to find the best ...")
+  #   # always save names in list
+  #   names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
+  #   # sometimes nothing is shown in 3 modes. could be data lock in complex reactive relationship. try to freeze the radio button to make sure it update in last
+  #   # freezeReactiveValue(input, "vario_mode")
+  #   # updateRadioButtons(session, "vario_mode", selected = "modeled")
+  #   # we are selecting rows on a table just generated.
+  #   DT::selectRows(proxy_model_dt, summary_models()$first_models)
+  # })
   # summary_models() ----
   # summary table and model dt with model as list column
   summary_models <- reactive({
@@ -1792,14 +1780,11 @@ output:
       try_models()
       )
     # the model summary table
-    # model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
-    # formated_summary_dt <- format_model_summary_dt(model_summary_dt)
     formated_summary_dt <-
       ctmmweb:::model_list_dt_to_formated_model_summary_dt(models_dt)
     if (input$hide_ci_model) {
       formated_summary_dt <- formated_summary_dt[
         !stringr::str_detect(estimate, "CI")]
-      # formated_summary_dt[, estimate := NULL]
     }
     # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table. the color pallete and mapping function must be based on full table, not current selected subset.
     model_names_dt <- unique(formated_summary_dt[,
@@ -1826,7 +1811,7 @@ output:
                 first_models = first_models))
   })
   # model summary ----
-  # format model summary table as DT
+  # format model summary table as DT, also used in home range page
   render_model_summary_DT <- function(dt, model_types, info_p) {
     DT::datatable(dt,options = list(scrollX = TRUE,
                                     pageLength = 18,
@@ -1855,26 +1840,19 @@ output:
     # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
     dt[, model_no := NULL]
     dt[, model_name := NULL]
-    # LOG fitted models
-    log_dt_md(dt, "Fitted Models")
+    # LOG tried models
+    log_dt_md(dt, "Tried Models")
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     # CI_colors <- color_CI(values$data$merged$info$identity)
     # base::sort have different result in linux, hosted server.
     model_types <- stringr::str_sort(unique(dt$model_type))
-    render_model_summary_DT(dt, model_types, info_p)
+    DT_table <- render_model_summary_DT(dt, model_types, info_p)
+    # select models otherwise no variogram plot
+    DT::selectRows(proxy_model_dt, summary_models()$first_models)
+    return(DT_table)
   })
   proxy_model_dt <- DT::dataTableProxy("tried_models_summary")
-  # select model table rows ----
-  # we don't have try model button to select first models automatically, try watching rows, if no rows are selected, select first models
-  # observeEvent(input$tried_models_summary_rows_selected, {
-  #   cat(input$tried_models_summary_rows_selected, "\n")
-  #   cat(is.list(input$tried_models_summary_rows_selected), "\n")
-  #   cat(length(input$tried_models_summary_rows_selected), "\n")
-  #   if (length(input$tried_models_summary_rows_selected) == 0) {
-  #     DT::selectRows(proxy_model_dt, summary_models()$first_models)
-  #   }
-  # }, ignoreNULL = FALSE)
   observeEvent(input$select_1st_models, {
     DT::selectRows(proxy_model_dt, summary_models()$first_models)
   })
@@ -1885,12 +1863,6 @@ output:
   # select_models() ----
   # this is the manual selecting rows in model summary table. previously first models are selected in try models action.
   # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
-  # singal variable of over lap table rows
-  # overlap_table_ready <- FALSE
-  # reactive value to serve as invalidate signal. The value change serve as signal to recalculate the expression included it
-  # values$overlap_table_updating <- FALSE
-  # clear overlap table selection
-  # proxy_overlap_dt <- DT::dataTableProxy("overlap_summary")
   select_models <- reactive({
     # change signal variable so that overlap table rows should not be used now. this is similar to the clear row selection action in try models
     # overlap_table_ready <- FALSE

@@ -492,7 +492,7 @@ vario_control_box <- box(title = "Plot Controls",
 )
 # p5.3 variograms ----
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
-     tabPanel(div(icon("battery-empty"), "1. Empirical"),
+     tabPanel(div(icon("battery-empty"), "1. Empirical"), value = "1",
               fluidRow(
                 column(2, offset = 10, help_button("variograms")),
                 column(12, br(), plotOutput("vario_plot_1",
@@ -506,13 +506,13 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                       width = "99%", height = "98%"))
               )
      ),
-     tabPanel(div(icon("battery-full"), "3. Modeled"), value = "modeled",
+     tabPanel(div(icon("hourglass-start"), icon("battery-full"), "3. Modeled"),
       fluidRow(
-        column(3, offset = 0, actionButton("try_models", "Try Models",
-                                     icon = icon("hourglass-start"),
-                                     style = ctmmweb:::STYLES$page_action),
-               br(), br()),
-        column(2, offset = 7, help_button("model_selection")),
+        # column(3, offset = 0, actionButton("try_models", "Try Models",
+        #                              icon = icon("hourglass-start"),
+        #                              style = ctmmweb:::STYLES$page_action),
+        #        br(), br()),
+        column(2, offset = 10, help_button("model_selection")),
         column(12, plotOutput("vario_plot_3",
                               width = "99%", height = "98%")),
         # model selection table
