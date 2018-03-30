@@ -11,6 +11,7 @@
 ### Hom Range Plot
 - By default home range of all non-zero overlap pairs in current page are plotted. Too many pairs may cause problem in plot, it's better to choose a smaller page length for overlap table.
 - If some rows in overlap table are selected, cooresponding pairs will be plotted.
+- If the default various colors on too many individuals become difficult to recognize in some pair, choose `Two Colors Only` to use fixed colors for every plot. This make the plot easy to read but the color for animal will not be consistent.
 - Check [ctmm::plot.telemetry](https://ctmm-initiative.github.io/ctmm/reference/plot.telemetry.html) for details:
   - `Contour`: `level.UD`. You can input a series of comma separated values like `20, 50, 95` in contours input, note they are percentage values so the real value will be `0.20, 0.50, 0.95`. 
   - `Confidence Envelopes` : `level`.

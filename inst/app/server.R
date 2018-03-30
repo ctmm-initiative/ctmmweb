@@ -2246,11 +2246,16 @@ output:
       select_models()$tele_list[req(unlist(chosen_rows[i]))]
     })
     # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
-    chosen_colors_list <- lapply(1:nrow(chosen_rows), function(i) {
-      sapply(chosen_rows[i], function(display_name) {
-        select_models()$display_color[display_name]
+    if ("two_colors" %in% input$overlap_hrange_option) {
+      chosen_colors_list <- lapply(1:nrow(chosen_rows), function(i){
+        c("#FF7970", "#619CFF")  # the cilla/queen combination, orange/blue
       })
-    })
+    } else {
+      chosen_colors_list <- lapply(1:nrow(chosen_rows), function(i) {
+        sapply(chosen_rows[i], function(display_name) {
+            select_models()$display_color[display_name]
+        })})
+    }
     overlap_hrange_layout <- layout_group(chosen_hranges_list,
                                           input$overlap_hrange_height,
                                           input$overlap_hrange_columns)
