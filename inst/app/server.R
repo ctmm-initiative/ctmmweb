@@ -2175,7 +2175,7 @@ output:
     DT::datatable(dt,
                   # class = 'table-bordered',
                   options = list(pageLength = 18,
-                                 lengthMenu = c(18, 36, 72),
+                                 lengthMenu = c(6, 12, 18, 36),
                                  order = list(list(4, 'desc'))),
                   rownames = TRUE) %>%
       # override the low/high cols with background
@@ -2194,8 +2194,8 @@ output:
   # overlap value range ----
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()
-    # need to wait until table is finished
-    current_order <- overlap_dt[rev(req(input$overlap_summary_rows_all)),
+    # need to wait until table is finished, use current page.
+    current_order <- overlap_dt[rev(req(input$overlap_summary_rows_current)),
                                 Combination]
     # tried to move the dynamic column part to reactive expression, which would cause the table refresh twice in start (update after table is built), and row selection caused data change, table refresh and lost row selection.
     # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
@@ -2221,21 +2221,11 @@ output:
   )
   # choose_overlap_pairs() ----
   # plot height cannot use value calculated inside plot function. the height depend on selection count, so move the selection logic into reactive
-  # there could be double update when stayed in overlap home range plot, back to model page update selection, then come back. the plot was drawn, saved, update again and save again. Trace shows plot update right after home range calculated (used previous rows_current value which are previous values, still valid when table not updated yet), then update after rows_current go to empty then valid values. problem is when home range value is ready, range DT is not rendered, old range DT row values still valid, this plot don't know DT is not rendered at this time. since old row values are still valid, there is no other notification to check DT render status. make DT highest priority? see notes in 05_4_overlap.Rmd: range plot update problem
-  # with freeze in overlap table removed, there is brief period that plot use new data and old rows_current. when no rows selected, sometimes caused plot to draw twice. when one big row number is selected, update data to less rows, this cause plot to access empty data, but this get updated once DT finished.
   choose_overlap_pairs <- reactive({
-    # useful debug output for update problems. there is a brief period rows_current is NULL, and plot update halted. later it update to new value, but didn't update again. the print shows continus 3 print, means the access was halted untill update finish, which is what we want.
-    # cat("input$overlap_summary_rows_current: ",
-    #     input$overlap_summary_rows_current, "\n")
-    # cat(is.null(input$overlap_summary_rows_current), "\n")
-    # cat(overlap_table_ready)
-    # req(overlap_table_ready)
     # rows_current inside ifelse, may not trigger changes. put one outside. esp test with more rows in 2nd try, more pages lead to slower DT and more prone to update problem.
     req(input$overlap_summary_rows_current)
-    # ctmmweb:::show_by_name("overlap_table_ready")
-    # ctmmweb:::show_by_name("input$overlap_summary_rows_current")
-    # chose all pairs with overlap > 0 if no rows selected. otherwise selected rows with same order. the value ggplot use `selected` column in dt
-    # go through rows_current to match order and filter in both case, since order and filter can apply both when rows are selected or not
+    # chose all pairs in current page with overlap > 0 if no rows selected. otherwise selected rows with same order. the value ggplot use `selected` column in dt
+    # go through rows_current to match order and filter, also in current page in both case, since order and filter can apply both when rows are selected or not
     # when nothing selected. don't use length == 0 because this is more specific
     if (is.null(input$overlap_summary_rows_selected)) {
       chosen_rows <- select_models_overlap()[
