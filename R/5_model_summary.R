@@ -71,7 +71,7 @@ hrange_list_dt_to_model_summary_dt <- function(models_dt, level.UD = 0.95) {
                                                units = FALSE,
                                                level.UD = level_value))
       summary_dt[, model_no := i]
-      summary_dt[, level.UD := level_value]
+      summary_dt[, quantile := level_value * 100]
     })
     rbindlist(dt_list, fill = TRUE)
     # summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
@@ -85,7 +85,7 @@ hrange_list_dt_to_model_summary_dt <- function(models_dt, level.UD = 0.95) {
                   by = "model_no")
   # move level.UD col to after estimate
   setcolorder(res_dt,
-              c(names(res_dt)[1:(ncol(res_dt) - 2)], "level.UD", "area"))
+              c(names(res_dt)[1:(ncol(res_dt) - 2)], "quantile", "area"))
 }
 # given 3 values of CI, round them properly, keep 2 significant digit on difference
 round_CIs <- function(vec, digits = 2) {
