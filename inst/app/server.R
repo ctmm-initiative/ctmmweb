@@ -308,16 +308,33 @@ output:
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
+    # warning need to be recorded and notify at last (not in every warning, ony notify once), error need to notify and stop
+    # every warning will trigger handler, need to only notify once
+    warning_generated <- FALSE
+    wHandler <- function(w) {
+      warning_generated <<- TRUE
+      invokeRestart("muffleWarning")
+    }
+    eHandler <- function(e) {
+      # raise error message so it can be viewed from stderror. not succeeded
+      showNotification("Error in import, check data again",
+                       duration = 7, type = "error")
+    }
+    tele_list <- tryCatch(withCallingHandlers(
+        ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
+        warning = wHandler),
+      error = eHandler)
+    if (warning_generated) {
+      showNotification("Warning in import, check error message",
+                       duration = 5, type = "warning")
+    }
     # wrap it so even single individual will return a list with one item
-    tele_list <- tryCatch(
-      ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
-      # warning = function(w) {
-      #   browser()
-      #   print(w)},
-      error = function(e) {
-        showNotification("Import error, check data again",
-                         duration = 4, type = "error")
-        })
+    # tele_list <- tryCatch(
+    #   ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
+    #   error = function(e) {
+    #     showNotification("Import error, check data again",
+    #                      duration = 4, type = "error")
+    #     })
     # only proceed if no error
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
     req(all(unlist(test_class)))
