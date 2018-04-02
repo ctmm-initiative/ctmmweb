@@ -9,8 +9,6 @@ server <- function(input, output, session) {
   values <- reactiveValues()
   # log/error options ----
   # log functions will use these options, so need to prepare them first
-  # each session have one error log file
-  values$error_file <- tempfile()
   # test checkbox status passively, one time read when called. wrap it into a function because if we decided to switch between independent checkbox or checkboxgroup, the changes only happens here, not every calling place.
   option_selected <- function(option) {
     isolate(input[[option]])
@@ -189,17 +187,54 @@ output:
     log_msg(stringr::str_c("Recording is ",
                            if (input$record_on) "On" else "Off"), on = TRUE)
   })
-  observeEvent(input$capture_error, {
-    if (input$capture_error) {
-      # values$error_file <- tempfile()
-      # appending mode to save all messages
+  # capture error ----
+  # only show this in hosted mode. test with reversed condition.
+  CAPTURE_error_msg <- APP_local
+  # prepare error file. restore it on exit. otherwise testing it locally will keep it sunk for current R session. on.exit need to be inside server function so outside of renderUI
+  onStop(function() sink(type = "message"))
+  # on.exit(sink(type = "message"))
+  output$error_popup <- renderUI(
+    if (CAPTURE_error_msg) {
+      # each session have one error log file
+      values$error_file <- tempfile()
+      # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
       values$error_file_con <- file(values$error_file, open = "a")
       sink(values$error_file_con, type = "message")
-      log_msg("Error messages directed to app")
-    } else {
-      sink(type = "message")
-      log_msg("Error message directed to console")
-    }
+      log_msg("Error messages captured in app")
+      actionButton("show_error", "Error Message",
+                   icon = icon("exclamation-triangle"),
+                   style = "color: #ffec3b;background-color: #232d33;border: transparent;margin-left: 4%;")
+    })
+  # always capture in hosted mode, always don't capture in local mode. The local mode console has more context.
+  # if (CAPTURE_error_msg) {
+  #   # appending mode to save all messages
+  #   values$error_file_con <- file(values$error_file, open = "a")
+  #   # sink(values$error_file_con, type = "message")
+  #   # log_msg("Error messages recorded in app")
+  # }
+  # observeEvent(input$capture_error, {
+  #   if (SHOW_error) {
+  #     # appending mode to save all messages
+  #     values$error_file_con <- file(values$error_file, open = "a")
+  #     sink(values$error_file_con, type = "message")
+  #     log_msg("Error messages recorded in app")
+  #   } else {
+  #     sink(type = "message")
+  #     log_msg("Error message directed to console")
+  #   }
+  # })
+  # show error msg ----
+  observeEvent(input$show_error, {
+    showModal(modalDialog(title = "Error Messages",
+                fluidRow(
+                  column(12, pre(includeText(req(values$error_file)))),
+                  column(12, h4("App Installed On")),
+                  column(12, verbatimTextOutput("app_info")),
+                  column(12, h4("Session information")),
+                  column(12, verbatimTextOutput("session_info"))),
+                size = "l", easyClose = TRUE, fade = FALSE))
+    output$app_info <- renderPrint(cat(PKG_INSTALLATION_TIME, "\n"))
+    output$session_info <- renderPrint(sessionInfo())
   })
   # just log option changes, the value is taken directly when needed.
   observeEvent(input$parallel, {
@@ -209,20 +244,6 @@ output:
       # try(log("a"))  # for testing error log
       log_msg("Parallel mode disabled")
     }
-  })
-  observeEvent(input$show_error, {
-    # no effect if error log not turned on
-    req(input$capture_error)
-    # maintaince first before accessing file
-    # sink(type = "message")
-    # flush(req(values$error_file_con))
-    # close(req(values$error_file_con))
-    showModal(modalDialog(title = "Error Messages",
-                fluidRow(
-                  column(12, pre(includeText(req(values$error_file)))),
-                  column(12, verbatimTextOutput("session_info"))),
-                size = "l", easyClose = TRUE, fade = FALSE))
-    output$session_info <- renderPrint(sessionInfo())
   })
   # cache setup ----
   create_cache <- function() {
@@ -290,6 +311,9 @@ output:
     # wrap it so even single individual will return a list with one item
     tele_list <- tryCatch(
       ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
+      # warning = function(w) {
+      #   browser()
+      #   print(w)},
       error = function(e) {
         showNotification("Import error, check data again",
                          duration = 4, type = "error")

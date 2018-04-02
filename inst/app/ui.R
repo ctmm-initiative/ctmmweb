@@ -60,7 +60,9 @@ sidebar <- dashboardSidebar(
                                      "Save Progress",
                                      style =
   "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
-      )
+      )),
+    fluidRow(
+      column(6, offset = 0, uiOutput("error_popup"))
     )
   )
   # ,
@@ -98,9 +100,9 @@ app_options_box <- box(title = "App Options",
     #                                                  "parallel"),
     #                              selected = "parallel")),
     column(3, uiOutput("view_report")),
-    column(3, offset = 6, actionButton("show_error", "Error Messages",
-                           icon = icon("exclamation-triangle"),
-                           style = ctmmweb:::STYLES$page_action)),
+    # column(3, offset = 6, actionButton("show_error", "Error Messages",
+    #                        icon = icon("exclamation-triangle"),
+    #                        style = ctmmweb:::STYLES$page_action)),
     column(12, br()),
     column(3, offset = 0, help_button("report")),
     column(3, offset = 6, help_button("app_options"))
