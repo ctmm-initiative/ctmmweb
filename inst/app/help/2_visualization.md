@@ -5,8 +5,8 @@ All plots and actions are based on **current subset of individuals**.
 ![selected_plot](2_selected_plot.png)
 
 - You can select rows in table `1. Individuals` by 
-    - mouse clicking
-    - `Select All` and `Clear Selection` buttons
+    - mouse clicking (with shift to select/deselect a range)
+    - `Select All` and `Clear Selection` buttons, which apply to all pages
 - If no rows are selected, the individuals in current page are current subset.
 - `Time subsetting` feature only work with single individual.
 

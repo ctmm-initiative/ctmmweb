@@ -188,8 +188,8 @@ output:
                            if (input$record_on) "On" else "Off"), on = TRUE)
   })
   # capture error ----
-  # only show this in hosted mode. test with reversed condition.
-  CAPTURE_error_msg <- APP_local
+  CAPTURE_error_msg <- !APP_local  # deployed version
+  # CAPTURE_error_msg <- APP_local  # for local testing
   # prepare error file. restore it on exit. otherwise testing it locally will keep it sunk for current R session. on.exit need to be inside server function so outside of renderUI
   onStop(function() sink(type = "message"))
   # on.exit(sink(type = "message"))
@@ -309,24 +309,41 @@ output:
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # warning need to be recorded and notify at last (not in every warning, ony notify once), error need to notify and stop
-    # every warning will trigger handler, need to only notify once
+    # every warning will trigger handler, need to only notify once.
+    original_op <- options()
+    options(warn = 0)
     warning_generated <- FALSE
+    # after return, move to next handler
     wHandler <- function(w) {
       warning_generated <<- TRUE
-      invokeRestart("muffleWarning")
     }
     eHandler <- function(e) {
-      # raise error message so it can be viewed from stderror. not succeeded
       showNotification("Error in import, check data again",
                        duration = 7, type = "error")
     }
-    tele_list <- tryCatch(withCallingHandlers(
+    # browser()
+    tele_list <- tryCatch(
+      withCallingHandlers(
         ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
-        warning = wHandler),
+        warning = wHandler
+        ),
       error = eHandler)
     if (warning_generated) {
-      showNotification("Warning in import, check error message",
-                       duration = 5, type = "warning")
+      if (CAPTURE_error_msg) {
+        showModal(modalDialog(title = "Import Warning",
+                    fluidRow(
+                      column(12, pre(includeText(req(values$error_file))))),
+                    size = "l", easyClose = TRUE, fade = FALSE))
+      } else {
+        # showNotification("Warning in import, check R console",
+        #                  duration = 5, type = "warning")
+        showModal(modalDialog(title = "Import Warning",
+                              fluidRow(
+                                column(12, verbatimTextOutput("warnings"))),
+                              size = "l", easyClose = TRUE, fade = FALSE))
+        output$warnings <- renderPrint(warnings())
+      }
+      options(original_op)
     }
     # wrap it so even single individual will return a list with one item
     # tele_list <- tryCatch(
