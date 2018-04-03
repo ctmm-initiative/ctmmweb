@@ -190,8 +190,14 @@ output:
   # capture error ----
   CAPTURE_error_msg <- !APP_local  # deployed version
   # CAPTURE_error_msg <- APP_local  # for local testing
-  # prepare error file. restore it on exit. otherwise testing it locally will keep it sunk for current R session. on.exit need to be inside server function so outside of renderUI
-  onStop(function() sink(type = "message"))
+  # prepare error file. restore sink on exit. otherwise testing it locally will keep it sunk for current R session. on.exit need to be inside server function so outside of renderUI
+  onStop(function() {
+    # need to restore sink first, otherwise connection cannot be closed
+    sink(type = "message")
+    error_con <- isolate(values$error_file_con)
+    flush(error_con)
+    close(error_con)
+    })
   # on.exit(sink(type = "message"))
   output$error_popup <- renderUI(
     if (CAPTURE_error_msg) {
