@@ -310,8 +310,6 @@ output:
     on.exit(removeNotification(note_import))
     # warning need to be recorded and notify at last (not in every warning, ony notify once), error need to notify and stop
     # every warning will trigger handler, need to only notify once.
-    original_op <- options()
-    options(warn = 0)
     warning_generated <- FALSE
     # after return, move to next handler
     wHandler <- function(w) {
@@ -321,7 +319,6 @@ output:
       showNotification("Error in import, check data again",
                        duration = 7, type = "error")
     }
-    # browser()
     tele_list <- tryCatch(
       withCallingHandlers(
         ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
@@ -335,15 +332,14 @@ output:
                       column(12, pre(includeText(req(values$error_file))))),
                     size = "l", easyClose = TRUE, fade = FALSE))
       } else {
-        # showNotification("Warning in import, check R console",
-        #                  duration = 5, type = "warning")
-        showModal(modalDialog(title = "Import Warning",
-                              fluidRow(
-                                column(12, verbatimTextOutput("warnings"))),
-                              size = "l", easyClose = TRUE, fade = FALSE))
-        output$warnings <- renderPrint(warnings())
+        showNotification("Warning in import, check R console",
+                         duration = 5, type = "warning")
+        # showModal(modalDialog(title = "Import Warning",
+        #                       fluidRow(
+        #                         column(12, verbatimTextOutput("warnings"))),
+        #                       size = "l", easyClose = TRUE, fade = FALSE))
+        # output$warnings <- renderPrint(warnings())
       }
-      options(original_op)
     }
     # wrap it so even single individual will return a list with one item
     # tele_list <- tryCatch(
