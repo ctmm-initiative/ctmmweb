@@ -1,6 +1,9 @@
 ### Record Actions
 - Every meaningful actions by user can be recorded and compiled into a html work report in `Work Report` page. All plots and most tables are also saved. The option can be turned off to improve performance.
 
+### Disable Parallel Mode
+- Parallel mode can be tricky. Turning it off can help to verify if problems in app are related to parallel mode. You will also see model fitting progress messages in console, which is not visible in parallel mode because they are in cluster/forked process instead of current R process.
+
 ### Report
 - If app is running locally, `Preview Report` will compile current recordings into a html report, and open it in a new browser window.
 - If app is running in hosted server, report cannot be opened automatically because of security limits. It has to be downloaded with `Download Report` then you can open it.

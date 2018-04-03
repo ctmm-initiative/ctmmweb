@@ -407,9 +407,9 @@ output:
     })
   }
   # the app option help is registered after help function is ready
-  callModule(click_help, "app_options",
-             title = "App Options", size = "l",
-             file = "help/1_app_options.md")
+  # callModule(click_help, "app_options",
+  #            title = "App Options", size = "l",
+  #            file = "help/1_app_options.md")
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
@@ -2592,7 +2592,8 @@ output:
     }
   )
   # p10. report ----
-  callModule(click_help, "report", title = "Work Report",
+  # the file name doesn't match the title because of changes.
+  callModule(click_help, "report", title = "App Options",
              size = "l", file = "help/10_work_report.md")
   # save data ----
   output$save_data <- downloadHandler(
