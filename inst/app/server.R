@@ -205,45 +205,43 @@ output:
   # capture error ----
   # CAPTURE_error_msg <- !APP_local  # deployed version
   # CAPTURE_error_msg <- APP_local  # for local testing
-  # prepare error file. restore sink on exit. otherwise testing it locally will keep it sunk for current R session. on.exit need to be inside server function so outside of renderUI
-  onStop(function() {
-    # need to restore sink first, otherwise connection cannot be closed
+  # clean up. needed in app exit and checking option off.
+  clean_up_error_capture <- function(error_con) {
+    # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
     sink(type = "message")
-    error_con <- isolate(values$error_file_con)
     flush(error_con)
     close(error_con)
-    })
-  # on.exit(sink(type = "message"))
-  output$error_popup <- renderUI(
+  }
+  # checking on/off option should either prepare the error file or clean it up
+  observeEvent(input$capture_error, {
     if (input$capture_error) {
-      # each session have one error log file
+      # each session have one error log file. different client will have different file in same server
       values$error_file <- tempfile()
       # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
       values$error_file_con <- file(values$error_file, open = "a")
       sink(values$error_file_con, type = "message")
-      log_msg("Error messages captured in app")
+      log_msg("Error messages captured in App")
+    } else {
+      clean_up_error_capture(values$error_file_con)
+      log_msg("Error message directed to R Console")
+    }
+  })
+  # on.exit need to be inside server function so outside of renderUI
+  onStop(function() {
+    # if option is off, clean up is done already
+    if (isolate(input$capture_error)) {
+      clean_up_error_capture(isolate(values$error_file_con))
+    }
+  })
+  # the button itself need to depend on option, cannot be inside the if call which doesn't remove in else branch
+  # add side bar button
+  output$error_popup <- renderUI(
+    if (input$capture_error) {
       actionButton("show_error", "Error Message",
                    icon = icon("exclamation-triangle"),
                    style = "color: #ffec3b;background-color: #232d33;border: transparent;margin-left: 4%;")
-    })
-  # always capture in hosted mode, always don't capture in local mode. The local mode console has more context.
-  # if (CAPTURE_error_msg) {
-  #   # appending mode to save all messages
-  #   values$error_file_con <- file(values$error_file, open = "a")
-  #   # sink(values$error_file_con, type = "message")
-  #   # log_msg("Error messages recorded in app")
-  # }
-  # observeEvent(input$capture_error, {
-  #   if (SHOW_error) {
-  #     # appending mode to save all messages
-  #     values$error_file_con <- file(values$error_file, open = "a")
-  #     sink(values$error_file_con, type = "message")
-  #     log_msg("Error messages recorded in app")
-  #   } else {
-  #     sink(type = "message")
-  #     log_msg("Error message directed to console")
-  #   }
-  # })
+    }
+  )
   # show error msg ----
   observeEvent(input$show_error, {
     showModal(modalDialog(title = "Error Messages",
