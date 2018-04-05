@@ -125,7 +125,11 @@ upload_box <- box(title = "Local Data Import",
                   ),
           column(4, numericInput("sample_size", "Sample Size",
                                  value = 100, step = 50)),
-          column(12, fileInput('tele_file', label = "Movebank Format",
+          column(12, fileInput('tele_file', label =
+                         shiny::a("Move Bank Format", target = "_blank",
+                                  href = "https://www.movebank.org/node/13",
+                                  style = "text-decoration: underline;"),
+                                 # "Movebank Format",
                                placeholder = "csv or zip")),
           column(12, fileInput("load_data", label = "Restore Progress",
                                placeholder = "Previously saved zip"
