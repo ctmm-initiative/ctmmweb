@@ -1930,6 +1930,10 @@ output:
   # the action after rows in model table were selected. after model were tried, first models are automatically selected. both that and manual selection trigger behavior here.
   # need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
   # when data updated, need to clear previous rows_selected value, which are not destroied yet
+  # with only one animal, clicking on table doesn't change rows selected, only cell clicked event generated.
+  # observeEvent(input$tried_models_summary_cell_clicked, {
+  #   cat(input$tried_models_summary_rows_selected, "\n")
+  # })
   select_models <- reactive({
     # change signal variable so that overlap table rows should not be used now. this is similar to the clear row selection action in try models
     # overlap_table_ready <- FALSE
@@ -1937,7 +1941,7 @@ output:
     # req(!is.null(values$selected_data_model_try_res))
     # req(length(input$tried_models_summary_rows_selected) > 0)
     # input$tried_models_summary_cell_clicked
-    cat(input$tried_models_summary_rows_selected, "\n")
+    # cat(input$tried_models_summary_rows_selected, "\n")
     # sort the rows selected so same individual models are together
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist

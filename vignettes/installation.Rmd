@@ -57,3 +57,4 @@ Some packages need to be built from source, and you need to install RTools in wi
   It's also possible to meet mysterious bugs with parallel operations in a long session. Restart R usually can solve the problem. 
   
   You can also disable the parallel mode in first box of `Import` page.
+- There is a known problem with `DT` that model summary table in `model selection` page doesn't repond to row selection when only one animal is available. Clicking `Clear Table` can fix the problem.
