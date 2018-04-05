@@ -187,8 +187,23 @@ output:
     log_msg(stringr::str_c("Recording is ",
                            if (input$record_on) "On" else "Off"), on = TRUE)
   })
+  # help module server ----
+  # help function now have proper folder
+  click_help <- function(input, output, session, title, size, file){
+    observeEvent(input$help, {
+      showModal(modalDialog(
+        title = title, size = size,
+        # APP_wd could be package app folder or just app folder depend on loading method
+        fluidPage(includeMarkdown(file.path(APP_wd, file))),
+        easyClose = TRUE, fade = FALSE
+      ))
+    })
+  }
+  # the app option help is registered after help function is ready
+  callModule(click_help, "app_options", title = "App Options",
+             size = "l", file = "help/1_app_options.md")
   # capture error ----
-  CAPTURE_error_msg <- !APP_local  # deployed version
+  # CAPTURE_error_msg <- !APP_local  # deployed version
   # CAPTURE_error_msg <- APP_local  # for local testing
   # prepare error file. restore sink on exit. otherwise testing it locally will keep it sunk for current R session. on.exit need to be inside server function so outside of renderUI
   onStop(function() {
@@ -200,7 +215,7 @@ output:
     })
   # on.exit(sink(type = "message"))
   output$error_popup <- renderUI(
-    if (CAPTURE_error_msg) {
+    if (input$capture_error) {
       # each session have one error log file
       values$error_file <- tempfile()
       # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
@@ -332,7 +347,7 @@ output:
         ),
       error = eHandler)
     if (warning_generated) {
-      if (CAPTURE_error_msg) {
+      if (input$capture_error) {
         showModal(modalDialog(title = "Import Warning",
                     fluidRow(
                       column(12, pre(includeText(req(values$error_file))))),
@@ -400,22 +415,6 @@ output:
     # cat("running in runShinydir mode\n")
     APP_wd <- "."
   }
-  # help module server ----
-  # help function now have proper folder
-  click_help <- function(input, output, session, title, size, file){
-    observeEvent(input$help, {
-      showModal(modalDialog(
-        title = title, size = size,
-        # APP_wd could be package app folder or just app folder depend on loading method
-        fluidPage(includeMarkdown(file.path(APP_wd, file))),
-        easyClose = TRUE, fade = FALSE
-      ))
-    })
-  }
-  # the app option help is registered after help function is ready
-  # callModule(click_help, "app_options",
-  #            title = "App Options", size = "l",
-  #            file = "help/1_app_options.md")
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
@@ -2598,9 +2597,6 @@ output:
     }
   )
   # p10. report ----
-  # the file name doesn't match the title because of changes.
-  callModule(click_help, "report", title = "App Options",
-             size = "l", file = "help/10_work_report.md")
   # save data ----
   output$save_data <- downloadHandler(
     filename = function() {

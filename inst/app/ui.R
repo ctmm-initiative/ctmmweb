@@ -79,15 +79,16 @@ app_options_box <- box(title = "App Options",
                                  HTML('&nbsp;'),
                                  "Record Actions")
                              , value = TRUE)),
-    column(3, offset = 5, checkboxInput("parallel",
+    column(3, offset = 1, checkboxInput("capture_error",
+                                        div(icon("exclamation-triangle"),
+                                            HTML('&nbsp;'),
+                                            "Capture Errors"),
+                                        value = TRUE)),
+    column(3, offset = 1, checkboxInput("parallel",
                             div(icon("cogs"),
                                 HTML('&nbsp;'),
                                 "Parallel Mode"),
                             value = TRUE)),
-    # column(3, offset = 1, checkboxInput("capture_error",
-    #                         div(icon("exclamation-triangle"),
-    #                             HTML('&nbsp;'),
-    #                             "Capture Errors"))),
     # column(4, checkboxGroupInput("error_log_parallel", label = NULL,
     #                              choiceNames = list(
     #                                div(icon("exclamation-triangle"),
@@ -104,8 +105,8 @@ app_options_box <- box(title = "App Options",
     #                        icon = icon("exclamation-triangle"),
     #                        style = ctmmweb:::STYLES$page_action)),
     # column(12, br()),
-    column(3, offset = 6, help_button("report"))
-    # column(3, offset = 6, help_button("app_options"))
+    # column(3, offset = 6, help_button("report"))
+    column(3, offset = 6, help_button("app_options"))
 
     # if (DEBUG_BUTTON) {
     #   # debug mode, to inject browser in running. not sure if it will

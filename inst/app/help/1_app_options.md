@@ -1,6 +1,10 @@
 ### Record Actions
 - Every meaningful actions by user can be recorded and compiled into a html work report in `Work Report` page. All plots and most tables are also saved. The option can be turned off to improve performance.
 
+### Capture Errors
+- If enabled, warning and error messages will be captured inside app, and they can be shown by clicking `Error Message` button on side bar. The message will also be saved as part of `Save Progress`.
+- If disabled, messages will be shown in R console, which is not available in web hosted mode.
+
 ### Disable Parallel Mode
 - Parallel mode can be tricky. Turning it off can help to verify if problems in app are related to parallel mode. You will also see model fitting progress messages in console, which is not visible in parallel mode because they are in cluster/forked process instead of current R process.
 
