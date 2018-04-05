@@ -304,6 +304,12 @@ output:
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
   # selected_model_try_res is updated in model fitting stage, need to be cleared when input change too.
+  # build id_pal from info. this is needed in importing tele data, and restoring session data.
+  build_id_pal <- function(info) {
+    leaflet::colorFactor(
+      scales::hue_pal()(nrow(info)), info$identity, ordered = TRUE
+    )
+  }
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
@@ -311,11 +317,8 @@ output:
     values$data$all_removed_outliers <- NULL
     # values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
-    values$data$id_pal <- leaflet::colorFactor(
-      scales::hue_pal()(nrow(values$data$merged$info)),
-      # unique(values$data$merged$data_dt$id)
-      values$data$merged$info$identity, ordered = TRUE
-      )
+    # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
+    values$id_pal <- build_id_pal(values$data$merged$info)
     shinydashboard::updateTabItems(session, "tabs", "plots")
     # LOG input data updated
     log_msg("Input data updated")
@@ -347,6 +350,7 @@ output:
         ),
       error = eHandler)
     if (warning_generated) {
+      log_msg("Warning generated in import")
       if (input$capture_error) {
         showModal(modalDialog(title = "Import Warning",
                     fluidRow(
@@ -1853,7 +1857,7 @@ output:
     model_names_dt <- unique(formated_summary_dt[,
                             .(identity, model_type, model_name)])
     # prepare model color, identity color function
-    model_names_dt[, base_color := values$data$id_pal(identity)]
+    model_names_dt[, base_color := values$id_pal(identity)]
     model_names_dt[, variation_number := seq_len(.N), by = identity]
     model_names_dt[, model_color :=
                      ctmmweb:::vary_color(base_color, .N)[variation_number],
@@ -2454,7 +2458,7 @@ output:
     # the color pallete need to be built upon full data set, not current subset
     # we cannot put id_pal in same place with hr_pal because user may check map without fitting models, when summary_models doesn't exist.
     withProgress(leaf <- basemap %>%
-                   ctmmweb:::add_points(dt, info$identity, values$data$id_pal),
+                   ctmmweb:::add_points(dt, info$identity, values$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
@@ -2630,6 +2634,12 @@ output:
                   "Current Telemetry Data")
         fwrite(values$data$merged$data_dt,
                file = file.path(session_tmpdir, "combined_data_table.csv"))
+        # save error msg if captured
+        if (input$capture_error) {
+          flush(values$error_file_con)
+          file.copy(values$error_file, file.path(session_tmpdir,
+                                                 "error_log.txt"))
+        }
         # also save report for reference
         generate_report(preview = FALSE)
         # move to same directory for easier packing. use rename to reduce effort
@@ -2638,9 +2648,10 @@ output:
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # the whole LOG folder with plot png/pdf in separate files. zip folder put zip to one level up the target folder, which is session_tmpdir. because the generated report was moved (not copied) to upper level, only other files are put in this zip.
         ctmmweb::zip_folder(LOG_folder, "plot.zip")
-        # pack to saved.zip, this is a temp name anyway.
+        # pack to saved.zip, this is a temp name anyway. being sepecific should be better than zip everything.
         saved_zip_path <- ctmmweb:::zip_relative_files(
           session_tmpdir, c("cache.zip", "data.rds", "report.html",
+                            "error_log.txt",
                             "combined_data_table.csv", "plot.zip"),
           "saved.zip")
         file.copy(saved_zip_path, file)
@@ -2661,16 +2672,10 @@ output:
     # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up
     utils::unzip(file.path(session_tmpdir, "cache.zip"), exdir = session_tmpdir)
     loaded_data <- readRDS(file.path(session_tmpdir, "data.rds"))
-    # restore variables in order, may need to freeze some
+    # restore variables, also need to update id_pal, which are outside of data thus not restored, but it need to be built.
     values$data <- loaded_data
-    # values$selected_data_model_try_res <- loaded$selected_data_model_try_res
-    # values$selected_data_guess_list <- loaded$selected_data_guess_list
-    # freezeReactiveValue(input, "tried_models_summary_rows_selected")
-    # selectRows(proxy_model_dt, loaded$tried_models_summary_rows_selected)
+    values$id_pal <- build_id_pal(values$data$merged$info)
     shinydashboard::updateTabItems(session, "tabs", "plots")
-    # freezeReactiveValue(input, "individuals_rows_selected")
-    # cat("selecting rows\n")
-    # selectRows(proxy_individuals, loaded$chosen_row_nos)
   })
   # view_report ----
   generate_report <- function(preview) {

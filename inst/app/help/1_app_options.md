@@ -25,5 +25,5 @@
   - `cache.zip`: cached calculation results. Exactly same calculation can be finished instantly
   - `report.html`: work report.
   - `plot.zip`: the plots saved as `png` or `pdf` files.
-- The zip can be imported later by `Load Data` button in `import` page. Thus you can restore previoius data and cache.
+- The zip can be imported later by `Load Data` button in `import` page. Thus you can restore previoius data and cache. Note the app data format may evolve and old saved data may not work with newer version app. You can always use the exactly same version app if needed.
 - If you made some changes to the original input data like removed outliers, added time subsets, you can save the changes through `Save Data`. Later you can restore the csv data through `combined_data_table.csv`, the more complete data through `data.rds`, or whole data zip through `Load Data`.

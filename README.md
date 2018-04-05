@@ -31,6 +31,8 @@ https://github.com/ctmm-initiative/ctmmweb
     ```r
     if (!require("remotes")) install.packages("remotes")
     remotes::install_github("ctmm-initiative/ctmmweb")
+    # sometimes you may want to use a certain version, for example the format of saved data may evolve with new versions
+    # remotes::install_github("ctmm-initiative/ctmmweb", ref = "commit or tag name")
     ```
 
 3. Run the app in one of following methods:
