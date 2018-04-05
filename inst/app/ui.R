@@ -156,7 +156,7 @@ movebank_studies_box <- box(title = "Movebank Studies",
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                column(3, checkboxInput("data_manager",
                                        "Only Show I'm Data Manager"))),
-      fluidRow(column(12, DT::dataTableOutput('studies'))))
+      fluidRow(column(12, DT::DTOutput('studies'))))
 movebank_study_detail_box <- box(title = "Selected Study Detail",
                                                  width = 12,
                                  collapsible = TRUE,
@@ -169,7 +169,7 @@ movebank_study_detail_box <- box(title = "Selected Study Detail",
               column(3, offset = 1, help_button("download_movebank")
                      )),
      hr(),
-     fluidRow(column(12, DT::dataTableOutput("study_detail"))))
+     fluidRow(column(12, DT::DTOutput("study_detail"))))
 movebank_study_preview_box <- box(title = "Selected Study Data",
                                                   width = 12,
                                   status = "primary", solidHeader = TRUE,
@@ -183,7 +183,7 @@ movebank_study_preview_box <- box(title = "Selected Study Data",
                                    style = ctmmweb:::STYLES$page_switch))),
       hr(),
       fluidRow(column(12, verbatimTextOutput("study_data_response"))),
-      fluidRow(column(12, DT::dataTableOutput('study_preview'))))
+      fluidRow(column(12, DT::DTOutput('study_preview'))))
 # p2. plots ----
 data_summary_box <- box(title = "1. Individuals",
                                         status = "info",
@@ -196,7 +196,7 @@ data_summary_box <- box(title = "1. Individuals",
         column(6, offset = 0, uiOutput("outlier_report")),
         column(3, offset = 0, help_button("visual"))),
       br(),
-      fluidRow(column(12, DT::dataTableOutput('individuals'))),
+      fluidRow(column(12, DT::DTOutput('individuals'))),
       br(),
       fluidRow(
         # column(3, offset = 0, checkboxInput("time_in_sec",
@@ -318,7 +318,7 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
                                  style = ctmmweb:::STYLES$page_action))),
     hr(),
     fluidRow(column(12,
-                    DT::dataTableOutput("points_in_distance_range")))),
+                    DT::DTOutput("points_in_distance_range")))),
   # p3.b speed ----
   tabPanel("Speed",
     fluidRow(column(4, offset = 1, sliderInput("speed_his_bins",
@@ -360,7 +360,7 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
                                  style = ctmmweb:::STYLES$page_action))),
     hr(),
     fluidRow(column(12,
-                    DT::dataTableOutput("points_in_speed_range")))))
+                    DT::DTOutput("points_in_speed_range")))))
 all_removed_outliers_box <- box(title = "Removed Outliers",
                            status = "primary", solidHeader = TRUE, width = 12,
                fluidRow(
@@ -371,7 +371,7 @@ all_removed_outliers_box <- box(title = "Removed Outliers",
                                       style = ctmmweb:::STYLES$page_action))
                         ),
                fluidRow(column(12,
-                               DT::dataTableOutput("all_removed_outliers"))))
+                               DT::DTOutput("all_removed_outliers"))))
 # p4. time subsetting ----
 # histogram need to wrapped in column and fluidrow to avoid out of border, which disabled the brush
 histogram_subsetting_box <- box(title = "Select Time Range",
@@ -403,7 +403,7 @@ histogram_subsetting_box <- box(title = "Select Time Range",
 current_range_box <- box(title = "Current Time Range",
                          status = "primary", solidHeader = TRUE, width = 12,
        fluidRow(
-         column(10, DT::dataTableOutput("current_range")),
+         column(10, DT::DTOutput("current_range")),
          column(2, br(), br(),
                  actionButton("add_time",
                     "Add", icon = icon("plus"),
@@ -441,7 +441,7 @@ selected_ranges_box <- box(title = "Time Range List",
                                        icon = icon("pie-chart"),
                                        style = ctmmweb:::STYLES$page_action))
                    ),
-          fluidRow(column(12, DT::dataTableOutput('time_ranges'))))
+          fluidRow(column(12, DT::DTOutput('time_ranges'))))
 # p5. vario control ----
 # vario_control_box <- tabBox(title = "Plot Controls",
 #                              id = "vario_control_tabs", width = 12,
@@ -486,7 +486,7 @@ vario_control_box <- box(title = "Plot Controls",
     #            column(3, offset = 2, actionButton("para_error", "Set ERROR",
     #                                   icon = icon("exclamation-triangle"),
     #                                   style = ctmmweb:::STYLES$page_action)),
-    #            column(12, DT::dataTableOutput("irregular_para_dt")),
+    #            column(12, DT::DTOutput("irregular_para_dt")),
     #            column(3, actionButton("para_pool", "Pool Variograms",
     #                                   icon = icon("pie-chart"),
     #                                   style = ctmmweb:::STYLES$page_action)),
@@ -530,7 +530,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                style = ctmmweb:::STYLES$page_action)),
         # column(2, offset = 3, help_button("model_selection")),
         column(12, br()),
-        column(12, DT::dataTableOutput("tried_models_summary"))
+        column(12, DT::DTOutput("tried_models_summary"))
       )
      ))
 # p6. home range ----
@@ -586,7 +586,7 @@ range_summary_box <- box(title = "Home Range Summary",
                         column(4, checkboxInput("hide_ci_hrange",
                                                 "Hide Confidence Intervals")),
                         column(2, offset = 6, help_button("home_range")),
-                        column(12, DT::dataTableOutput("range_summary"))
+                        column(12, DT::DTOutput("range_summary"))
                         )
 )
 # p7. overlap ----
@@ -596,7 +596,7 @@ overlap_summary_box <- box(title = "Overlap of Home Ranges",
          fluidRow(
            column(2, offset = 10, help_button("overlap")),
            br(), br(),
-           column(12, DT::dataTableOutput("overlap_summary"))
+           column(12, DT::DTOutput("overlap_summary"))
          )
 )
 overlap_plot_box <- tabBox(title = "Plot", id = "overlap_tabs", width = 12,

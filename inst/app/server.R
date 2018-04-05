@@ -486,7 +486,7 @@ output:
   # $studies ----
   values$studies <- NULL
   # only show selected cols because we don't want to show owner col. want to keep it insivibly so we can switch it on and off.
-  output$studies <- DT::renderDataTable(
+  output$studies <- DT::renderDT(
     DT::datatable({
       req(values$studies)
       selected_studies_cols <- c("id", "name", "deployments",
@@ -501,7 +501,7 @@ output:
   # selected data box
   # $study_detail ----
   values$study_detail <- NULL
-  output$study_detail <- DT::renderDataTable(
+  output$study_detail <- DT::renderDT(
     DT::datatable(req(values$study_detail),
               rownames = FALSE,
               options = list(pageLength = 5),
@@ -512,7 +512,7 @@ output:
   output$study_data_response <- renderText(req(values$study_data_response))
   # $study_preview ----
   values$study_preview <- NULL
-  output$study_preview <- DT::renderDataTable(
+  output$study_preview <- DT::renderDT(
     DT::datatable(req(values$study_preview), options = list(dom = 't')))
   # $move_bank_dt ----
   values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
@@ -695,7 +695,7 @@ output:
              " outliers removed from original"))
     }
   })
-  output$individuals <- DT::renderDataTable({
+  output$individuals <- DT::renderDT({
     req(values$data)
     # if (input$time_in_sec) {
     #   info_p <- values$data$merged$info[,
@@ -785,8 +785,9 @@ output:
     # subset_indice <- values$data$merged$info$identity %in% chosen_ids
     # info only has identity, no id column
     info <- values$data$merged$info[.(chosen_ids), on = "identity"]
-    # need to clear model fit result, change to original mode instead of modeled mode
+    # need to clear model fit result, change to original mode instead of modeled mode, also clean up previous model selection table selection
     # values$selected_data_model_try_res <- NULL
+    DT::selectRows(proxy_model_dt, list())
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     # LOG current selected individuals
     log_dt_md(info,
@@ -1111,7 +1112,7 @@ output:
     log_save_ggplot(g, "plot_distance_outlier_plot")
   })
   # points in selected distance range
-  output$points_in_distance_range <- DT::renderDataTable({
+  output$points_in_distance_range <- DT::renderDT({
     # only render table when there is a selection. otherwise it will be all data
     req(input$distance_his_brush)
     # cols <- c("row_no", "timestamp", "id", "distance_center")
@@ -1285,7 +1286,7 @@ output:
   })
   # outputOptions(output, "speed_outlier_plot", priority = 1)
   # points without valid speed values
-  # output$points_speed_non_valid <- DT::renderDataTable({
+  # output$points_speed_non_valid <- DT::renderDT({
   #   # only render table when there is a selection. otherwise it will be all data.
   #   animals_dt <- req(values$data$merged$data_dt)
   #   cols <- c("row_no", "timestamp", "id", "speed")
@@ -1296,7 +1297,7 @@ output:
   #             rownames = FALSE)
   # })
   # points in selected speed range
-  output$points_in_speed_range <- DT::renderDataTable({
+  output$points_in_speed_range <- DT::renderDT({
     # only render table when there is a selection. otherwise it will be all data.
     req(input$speed_his_brush)
     DT::datatable(select_speed_range()$animal_selected_formatted,
@@ -1331,7 +1332,7 @@ output:
     remove_outliers(points_to_remove)
   })
   # all removed outliers ----
-  output$all_removed_outliers <- DT::renderDataTable({
+  output$all_removed_outliers <- DT::renderDT({
     # only render table when there is a selection. otherwise it will be all data.
     req(values$data$all_removed_outliers)
     # animals_dt <- req(select_data()$data_dt)
@@ -1437,7 +1438,7 @@ output:
       return(time_range_dt[, .(start, end, length)])
     }
   }
-  output$current_range <- DT::renderDataTable({
+  output$current_range <- DT::renderDT({
     req(!is.null(values$selected_time_range))
     dt <- format_time_range(as.data.frame(values$selected_time_range))
     # LOG selection
@@ -1557,7 +1558,7 @@ output:
     msg <- paste0(new_id, " added to data")
     showNotification(msg, duration = 2, type = "message")
   })
-  output$time_ranges <- DT::renderDataTable({
+  output$time_ranges <- DT::renderDT({
     # it could be NULL from clear, or empty data.table from delete
     req(values$time_ranges)
     req(nrow(values$time_ranges) > 0)
@@ -1899,7 +1900,7 @@ output:
                         c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
       )
   }
-  output$tried_models_summary <- DT::renderDataTable({
+  output$tried_models_summary <- DT::renderDT({
     # should not need to use req on reactive expression if that expression have req inside.
     dt <- copy(summary_models()$summary_dt)
     # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
@@ -1926,16 +1927,19 @@ output:
     DT::selectRows(proxy_model_dt, list())
   })
   # select_models() ----
-  # this is the manual selecting rows in model summary table. previously first models are selected in try models action.
-  # previously we use first model if no selection. now we select them automatically so the intent is more clear, and it's easier to modify selection based on this. this is triggered by row selection changes. need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
+  # the action after rows in model table were selected. after model were tried, first models are automatically selected. both that and manual selection trigger behavior here.
+  # need to force row selection change or clear it first, or freeze it when need to update this reactive, which is needed for drawing modeled variograms.
+  # when data updated, need to clear previous rows_selected value, which are not destroied yet
   select_models <- reactive({
     # change signal variable so that overlap table rows should not be used now. this is similar to the clear row selection action in try models
     # overlap_table_ready <- FALSE
     # DT::selectRows(proxy_overlap_dt, list())
     # req(!is.null(values$selected_data_model_try_res))
-    req(length(input$tried_models_summary_rows_selected) > 0)
+    # req(length(input$tried_models_summary_rows_selected) > 0)
+    # input$tried_models_summary_cell_clicked
+    cat(input$tried_models_summary_rows_selected, "\n")
     # sort the rows selected so same individual models are together
-    rows_selected_sorted <- sort(input$tried_models_summary_rows_selected)
+    rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
     selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
@@ -2012,7 +2016,7 @@ output:
   # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update. don't really need a function but it was referenced 3 times so this is easier to use. compare to occur which only was used once so no need for function
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range summary ----
-  output$range_summary <- DT::renderDataTable({
+  output$range_summary <- DT::renderDT({
     # hrange_summary_dt <- model_list_dt_to_model_summary_dt(
     #   build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
     #   hrange = TRUE)
@@ -2218,7 +2222,7 @@ output:
     # return(overlap_dt)
   })
   # overlap table ----
-  output$overlap_summary <- DT::renderDataTable({
+  output$overlap_summary <- DT::renderDT({
     dt <- copy(select_models_overlap())
     # to color the v1 v2 columns, need a function that map from v1 v2 values (could be identity or full model name) to color, when using DT utility function this means a levels (all possible names) vector and color vector in same order.
     display_color <- select_models()$display_color
