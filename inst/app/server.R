@@ -1982,7 +1982,7 @@ output:
     selected_vario_layout <- layout_group(selected_vario_list,
                                      input$vario_height, input$vario_columns)
     # LOG selected models
-    log_dt_md(selected_names_dt, "Selected Models")
+    log_dt_md(selected_names_dt[, .(identity, model_type)], "Selected Models")
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
                 display_color = display_color,
