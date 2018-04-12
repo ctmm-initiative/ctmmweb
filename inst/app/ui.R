@@ -479,7 +479,7 @@ vario_control_box <- box(title = "Plot Controls",
       fluidRow(
         hr(),
         column(4, textInput("vario_dt", label =
-                              shiny::a("Irregular Sampling Schedules",
+                              shiny::a("Multiple Sampling Schedules",
                                        target = "_blank",
                                        href = "https://ctmm-initiative.github.io/ctmm/articles/variogram.html#irregular-sampling-schedules",
                                        style = "text-decoration: underline;"),
@@ -581,7 +581,23 @@ range_plot_box <- box(title = "Home Range Estimation",
                             icon = icon("save"),
                             style = ctmmweb:::STYLES$page_action))),
     fluidRow(
-     column(12, uiOutput("hrange_weight_ui")),
+     # column(12, uiOutput("hrange_weight_ui")),
+     column(10, selectInput("hrange_weight",
+                           label = div(HTML('&nbsp;'),
+                                       HTML('&nbsp;'),
+                                       HTML('&nbsp;'),
+                                       icon("balance-scale"),
+                             shiny::a("Optimal Weighting",
+                                      target = "_blank",
+                                      href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
+                                      style = "text-decoration: underline;")),
+                           choices = NULL, multiple = TRUE)),
+     # [add more vertical spaces](https://stackoverflow.com/questions/1409649/how-to-change-the-height-of-a-br)
+     column(2,
+            div(br(), style = "line-height: 180%;"),
+            actionButton("apply_hrange_weight", "Apply",
+                            icon = icon("angle-double-down"),
+                            style = ctmmweb:::STYLES$page_action)),
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))

@@ -1987,6 +1987,9 @@ output:
                                      input$vario_height, input$vario_columns)
     # LOG selected models
     log_dt_md(selected_names_dt[, .(identity, model_type)], "Selected Models")
+    # update home range weight selector choices
+    updateSelectInput(session, "hrange_weight",
+                      choices = selected_names_dt$display_name)
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
                 display_color = display_color,
@@ -2000,16 +2003,15 @@ output:
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
-  # weight selector ----
-  output$hrange_weight_ui <- renderUI({
-    displayed_names <- req(select_models()$names_dt)$display_name
-    selectInput("hrange_weight",
-                label = shiny::a("Optimal Weighting",
-                                 target = "_blank",
-                                 href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
-                                 style = "text-decoration: underline;"),
-                choices = displayed_names, multiple = TRUE)
-  })
+  # output$hrange_weight_ui <- renderUI({
+  #   displayed_names <- req(select_models()$names_dt)$display_name
+  #   selectInput("hrange_weight",
+  #               label = shiny::a("Optimal Weighting",
+  #                                target = "_blank",
+  #                                href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
+  #                                style = "text-decoration: underline;"),
+  #               choices = displayed_names, multiple = TRUE)
+  # })
   # select_models_hranges() ----
   select_models_hranges <- reactive({
     req(select_models())
