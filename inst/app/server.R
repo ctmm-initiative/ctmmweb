@@ -1670,10 +1670,8 @@ output:
   )
   # select individual plot to fine tune
   output$tune_selector <- renderUI({
-    tele_list <- req(select_data()$tele_list)
-    identities <- sapply(tele_list, function(x) x@info$identity)
     selectInput("tune_selected", NULL,
-                c("Fine-tune" = "", identities))
+                c("Fine-tune" = "", req(select_data()$info$identity)))
   })
   # fine tune fit start ----
   observeEvent(input$tune_selected, {
@@ -2002,6 +2000,16 @@ output:
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
+  # weight selector ----
+  output$hrange_weight_ui <- renderUI({
+    displayed_names <- req(select_models()$names_dt)$display_name
+    selectInput("hrange_weight",
+                label = shiny::a("Optimal Weighting",
+                                 target = "_blank",
+                                 href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
+                                 style = "text-decoration: underline;"),
+                choices = displayed_names, multiple = TRUE)
+  })
   # select_models_hranges() ----
   select_models_hranges <- reactive({
     req(select_models())

@@ -482,10 +482,10 @@ vario_control_box <- box(title = "Plot Controls",
                                        href = "https://ctmm-initiative.github.io/ctmm/articles/variogram.html#irregular-sampling-schedules",
                                        style = "text-decoration: underline;"),
                             placeholder = "comma separated numbers")),
-        column(2, selectInput("vario_dt_unit", label = "Time Unit",
+        column(3, selectInput("vario_dt_unit", label = "Time Unit",
                               choices = c("second", "minute", "hour", "day"),
                               selected = "hour")),
-        column(2, offset = 4, br(), help_button("vario_control"))
+        column(2, offset = 3, br(), help_button("vario_control"))
       )
       # )
 # ,
@@ -553,9 +553,6 @@ range_plot_box <- box(title = "Home Range Estimation",
                                       status = "info",
                  solidHeader = TRUE, width = 12,
    fluidRow(
-     # column(3, offset = 0, br(), checkboxInput("hrange_hide_contours",
-     #                                     "Hide Contours",
-     #                                     value = FALSE)),
      # we could put this into a function, but occurrence only use 2 of 3, and every one have different default values.
      column(4, checkboxGroupInput("hrange_option", label = NULL,
                   choiceNames = list(div(icon("circle-o"),
@@ -580,17 +577,9 @@ range_plot_box <- box(title = "Home Range Estimation",
      column(2, offset = 1, br(),
             actionButton("export_homerange_dialog", "Export",
                             icon = icon("save"),
-                            style = ctmmweb:::STYLES$page_action)),
-     # column(3, offset = 0, br(),
-     #        downloadButton("export_raster",
-     #                       "Export Raster",
-     #                       icon = icon("save"),
-     #                       style = ctmmweb:::STYLES$download_button)),
-     # column(3, offset = 0, br(),
-     #        downloadButton("export_hrange",
-     #                       "Export Shapefiles",
-     #                       icon = icon("save"),
-     #                       style = ctmmweb:::STYLES$download_button)),
+                            style = ctmmweb:::STYLES$page_action))),
+    fluidRow(
+     column(12, uiOutput("hrange_weight_ui")),
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))
