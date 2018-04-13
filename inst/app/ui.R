@@ -448,10 +448,10 @@ selected_ranges_box <- box(title = "Time Range List",
                                        style = ctmmweb:::STYLES$page_action))
                    ),
           fluidRow(column(12, DT::DTOutput('time_ranges'))))
-# p5. vario control ----
+# p5.a vario control ----
 # vario_control_box <- tabBox(title = "Plot Controls",
 #                              id = "vario_control_tabs", width = 12,
-#    # p5.1 layout ----
+#    # p5.1 layout ---
 #    tabPanel("Control",
 vario_control_box <- box(title = "Plot Controls",
                            status = "info", solidHeader = TRUE, width = 12,
@@ -491,7 +491,7 @@ vario_control_box <- box(title = "Plot Controls",
       )
       # )
 # ,
-    # # p5.2 irregular ----
+    # # p5.2 irregular ---
     # tabPanel("Irregular Data",
     #          fluidRow(
     #            column(3, actionButton("para_dt", "Set dt",
@@ -510,7 +510,7 @@ vario_control_box <- box(title = "Plot Controls",
     #            column(2, offset = 7, help_button("vario_irregular"))
     #            ))
 )
-# p5.3 variograms ----
+# p5.b variograms ----
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-empty"), "1. Empirical"), value = "1",
               fluidRow(

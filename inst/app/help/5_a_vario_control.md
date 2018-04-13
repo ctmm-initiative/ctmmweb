@@ -3,3 +3,4 @@
 - The units of X (Time-lag) and Y (Semi-variance) may change according to data to better represent the values.
 - `Absolute` mode operate on the max Time-lag range individual in group, and all others scaled with same X, Y axes for easier comparison.
 - `Relative` mode zoom every plot by fraction of their own Time-lag range. The X, Y axes are not synced.
+- Check [vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#irregular-sampling-schedules) and [`?variogram`](https://ctmm-initiative.github.io/ctmm/reference/variogram.html) for details about `Multiple Sampling Schedules`.
