@@ -4,6 +4,7 @@
 info_tele <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
+  # the median of diff
   sampling_interval <- ifelse(length(diffs) == 0,
                               0,
                               stats::median(diffs))
@@ -13,10 +14,6 @@ info_tele <- function(object) {
   t_end <- max(object$timestamp, na.rm = TRUE)
   # format the duration/interval units in list to make them use same unit
   data.table(identity = object@info$identity,
-             # interval = format_seconds_f(sampling_interval)(sampling_interval),
-             # duration = format_seconds_f(sampling_range)(sampling_range),
-             # sampling_start = t_start,
-             # sampling_end = t_end,
              start = format_datetime(t_start),
              end = format_datetime(t_end),
              interval = sampling_interval,

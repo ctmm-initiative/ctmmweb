@@ -232,6 +232,7 @@ output:
     if (isolate(input$capture_error)) {
       clean_up_error_capture(isolate(values$error_file_con))
     }
+    rm(PKG_INSTALLATION_TIME, envir = globalenv())
   })
   # the button itself need to depend on option, cannot be inside the if call which doesn't remove in else branch
   # add side bar button
