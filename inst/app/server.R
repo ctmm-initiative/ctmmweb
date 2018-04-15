@@ -1877,10 +1877,13 @@ output:
   })
   # model summary ----
   # format model summary table as DT, also used in home range page
-  render_model_summary_DT <- function(dt, model_types, info_p) {
-    DT::datatable(dt,options = list(scrollX = TRUE,
-                                    pageLength = 18,
-                                    lengthMenu = c(18, 36, 72)),
+  render_model_summary_DT <- function(dt, model_types, info_p, selected_rows) {
+    DT::datatable(dt, selection = list(mode = "multiple",
+                                       selected = selected_rows,
+                                       target = 'row'),
+                  options = list(scrollX = TRUE,
+                                 pageLength = 18,
+                                 lengthMenu = c(18, 36, 72)),
                   rownames = FALSE) %>%
       # majority cells in color by model type
       DT::formatStyle('model_type', target = 'row',
@@ -1912,10 +1915,13 @@ output:
     # CI_colors <- color_CI(values$data$merged$info$identity)
     # base::sort have different result in linux, hosted server.
     model_types <- stringr::str_sort(unique(dt$model_type))
-    DT_table <- render_model_summary_DT(dt, model_types, info_p)
-    # select models otherwise no variogram plot
-    DT::selectRows(proxy_model_dt, summary_models()$first_models)
-    return(DT_table)
+    # DT_table <- render_model_summary_DT(dt, model_types, info_p)
+    # # select models otherwise no variogram plot
+    # DT::selectRows(proxy_model_dt, summary_models()$first_models)
+    # return(DT_table)
+    # pre-select with init parameter instead of proxy
+    render_model_summary_DT(dt, model_types, info_p,
+                            summary_models()$first_models)
   })
   proxy_model_dt <- DT::dataTableProxy("tried_models_summary")
   observeEvent(input$select_1st_models, {
@@ -2053,7 +2059,7 @@ output:
     # still use the full model type table color mapping to make it consistent.
     model_types <- stringr::str_sort(unique(
       summary_models()$summary_dt$model_type))
-    render_model_summary_DT(dt, model_types, info_p)
+    render_model_summary_DT(dt, model_types, info_p, NULL)
   })
 
   # home range plot ----
