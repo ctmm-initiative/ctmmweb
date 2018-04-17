@@ -1598,7 +1598,7 @@ output:
                                      input$vario_height, input$vario_columns)
     return(list(vario_list = vario_list, vario_layout = vario_layout))
   })
-  # current_vario_model_list() ----
+  # current_vario_model_list() ---
   # if put inside vario_parameters, fine tune didn't trigger changes correctly. Putting an expression used reactive values in function parameter may not work, that's why we need a data.table object call in DT. maybe because guess_list is defined inside that reactive, new changes didn't override the initialization
   # current_vario_model_list <- reactive({
   #   switch(input$vario_mode,
@@ -1607,7 +1607,7 @@ output:
   #          modeled = select_models()$model_list
   #   )
   # })
-  # current_vario() ----
+  # current_vario() ---
   # switch vario_list, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches. in modeled mode, there could be different vario count so layout is different
   # current_vario <- reactive({
   #   current <- list()

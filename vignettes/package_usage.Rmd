@@ -43,10 +43,10 @@ To plot the locations of multiple animals simultaneously with `ggplot2`, we need
 
 ```{r basic data structure}
 # basic data structure
-combined_data <- combine(buffalo)
+collected_data <- collect(buffalo)
 # a list of locations data.table/data.frame and information table
-loc_data <- combined_data$data
-info <- combined_data$info
+loc_data <- collected_data$data
+info <- collected_data$info
 ```
 
 In `loc_data`: 
