@@ -229,27 +229,28 @@ tele_list_to_dt <- function(tele_obj_list) {
   # animals_data_dt <- assign_speed(animals_data_dt)
   return(animals_data_dt)
 }
-#' Generate combined location and info `data.table` from telemetry object/list
+#' Collect location and info `data.table` from telemetry object/list
 #'
 #' A [ctmm::as.telemetry()] telemetry list hold mutiple animal data in separate
 #' list items, each item have the animal location data in a data frame, and
 #' other information in various slots. This structure supports flexible S3
 #' methods for telemetry object. However to plot multiple animals location
-#' together with `ggplot2` we need to combine all location data into a single
+#' together with `ggplot2` we need to collect all location data as a single
 #' `data.frame` with an animal id column.
 #'
-#' This function combine any input telemetry object/List into a `data.table` of
-#' location data, and another information `data.table` for animals. `data.table`
-#' is chosen over `data.frame` for much better performance. This data structure
-#' is also used in a lot of places in app, which works on any selected subset of
-#' full data in almost all steps.
+#' This function convert any input telemetry object/List into a list of 1.
+#' `data.table` of location data, and 2. animal information `data.table`.
+#' `data.table` is chosen over `data.frame` for much better performance. This
+#' data structure is also used in a lot of places in app, which works on any
+#' selected subset of full data in almost all steps.
 #'
 #' @param tele_obj_list [ctmm::as.telemetry()] telemetry object/list
 #'
-#' @return list of - `data_dt`: all animals combined in one data.table - `info`:
-#'   animal information table
+#' @return list of
+#' - `data_dt`: all animals collected in one data.table
+#' - `info`: animal information table
 #' @export
-combine <- combine_tele_list <- function(tele_obj_list) {
+collect <- combine_tele_list <- function(tele_obj_list) {
   return(list(data_dt = tele_list_to_dt(tele_obj_list),
               info = report(tele_obj_list)))
 }
