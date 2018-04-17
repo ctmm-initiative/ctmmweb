@@ -478,17 +478,32 @@ vario_control_box <- box(title = "Plot Controls",
                                            step = 1))),
       fluidRow(
         hr(),
+        column(4, selectInput("vario_dt_ids", label = "Identities",
+                              choices = NULL, multiple = TRUE)),
         column(4, textInput("vario_dt", label =
                               shiny::a("Multiple Sampling Schedules",
                                        target = "_blank",
                                        href = "https://ctmm-initiative.github.io/ctmm/articles/variogram.html#irregular-sampling-schedules",
                                        style = "text-decoration: underline;"),
                             placeholder = "comma separated numbers")),
-        column(3, selectInput("vario_dt_unit", label = "Time Unit",
+        column(2, selectInput("vario_dt_unit", label = "Time Unit",
                               choices = c("second", "minute", "hour", "day"),
                               selected = "hour")),
-        column(2, offset = 3, br(), help_button("vario_control"))
+        column(2, div(br(), style = "line-height: 180%;"),
+               actionButton("apply_vario_dt", "Apply",
+                               icon = icon("angle-double-down"),
+                               style = ctmmweb:::STYLES$page_action))),
+      fluidRow(
+        column(8, DT::DTOutput("vario_dt_table")),
+        column(2, offset = 2, actionButton("reset_vario_dt", "Reset",
+                               icon = icon("ban"),
+                               style = ctmmweb:::STYLES$page_action),
+               br(), br(),
+               help_button("vario_control"))
+        # column(2, offset = 0, help_button("vario_control"))
       )
+
+      # )
       # )
 # ,
     # # p5.2 irregular ---
