@@ -204,18 +204,20 @@ output:
              size = "l", file = "help/1_app_options.md")
   # capture error ----
   # the setup is run in beginning, also run with checkbox event. don't run twice if already exist
+  ERROR_CAPTURED <- FALSE
   setup_error_capture <- function(){
-    if (is.null(values$error_file_con)) {
+    if (!ERROR_CAPTURED) {
       # each session have one error log file. different client will have different file in same server
       values$error_file <- tempfile()
       # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
       values$error_file_con <- file(values$error_file, open = "a")
       sink(values$error_file_con, type = "message")
+      ERROR_CAPTURED <<- TRUE
       log_msg("Error messages captured in App")
     }
   }
   # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
-  # isolate(setup_error_capture())
+  isolate(setup_error_capture())
   # isolate({
   #   values$error_file <- tempfile()
   #   # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
@@ -236,9 +238,10 @@ output:
       setup_error_capture()
     } else {
       clean_up_error_capture(values$error_file_con)
+      ERROR_CAPTURED <<- FALSE
       log_msg("Error message directed to R Console")
     }
-  }, priority = 99)
+  })
   # clean up ----
   # on.exit need to be inside server function so outside of renderUI
   onStop(function() {
