@@ -790,9 +790,9 @@ output:
     # values$selected_data_model_try_res <- NULL
     DT::selectRows(proxy_model_dt, list())
     updateRadioButtons(session, "vario_mode", selected = "empirical")
+    updateSelectInput(session, "vario_dt_ids", choices = info$identity)
     # LOG current selected individuals
-    log_dt_md(info,
-              "Current selected individuals")
+    log_dt_md(info, "Current selected individuals")
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
     # switch model selection tab to 1st as modeling need 1st tab data updated
     updateTabsetPanel(session, "vario_tabs", selected = "1")
@@ -1585,6 +1585,33 @@ output:
     height <- figure_height * row_count
     return(list(row_count = row_count, height = height))
   }
+  # vario_dt ----
+  # each dt parameter row added to a reactive value. select_data_vario take it to apply on variogram parameters. a table take it to display current rows, which can be reset.
+  values$multi_schedule_dt <- NULL
+  observeEvent(input$add_vario_dt, {
+    multi_schedule_row <- data.table(
+      selected_names = list(req(input$vario_dt_ids)),
+      input_intervals = list(req(ctmmweb:::parse_comma_text_input(
+        input$vario_dt, NULL))),
+      time_unit = input$vario_dt_unit)
+    values$multi_schedule_dt <- rbindlist(list(values$multi_schedule_dt,
+                                               multi_schedule_row))
+  })
+  output$vario_dt_table <- DT::renderDT({
+    dt <- copy(req(values$multi_schedule_dt))
+    # list column cannot be shown by DT, must convert to string
+    dt[, identities := paste(selected_names[[1]], collapse = ", "),
+          by = 1:nrow(dt)]
+    dt[, intervals := paste(input_intervals[[1]], collapse = ", "),
+          by = 1:nrow(dt)]
+    # to show as result table
+    DT::datatable(dt[, .(identities, intervals, time_unit)],
+                  options = list(dom = 't', ordering = FALSE),
+                  rownames = FALSE)
+  })
+  observeEvent(input$reset_vario_dt, {
+    values$multi_schedule_dt <- NULL
+  })
   # select_data_vario() ----
   # variogram list and layout for current data in vario 1 and 2, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
   select_data_vario <- reactive({

@@ -55,18 +55,22 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
               vec_formatter = vec_formatter))
 }
 # home range ----
-# take the input in home range page, note the input need to be divided by 100
-# non valid input is checked, rejected, show message
-parse_levels.UD <- function(levels_text) {
-  items <- stringr::str_trim(stringr::str_split(levels_text, ",")[[1]])
-  parsed_values <- as.numeric(items[items != ""]) / 100
+# parse text input of comma separated values
+parse_comma_text_input <- function(comma_text, default_value) {
+  items <- stringr::str_trim(stringr::str_split(comma_text, ",")[[1]])
+  parsed_values <- as.numeric(items[items != ""])
+  # non valid input is checked, rejected, show message
   if ((length(parsed_values) == 0) || (is.na(parsed_values))) {
     shiny::showNotification("Only number or comma separated numbers are accepted",
                             duration = 5, type = "error")
-    return(0.95)
+    return(default_value)
   } else {
     return(parsed_values)
   }
+}
+# for home range/occur level input, divid by 100, take default value when no valid input
+parse_levels.UD <- function(levels_text) {
+  parse_comma_text_input(levels_text, default_value = 95) / 100
 }
 # debugging helper ----
 # print variable information. it's difficult to get expression name after transfered as a function parameter. so need to use name string as parameter
