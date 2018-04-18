@@ -203,9 +203,27 @@ output:
   callModule(click_help, "app_options", title = "App Options",
              size = "l", file = "help/1_app_options.md")
   # capture error ----
-  # CAPTURE_error_msg <- !APP_local  # deployed version
-  # CAPTURE_error_msg <- APP_local  # for local testing
-  # clean up. needed in app exit and checking option off.
+  # the setup is run in beginning, also run with checkbox event. don't run twice if already exist
+  setup_error_capture <- function(){
+    if (is.null(values$error_file_con)) {
+      # each session have one error log file. different client will have different file in same server
+      values$error_file <- tempfile()
+      # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
+      values$error_file_con <- file(values$error_file, open = "a")
+      sink(values$error_file_con, type = "message")
+      log_msg("Error messages captured in App")
+    }
+  }
+  # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
+  # isolate(setup_error_capture())
+  # isolate({
+  #   values$error_file <- tempfile()
+  #   # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
+  #   values$error_file_con <- file(values$error_file, open = "a")
+  #   sink(values$error_file_con, type = "message")
+  #   log_msg("Error messages captured in App")
+  # })
+  # # clean up. needed in app exit and checking option off.
   clean_up_error_capture <- function(error_con) {
     # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
     sink(type = "message")
@@ -215,17 +233,12 @@ output:
   # checking on/off option should either prepare the error file or clean it up
   observeEvent(input$capture_error, {
     if (input$capture_error) {
-      # each session have one error log file. different client will have different file in same server
-      values$error_file <- tempfile()
-      # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
-      values$error_file_con <- file(values$error_file, open = "a")
-      sink(values$error_file_con, type = "message")
-      log_msg("Error messages captured in App")
+      setup_error_capture()
     } else {
       clean_up_error_capture(values$error_file_con)
       log_msg("Error message directed to R Console")
     }
-  })
+  }, priority = 99)
   # clean up ----
   # on.exit need to be inside server function so outside of renderUI
   onStop(function() {
@@ -385,12 +398,12 @@ output:
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   # using parameter because launching app with path also use this function
-  file_uploaded <- function(data_path){
+  import_uploaded_file <- function(data_path){
     data_import(data_path)
     updateRadioButtons(session, "load_option", selected = "upload")
     shinydashboard::updateTabItems(session, "tabs", "plots")
   }
-  # app launch mode ----
+  # app(shiny_app_data) ----
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
   # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
   # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
@@ -400,18 +413,18 @@ output:
     # cat("running in app() mode\n")
     #set app directory to installed package app folder (from app()), which is needed by loading help documentations
     APP_wd <- get("app_DIR", envir = calling_env)
-    # further check if data parameter is avaialbe
+    # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
     if (exists("shiny_app_data", where = calling_env)) {
       app_input_data <- get("shiny_app_data", envir = calling_env)
-      if (is.character(app_input_data)) {
+      if (is.character(app_input_data)) {  # string, should be file name
         # LOG file loaded from app()
         log_msg("Importing file from app(shiny_app_data)", app_input_data)
         # accessed reactive values so need to isolate
-        isolate(file_uploaded(app_input_data))
+        isolate(import_uploaded_file(app_input_data))
       } else if (("telemetry" %in% class(app_input_data)) ||
-                 (is.list(shiny_app_data) &&
-                  "telemetry" %in% class(shiny_app_data[[1]]))
-      ) {
+                 (is.list(app_input_data) &&
+                  "telemetry" %in% class(app_input_data[[1]]))
+      ) {  # variable is tele obj or tele_list
         # LOG data loaded from app()
         log_msg("Loading telemetry data from app(shiny_app_data)")
         isolate(update_input_data(app_input_data))
@@ -427,7 +440,7 @@ output:
     req(input$tele_file)
     # LOG file upload.
     log_msg("Importing file", input$tele_file$name)
-    file_uploaded(input$tele_file$datapath)
+    import_uploaded_file(input$tele_file$datapath)
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
@@ -455,7 +468,7 @@ output:
              req(input$tele_file)
              # LOG file upload.
              log_msg("Importing file", input$tele_file$name)
-             file_uploaded(input$tele_file$datapath)
+             import_uploaded_file(input$tele_file$datapath)
            })
   })
   # also update the app when sample size changed and is already in sample mode
