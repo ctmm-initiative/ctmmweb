@@ -226,13 +226,17 @@ output:
       log_msg("Error message directed to R Console")
     }
   })
+  # clean up ----
   # on.exit need to be inside server function so outside of renderUI
   onStop(function() {
     # if option is off, clean up is done already
     if (isolate(input$capture_error)) {
       clean_up_error_capture(isolate(values$error_file_con))
     }
-    rm(PKG_INSTALLATION_TIME, envir = globalenv())
+    # in app() mode it will be inside app() env so have warning
+    suppressWarnings(
+      rm(PKG_INSTALLATION_TIME, envir = globalenv())
+    )
   })
   # the button itself need to depend on option, cannot be inside the if call which doesn't remove in else branch
   # add side bar button
@@ -1619,7 +1623,23 @@ output:
     # guess value need to be reactive so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(tele_list,
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
-    vario_list <- lapply(tele_list, ctmm::variogram)
+    # take vario-dt parameter list
+    dt_para_list <- vector("list", length = length(tele_list))
+    names(dt_para_list) <- names(tele_list)
+    ms_dt <- values$multi_schedule_dt
+    if (!is.null(ms_dt)) {
+      for (i in 1:nrow(ms_dt)) {
+        current_names <- ms_dt[i, selected_names][[1]]
+        # lapply using function, need to use <<- to change global variable, use for loop instead
+        for (x in current_names) {
+          dt_para_list[[x]] <- ms_dt[i, input_intervals][[1]] %#% ms_dt[i, time_unit]
+        }
+      }
+    }
+    # vario_list <- lapply(tele_list, ctmm::variogram)
+    vario_list <- lapply(names(tele_list), function(x) {
+      ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
+    })
     names(vario_list) <- names(tele_list)  # needed for figure title
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)

@@ -72,6 +72,10 @@ parse_comma_text_input <- function(comma_text, default_value) {
 parse_levels.UD <- function(levels_text) {
   parse_comma_text_input(levels_text, default_value = 95) / 100
 }
+# package installation time in current time zone. This is used in ui (app info dialog) and server (start info).
+# get_pkg_installation_time <- function(){
+#   format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
+# }
 # debugging helper ----
 # print variable information. it's difficult to get expression name after transfered as a function parameter. so need to use name string as parameter
 # not working because of environment. tricky with get.
@@ -79,6 +83,6 @@ parse_levels.UD <- function(levels_text) {
 #   cat(crayon::white$bgYellow$black(var_name_string), ":",
 #       get(var_name_string, envir = parent.env(environment())), "\n")
 # }
-catn <- function(marker, value) {
-  cat(crayon::white$bgYellow$black(marker), ":", value, "\n")
-}
+# catn <- function(marker, value) {
+#   cat(crayon::white$bgYellow$black(marker), ":", value, "\n")
+# }
