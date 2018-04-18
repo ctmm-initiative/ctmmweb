@@ -342,10 +342,10 @@ output:
     # LOG input data updated
     log_msg("Input data updated")
   }
-  # 1.1 csv to telemetry ----
+  # 1.1 import to telemetry ----
   # call this function for side effect, set values$data
   # as.telemetry work on both file path and data.frame, so it works on both of uploaded file and downloaded movebank data frame.
-  data_import <- function(data_path) {
+  data_import <- function(as_telemetry_input) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
@@ -364,7 +364,7 @@ output:
     }
     tele_list <- tryCatch(
       withCallingHandlers(
-        ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
+        ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(as_telemetry_input)),
         warning = wHandler
         ),
       error = eHandler)
@@ -378,20 +378,8 @@ output:
       } else {
         showNotification("Warning in import, check R console",
                          duration = 5, type = "warning")
-        # showModal(modalDialog(title = "Import Warning",
-        #                       fluidRow(
-        #                         column(12, verbatimTextOutput("warnings"))),
-        #                       size = "l", easyClose = TRUE, fade = FALSE))
-        # output$warnings <- renderPrint(warnings())
       }
     }
-    # wrap it so even single individual will return a list with one item
-    # tele_list <- tryCatch(
-    #   ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(data_path)),
-    #   error = function(e) {
-    #     showNotification("Import error, check data again",
-    #                      duration = 4, type = "error")
-    #     })
     # only proceed if no error
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
     req(all(unlist(test_class)))
@@ -401,8 +389,8 @@ output:
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   # using parameter because launching app with path also use this function
-  import_uploaded_file <- function(data_path){
-    data_import(data_path)
+  import_as_telemetry <- function(as_telemetry_input){
+    data_import(as_telemetry_input)
     updateRadioButtons(session, "load_option", selected = "upload")
     shinydashboard::updateTabItems(session, "tabs", "plots")
   }
@@ -419,19 +407,33 @@ output:
     # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
     if (exists("shiny_app_data", where = calling_env)) {
       app_input_data <- get("shiny_app_data", envir = calling_env)
-      if (is.character(app_input_data)) {  # string, should be file name
-        # LOG file loaded from app()
-        log_msg("Importing file from app(shiny_app_data)", app_input_data)
-        # accessed reactive values so need to isolate
-        isolate(import_uploaded_file(app_input_data))
-      } else if (("telemetry" %in% class(app_input_data)) ||
-                 (is.list(app_input_data) &&
-                  "telemetry" %in% class(app_input_data[[1]]))
-      ) {  # variable is tele obj or tele_list
+      # all input can be taken by as.telemetry, except tele obj/list already.
+      if (("telemetry" %in% class(app_input_data)) ||
+          (is.list(app_input_data) &&
+           "telemetry" %in% class(app_input_data[[1]]))) {
+        # tele obj/list already, update directly
         # LOG data loaded from app()
         log_msg("Loading telemetry data from app(shiny_app_data)")
         isolate(update_input_data(app_input_data))
+      } else {
+        # LOG import telemetry data, it could be an object so cannot put in log_msg 2nd parameter. cannot know original parameter string once transferred as app() parameter.
+        log_msg("Importing telemetry data from app(shiny_app_data)")
+        # accessed reactive values so need to isolate
+        isolate(import_as_telemetry(app_input_data))
       }
+      # if (is.character(app_input_data)) {  # string, should be file name
+      #   # LOG file loaded from app()
+      #   log_msg("Importing file from app(shiny_app_data)", app_input_data)
+      #   # accessed reactive values so need to isolate
+      #   isolate(import_as_telemetry(app_input_data))
+      # } else if (("telemetry" %in% class(app_input_data)) ||
+      #            (is.list(app_input_data) &&
+      #             "telemetry" %in% class(app_input_data[[1]]))
+      # ) {  # variable is tele obj or tele_list
+      #   # LOG data loaded from app()
+      #   log_msg("Loading telemetry data from app(shiny_app_data)")
+      #   isolate(update_input_data(app_input_data))
+      # }
     }
   } else {
     # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
@@ -443,7 +445,7 @@ output:
     req(input$tele_file)
     # LOG file upload.
     log_msg("Importing file", input$tele_file$name)
-    import_uploaded_file(input$tele_file$datapath)
+    import_as_telemetry(input$tele_file$datapath)
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
@@ -471,7 +473,7 @@ output:
              req(input$tele_file)
              # LOG file upload.
              log_msg("Importing file", input$tele_file$name)
-             import_uploaded_file(input$tele_file$datapath)
+             import_as_telemetry(input$tele_file$datapath)
            })
   })
   # also update the app when sample size changed and is already in sample mode
