@@ -421,19 +421,6 @@ output:
         # accessed reactive values so need to isolate
         isolate(import_as_telemetry(app_input_data))
       }
-      # if (is.character(app_input_data)) {  # string, should be file name
-      #   # LOG file loaded from app()
-      #   log_msg("Importing file from app(shiny_app_data)", app_input_data)
-      #   # accessed reactive values so need to isolate
-      #   isolate(import_as_telemetry(app_input_data))
-      # } else if (("telemetry" %in% class(app_input_data)) ||
-      #            (is.list(app_input_data) &&
-      #             "telemetry" %in% class(app_input_data[[1]]))
-      # ) {  # variable is tele obj or tele_list
-      #   # LOG data loaded from app()
-      #   log_msg("Loading telemetry data from app(shiny_app_data)")
-      #   isolate(update_input_data(app_input_data))
-      # }
     }
   } else {
     # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
