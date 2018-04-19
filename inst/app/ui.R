@@ -497,10 +497,14 @@ vario_control_box <- box(title = "Plot Controls",
       fluidRow(
         column(12, h4("Added Schedules")),
         column(12, DT::DTOutput("vario_dt_table"), br()),
-        column(2, offset = 0, actionButton("reset_vario_dt", "Reset",
+        column(3, offset = 0, actionButton("remove_row_vario_dt",
+                                           "Remove Selected",
+                                           icon = icon("trash-o"),
+                                           style = ctmmweb:::STYLES$page_action)),
+        column(3, offset = 1, actionButton("reset_vario_dt", "Reset All",
                                icon = icon("ban"),
                                style = ctmmweb:::STYLES$page_action)),
-        column(2, offset = 8, help_button("vario_control"))
+        column(2, offset = 3, help_button("vario_control"))
         # column(2, offset = 0, help_button("vario_control"))
       )
 

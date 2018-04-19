@@ -1618,6 +1618,12 @@ output:
                   options = list(dom = 't', ordering = FALSE),
                   rownames = FALSE)
   })
+  observeEvent(input$remove_row_vario_dt, {
+    req(length(input$vario_dt_table_rows_selected) > 0)
+    dt_left <- values$multi_schedule_dt[!input$vario_dt_table_rows_selected]
+    # need to be NULL instead of empty table
+    values$multi_schedule_dt <- if (nrow(dt_left) == 0) NULL else dt_left
+  })
   observeEvent(input$reset_vario_dt, {
     values$multi_schedule_dt <- NULL
   })
