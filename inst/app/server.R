@@ -2071,6 +2071,22 @@ output:
   #                                style = "text-decoration: underline;"),
   #               choices = displayed_names, multiple = TRUE)
   # })
+  # optimal weighting ----
+  values$hrange_weight_vec <- NULL
+  # observeEvent(input$add_hrange_weight, {
+  #   values$hrange_weight_vec <- unique(c(values$hrange_weight_vec,
+  #                                        req(input$hrange_weight)))
+  # })
+  # always apply the current selection of selectinput. the extra layer is to use the button to trigger change instead of every input change
+  observeEvent(input$apply_hrange_weight, {
+    values$hrange_weight_vec <- input$hrange_weight
+  })
+  # output$hrange_weight_list <- renderText({
+  #   req(values$hrange_weight_vec)
+  # })
+  # observeEvent(input$reset_hrange_weight_list, {
+  #   values$hrange_weight_vec <- NULL
+  # })
   # select_models_hranges() ----
   select_models_hranges <- reactive({
     req(select_models())

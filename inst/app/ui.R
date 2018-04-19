@@ -613,9 +613,16 @@ range_plot_box <- box(title = "Home Range Estimation",
      column(2,
             div(br(), br(), style = "line-height: 160%;"
                 ),
-            actionButton("add_hrange_weight", "Add",
+            actionButton("apply_hrange_weight", "Apply",
                             icon = icon("angle-double-down"),
-                            style = ctmmweb:::STYLES$page_action)),
+                            style = ctmmweb:::STYLES$page_action))),
+   # fluidRow(
+   #   column(12, h4("Added Optimal Weightings")),
+   #   column(10, verbatimTextOutput("hrange_weight_list")),
+   #   column(2, offset = 0, actionButton("reset_hrange_weight_list", "Reset",
+   #                                      icon = icon("ban"),
+   #                                      style = ctmmweb:::STYLES$page_action))),
+   fluidRow(
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
                                   width = "99%", height = "98%"))))
