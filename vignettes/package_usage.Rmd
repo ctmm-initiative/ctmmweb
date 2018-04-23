@@ -25,15 +25,20 @@ This document demonstrates the usage of package functions in the analysis of ani
 
 First we load the libraries and prepare the data. Note that a subsample was taken so that the model fitting process can finish in seconds instead of minutes.
 
-```{r libraries and data, eval=TRUE}
+```{r libraries and data}
 library(ctmm)
 library(ctmmweb)
 data(buffalo)
 # take a 100 point sample from each animal to speed up model fitting etc
 data_sample <- pick(buffalo, 100)
+```
+
+
+```{r avoid parallel error, eval=TRUE, include = FALSE}
 # somehow a line like this can avoid the `Assertion failure at kmp_runtime.cpp(6480): __kmp_thread_pool == __null.` error in knitting the vignette.
 par_lapply(1:2, sqrt)
 ```
+
 
 ### Basic data structure
 
