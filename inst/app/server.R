@@ -1578,14 +1578,18 @@ output:
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
     # take vario-dt parameter list
     dt_para_list <- vector("list", length = length(tele_list))
+    title_list <- as.list(names(tele_list))
     names(dt_para_list) <- names(tele_list)
+    names(title_list) <- names(tele_list)
     ms_dt <- values$multi_schedule_dt
     if (!is.null(ms_dt)) {
       for (i in 1:nrow(ms_dt)) {
         current_names <- ms_dt[i, selected_names][[1]]
         # lapply using function, need to use <<- to change global variable, use for loop instead
         for (x in current_names) {
-          dt_para_list[[x]] <- ms_dt[i, input_intervals][[1]] %#% ms_dt[i, time_unit]
+          dt_para_list[[x]] <- ms_dt[i, input_intervals][[1]] %#%
+                                        ms_dt[i, time_unit]
+          title_list[[x]] <- paste0(x, "\n Multiple Schedules")
         }
       }
     }
@@ -1593,7 +1597,8 @@ output:
     vario_list <- lapply(names(tele_list), function(x) {
       ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
     })
-    names(vario_list) <- names(tele_list)  # needed for figure title
+    # names(vario_list) <- names(tele_list)  # needed for figure title
+    names(vario_list) <- unlist(title_list)  # needed for figure title
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
     return(list(vario_list = vario_list, vario_layout = vario_layout))
