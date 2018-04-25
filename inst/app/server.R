@@ -1589,7 +1589,7 @@ output:
         for (x in current_names) {
           dt_para_list[[x]] <- ms_dt[i, input_intervals][[1]] %#%
                                         ms_dt[i, time_unit]
-          title_list[[x]] <- paste0(x, "\n Multiple Schedules")
+          title_list[[x]] <- paste0(x, "\n (Multiple Schedules)")
         }
       }
     }
@@ -2002,6 +2002,8 @@ output:
     # update home range weight selector choices
     updateSelectInput(session, "hrange_weight",
                       choices = selected_names_dt$display_name)
+    # this value is not updated yet when selectinput itself changed
+    values$hrange_weight_vec <- NULL
     # must make sure all items in same order
     return(list(names_dt = selected_names_dt,
                 display_color = display_color,
@@ -2018,17 +2020,40 @@ output:
   # optimal weighting ----
   values$hrange_weight_vec <- NULL
   # always apply the current selection of selectinput. the extra layer is to use the button to trigger change instead of every input change
+  # with some value selected, change model selection to include multiple models same animal, come back, the old value is still there and doesn't match anything. the value need be cleared when select model updated, or the selectinput updated.
   observeEvent(input$apply_hrange_weight, {
     values$hrange_weight_vec <- input$hrange_weight
+  })
+  # we want to change home range plot title but need to keep hrange names consistent, overlap page rely on hrange names to match, color etc. to put title inside select_models_hranges will cause structure change and all usage change, so use a separate reactive instead.
+  # get_hrange_weight_para() ----
+  get_hrange_weight_para <- reactive({
+    tele_list <- select_models()$tele_list
+    # must use display name since it's possible to have same animal different models
+    display_names <- select_models()$names_dt$display_name
+    # need default value to be FALSE instead of NULL
+    weights_list <- as.list(rep(FALSE, length(tele_list)))
+    names(weights_list) <- display_names
+    # only plot title is changed. home range summary table didn't change title even the model do changed.
+    title_list <- as.list(display_names)
+    names(title_list) <- display_names
+    if (!is.null(values$hrange_weight_vec)) {
+      for (x in values$hrange_weight_vec) {
+        weights_list[[x]] <- TRUE
+        title_list[[x]] <- paste0(x, "\n (Optimal Weighting)")
+      }
+    }
+    return(list(weights = unlist(weights_list),
+                title_vec = unlist(title_list)))
   })
   # select_models_hranges() ----
   select_models_hranges <- reactive({
     req(select_models())
+    tele_list <- select_models()$tele_list
     # LOG home range calculation
     log_msg("Calculating Home Range ...")
     withProgress(print(system.time(
-      res <- akde_mem(select_models()$tele_list,
-                      CTMM = select_models()$model_list))),
+      res <- akde_mem(tele_list, CTMM = select_models()$model_list,
+                      weights = get_hrange_weight_para()$weights))),
       message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
     # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
@@ -2063,12 +2088,14 @@ output:
       summary_models()$summary_dt$model_type))
     render_model_summary_DT(dt, model_types, info_p, NULL)
   })
-
   # home range plot ----
   output$range_plot <- renderPlot({
     # browser()
     # selected_tele_list <- select_models()$tele_list
-    ctmmweb::plot_ud(select_models_hranges(),
+    hranges <- select_models_hranges()
+    # change title in place to show weight parameter
+    names(hranges) <- get_hrange_weight_para()$title_vec
+    ctmmweb::plot_ud(hranges,
                      level_vec = get_hr_levels(),
                      color_vec = select_models()$display_color,
                      option = input$hrange_option,
