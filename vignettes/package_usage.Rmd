@@ -36,7 +36,8 @@ data_sample <- pick(buffalo, 100)
 
 ```{r avoid parallel error, eval=TRUE, include = FALSE}
 # somehow a line like this can avoid the `Assertion failure at kmp_runtime.cpp(6480): __kmp_thread_pool == __null.` error in knitting the vignette.
-par_lapply(1:2, sqrt)
+# this is not needed anymore with R 3.5
+# par_lapply(1:2, sqrt)
 ```
 
 
