@@ -793,6 +793,9 @@ output:
     DT::selectRows(proxy_model_dt, list())
     updateRadioButtons(session, "vario_mode", selected = "empirical")
     updateSelectInput(session, "vario_dt_ids", choices = info$identity)
+    updateSelectInput(session, "pool_vario_ids", choices = info$identity)
+    values$multi_schedule_dt <- NULL
+    values$pooled_vario_dt <- NULL
     # LOG current selected individuals
     log_dt_md(info, "Current selected individuals")
     # didn't verify data here since it's too obvious and used too frequently. if need verfication, need call function on subset.
@@ -1538,6 +1541,7 @@ output:
   }
   # vario_dt ----
   # each dt parameter row added to a reactive value. select_data_vario take it to apply on variogram parameters. a table take it to display current rows, which can be reset.
+  # init select input in select_data, also clear the reactive value in case data updated. similiarly, homerange weight need init and clear in select_model.
   values$multi_schedule_dt <- NULL
   observeEvent(input$add_vario_dt, {
     multi_schedule_row <- data.table(
@@ -1569,6 +1573,38 @@ output:
   observeEvent(input$reset_vario_dt, {
     values$multi_schedule_dt <- NULL
   })
+  # pool vario ----
+  values$pooled_vario_dt <- NULL
+  observeEvent(input$add_pool_vario, {
+    multi_schedule_row <- data.table(
+      selected_names = list(req(input$vario_dt_ids)),
+      input_intervals = list(req(ctmmweb:::parse_comma_text_input(
+        input$vario_dt, NULL))),
+      time_unit = input$vario_dt_unit)
+    values$multi_schedule_dt <- rbindlist(list(values$multi_schedule_dt,
+                                               multi_schedule_row))
+  })
+  # output$pool_vario_table <- DT::renderDT({
+  #   dt <- copy(req(values$multi_schedule_dt))
+  #   # list column cannot be shown by DT, must convert to string
+  #   dt[, identities := paste(selected_names[[1]], collapse = ", "),
+  #      by = 1:nrow(dt)]
+  #   dt[, intervals := paste(input_intervals[[1]], collapse = ", "),
+  #      by = 1:nrow(dt)]
+  #   # to show as result table
+  #   DT::datatable(dt[, .(identities, intervals, time_unit)],
+  #                 options = list(dom = 't', ordering = FALSE),
+  #                 rownames = FALSE)
+  # })
+  observeEvent(input$remove_row_pool_vario, {
+    req(length(input$pool_vario_table_rows_selected) > 0)
+    dt_left <- values$pooled_vario_dt[!input$pool_vario_table_rows_selected]
+    # need to be NULL instead of empty table for easier req usage
+    values$pooled_vario_dt <- if (nrow(dt_left) == 0) NULL else dt_left
+  })
+  observeEvent(input$reset_pool_vario, {
+    values$pooled_vario_dt <- NULL
+  })
   # select_data_vario() ----
   # variogram list and layout for current data in vario 1 and 2, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
   select_data_vario <- reactive({
@@ -1597,39 +1633,20 @@ output:
     vario_list <- lapply(names(tele_list), function(x) {
       ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
     })
-    # names(vario_list) <- names(tele_list)  # needed for figure title
-    names(vario_list) <- unlist(title_list)  # needed for figure title
+    names(vario_list) <- names(tele_list)  # vario need names from individuals
+    # needed for figure title to include additional info
+    title_vec <- unlist(title_list)
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
-    return(list(vario_list = vario_list, vario_layout = vario_layout))
+    return(list(vario_list = vario_list, vario_layout = vario_layout,
+                title_vec = title_vec))
   })
-  # current_vario_model_list() ---
-  # if put inside vario_parameters, fine tune didn't trigger changes correctly. Putting an expression used reactive values in function parameter may not work, that's why we need a data.table object call in DT. maybe because guess_list is defined inside that reactive, new changes didn't override the initialization
-  # current_vario_model_list <- reactive({
-  #   switch(input$vario_mode,
-  #          empirical = NULL,
-  #          guesstimate = values$selected_data_guess_list,
-  #          modeled = select_models()$model_list
-  #   )
-  # })
-  # current_vario() ---
-  # switch vario_list, layout according to option. vario plot need height, log_save_vario need row count as figure height in inches. in modeled mode, there could be different vario count so layout is different
-  # current_vario <- reactive({
-  #   current <- list()
-  #   if (input$vario_mode != "modeled") {
-  #     current <- select_data_vario()
-  #   } else {
-  #     # model mode take from model selection
-  #     current$vario_list <- select_models()$vario_list
-  #     current$vario_layout <- select_models()$vario_layout
-  #   }
-  #   return(current)
-  # })
   # variogram 1:empri ----
   # no model, model_color parameter
   output$vario_plot_1 <- renderPlot({
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
+                        title_vec = select_data_vario()$title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
                         cex = 0.72,
@@ -1646,6 +1663,7 @@ output:
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
                         values$selected_data_guess_list,
+                        title_vec = select_data_vario()$title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
                         model_color = "green", cex = 0.72,
@@ -1660,6 +1678,7 @@ output:
   # variogram 3:modeled ----
   # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
   output$vario_plot_3 <- renderPlot({
+    browser
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_models()$vario_list,
                         select_models()$model_list,

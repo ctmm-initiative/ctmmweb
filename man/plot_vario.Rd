@@ -4,14 +4,15 @@
 \alias{plot_vario}
 \title{Plot a group of empirical or modeled variograms.}
 \usage{
-plot_vario(vario_list, model_list = NULL, fraction = 0.5,
-  relative_zoom = TRUE, cex = 0.65, model_color = "blue", columns = 2)
+plot_vario(vario_list, model_list = NULL, title_vec = NULL,
+  fraction = 0.5, relative_zoom = TRUE, cex = 0.65,
+  model_color = "blue", columns = 2)
 }
 \arguments{
-\item{vario_list}{list of \code{\link[ctmm:variogram]{ctmm::variogram()}}. The \code{names} of list will be
-used as figure title in empirical variogram mode.}
+\item{vario_list}{list of \code{\link[ctmm:variogram]{ctmm::variogram()}}. The names of list may be
+needed for figure titles.}
 
-\item{model_list}{\code{CTMM} models list. The \code{names} of list are needed for
+\item{model_list}{\code{CTMM} models list. The \code{names} of list may be needed for
 figure titles. Draw modeled variogram if provided. The models list should
 match \code{vario_list} in length and animal, so that \code{i}th model is for \code{i}th
 variogram.
@@ -25,6 +26,9 @@ overlay guesstimate variogram.
 \item list of fitted models from \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on \code{vario_list}, overlay
 modeled variogram.
 }}
+
+\item{title_vec}{vector of figure titles. If not provided, names of
+\code{vario_list} or \code{model_list} will be used.}
 
 \item{fraction}{Fraction of time-lag range, 0 ~ 1.}
 

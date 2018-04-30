@@ -8,9 +8,9 @@
 #'
 #' This is a wrapper over [ctmm::plot.variogram()] to make group plot easier.
 #'
-#' @param vario_list list of [ctmm::variogram()]. The `names` of list will be
-#'  used as figure title in empirical variogram mode.
-#' @param model_list `CTMM` models list. The `names` of list are needed for
+#' @param vario_list list of [ctmm::variogram()]. The names of list may be
+#' needed for figure titles.
+#' @param model_list `CTMM` models list. The `names` of list may be needed for
 #'   figure titles. Draw modeled variogram if provided. The models list should
 #'   match `vario_list` in length and animal, so that `i`th model is for `i`th
 #'   variogram.
@@ -22,6 +22,8 @@
 #'   overlay guesstimate variogram.
 #'   - list of fitted models from [ctmm::ctmm.select()] on `vario_list`, overlay
 #'   modeled variogram.
+#' @param title_vec vector of figure titles. If not provided, names of
+#' `vario_list` or `model_list` will be used.
 #' @param fraction Fraction of time-lag range, 0 ~ 1.
 #' @param relative_zoom
 #' - Relative mode zoom every plot by fraction of their own Time-lag range. The
@@ -33,13 +35,12 @@
 #' @param columns The columns of the group plot layout.
 #'
 #' @export
-plot_vario <- function(vario_list, model_list = NULL,
+plot_vario <- function(vario_list, model_list = NULL, title_vec = NULL,
                        fraction = 0.5, relative_zoom = TRUE, cex = 0.65,
                        model_color = "blue", columns = 2){
-  title_vec <- if (is.null(model_list)) names(vario_list)
-                   else names(model_list)
   if (is.null(title_vec)) {
-    stop("names of input list is needed for figure title")
+    title_vec <- if (is.null(model_list)) names(vario_list)
+    else names(model_list)
   }
   row_count <- ceiling(length(vario_list) / columns)
   # the shared group code is not much, and it involves env setup and restoration, would need on.exit if abstracted to function. just copy, basically 3 lines.
@@ -58,29 +59,13 @@ plot_vario <- function(vario_list, model_list = NULL,
            xlim = c(0, extent_tele["max", "x"]),
            ylim = c(0, extent_tele["max", "y"]))
       graphics::title(title_vec[i])
-      # if (!is.null(model_list[[i]]) && model_list[[i]]$error) {
-      #   title(vario_zoomed_list[[i]]@info$identity, sub = "Error on",
-      #         cex.sub = 0.85, col.sub = "red")
-      # } else {
-      #   title(title_vec[i])
-      # }
     }
   } else {
     for (i in seq_along(vario_list)) {
       plot(vario_list[[i]], CTMM = model_list[[i]],
            col.CTMM = model_color,
            fraction = fraction)
-      # browser()
       graphics::title(title_vec[i])
-      # if (!is.null(model_list[[i]]) && model_list[[i]]$error) {
-      #   title(vario_list[[i]]@info$identity, sub = "Error on",
-      #         cex.sub = 0.85, col.sub = "red")
-      # } else {
-      #   title(vario_list[[i]]@info$identity)
-      # }
-      # if (model_list[[i]]$error) {
-      #   title(sub = "Error on", cex.sub = 0.85, col.sub = "red")
-      # }
     }
   }
   graphics::par(def.par)
