@@ -1579,6 +1579,7 @@ output:
     req(length(input$pool_vario_ids) > 1)
     pooled_vario_row <- data.table(
       pool_ids = list(req(input$pool_vario_ids)))
+    # why unique here get silent result?
     values$pooled_vario_dt <- rbindlist(list(values$pooled_vario_dt,
                                              pooled_vario_row))
   })
@@ -1630,6 +1631,21 @@ output:
       ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
     })
     names(vario_list) <- names(tele_list)  # vario need names from individuals
+    # for pooled variograms. vario_list need to be complete so new pool can be established. the plotted vario list is different
+    pool_dt <- values$pooled_vario_dt
+    if (!is.null(pool_dt)) {
+      for (i in 1:nrow(pool_dt)) {
+        current_ids <- pool_dt[i, pool_ids][[1]]
+        pool_vario <- mean(vario_list[current_ids])
+        pooled_name <- paste0(current_ids, collapse = ", ")
+        vario_list[[pooled_name]] <- pool_vario
+        title_list[[pooled_name]] <- pooled_name
+      }
+      all_pooled_ids <- unique(unlist(pool_dt, use.names = FALSE))
+      remained_ids <- names(vario_list)[!(names(vario_list) %in% all_pooled_ids)]
+      vario_list <- vario_list[remained_ids]
+      title_list <- title_list[remained_ids]
+    }
     # needed for figure title to include additional info
     title_vec <- unlist(title_list)
     vario_layout <- layout_group(vario_list,
