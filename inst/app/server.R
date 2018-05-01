@@ -1576,26 +1576,22 @@ output:
   # pool vario ----
   values$pooled_vario_dt <- NULL
   observeEvent(input$add_pool_vario, {
-    multi_schedule_row <- data.table(
-      selected_names = list(req(input$vario_dt_ids)),
-      input_intervals = list(req(ctmmweb:::parse_comma_text_input(
-        input$vario_dt, NULL))),
-      time_unit = input$vario_dt_unit)
-    values$multi_schedule_dt <- rbindlist(list(values$multi_schedule_dt,
-                                               multi_schedule_row))
+    req(length(input$pool_vario_ids) > 1)
+    pooled_vario_row <- data.table(
+      pool_ids = list(req(input$pool_vario_ids)))
+    values$pooled_vario_dt <- rbindlist(list(values$pooled_vario_dt,
+                                             pooled_vario_row))
   })
-  # output$pool_vario_table <- DT::renderDT({
-  #   dt <- copy(req(values$multi_schedule_dt))
-  #   # list column cannot be shown by DT, must convert to string
-  #   dt[, identities := paste(selected_names[[1]], collapse = ", "),
-  #      by = 1:nrow(dt)]
-  #   dt[, intervals := paste(input_intervals[[1]], collapse = ", "),
-  #      by = 1:nrow(dt)]
-  #   # to show as result table
-  #   DT::datatable(dt[, .(identities, intervals, time_unit)],
-  #                 options = list(dom = 't', ordering = FALSE),
-  #                 rownames = FALSE)
-  # })
+  output$pool_vario_table <- DT::renderDT({
+    dt <- copy(req(values$pooled_vario_dt))
+    # list column cannot be shown by DT, must convert to string
+    dt[, pooled_variograms := paste(pool_ids[[1]], collapse = ", "),
+       by = 1:nrow(dt)]
+    # to show as result table
+    DT::datatable(dt[, .(pooled_variograms)],
+                  options = list(dom = 't', ordering = FALSE),
+                  rownames = FALSE)
+  })
   observeEvent(input$remove_row_pool_vario, {
     req(length(input$pool_vario_table_rows_selected) > 0)
     dt_left <- values$pooled_vario_dt[!input$pool_vario_table_rows_selected]
