@@ -1574,33 +1574,39 @@ output:
     values$multi_schedule_dt <- NULL
   })
   # pool vario ----
-  values$pooled_vario_dt <- NULL
-  observeEvent(input$add_pool_vario, {
+  # each pooled variogram replace the individual variogram, the plot only plot one copy, but underlying list stay the same, keep the variogram:individual 1:1 mapping. dt, pool all reflected on variogram object, change plot title but not the variogram list name, keep the other tabs consistent.
+  # to keep the UI simple, don't show a DT table.
+  values$pooled_vario_id_list <- NULL
+  observeEvent(input$apply_pool_vario, {
     req(length(input$pool_vario_ids) > 1)
-    pooled_vario_row <- data.table(
-      pool_ids = list(req(input$pool_vario_ids)))
-    # why unique here get silent result?
-    values$pooled_vario_dt <- rbindlist(list(values$pooled_vario_dt,
-                                             pooled_vario_row))
+    values$pooled_vario_id_list <- c(values$pooled_vario_id_list,
+                                list(input$pool_vario_ids))
+    # updateSelectInput(session, "pool_vario_ids", choices = info$identity,
+    #                   selected = NULL)
+    # pooled_vario_row <- data.table(
+    #   pool_ids = list(req(input$pool_vario_ids)))
+    # # why unique here get silent result?
+    # values$pooled_vario_dt <- rbindlist(list(values$pooled_vario_dt,
+    #                                          pooled_vario_row))
   })
-  output$pool_vario_table <- DT::renderDT({
-    dt <- copy(req(values$pooled_vario_dt))
-    # list column cannot be shown by DT, must convert to string
-    dt[, pooled_variograms := paste(pool_ids[[1]], collapse = ", "),
-       by = 1:nrow(dt)]
-    # to show as result table
-    DT::datatable(dt[, .(pooled_variograms)],
-                  options = list(dom = 't', ordering = FALSE),
-                  rownames = FALSE)
-  })
-  observeEvent(input$remove_row_pool_vario, {
-    req(length(input$pool_vario_table_rows_selected) > 0)
-    dt_left <- values$pooled_vario_dt[!input$pool_vario_table_rows_selected]
-    # need to be NULL instead of empty table for easier req usage
-    values$pooled_vario_dt <- if (nrow(dt_left) == 0) NULL else dt_left
-  })
+  # output$pool_vario_table <- DT::renderDT({
+  #   dt <- copy(req(values$pooled_vario_dt))
+  #   # list column cannot be shown by DT, must convert to string
+  #   dt[, pooled_variograms := paste(pool_ids[[1]], collapse = ", "),
+  #      by = 1:nrow(dt)]
+  #   # to show as result table
+  #   DT::datatable(dt[, .(pooled_variograms)],
+  #                 options = list(dom = 't', ordering = FALSE),
+  #                 rownames = FALSE)
+  # })
+  # observeEvent(input$remove_row_pool_vario, {
+  #   req(length(input$pool_vario_table_rows_selected) > 0)
+  #   dt_left <- values$pooled_vario_dt[!input$pool_vario_table_rows_selected]
+  #   # need to be NULL instead of empty table for easier req usage
+  #   values$pooled_vario_dt <- if (nrow(dt_left) == 0) NULL else dt_left
+  # })
   observeEvent(input$reset_pool_vario, {
-    values$pooled_vario_dt <- NULL
+    values$pooled_vario_id_list <- NULL
   })
   # select_data_vario() ----
   # variogram list and layout for current data in vario 1 and 2, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
@@ -1627,47 +1633,61 @@ output:
       }
     }
     # vario_list <- lapply(tele_list, ctmm::variogram)
-    vario_list <- lapply(names(tele_list), function(x) {
+    # original vario from tele need to be maintained in case new pool need some individuals
+    vario_list_tele <- lapply(names(tele_list), function(x) {
       ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
     })
-    names(vario_list) <- names(tele_list)  # vario need names from individuals
-    # for pooled variograms. vario_list need to be complete so new pool can be established. the plotted vario list is different
-    pool_dt <- values$pooled_vario_dt
-    if (!is.null(pool_dt)) {
-      for (i in 1:nrow(pool_dt)) {
-        current_ids <- pool_dt[i, pool_ids][[1]]
-        pool_vario <- mean(vario_list[current_ids])
+    # vario names are always individual names. plot titles are in title list, which is named by ids, value as titles.
+    names(vario_list_tele) <- names(tele_list)
+    # always keep 1:1 mapping, just the exported version replace individual with pool
+    vario_list <- vario_list_tele
+    pool_id_list <- values$pooled_vario_id_list
+    if (!is.null(pool_id_list)) {
+      for (i in seq_along(pool_id_list)) {
+        current_ids <- pool_id_list[[i]]
+        pool_vario <- mean(vario_list_tele[current_ids])
+        vario_list[current_ids] <- list(pool_vario)  # make sure the full obj assigned to each slot instead of spread a list to each slot
         pooled_name <- paste0(current_ids, collapse = ", ")
-        vario_list[[pooled_name]] <- pool_vario
-        title_list[[pooled_name]] <- pooled_name
+        title_list[current_ids] <- pooled_name
       }
-      all_pooled_ids <- unique(unlist(pool_dt, use.names = FALSE))
-      remained_ids <- names(vario_list)[!(names(vario_list) %in% all_pooled_ids)]
-      vario_list <- vario_list[remained_ids]
-      title_list <- title_list[remained_ids]
+      # all_pooled_ids <- unique(unlist(pool_dt, use.names = FALSE))
+      # remained_names <- names(vario_list_pool)[!(names(vario_list_pool) %in%
+      #                                            all_pooled_ids)]
+      # vario_list_pool <- vario_list_pool[remained_names]
+      # title_list_pool <- title_list_pool[remained_names]
     }
     # needed for figure title to include additional info
+    # title_vec <- unlist(title_list)
     title_vec <- unlist(title_list)
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
-    return(list(vario_list = vario_list, vario_layout = vario_layout,
-                title_vec = title_vec))
+    # tab 1 version, remove duplicate pooled variograms
+    vario_list_1 <- vario_list[!duplicated(title_vec)]
+    title_vec_1 <- unique(title_vec)
+    vario_layout_1 <- layout_group(vario_list_1,
+                                   input$vario_height, input$vario_columns)
+    return(list(vario_list = vario_list,
+                vario_list_1 = vario_list_1,
+                vario_layout = vario_layout,
+                vario_layout_1 = vario_layout_1,
+                title_vec = title_vec,
+                title_vec_1 = title_vec_1))
   })
   # variogram 1:empri ----
   # no model, model_color parameter
   output$vario_plot_1 <- renderPlot({
     # actual fraction value from slider is not in log, need to convert
-    ctmmweb::plot_vario(select_data_vario()$vario_list,
-                        title_vec = select_data_vario()$title_vec,
+    ctmmweb::plot_vario(select_data_vario()$vario_list_1,
+                        title_vec = select_data_vario()$title_vec_1,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
                         cex = 0.72,
                         columns = input$vario_columns)
     # LOG save pic
-    log_save_vario("vario", select_data_vario()$vario_layout$row_count,
+    log_save_vario("vario", select_data_vario()$vario_layout_1$row_count,
                    input$vario_columns)
   }, height = function() { # always use current selected layout
-    select_data_vario()$vario_layout$height
+    select_data_vario()$vario_layout_1$height
     }
   )
   # variogram 2:guess ----
@@ -1690,7 +1710,6 @@ output:
   # variogram 3:modeled ----
   # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
   output$vario_plot_3 <- renderPlot({
-    browser
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_models()$vario_list,
                         select_models()$model_list,
