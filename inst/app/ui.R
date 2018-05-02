@@ -449,12 +449,12 @@ selected_ranges_box <- box(title = "Time Range List",
                    ),
           fluidRow(column(12, DT::DTOutput('time_ranges'))))
 # p5.a vario control ----
-# vario_control_box <- tabBox(title = "Plot Controls",
-#                              id = "vario_control_tabs", width = 12,
+vario_control_box <- tabBox(title = "Plot Controls",
+                             id = "vario_control_tabs", width = 12,
    # p5.a.1 layout ----
-   # tabPanel("Control",
-vario_control_box <- box(title = "Plot Controls",
-                           status = "info", solidHeader = TRUE, width = 12,
+   tabPanel("Control",
+# vario_control_box <- box(title = "Plot Controls",
+#                            status = "info", solidHeader = TRUE, width = 12,
       fluidRow(
         tags$head(tags$script(HTML(ctmmweb::JS.logify(3)))),
         tags$head(tags$script(HTML(ctmmweb::JS.onload("zoom_lag_fraction")))),
@@ -475,10 +475,10 @@ vario_control_box <- box(title = "Plot Controls",
         column(2, offset = 0, br(), numericInput("vario_columns",
                                            "Columns",
                                            value = 2, min = 1, max = 6,
-                                           step = 1))
-        ),
+                                           step = 1)),
+        column(2, offset = 10, help_button("vario_control")))),
 # # p5.a.2 multiple schedules ----
-# tabPanel("Schedule",
+tabPanel("Schedule",
       fluidRow(
         column(12, h4(shiny::a("Multiple Sampling Schedules",
                                target = "_blank",
@@ -503,55 +503,38 @@ vario_control_box <- box(title = "Plot Controls",
                                            "Remove Selected",
                                            icon = icon("trash-o"),
                                            style = ctmmweb:::STYLES$page_action)),
-        column(3, offset = 3, actionButton("reset_vario_dt", "Reset All",
+        column(3, offset = 6, actionButton("reset_vario_dt", "Reset All",
+                               icon = icon("ban"),
+                               style = ctmmweb:::STYLES$page_action))
+      )),
+# p5.a.3 pool variogram ----
+tabPanel("Pool",
+         fluidRow(
+           column(12, h4(shiny::a("Pool Variograms",
+                                  target = "_blank",
+                                  href = "https://ctmm-initiative.github.io/ctmm/articles/variogram.html#pooling-variograms",
+                                  style = "text-decoration: underline;"))),
+           # choices updated in server side
+           column(8, selectInput("pool_vario_ids", label = NULL,
+                                 choices = NULL, multiple = TRUE, width = "100%")),
+           column(2,
+                  actionButton("reset_pool_vario", "Reset",
                                icon = icon("ban"),
                                style = ctmmweb:::STYLES$page_action)),
-        column(2, offset = 1, help_button("vario_control"))
-      )
+           column(2,
+                  actionButton("apply_pool_vario", "Pool",
+                               icon = icon("pie-chart"),
+                               style = ctmmweb:::STYLES$page_action))
+           )
+        )
 )
 # p5.b variograms ----
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-empty"), "1. Empirical"), value = "1",
-              # fluidRow(
-              #   column(2, offset = 10, help_button("variograms"))
-              #
-              # ),
-              # p5.b.2 pool variogram ----
-              # tabPanel("Pool",
               fluidRow(
-                column(10, h4(shiny::a("Pool Variograms",
-                                       target = "_blank",
-                                       href = "https://ctmm-initiative.github.io/ctmm/articles/variogram.html#pooling-variograms",
-                                       style = "text-decoration: underline;"))),
-                column(2, offset = 0, help_button("variograms")),
-                # choices updated in server side
-                column(8, selectInput("pool_vario_ids", label = NULL,
-                                       choices = NULL, multiple = TRUE, width = "100%")),
-                column(2,
-                       # div(br(), style = "line-height: 180%;"),
-                       actionButton("reset_pool_vario", "Reset",
-                                    icon = icon("ban"),
-                                    style = ctmmweb:::STYLES$page_action)),
-                column(2,
-                       # div(br(), style = "line-height: 180%;"),
-                       actionButton("apply_pool_vario", "Apply",
-                                    icon = icon("angle-double-down"),
-                                    style = ctmmweb:::STYLES$page_action))
-                # column(2, offset = 0, help_button("variograms"))
-                ),
-              fluidRow(
-                # column(12, h4("Pooled Variograms")),
-                # column(12, DT::DTOutput("pool_vario_table"), br()),
-                # column(3, offset = 0, actionButton("remove_row_pool_vario",
-                #                                    "Remove Selected",
-                #                                    icon = icon("trash-o"),
-                #                                    style = ctmmweb:::STYLES$page_action)),
-                # column(3, offset = 6, actionButton("reset_pool_vario", "Reset All",
-                #                                    icon = icon("ban"),
-                #                                    style = ctmmweb:::STYLES$page_action)),
+                column(2, offset = 10, help_button("variograms")),
                 column(12, br(), plotOutput("vario_plot_1",
-                                            width = "99%", height = "98%"))
-
+                                             width = "99%", height = "98%"))
               )
      ),
      tabPanel(div(icon("battery-half"), "2. Guesstimate"),
