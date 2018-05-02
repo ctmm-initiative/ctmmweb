@@ -1663,7 +1663,7 @@ output:
                                      input$vario_height, input$vario_columns)
     # tab 1 version, remove duplicate pooled variograms
     vario_list_1 <- vario_list[!duplicated(title_vec)]
-    title_vec_1 <- unique(title_vec)
+    title_vec_1 <- title_vec[!duplicated(title_vec)]
     vario_layout_1 <- layout_group(vario_list_1,
                                    input$vario_height, input$vario_columns)
     return(list(vario_list = vario_list,
