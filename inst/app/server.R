@@ -1617,9 +1617,14 @@ output:
                     function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
     # take vario-dt parameter list
     dt_para_list <- vector("list", length = length(tele_list))
-    title_list <- as.list(names(tele_list))
     names(dt_para_list) <- names(tele_list)
-    names(title_list) <- names(tele_list)
+    # 3 tabs have different requirement on plot titles. main title always come from animal name or model name, sub title when dt/pool need to be marked.
+    # need to maintain dt part and pool part separately, if user click pool repeatitively, pool part should not add to another line.
+    subtitle_dt_list <- vector("list", length = length(tele_list))
+    subtitle_dt_list[1:length(subtitle_dt_list)] <- ""
+    # item name as animal name, value as title content
+    names(subtitle_dt_list) <- names(tele_list)
+    subtitle_pool_list <- subtitle_dt_list
     ms_dt <- values$multi_schedule_dt
     if (!is.null(ms_dt)) {
       for (i in 1:nrow(ms_dt)) {
@@ -1628,7 +1633,7 @@ output:
         for (x in current_names) {
           dt_para_list[[x]] <- ms_dt[i, input_intervals][[1]] %#%
                                         ms_dt[i, time_unit]
-          title_list[[x]] <- paste0(x, "\n (Multiple Schedules)")
+          subtitle_dt_list[[x]] <- "\n - Multiple Schedules -"
         }
       }
     }
@@ -1648,7 +1653,7 @@ output:
         pool_vario <- mean(vario_list_tele[current_ids])
         vario_list[current_ids] <- list(pool_vario)  # make sure the full obj assigned to each slot instead of spread a list to each slot
         pooled_name <- paste0(current_ids, collapse = ", ")
-        title_list[current_ids] <- pooled_name
+        subtitle_pool_list[current_ids] <- paste0("\n(", pooled_name, ")")
       }
       # all_pooled_ids <- unique(unlist(pool_dt, use.names = FALSE))
       # remained_names <- names(vario_list_pool)[!(names(vario_list_pool) %in%
@@ -1657,37 +1662,44 @@ output:
       # title_list_pool <- title_list_pool[remained_names]
     }
     # needed for figure title to include additional info
-    # title_vec <- unlist(title_list)
-    title_vec <- unlist(title_list)
+    # title_vec <- unlist(subtitle_list)
+    # subtitle_vec <- unlist(subtitle_list)
+    subtitle_list <- paste0(subtitle_dt_list, subtitle_pool_list)
+    names(subtitle_list) <- names(subtitle_dt_list)
+    # tab 1, 2 plot title. tab 3 need different treatment
+    vario_title_vec <- paste0(names(vario_list), subtitle_list)
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
     # tab 1 version, remove duplicate pooled variograms
-    vario_list_1 <- vario_list[!duplicated(title_vec)]
-    title_vec_1 <- title_vec[!duplicated(title_vec)]
-    vario_layout_1 <- layout_group(vario_list_1,
-                                   input$vario_height, input$vario_columns)
+    # vario_list_1 <- vario_list[!duplicated(title_vec)]
+    # title_vec_1 <- title_vec[!duplicated(title_vec)]
+    # vario_layout_1 <- layout_group(vario_list_1,
+    #                                input$vario_height, input$vario_columns)
     return(list(vario_list = vario_list,
-                vario_list_1 = vario_list_1,
+                # vario_list_1 = vario_list_1,
                 vario_layout = vario_layout,
-                vario_layout_1 = vario_layout_1,
-                title_vec = title_vec,
-                title_vec_1 = title_vec_1))
+                # vario_layout_1 = vario_layout_1,
+                # title_vec_1 = title_vec_1,
+                # title_vec = title_vec
+                vario_title_vec = vario_title_vec,
+                subtitle_list = subtitle_list))
   })
   # variogram 1:empri ----
   # no model, model_color parameter
   output$vario_plot_1 <- renderPlot({
+    title_vec <-
     # actual fraction value from slider is not in log, need to convert
-    ctmmweb::plot_vario(select_data_vario()$vario_list_1,
-                        title_vec = select_data_vario()$title_vec_1,
+    ctmmweb::plot_vario(select_data_vario()$vario_list,
+                        title_vec = select_data_vario()$vario_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
                         cex = 0.72,
                         columns = input$vario_columns)
     # LOG save pic
-    log_save_vario("vario", select_data_vario()$vario_layout_1$row_count,
+    log_save_vario("vario", select_data_vario()$vario_layout$row_count,
                    input$vario_columns)
   }, height = function() { # always use current selected layout
-    select_data_vario()$vario_layout_1$height
+    select_data_vario()$vario_layout$height
     }
   )
   # variogram 2:guess ----
@@ -1695,7 +1707,7 @@ output:
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
                         values$selected_data_guess_list,
-                        title_vec = select_data_vario()$title_vec,
+                        title_vec = select_data_vario()$vario_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
                         model_color = "green", cex = 0.72,
@@ -1710,9 +1722,12 @@ output:
   # variogram 3:modeled ----
   # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
   output$vario_plot_3 <- renderPlot({
+    model_title_vec <- paste0(names(select_models()$model_list),
+                              select_models()$subtitle_list)
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_models()$vario_list,
                         select_models()$model_list,
+                        title_vec = model_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
                         model_color = "purple", cex = 0.72,
@@ -2043,6 +2058,8 @@ output:
     names(selected_model_list) <- selected_names_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
       selected_names_dt$identity]
+    selected_subtitle_list <- select_data_vario()$subtitle_list[
+      selected_names_dt$identity]
     # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
     selected_vario_layout <- layout_group(selected_vario_list,
@@ -2061,6 +2078,7 @@ output:
                 data_dt = selected_data_dt,
                 model_list = selected_model_list,
                 vario_list = selected_vario_list,
+                subtitle_list = selected_subtitle_list,
                 vario_layout = selected_vario_layout
                 ))
   })
