@@ -1612,9 +1612,6 @@ output:
   # variogram list and layout for current data in vario 1 and 2, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
   select_data_vario <- reactive({
     tele_list <- select_data()$tele_list
-    # guess value need to be reactive so it can be modified in manual fit.
-    values$selected_data_guess_list <- lapply(tele_list,
-                    function(tele) ctmm::ctmm.guess(tele, interactive = FALSE))
     # take vario-dt parameter list
     dt_para_list <- vector("list", length = length(tele_list))
     names(dt_para_list) <- names(tele_list)
@@ -1675,6 +1672,13 @@ output:
     # title_vec_1 <- title_vec[!duplicated(title_vec)]
     # vario_layout_1 <- layout_group(vario_list_1,
     #                                input$vario_height, input$vario_columns)
+    # generate guess with variogram input
+    # guess value need to be reactive value so it can be modified in manual fit.
+    values$selected_data_guess_list <- lapply(seq_along(tele_list),
+          function(i) {
+            ctmm::ctmm.guess(tele_list[[i]], variogram = vario_list[[i]],
+                             interactive = FALSE)
+            })
     return(list(vario_list = vario_list,
                 # vario_list_1 = vario_list_1,
                 vario_layout = vario_layout,
@@ -1859,12 +1863,6 @@ output:
     # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
     req(length(select_data()$tele_list) ==
           length(values$selected_data_guess_list))
-    # if data changed, using old 1st tab data is also not right. the first error is two list length don't match. use if instead of simple req to give message
-    # if (length(select_data()$tele_list) !=
-    #     length(values$selected_data_guess_list)) {
-    #   updateTabsetPanel(session, "vario_tabs", selected = "1")
-    #   req(FALSE)
-    # } else {
     tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
                                            values$selected_data_guess_list)
     # LOG try models
