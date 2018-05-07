@@ -1,5 +1,49 @@
 # ctmm data processing ----
-
+# make single obj into a list of one item, named by animal id. This make behavior of importing file with single animal and multiple animal consistent. Also needed in other cases.
+wrap_single_telemetry <- function(tele_obj){
+  if (class(tele_obj) != "list") {
+    # use same name so we can return same name if no change made
+    tele_obj <- list(tele_obj)
+    names(tele_obj) <- attr(tele_obj[[1]],"info")$identity
+  }
+  return(tele_obj)
+}
+# given a telemetry list, unify projection
+unify_projection <- function(tele_list) {
+  df_list <- lapply(tele_list,
+                    function(tele) { tele[c("longitude", "latitude")] })
+  dt <- rbindlist(df_list)
+  projection(tele_list) <- ctmm:::suggest.projection(dt)
+  return(tele_list)
+}
+# update a list of telemetry obj identity slot with new names, also update item name with new names
+update_tele_list_ids <- function(tele_list, new_name_vec){
+  for (i in seq_along(tele_list)) {
+    tele_list[[i]]@info$identity <- new_name_vec[i]
+  }
+  names(tele_list) <- new_name_vec
+  return(tele_list)
+}
+# import multiple files, also work with single file
+import_tele_vec <- function(files) {
+  tele_list_list <- lapply(files, function(x) {
+    wrap_single_telemetry(as.telemetry(x))
+  })
+  tele_list <- unlist(tele_list_list, recursive = FALSE)
+  animal_names <- names(tele_list)
+  # TODO make unique duplicated names for now.
+  if (anyDuplicated(animal_names) > 0) {
+    new_names <- make.unique(animal_names)
+    warning(paste0("  Duplicate individual names found and changed:\n   ",
+                   animal_names[duplicated(animal_names)],
+                   "\n-> ",
+                   new_names[duplicated(animal_names)]))
+    # change the identity slot in telemetry obj, and the item name in list
+    tele_list <- update_tele_list_ids(tele_list, new_names)
+  }
+  tele_list <- unify_projection(tele_list)
+  return(tele_list)
+}
 # get single animal info in one row data frame
 info_tele <- function(object) {
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
@@ -20,14 +64,7 @@ info_tele <- function(object) {
              duration = sampling_range,
              points = nrow(object))
 }
-wrap_single_telemetry <- function(tele_obj){
-  if (class(tele_obj) != "list") {
-    # use same name so we can return same name if no change made
-    tele_obj <- list(tele_obj)
-    names(tele_obj) <- attr(tele_obj[[1]],"info")$identity
-  }
-  return(tele_obj)
-}
+
 # sort tele list by identity, ggplot always sort by id. ctmm keep same order in csv, but this should not create problem. actually I found the table is sorted from ctmm for old buffalo data 1764627, which is unsorted in csv.
 # we should keep the list sorted, not the info table. info table order match original list because we need to use table index.
 sort_tele_list <- function(tele_list) {

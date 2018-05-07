@@ -48,7 +48,8 @@ server <- function(input, output, session) {
   # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown. detail will be in 2nd line with code format
   log_msg_console <- function(msg, detail = "") {
     time_stamp <- stringr::str_c("[", Sys.time(), "]")
-    if (detail != "") {
+    # some detail are vec
+    if (length(detail) > 1 || detail != "") {
       detail <- stringr::str_c("\n\t", detail)
     }
     if (LOG_console) {
@@ -364,7 +365,8 @@ output:
     }
     tele_list <- tryCatch(
       withCallingHandlers(
-        ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(as_telemetry_input)),
+        # ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(as_telemetry_input)),
+        ctmmweb:::import_tele_vec(as_telemetry_input),
         warning = wHandler
         ),
       error = eHandler)
@@ -388,7 +390,7 @@ output:
     update_input_data(tele_list)
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
-  # using parameter because launching app with path also use this function
+  # using parameter because launching app with path also use this function. could make it to support multiple input too, so app can be launched with a vector of files.
   import_as_telemetry <- function(as_telemetry_input){
     data_import(as_telemetry_input)
     updateRadioButtons(session, "load_option", selected = "upload")
