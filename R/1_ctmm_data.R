@@ -30,15 +30,15 @@ import_tele_vec <- function(files) {
     wrap_single_telemetry(as.telemetry(x))
   })
   tele_list <- unlist(tele_list_list, recursive = FALSE)
-  animal_names <- names(tele_list)
-  # TODO make unique duplicated names for now.
-  if (anyDuplicated(animal_names) > 0) {
+  dupe_index <- duplicated(animal_names)
+  if (any(dupe_index)) {
     new_names <- make.unique(animal_names)
     warning(paste0("  Duplicate individual names found and changed:\n   ",
-                   animal_names[duplicated(animal_names)],
+                   animal_names[dupe_index],
                    "\n-> ",
-                   new_names[duplicated(animal_names)]))
+                   new_names[dupe_index]))
     # change the identity slot in telemetry obj, and the item name in list
+    # this applied to all names, not just dup names. however this is clear in concept, not likely to have error
     tele_list <- update_tele_list_ids(tele_list, new_names)
   }
   tele_list <- unify_projection(tele_list)
