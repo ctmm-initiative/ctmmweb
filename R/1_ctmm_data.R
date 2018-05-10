@@ -13,7 +13,7 @@ unify_projection <- function(tele_list) {
   df_list <- lapply(tele_list,
                     function(tele) { tele[c("longitude", "latitude")] })
   dt <- rbindlist(df_list)
-  projection(tele_list) <- ctmm:::suggest.projection(dt)
+  ctmm::projection(tele_list) <- ctmm:::suggest.projection(dt)
   return(tele_list)
 }
 # update a list of telemetry obj identity slot with new names, also update item name with new names
