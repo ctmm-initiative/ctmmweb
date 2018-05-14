@@ -8,14 +8,6 @@ wrap_single_telemetry <- function(tele_obj){
   }
   return(tele_obj)
 }
-# given a telemetry list, unify projection
-unify_projection <- function(tele_list) {
-  df_list <- lapply(tele_list,
-                    function(tele) { tele[c("longitude", "latitude")] })
-  dt <- rbindlist(df_list)
-  ctmm::projection(tele_list) <- ctmm:::suggest.projection(dt)
-  return(tele_list)
-}
 # update a list of telemetry obj identity slot with new names, also update item name with new names
 update_tele_list_ids <- function(tele_list, new_name_vec){
   for (i in seq_along(tele_list)) {
@@ -42,7 +34,7 @@ import_tele_vec <- function(files) {
     # this applied to all names, not just dup names. however this is clear in concept, not likely to have error
     tele_list <- update_tele_list_ids(tele_list, new_names)
   }
-  tele_list <- unify_projection(tele_list)
+  ctmm::projection(tele_list) <- ctmm::median(tele_list, k = 2)
   return(tele_list)
 }
 # get single animal info in one row data frame

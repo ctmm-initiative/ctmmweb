@@ -360,6 +360,10 @@ output:
       warning_generated <<- TRUE
     }
     eHandler <- function(e) {
+      # no way to print error message in console?
+      cat(crayon::red("Import Error:\n"))
+      print(e)
+      # simpleError(e)
       showNotification("Error in import, check data again",
                        duration = 7, type = "error")
     }
