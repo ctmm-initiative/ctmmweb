@@ -411,9 +411,11 @@ output:
     #set app directory to installed package app folder (from app()), which is needed by loading help documentations
     APP_wd <- get("app_DIR", envir = calling_env)
     # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
-    if (exists("shiny_app_data", where = calling_env)) {
+    # input exist and not NULL, need to import data. otherwise just go ahead without data
+    if (exists("shiny_app_data", where = calling_env) &&
+        !is.null(get("shiny_app_data", envir = calling_env))) {
       app_input_data <- get("shiny_app_data", envir = calling_env)
-      # all input can be taken by as.telemetry, except tele obj/list already.
+      # all input can be taken by as.telemetry, except tele obj/list already. this is for when input is tele obj/list
       if (("telemetry" %in% class(app_input_data)) ||
           (is.list(app_input_data) &&
            "telemetry" %in% class(app_input_data[[1]]))) {
@@ -422,6 +424,7 @@ output:
         log_msg("Loading telemetry data from app(shiny_app_data)")
         isolate(update_input_data(app_input_data))
       } else {
+        # when the input need to be imported
         # LOG import telemetry data, it could be an object so cannot put in log_msg 2nd parameter. cannot know original parameter string once transferred as app() parameter.
         log_msg("Importing telemetry data from app(shiny_app_data)")
         # accessed reactive values so need to isolate
