@@ -7,7 +7,7 @@ help_button <- function(module_id) {
                style = ctmmweb:::STYLES$help_button
   )
 }
-header <- dashboardHeader(title = "Animal Movement",
+header <- dashboardHeader(title = "ctmmweb",
             dropdownMenu(type = "messages",
                # from for first line, message 2nd line smaller font
                messageItem(
