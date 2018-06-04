@@ -541,6 +541,7 @@ output:
     values$study_preview <- NULL
     values$move_bank_dt <- NULL
   }
+  # login, download studies ----
   observeEvent(input$login, {
     note_studies <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Downloading studies..."),
@@ -563,11 +564,14 @@ output:
                            "number_of_deployments", "number_of_events",
                            "number_of_individuals",
                            "i_am_owner", "i_can_see_data", "license_terms")
-      all_studies <- try(fread(res$res_cont, select = studies_cols))
+      all_studies <- try(fread(res$res_cont, select = studies_cols,
+                               colClasses =
+              list(logical = c("i_am_owner", "i_can_see_data"))))
+      # fread now read true/false as logical, so no need for conversion below. specify colClass to avoid future error of type changes. previously did some missing rows bumped the column type to character?
       # using ifelse because we need vectorized conversion here.
-      all_studies[, i_can_see_data :=
-                    ifelse(i_can_see_data == "true", TRUE, FALSE)]
-      all_studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
+      # all_studies[, i_can_see_data :=
+      #               ifelse(i_can_see_data == "true", TRUE, FALSE)]
+      # all_studies[, i_am_owner := ifelse(i_am_owner == "true", TRUE, FALSE)]
       valid_studies <- all_studies[(i_can_see_data)]
       new_names <- sub(".*_", "", studies_cols)
       setnames(valid_studies, studies_cols, new_names)
