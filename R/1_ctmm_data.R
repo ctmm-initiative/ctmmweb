@@ -17,7 +17,7 @@ update_tele_list_ids <- function(tele_list, new_name_vec){
   return(tele_list)
 }
 # import multiple files, also work with single file
-import_tele_vec <- function(files) {
+import_tele_files <- function(files) {
   tele_list_list <- lapply(files, function(x) {
     wrap_single_telemetry(as.telemetry(x))
   })

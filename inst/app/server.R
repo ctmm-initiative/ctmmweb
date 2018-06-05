@@ -344,9 +344,10 @@ output:
     log_msg("Input data updated")
   }
   # 1.1 import to telemetry ----
+  # multiple input options: app start with file path(s), data frame, tele list; movebank import data.frame; upload files. in the end all files, data.frame need to go through as.telemetry import for error checking and report here. tele list can use update_input_data directly.
   # call this function for side effect, set values$data
-  # as.telemetry work on both file path and data.frame, so it works on both of uploaded file and downloaded movebank data frame.
-  data_import <- function(as_telemetry_input) {
+  # there are multiple messages and error checking in import stage, so this need to work on both files and data.frame (from movebank download, or app start).
+  tele_import <- function(as_telemetry_input) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
@@ -369,8 +370,14 @@ output:
     }
     tele_list <- tryCatch(
       withCallingHandlers(
+        # previously as.telemetry can work on single file or data.frame, but now we need special treatment for importing multiple files, so it need to be separated.
         # ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(as_telemetry_input)),
-        ctmmweb:::import_tele_vec(as_telemetry_input),
+        if (is.data.frame(as_telemetry_input)) {
+          ctmmweb:::wrap_single_telemetry(
+            ctmm::as.telemetry(as_telemetry_input))
+        } else {
+          ctmmweb:::import_tele_files(as_telemetry_input)
+          },
         warning = wHandler
         ),
       error = eHandler)
@@ -392,14 +399,16 @@ output:
     # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
     tele_list <- ctmmweb:::sort_tele_list(tele_list)
     update_input_data(tele_list)
+    # importing should always move to visualization page.
+    shinydashboard::updateTabItems(session, "tabs", "plots")
   }
   # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
   # using parameter because launching app with path also use this function. could make it to support multiple input too, so app can be launched with a vector of files.
-  import_as_telemetry <- function(as_telemetry_input){
-    data_import(as_telemetry_input)
-    updateRadioButtons(session, "load_option", selected = "upload")
-    shinydashboard::updateTabItems(session, "tabs", "plots")
-  }
+  # import_as_telemetry <- function(as_telemetry_input){
+  #   tele_import(as_telemetry_input)
+  #   # importing should always move to visualization page.
+  #   shinydashboard::updateTabItems(session, "tabs", "plots")
+  # }
   # app(shiny_app_data) ----
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
   # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
@@ -428,7 +437,7 @@ output:
         # LOG import telemetry data, it could be an object so cannot put in log_msg 2nd parameter. cannot know original parameter string once transferred as app() parameter.
         log_msg("Importing telemetry data from app(shiny_app_data)")
         # accessed reactive values so need to isolate
-        isolate(import_as_telemetry(app_input_data))
+        isolate(tele_import(app_input_data))
       }
     }
   } else {
@@ -441,7 +450,9 @@ output:
     req(input$tele_file)
     # LOG file upload.
     log_msg("Importing file", input$tele_file$name)
-    import_as_telemetry(input$tele_file$datapath)
+    # also change radio button status, so it's consistent and radio button switch can be effective
+    updateRadioButtons(session, "load_option", selected = "upload")
+    tele_import(input$tele_file$datapath)
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
@@ -469,7 +480,7 @@ output:
              req(input$tele_file)
              # LOG file upload.
              log_msg("Importing file", input$tele_file$name)
-             import_as_telemetry(input$tele_file$datapath)
+             tele_import(input$tele_file$datapath)
            })
   })
   # also update the app when sample size changed and is already in sample mode
@@ -613,7 +624,7 @@ output:
       # It's easier to specify cols here to drop some cols and reorder cols at the same time
       detail_cols <- c("id", "name", "study_objective", "study_type", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "timestamp_start", "timestamp_end", "bounding_box", "location_description", "main_location_lat", "main_location_long", "number_of_tags", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
       detail_dt <- try(fread(res$res_cont, select = detail_cols))
-      req("data.table" %in% class(detail_dt))
+      req(is.data.table(detail_dt))
       # need to check content in case something wrong and code below generate error on empty table
       # never had error here because the mb_id came from table itself. so no extra clear up boxes
       if (detail_dt[, .N] == 0) {
@@ -702,7 +713,8 @@ output:
   )
   observeEvent(input$import_movebank, {
     req(values$move_bank_dt[, .N] > 0)
-    data_import(values$move_bank_dt)
+    # data frame need to go through telemetry import process
+    tele_import(values$move_bank_dt)
     # LOG import movebank data
     log_msg("Movebank data imported", mb_id())
     shinydashboard::updateTabItems(session, "tabs", "plots")
