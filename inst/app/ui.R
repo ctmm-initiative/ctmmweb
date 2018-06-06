@@ -259,10 +259,16 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                width = "100%"))
             ),
            plotOutput("location_plot_individual",
-                      width = "99%", height = "100%"))
-  # tabPanel("4. Basic Plot", plotOutput("location_plot_basic"))
+                      width = "99%", height = "100%")),
+  tabPanel("5. Error",
+           fluidRow(
+             column(8, h4("Device Errors")),
+             column(4, help_button("device_error")),
+             column(12, verbatimTextOutput("error_summary")),
+             column(12, plotOutput("error_plot"))
+           ))
   )
-histogram_facet_box <- box(title = "5. Sampling Time",
+histogram_facet_box <- box(title = "6. Sampling Time",
                            # height = ctmmweb:::STYLES$height_hist_box,
                            status = "primary", solidHeader = TRUE, width = 12,
                            plotOutput("histogram_facet",

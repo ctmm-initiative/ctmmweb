@@ -720,6 +720,10 @@ output:
     shinydashboard::updateTabItems(session, "tabs", "plots")
   })
   # p2. plots ----
+  callModule(click_help, "visual", title = "Visualization",
+             size = "l", file = "help/2_visualization.md")
+  callModule(click_help, "device_error", title = "Device Error",
+             size = "l", file = "help/2_device_error.md")
   # input (upload, movebank, buffalo) -> current -> chose animal in table
   # current: merge telemetry to df, remove outliers if in quene, return df, info table, removed outliers full data
   # 2.1 data summary ----
@@ -786,8 +790,6 @@ output:
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
     DT::selectRows(proxy_individuals, list())
   })
-  callModule(click_help, "visual", title = "Visualization",
-             size = "l", file = "help/2_visualization.md")
   # select_data() ----
   # selected rows or current page, all pages start from this current subset
   # with lots of animals, the color gradient could be subtle or have duplicates
@@ -807,9 +809,10 @@ output:
     chosen_ids <- id_vec[chosen_row_nos]
     # %in% didn't keep order. since our table update in sort change the data and redraw anyway, let's keep the order. the other similar usage is in removing outliers. should not have problem with new orders.
     # animals_dt <- values$data$merged$data_dt[identity %in% chosen_ids]
-    animals_dt <- values$data$merged$data_dt[.(chosen_ids), on = "id"]
-    # also need to change the order of levels of dt, so that ggplot will plot them in same order. all these are based on selected subset, should not modify original data
-    animals_dt$id <- factor(animals_dt$id, levels = chosen_ids)
+    # the subset id factor should keep the whole id vector in levels, which is needed for color mapping
+    animals_dt <- values$data$merged$data_dt[.(chosen_ids), on = "identity"]
+    # ~also need to change the order of levels of dt, so that ggplot will plot them in same order. all these are based on selected subset, should not modify original data~ this will remove whole level information. remove this.
+    # animals_dt$id <- factor(animals_dt$id, levels = chosen_ids)
     # subset_indice <- values$data$merged$info$identity %in% chosen_ids
     # info only has identity, no id column
     info <- values$data$merged$info[.(chosen_ids), on = "identity"]
@@ -911,7 +914,14 @@ output:
     # LOG save pic
     log_save_ggplot(gr, "plot_4_individual")
   }, height = function() { input$canvas_height }, width = "auto")
-  # 2.5 histogram facet ----
+  # 2.5 device errors ----
+  output$error_plot <- renderPlot({
+    tele_list <- req(select_data()$tele_list)
+    ctmm::plot(tele_list,
+               col = values$id_pal(select_data()$info$identity),
+               error = 2)
+  })
+  # 2.6 histogram facet ----
   output$histogram_facet <- renderPlot({
     animals_dt <- req(select_data()$data_dt)
     g <- ctmmweb::plot_time(animals_dt)
