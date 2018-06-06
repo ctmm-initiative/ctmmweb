@@ -35,7 +35,8 @@ Imports: shiny,
     stringr,
     XML,
     xml2,
-    zip
+    zip,
+    bit64
 Remotes: ctmm-initiative/ctmm
 Suggests: knitr,
     rmarkdown,
