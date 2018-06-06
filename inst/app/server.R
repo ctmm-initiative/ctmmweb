@@ -812,6 +812,7 @@ output:
     # the subset id factor should keep the whole id vector in levels, which is needed for color mapping
     animals_dt <- values$data$merged$data_dt[.(chosen_ids), on = "identity"]
     # ~also need to change the order of levels of dt, so that ggplot will plot them in same order. all these are based on selected subset, should not modify original data~ this will remove whole level information. remove this.
+    # used to try to make individual plot order same with row click order(like the variogram page and overlap), but that need to override factor levels, which is difficult when we need to keep whole level and change subset order. we can order individual plot in same order if only name are used(individual group plot), but not when factor is used(facet).
     # animals_dt$id <- factor(animals_dt$id, levels = chosen_ids)
     # subset_indice <- values$data$merged$info$identity %in% chosen_ids
     # info only has identity, no id column

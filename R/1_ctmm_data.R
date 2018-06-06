@@ -39,6 +39,8 @@ import_tele_files <- function(files) {
 }
 # get single animal info in one row data frame
 info_tele <- function(object) {
+  # sometimes the data is anonymized and don't have timestamp column. It has happened several times so we need to have proper error message.
+  stopifnot("timestamp" %in% names(object))
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
   # the median of diff
