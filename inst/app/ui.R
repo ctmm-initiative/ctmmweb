@@ -265,7 +265,20 @@ location_plot_box <- tabBox(title = "Animal Locations",
              column(8, h4("Device Errors")),
              column(4, help_button("device_error")),
              column(12, verbatimTextOutput("error_summary")),
-             column(12, plotOutput("error_plot"))
+             column(12, radioButtons("error_plot_mode", label = "Plot Mode",
+                                     choices = c("Error Circle" = 1,
+                                                 "Error Disc" = 2,
+                                                 "Densities" = 3),
+                                     selected = 2, inline = TRUE)),
+             column(12, plotOutput("error_plot")),
+             # column(4, h4("Load Calibration Data")),
+             column(4, fileInput("cali_input", "Load Calibration Data")),
+             column(8, br(), verbatimTextOutput("cali_summary", placeholder = TRUE)),
+             column(12, br()),
+             column(4, actionButton("apply_calibration",
+                                    "Apply To Selected",
+                                    icon = icon("wrench"),
+                                    style = ctmmweb:::STYLES$page_action))
            ))
   )
 histogram_facet_box <- box(title = "6. Sampling Time",

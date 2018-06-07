@@ -37,6 +37,10 @@ import_tele_files <- function(files) {
   ctmm::projection(tele_list) <- ctmm::median(tele_list, k = 2)
   return(tele_list)
 }
+is_calibrated <- function(tele_obj) {
+  # make sure it's logical otherwise it may return a numerical value
+  isTRUE(ctmm::uere(tele_obj)["horizontal"])
+}
 # get single animal info in one row data frame
 info_tele <- function(object) {
   # sometimes the data is anonymized and don't have timestamp column. It has happened several times so we need to have proper error message.
@@ -51,13 +55,15 @@ info_tele <- function(object) {
   # above work on t which is cleaned by ctmm. original timestamp could have missing values
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
+  calibrated <- is_calibrated(object)
   # format the duration/interval units in list to make them use same unit
   data.table(identity = object@info$identity,
              start = format_datetime(t_start),
              end = format_datetime(t_end),
              interval = sampling_interval,
              duration = sampling_range,
-             points = nrow(object))
+             points = nrow(object),
+             calibrated = calibrated)
 }
 
 # sort tele list by identity, ggplot always sort by id. ctmm keep same order in csv, but this should not create problem. actually I found the table is sorted from ctmm for old buffalo data 1764627, which is unsorted in csv.

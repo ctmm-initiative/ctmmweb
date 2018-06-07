@@ -920,7 +920,7 @@ output:
     tele_list <- req(select_data()$tele_list)
     ctmm::plot(tele_list,
                col = values$id_pal(select_data()$info$identity),
-               error = 2)
+               error = as.numeric(input$error_plot_mode))
   })
   # 2.6 histogram facet ----
   output$histogram_facet <- renderPlot({
