@@ -330,22 +330,9 @@ output:
       scales::hue_pal()(nrow(info)), info$identity, ordered = TRUE
     )
   }
-  update_input_data <- function(tele_list) {
-    values$data$input_tele_list <- tele_list
-    values$data$tele_list <- tele_list
-    values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
-    values$data$all_removed_outliers <- NULL
-    # values$selected_data_model_try_res <- NULL
-    # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
-    # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
-    values$id_pal <- build_id_pal(values$data$merged$info)
-    shinydashboard::updateTabItems(session, "tabs", "plots")
-    # LOG input data updated
-    log_msg("Input data updated")
-  }
-  # 1.1 import to telemetry ----
+  # 1.1 import to telemetry list ----
+  # this only import parameter and return a tele list, with all error/warning handling. use import_tele_to_app to update app input data (also have other tasks), use tele_import directly in calibration data import as it doesn change app input data
   # multiple input options: app start with file path(s), data frame, tele list; movebank import data.frame; upload files. in the end all files, data.frame need to go through as.telemetry import for error checking and report here. tele list can use update_input_data directly.
-  # call this function for side effect, set values$data
   # there are multiple messages and error checking in import stage, so this need to work on both files and data.frame (from movebank download, or app start).
   tele_import <- function(as_telemetry_input) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
@@ -397,18 +384,28 @@ output:
     test_class <- lapply(tele_list, function(x) {"telemetry" %in% class(x)})
     req(all(unlist(test_class)))
     # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
-    tele_list <- ctmmweb:::sort_tele_list(tele_list)
-    update_input_data(tele_list)
+    ctmmweb:::sort_tele_list(tele_list)
+  }
+  # update app input data with tele list, all kinds of maintenences
+  update_input_data <- function(tele_list) {
+    values$data$input_tele_list <- tele_list
+    values$data$tele_list <- tele_list
+    values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
+    values$data$all_removed_outliers <- NULL
+    # values$selected_data_model_try_res <- NULL
+    # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
+    # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
+    values$id_pal <- build_id_pal(values$data$merged$info)
+    shinydashboard::updateTabItems(session, "tabs", "plots")
+    # LOG input data updated
+    log_msg("Input data updated")
+  }
+  # import tele input to app input data
+  import_tele_to_app <- function(as_telemetry_input) {
+    update_input_data(tele_import(as_telemetry_input))
     # importing should always move to visualization page.
     shinydashboard::updateTabItems(session, "tabs", "plots")
   }
-  # clicking browse button without changing radio button should also update, this is why we make the function to include all behavior after file upload.
-  # using parameter because launching app with path also use this function. could make it to support multiple input too, so app can be launched with a vector of files.
-  # import_as_telemetry <- function(as_telemetry_input){
-  #   tele_import(as_telemetry_input)
-  #   # importing should always move to visualization page.
-  #   shinydashboard::updateTabItems(session, "tabs", "plots")
-  # }
   # app(shiny_app_data) ----
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
   # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
@@ -437,7 +434,7 @@ output:
         # LOG import telemetry data, it could be an object so cannot put in log_msg 2nd parameter. cannot know original parameter string once transferred as app() parameter.
         log_msg("Importing telemetry data from app(shiny_app_data)")
         # accessed reactive values so need to isolate
-        isolate(tele_import(app_input_data))
+        isolate(import_tele_to_app(app_input_data))
       }
     }
   } else {
@@ -452,7 +449,7 @@ output:
     log_msg("Importing file", input$tele_file$name)
     # also change radio button status, so it's consistent and radio button switch can be effective
     updateRadioButtons(session, "load_option", selected = "upload")
-    tele_import(input$tele_file$datapath)
+    import_tele_to_app(input$tele_file$datapath)
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
@@ -480,7 +477,7 @@ output:
              req(input$tele_file)
              # LOG file upload.
              log_msg("Importing file", input$tele_file$name)
-             tele_import(input$tele_file$datapath)
+             import_tele_to_app(input$tele_file$datapath)
            })
   })
   # also update the app when sample size changed and is already in sample mode
@@ -714,7 +711,7 @@ output:
   observeEvent(input$import_movebank, {
     req(values$move_bank_dt[, .N] > 0)
     # data frame need to go through telemetry import process
-    tele_import(values$move_bank_dt)
+    import_tele_to_app(values$move_bank_dt)
     # LOG import movebank data
     log_msg("Movebank data imported", mb_id())
     shinydashboard::updateTabItems(session, "tabs", "plots")
@@ -833,6 +830,7 @@ output:
     return(list(data_dt = animals_dt,
                 info = info,
                 chosen_row_nos = chosen_row_nos,
+                chosen_ids = chosen_ids,
                 tele_list = values$data$tele_list[chosen_ids]
                 ))
   })
@@ -921,6 +919,28 @@ output:
     ctmm::plot(tele_list,
                col = values$id_pal(select_data()$info$identity),
                error = as.numeric(input$error_plot_mode))
+  })
+  # load calibration data ----
+  observeEvent(input$cali_file, {
+    req(input$cali_file)
+    # LOG file upload.
+    log_msg("Loading calibration data", input$cali_file$name)
+    values$cali_tele_list <- tele_import(input$cali_file$datapath)
+  })
+  # print uere of calibration data
+  output$cali_summary <- renderPrint({
+    values$cali_uere <- ctmm::uere(req(values$cali_tele_list))
+    values$cali_uere
+  })
+  # apply calibration data ----
+  observeEvent(input$apply_cali, {
+    # we need to modify the values variable, not the select_data copy
+    browser()
+    # each item get updated, but uere on list return NULL. is calibrated also didn't return true after update.
+    ctmm::uere(values$data$tele_list[select_data()$chosen_ids]) <-
+      req(values$cali_uere)
+    # need to update data with tele input changed
+    update_input_data(values$data$tele_list)
   })
   # 2.6 histogram facet ----
   output$histogram_facet <- renderPlot({
