@@ -929,7 +929,7 @@ output:
     # values$cali_uere <- ctmm::uere(values$cali_tele_list)
     uere_value <- ctmm::uere(values$cali_tele_list)
     updateTextInput(session, "uere_text_input",
-                    value = as.character(round(uere_value, 5)))
+                    value = as.character(round(uere_value, 3)))
   })
   # print uere of calibration data
   # output$cali_summary <- renderPrint({
@@ -940,7 +940,8 @@ output:
   observeEvent(input$apply_uere, {
     # we need to modify the values variable, not the select_data copy
     # each item get updated, but uere on list return NULL. is calibrated also didn't return true after update.
-    values$cali_uere <- as.numeric(input$uere_text_input)
+    # req will stop at "" (designed for this usage) so button will not work without proper value
+    values$cali_uere <- req(ctmmweb:::parse_num_text_input(req(input$uere_text_input)))
     ctmm::uere(values$data$tele_list[select_data()$chosen_ids]) <-
       req(values$cali_uere)
     # need to update data with tele input changed

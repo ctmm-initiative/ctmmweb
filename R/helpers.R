@@ -1,4 +1,17 @@
 # helper functions that too specific to shiny app and no need to be put inside package. Some are exported for individual uses. All functions are placed in one file for easier search for now.
+# parse text input of numerical values
+parse_num_text_input <- function(num_text) {
+  parsed_values <- as.numeric(num_text)
+  # non valid input is checked, rejected, show message
+  if ((length(parsed_values) == 0) || (is.na(parsed_values))) {
+    shiny::showNotification("Not a valid number",
+                            duration = 5, type = "error")
+    # return false to trigger req
+    return(FALSE)
+  } else {
+    return(parsed_values)
+  }
+}
 
 # divide x into interval_count intervals ----
 # Taken from https://github.com/wch/r-source/blob/trunk/src/library/base/R/cut.R
