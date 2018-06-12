@@ -984,7 +984,9 @@ output:
     # we need to modify the values variable, not the select_data copy
     # each item get updated, but uere on list return NULL. is calibrated also didn't return true after update.
     # req will stop at "" (designed for this usage) so button will not work without proper value
-    values$cali_uere <- req(ctmmweb:::parse_num_text_input(req(input$uere_text_input)))
+    # uere is always a named vector. after parsing the name is lost, need to restore it, otherwise new uere was not named properly
+    values$cali_uere <- c(horizontal = req(ctmmweb:::parse_num_text_input(
+      req(input$uere_text_input))))
     ctmm::uere(values$data$tele_list[select_data()$chosen_ids]) <-
       req(values$cali_uere)
     # need to update data with tele input changed
