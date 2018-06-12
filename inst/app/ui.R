@@ -8,26 +8,28 @@ help_button <- function(module_id) {
   )
 }
 header <- dashboardHeader(title = "ctmmweb",
-            dropdownMenu(type = "messages",
-               # from for first line, message 2nd line smaller font
-               messageItem(
-                 from = "Project in Github",
-                 message = "Documentation, Source, Citation",
-                 icon = icon("github"),
-                 href = "https://github.com/ctmm-initiative/ctmmweb"),
-               messageItem(
-                 from = "Installed On",
-                 message = PKG_INSTALLATION_TIME,
-                 icon = icon("calendar-o")),
-               messageItem(
-                 from = "Issues",
-                 message = "Report Issues",
-                 icon = icon("exclamation-circle"),
-                 href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
-               badgeStatus = NULL,
-               icon = icon("info-circle fa-lg"),
-               headerText = "App Information"
-               ))
+                          dropdownMenuOutput("messageMenu")
+            # dropdownMenu(type = "messages",
+            #    # from for first line, message 2nd line smaller font
+            #    messageItem(
+            #      from = "Project in Github",
+            #      message = "Documentation, Source, Citation",
+            #      icon = icon("github"),
+            #      href = "https://github.com/ctmm-initiative/ctmmweb"),
+            #    messageItem(
+            #      from = "Installed On",
+            #      message = PKG_INSTALLATION_TIME,
+            #      icon = icon("calendar-o")),
+            #    messageItem(
+            #      from = "Issues",
+            #      message = "Report Issues",
+            #      icon = icon("exclamation-circle"),
+            #      href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
+            #    badgeStatus = NULL,
+            #    icon = icon("info-circle fa-lg"),
+            #    headerText = "App Information"
+            #    )
+            )
 # sidebar ----
 sidebar <- dashboardSidebar(
   sidebarMenu(

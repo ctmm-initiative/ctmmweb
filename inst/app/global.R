@@ -9,7 +9,7 @@ if (!require("pacman")) install.packages("pacman")
 # the reason to load first line of packages is that they are not really needed for package functions, so are not included in package dependencies. we still need p_load to install them in first run. since they are loaded, no need to use full qualified name in app code.
 pacman::p_load(shiny, shinydashboard, DT,
                ctmm, data.table)
-# package installation time in current time zone. This is used in ui (app info dialog) and server (start info).
-PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
+# package installation time in current time zone. This is used in ui (app info dialog) and server (start info). previously in here to save 2 calls, which cost 500 ms. but this often lead to error when app is stopped in debugging, which caused many re-launch, way more than the 500 ms saved. instead, write message menu in server side dynamically once.
+# PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 # switch to turn on debug button
 # DEBUG_BUTTON <- FALSE

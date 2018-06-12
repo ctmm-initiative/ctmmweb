@@ -4,8 +4,32 @@ options(shiny.maxRequestSize = 2000*1024^2)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages
 VERIFY_DATA_SYNC <- FALSE
+PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 
 server <- function(input, output, session) {
+  # rendering message menu dynamically to avoid call pkg_installation_time twice
+  output$messageMenu <- renderMenu({
+    dropdownMenu(type = "messages",
+                 # from for first line, message 2nd line smaller font
+                 messageItem(
+                   from = "Project in Github",
+                   message = "Documentation, Source, Citation",
+                   icon = icon("github"),
+                   href = "https://github.com/ctmm-initiative/ctmmweb"),
+                 messageItem(
+                   from = "Installed On",
+                   message = PKG_INSTALLATION_TIME,
+                   icon = icon("calendar-o")),
+                 messageItem(
+                   from = "Issues",
+                   message = "Report Issues",
+                   icon = icon("exclamation-circle"),
+                   href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
+                 badgeStatus = NULL,
+                 icon = icon("info-circle fa-lg"),
+                 headerText = "App Information"
+    )
+  })
   values <- reactiveValues()
   # log/error options ----
   # log functions will use these options, so need to prepare them first
