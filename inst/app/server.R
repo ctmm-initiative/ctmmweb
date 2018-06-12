@@ -396,6 +396,8 @@ output:
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
     values$id_pal <- build_id_pal(values$data$merged$info)
+    # clear previous selection
+    DT::selectRows(proxy_individuals, list())
     shinydashboard::updateTabItems(session, "tabs", "plots")
     # LOG input data updated
     log_msg("Input data updated")
@@ -445,11 +447,11 @@ output:
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
-    # LOG file upload.
+    # LOG file upload. need to be outside of import_tele_to_app function because that only have the temp file path, not original file name. thus always call import_tele function with separate log msg line.
     log_msg("Importing file", input$tele_file$name)
+    import_tele_to_app(input$tele_file$datapath)
     # also change radio button status, so it's consistent and radio button switch can be effective
     updateRadioButtons(session, "load_option", selected = "upload")
-    import_tele_to_app(input$tele_file$datapath)
   })
   # abstract because need to do this in 2 places
   set_sample_data <- function() {
@@ -470,15 +472,17 @@ output:
            },
            ctmm_sample = {
              set_sample_data()
-           },
-           upload = {
-             # the radiobutton itself doesn't upload, just reuse previously uploaded file if switched back.
-             # need to check NULL input from source, stop error in downstream
-             req(input$tele_file)
-             # LOG file upload.
-             log_msg("Importing file", input$tele_file$name)
-             import_tele_to_app(input$tele_file$datapath)
-           })
+           }
+           # ,
+           # upload = {
+           #   # ~the radiobutton itself doesn't upload, just reuse previously uploaded file if switched back~. cannot keep this feature now. when we upload a file by drag/drop, it will be imported, then radio button updated after import(which is needed, otherwise you cannot switch to internal data later), which trigger code here and import again.
+           #   # need to check NULL input from source, stop error in downstream
+           #   req(input$tele_file)
+           #   # LOG file upload.
+           #   log_msg("Importing file", input$tele_file$name)
+           #   import_tele_to_app(input$tele_file$datapath)
+           # }
+           )
   })
   # also update the app when sample size changed and is already in sample mode
   observeEvent(input$sample_size, {
@@ -733,6 +737,8 @@ output:
   })
   output$individuals <- DT::renderDT({
     req(values$data)
+    # prevent select_data to run before this finished with updated data.
+    freezeReactiveValue(input, "individuals_rows_current")
     info_p <- values$data$merged$info
     DT::datatable(info_p, options = list(pageLength = 6,
                                      lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
@@ -793,10 +799,10 @@ output:
   select_data <- reactive({
     # need to wait the individual summary table initialization finish. otherwise the varible will be NULl and data will be an empty data.table but not NULL, sampling time histogram will have empty data input.
     req(values$data)
-    # switching data summary units cause redraw of plot, because the table redraw changed the rows_current value to null then new, triggered this change.
     req(input$individuals_rows_current)
     id_vec <- values$data$merged$info[, identity]
     # table can be sorted, but always return row number in column 1
+    # select two rows, update input data with 2 rows, the rows_selected updated, but rows_current is still 6, so chosen_row_nos have 6 applied to 2 rows. freeze rows_current in data summary table, for freeze it's all about right timing. update_input updated everything, data summary table and select_data both began to update but DT table is always slower to finish, so freeze the value there, prevent select_data to run first.
     if (length(input$individuals_rows_selected) == 0) {
       # select all in current page when there is no selection
       chosen_row_nos <- input$individuals_rows_current
@@ -834,6 +840,19 @@ output:
                 tele_list = values$data$tele_list[chosen_ids]
                 ))
   })
+  # export current ----
+  output$export_rows <- downloadHandler(
+    filename = function() {
+      paste0("Exported_", ctmmweb:::current_timestamp(), ".csv")
+    },
+    content = function(file) {
+      # LOG export current
+      log_msg("Export current data")
+      export_current_path <- file.path(session_tmpdir, "export.csv")
+      fwrite(select_data()$data_dt, file = export_current_path)
+      file.copy(export_current_path, file)
+    }
+  )
   # 2.2 overview plot ----
   # to add zoom in for a non-arranged plot, seem more in add_zoom.R and google group discussion
   # 1. add event id in ui, always use same naming pattern with plotid.
