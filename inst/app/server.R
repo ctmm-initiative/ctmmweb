@@ -991,6 +991,8 @@ output:
       req(values$cali_uere)
     # need to update data with tele input changed
     update_input_data(values$data$tele_list)
+    # restore previous selection after data/table update. no selection means no selection too, also what we want.
+    DT::selectRows(proxy_individuals, input$individuals_rows_selected)
   })
   # 2.6 histogram facet ----
   output$histogram_facet <- renderPlot({
