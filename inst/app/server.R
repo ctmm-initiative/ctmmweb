@@ -1892,15 +1892,20 @@ output:
     dt[name == "z", c("min", "max") := list(min - 1, max - 1)]
     # initial is taken from last page control directly
     dt[name == "z", initial := input$zoom_lag_fraction]
-    # didn't use the step value
+    # didn't use the step value in ctmm. use 0.001 instead, but need to adjust for error when data is calibrated
+    dt[, step := 0.001]
+    if ("MSE" %in% names(vario)) {
+      dt[name == "error", step := 1]
+    }
     slider_list <- lapply(1:nrow(dt), function(i) {
       sliderInput(
         inputId = paste0("vfit_", dt[i, name]),
         label = dt[i, label], min = round(dt[i, min], 3),
         max = round(dt[i, max], 3), value = round(dt[i, initial], 3),
-        step = 0.001)
+        step = dt[i, step])
     })
     names(slider_list) <- dt$name
+
     # zoom is for view only, separate it from others
     return(list(vario = vario, STUFF = STUFF,
                 control_dt = dt[name != "z"],
