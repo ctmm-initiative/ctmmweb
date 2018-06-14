@@ -1002,8 +1002,6 @@ output:
     log_save_ggplot(g, "plot_5_histogram")
   }, height = ctmmweb:::STYLES$height_hist, width = "auto")
   # p3. outlier ----
-  callModule(click_help, "telemetry_errors", title = "Telemetry Errors",
-             size = "l", file = "help/3_telemetry_errors.md")
   callModule(click_help, "outlier_distance",
              title = "Outliers in Distance to Median Center",
              size = "l", file = "help/3_outlier_distance.md")
@@ -1013,15 +1011,15 @@ output:
   # take current subset, add distance and speed columns. everything in this page start from this data. The outlier removal need to apply to whole data then trickle down here
   calc_outlier <- reactive({
     # exclude non-numeric input
-    req(!is.na(as.numeric(input$device_error)))
+    # req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data_dt
     # need telemetry list for error info
     animals_dt <- animals_dt %>%
       ctmmweb::assign_distance(outlier_page_data$tele_list,
-                               as.numeric(input$device_error)) %>%
+                               10) %>%
       ctmmweb::assign_speed(outlier_page_data$tele_list,
-                            as.numeric(input$device_error))
+                            10)
     outlier_page_data$data_dt <- animals_dt
     return(outlier_page_data)
   })

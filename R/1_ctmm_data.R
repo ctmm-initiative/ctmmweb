@@ -201,9 +201,10 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   #                                            UERE = device_error, method = "max"),
   #            by = identity]
   # when using by = identity, each .SD don't have identity column, it's outside.
+  # follow usage in ctmm::outlie, error is calculated in distance function
   animals_dt[, speed := ctmm:::assign_speeds(
                           tele_list[[identity]][row_name,],
-                          UERE = device_error)$v.t,
+                          UERE = error)$v.t,
              by = identity]
   return(animals_dt)
 }
@@ -228,6 +229,7 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
   setkey(animals_dt, row_no)
   # note every parameter changes need to be present in every data call, several places
   # my speed calculation need distance columns
+  stopifnot(c("error", "distance_center") %in% names(animals_dt))
   test_calc <- function(data, tele_list, device_error, fun, fun_bak) {
     res <- tryCatch(fun(data, tele_list, device_error),
                     error = function(e) "error")

@@ -301,23 +301,17 @@ histogram_facet_box <- box(title = "6. Sampling Time",
                            plotOutput("histogram_facet",
                                       width = "99%", height = "100%"))
 # p3. outlier ----
-telemetry_error_box <- box(title = "Telemetry Errors",
-           status = "primary", solidHeader = TRUE, width = 12,
-           fluidRow(
-             column(5, offset = 1,
-                    textInput("device_error",
-                              "Standardized Device Error(meter)",
-                              value = "10"),
-                    h5("Example: GPS: 10, VHF: 100")),
-             column(2, offset = 4, br(), help_button("telemetry_errors"))
-             # ,
-             # column(3, offset = 3, br(),
-             #        actionButton("standarize_error",
-             #                     "Standarize Error",
-             #                     icon = icon("trash-o"),
-             #                     style = ctmmweb:::STYLES$page_action))
-           )
-)
+# telemetry_error_box <- box(title = "Telemetry Errors",
+#            status = "primary", solidHeader = TRUE, width = 12,
+#            fluidRow(
+#              column(5, offset = 1,
+#                     textInput("device_error",
+#                               "Standardized Device Error(meter)",
+#                               value = "10"),
+#                     h5("Example: GPS: 10, VHF: 100")),
+#              column(2, offset = 4, br(), help_button("telemetry_errors"))
+#            )
+# )
 outlier_filter_box <- tabBox(title = "Outlier Detection",
                        id = "outlier_filter_tabs", width = 12,
   # p3.a distance ----
@@ -867,7 +861,7 @@ body <- dashboardBody(
                      selected_plot_box,
                      selected_ranges_box)),
     tabItem(tabName = "filter",
-            fluidRow(telemetry_error_box, outlier_filter_box,
+            fluidRow(outlier_filter_box,
                      all_removed_outliers_box)),
     tabItem(tabName = "model",
             fluidRow(vario_control_box, variograms_box
