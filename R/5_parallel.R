@@ -127,7 +127,7 @@ par_try_tele_guess <- function(tele_guess_list,
   # use try to refer the ctmm.select, use select to refer the manual select rows in model summary table.
   try_models <- function(tele_guess) {
     res <- try({
-      log("a")
+      # log("a")
       ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
                         control = list(method = "pNewton", cores = 1),
                         trace = TRUE, verbose = TRUE)
