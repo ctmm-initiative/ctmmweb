@@ -126,8 +126,19 @@ par_try_tele_guess <- function(tele_guess_list,
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict. fit is also not optimal since it hint ctmm.fit
   # use try to refer the ctmm.select, use select to refer the manual select rows in model summary table.
   try_models <- function(tele_guess) {
-    ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
-                      trace = TRUE, verbose = TRUE)
+    res <- try({
+      log("a")
+      ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                        control = list(method = "pNewton", cores = 1),
+                        trace = TRUE, verbose = TRUE)
+    })
+    if (inherits(res, "try-error")) {
+      message(res)
+      cat(crayon::white$bgMagenta("ctmm.select() failed with pNewton, switching to Nelder-Mead\n"))
+      res <- ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                               trace = TRUE, verbose = TRUE)
+    }
+    return(res)
   }
   par_lapply(tele_guess_list, try_models, cores, parallel)
 }
