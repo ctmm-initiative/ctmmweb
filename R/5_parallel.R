@@ -120,9 +120,10 @@ par_lapply <- function(lst, fun,
 # ctmm.select verbose = FALSE: same structure but no model type as name, with one extra layer compare to ctmm.fit. also the object content is different. there is no sense to use verbose = FALSE. though there may be a need for parallel ctmm.fit
 # trace will print progress, but console output is lost in parallel mode since they are not in master r process. it will be shown in non-parallel mode.
 # didn't add animal names to list because the aligned list lost model name information anyway. we added the names in calling code instead. It was only called once.
-par_try_tele_guess <- function(tele_guess_list,
-                               cores = NULL,
-                               parallel = TRUE) {
+# process multiple animals on multiple cores
+par_try_tele_guess_multi <- function(tele_guess_list,
+                                     cores = NULL,
+                                     parallel = TRUE) {
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict. fit is also not optimal since it hint ctmm.fit
   # use try to refer the ctmm.select, use select to refer the manual select rows in model summary table.
   try_models <- function(tele_guess) {
@@ -141,6 +142,37 @@ par_try_tele_guess <- function(tele_guess_list,
     return(res)
   }
   par_lapply(tele_guess_list, try_models, cores, parallel)
+}
+# process single animal in multiple cores
+par_try_tele_guess_single <- function(tele_guess_list,
+                                     cores = NULL,
+                                     parallel = TRUE) {
+  cat(crayon::white$bgBlack("trying models on single animal with multiple cores\n"))
+  tele_guess <- tele_guess_list[[1]]
+  cores <- if (parallel) -1 else 1
+  res <- try({
+    # log("a")
+    ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                      control = list(method = "pNewton", cores = cores),
+                      trace = TRUE, verbose = TRUE)
+  })
+  if (inherits(res, "try-error")) {
+    message(res)
+    cat(crayon::white$bgMagenta("ctmm.select() failed with pNewton, switching to Nelder-Mead\n"))
+    res <- ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+                             control = list(cores = cores),
+                             trace = TRUE, verbose = TRUE)
+  }
+  return(list(res))
+}
+par_try_tele_guess <- function(tele_guess_list,
+                               cores = NULL,
+                               parallel = TRUE) {
+  if (length(tele_guess_list) == 1) {
+    par_try_tele_guess_single(tele_guess_list, cores, parallel)
+  } else {
+    par_try_tele_guess_multi(tele_guess_list, cores, parallel)
+  }
 }
 # convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
 
