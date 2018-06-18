@@ -157,7 +157,7 @@ format_model_summary_dt <- function(model_summary_dt) {
                          "tau velocity" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
-  format_dt_unit(dt, name_unit_list, round_by_model = TRUE)
+  format_dt_unit(dt, name_unit_list, round_by_model = FALSE)
 }
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table
@@ -219,7 +219,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   dt[stringr::str_detect(estimate, "CI"),
      c("DOF area", "DOF bandwidth") := NA_real_]
   name_unit_list <- list("area" = pick_unit_area)
-  format_dt_unit(dt, name_unit_list, round_by_model = TRUE)
+  format_dt_unit(dt, name_unit_list, round_by_model = FALSE)
 }
 # Generate Formated Home Range Summary Table From Home Range List Table
 #
