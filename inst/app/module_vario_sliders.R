@@ -1,3 +1,4 @@
+# abstract original code into module so it can be reused. need to support two curves.
 vario_sliders_Input <- function(id, dialog_title) {
   ns <- NS(id)
   modalDialog(title = dialog_title,
@@ -17,23 +18,22 @@ vario_sliders_Input <- function(id, dialog_title) {
                                     style = ctmmweb:::STYLES$page_action)))
   )
 }
-
-
-# init values of sliders ----
-init_slider_values <- reactive({
-  vario_list <- req(select_data_vario()$vario_list)
+# get slider info from vario, ctmm_obj. fraction is the internal value of zoom slider in vario control box. id_prefix need a _ in end. for our purpose, it's easier to further wrap input processing code here, only provide the original input value in parameter.
+get_sliders_info <- function(vario_id, vario_list, ctmm_obj_list,
+                            fraction_internal_value,
+                            slider_id_prefix) {
   ids <- names(vario_list)
-  vario <- vario_list[ids == input$tune_selected][[1]]
-  CTMM <- values$selected_data_guess_list[ids == input$tune_selected][[1]]
-  fraction <- 10 ^ input$zoom_lag_fraction
-  STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = CTMM,
-                                        fraction = fraction, b = 10)
+  vario <- vario_list[ids == vario_id][[1]]
+  ctmm_obj <- ctmm_obj_list[ids == vario_id][[1]]
+  fraction_face_value <- 10 ^ fraction_internal_value
+  STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = ctmm_obj,
+                                        fraction = fraction_face_value, b = 10)
   dt <- data.table(STUFF$DF)
   dt[, name := row.names(STUFF$DF)]
   # zoom slider used different base, and minus 1 from min,max.
   dt[name == "z", c("min", "max") := list(min - 1, max - 1)]
   # initial is taken from last page control directly
-  dt[name == "z", initial := input$zoom_lag_fraction]
+  dt[name == "z", initial := fraction_internal_value]
   # didn't use the step value in ctmm. use 0.001 instead, but need to adjust for error when data is calibrated
   dt[, step := 0.001]
   if ("MSE" %in% names(vario)) {
@@ -41,19 +41,28 @@ init_slider_values <- reactive({
   }
   slider_list <- lapply(1:nrow(dt), function(i) {
     sliderInput(
-      inputId = paste0("vfit_", dt[i, name]),
+      inputId = paste0(slider_id_prefix, dt[i, name]),
       label = dt[i, label], min = round(dt[i, min], 3),
       max = round(dt[i, max], 3), value = round(dt[i, initial], 3),
       step = dt[i, step])
   })
   names(slider_list) <- dt$name
-
-  # zoom is for view only, separate it from others
-  return(list(vario = vario, STUFF = STUFF,
-              control_dt = dt[name != "z"],
+  # need to separate the zoom slider and control slider
+  return(list(vario = vario, STUFF = STUFF, control_dt = dt[name != "z"],
               control_sliders = slider_list[names(slider_list) != "z"],
               zoom_slider = slider_list[names(slider_list) == "z"]))
+}
+# use reactive to get current vario, ctmm_obj. this will be duplicated on 2 tabs, make the code as simple as possible
+guess_slider_values <- reactive({
+  get_sliders_info(input$tune_selected,
+                   req(select_data_vario()$vario_list),
+                   values$selected_data_guess_list,
+                   input$zoom_lag_fraction,
+                   "tune_guess_")
 })
+
+
+
 # init control sliders
 output$fit_sliders <- renderUI({
   req(init_slider_values()$control_sliders)
@@ -74,7 +83,7 @@ observeEvent(input$center_slider, {
   }
   lapply(init_slider_values()$control_dt$name, adjust_slider)
 })
-# current CTMM according to sliders
+# the convert function is already wrapped, need to get slider names and input values properly, which can be dynamic.
 slider_to_CTMM <- reactive({
   # there is a time when sliders are initialized but without value, then later storer call get NULL parameters
   req(!is.null(input$vfit_sigma))
