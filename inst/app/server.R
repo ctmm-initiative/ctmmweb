@@ -412,10 +412,13 @@ output:
   }
   # update app input data with tele list, all kinds of maintenences
   update_input_data <- function(tele_list) {
+    # need to clear existing variables, better collect all values variable in one place
+    # values <- reactiveValues()
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
     values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
     values$data$all_removed_outliers <- NULL
+    values$pooled_vario_id_list <- NULL
     # values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
