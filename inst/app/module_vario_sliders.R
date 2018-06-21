@@ -20,7 +20,7 @@ varioSlidersInput <- function(id, dialog_title) {
   )
 }
 # sliders id are created in get_sliders_info with module_id, so we don't need to get ns from session$ns, just make sure module_id is same with id parameter
-varioSliders <- function(input, output, session, sliders_info) {
+varioSliders <- function(input, output, session, sliders_info, color_vec) {
   # init sliders ----
   output$fit_sliders <- renderUI({
     req(sliders_info()$control_sliders)
@@ -45,12 +45,14 @@ varioSliders <- function(input, output, session, sliders_info) {
     names(slider_values) <- sliders_info()$control_dt$name
     CTMM <- do.call(sliders_info()$STUFF$storer, slider_values)
   })
-  # update plot by sliders
+  # plot by sliders ----
   output$fit_plot <- renderPlot({
     # req(slider_to_CTMM())  # otherwise error: replacement of length zero
     # within module we can access input without ns, it will be converted. ns is only used in creating ui items.
-    plot(sliders_info()$vario, CTMM = req(get_current_ctmm()),
-         col.CTMM = "green", fraction = 10 ^ input$z)
+    # use list, draw existing curve and adjusted curve.
+    plot(sliders_info()$vario, CTMM = list(sliders_info()$ctmm_obj,
+                                           req(get_current_ctmm())),
+         col.CTMM = color_vec, fraction = 10 ^ input$z)
   })
   # center sliders ----
   observeEvent(input$center_slider, {
@@ -96,7 +98,8 @@ get_sliders_info <- function(vario, ctmm_obj,
   })
   names(slider_list) <- dt$name
   # need to separate the zoom slider and control slider
-  return(list(vario = vario, STUFF = STUFF, control_dt = dt[name != "z"],
+  return(list(vario = vario, ctmm_obj = ctmm_obj,  # for convinence
+              STUFF = STUFF, control_dt = dt[name != "z"],
               control_sliders = slider_list[names(slider_list) != "z"],
               zoom_slider = slider_list[names(slider_list) == "z"]))
 }
