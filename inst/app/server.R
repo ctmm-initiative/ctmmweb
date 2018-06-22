@@ -1815,26 +1815,26 @@ output:
     select_data_vario()$vario_layout$height
     }
   )
-  # variogram 2:guess ----
-  output$vario_plot_2 <- renderPlot({
-    # actual fraction value from slider is not in log, need to convert
-    ctmmweb::plot_vario(select_data_vario()$vario_list,
-                        values$selected_data_guess_list,
-                        title_vec = select_data_vario()$vario_title_vec,
-                        fraction = 10 ^ input$zoom_lag_fraction,
-                        relative_zoom = (input$vario_option == "relative"),
-                        model_color = "green", cex = 0.72,
-                        columns = input$vario_columns)
-    # LOG save pic
-    log_save_vario("vario", select_data_vario()$vario_layout$row_count,
-                   input$vario_columns)
-  }, height = function() { # always use current selected layout
-    select_data_vario()$vario_layout$height
-  }
-  )
-  # variogram 3:modeled ----
+  # variogram 2:guess ---
+  # output$vario_plot_2 <- renderPlot({
+  #   # actual fraction value from slider is not in log, need to convert
+  #   ctmmweb::plot_vario(select_data_vario()$vario_list,
+  #                       values$selected_data_guess_list,
+  #                       title_vec = select_data_vario()$vario_title_vec,
+  #                       fraction = 10 ^ input$zoom_lag_fraction,
+  #                       relative_zoom = (input$vario_option == "relative"),
+  #                       model_color = "green", cex = 0.72,
+  #                       columns = input$vario_columns)
+  #   # LOG save pic
+  #   log_save_vario("vario", select_data_vario()$vario_layout$row_count,
+  #                  input$vario_columns)
+  # }, height = function() { # always use current selected layout
+  #   select_data_vario()$vario_layout$height
+  # }
+  # )
+  # variogram 2:modeled ----
   # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
-  output$vario_plot_3 <- renderPlot({
+  output$vario_plot_2 <- renderPlot({
     model_title_vec <- paste0(names(select_models()$model_list),
                               select_models()$subtitle_list)
     # actual fraction value from slider is not in log, need to convert
@@ -1852,10 +1852,15 @@ output:
     select_models()$vario_layout$height
   }
   )
-  # select individual plot to fine tune
-  output$tune_selector <- renderUI({
+  # fine tune the guesstimate
+  output$tune_selector_guess <- renderUI({
     selectInput("tune_selected", NULL,
                 c("Fine-tune" = "", req(select_data()$info$identity)))
+  })
+  # fine tune model, base on selected model, display name
+  output$tune_selector_model <- renderUI({
+    selectInput("tune_selected", NULL,
+                c("Fine-tune" = "", req(select_models()$names_dt$display_name)))
   })
   # fine tune fit start ----
   observeEvent(input$tune_selected, {
