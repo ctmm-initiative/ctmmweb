@@ -1975,7 +1975,7 @@ output:
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the try model (model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   # values$selected_data_model_try_res <- NULL  # need to clear this at input change too
-  # try models() ----
+  # try_models() ----
   try_models <- reactive({
     # need 1st tab ready. write separately, don't want to check length on req
     req(values$selected_data_guess_list)
