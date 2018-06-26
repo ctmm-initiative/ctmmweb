@@ -1637,8 +1637,11 @@ output:
              size = "l", file = "help/5_a_vario_control.md")
   callModule(click_help, "variograms", title = "Variograms",
              size = "l", file = "help/5_b_variograms.md")
-  # callModule(click_help, "vario_irregular", title = "Irregular Data",
-  #            size = "l", file = "help/5_b_irregular_data.md")
+  # various curve colors in variogram, tuned color is brighter variant
+  ctmm_colors <- c("#803D38", "#FF7970", "#008026", "#00FF4D", "#619CFF")
+  names(ctmm_colors) <- c("0_guess", "0_guess_tuned",
+                          "1_model", "1_model_tuned",
+                          "2_model")
   # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
   values$selected_data_guess_list <- NULL
   # calculate group plot row count and total canvas height from group list length and UI. this is needed in vario plot, overlap home range plot. vario mode and model mode need different value because model mode can coexist (home range/occur rely on it)
