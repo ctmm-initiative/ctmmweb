@@ -562,7 +562,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
               fluidRow(
                 column(6, offset = 0, uiOutput("tune_selector_guess")),
                 column(2, offset = 4, help_button("variograms")),
-                column(12, br(), plotOutput("vario_plot_1",
+                column(12, br(), plotOutput("vario_plot_empirical",
                                              width = "99%", height = "98%"))
               )
      ),
@@ -581,7 +581,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
         #        br(), br()),
         column(6, offset = 0, uiOutput("tune_selector_model")),
         column(2, offset = 4, help_button("model_selection")),
-        column(12, plotOutput("vario_plot_2",
+        column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%")),
         # model selection table
         column(12, hr()),

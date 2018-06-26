@@ -1711,7 +1711,7 @@ output:
     # item name as animal name, value as title content
     names(subtitle_dt_list) <- names(tele_list)
     subtitle_pool_list <- subtitle_dt_list
-    # multi schedule --
+    # -- multi schedule --
     ms_dt <- values$multi_schedule_dt
     if (!is.null(ms_dt)) {
       for (i in 1:nrow(ms_dt)) {
@@ -1724,7 +1724,7 @@ output:
         }
       }
     }
-    # pool vario --
+    # -- pool vario --
     # original vario from tele need to be maintained in case new pool need some individuals that were pooled
     vario_list_tele <- lapply(names(tele_list), function(x) {
       ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
@@ -1744,15 +1744,13 @@ output:
       }
     }
     # needed for figure title to include additional info
-    # title_vec <- unlist(subtitle_list)
-    # subtitle_vec <- unlist(subtitle_list)
     subtitle_list <- paste0(subtitle_dt_list, subtitle_pool_list)
     names(subtitle_list) <- names(subtitle_dt_list)
     # plot title before model fit. after model fit need different treatment
     vario_title_vec <- paste0(names(vario_list), subtitle_list)
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
-    # guess list --
+    # -- guess list --
     # generate guess with variogram input
     # guess value need to be reactive value so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(seq_along(tele_list),
@@ -1765,9 +1763,10 @@ output:
                 vario_title_vec = vario_title_vec,
                 subtitle_list = subtitle_list))
   })
-  # variogram 1:empri ----
+  # vario 1:empri, guess ----
+  ## show guess by default, since it's available. no need to turn off since it's the only curve.
   # no model, model_color parameter
-  output$vario_plot_1 <- renderPlot({
+  output$vario_plot_empirical <- renderPlot({
     title_vec <-
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
@@ -1800,9 +1799,9 @@ output:
   #   select_data_vario()$vario_layout$height
   # }
   # )
-  # variogram 2:modeled ----
+  # vario 2:modeled ----
   # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
-  output$vario_plot_2 <- renderPlot({
+  output$vario_plot_modeled <- renderPlot({
     model_title_vec <- paste0(names(select_models()$model_list),
                               select_models()$subtitle_list)
     # actual fraction value from slider is not in log, need to convert
@@ -1830,7 +1829,8 @@ output:
     selectInput("tune_selected", NULL,
                 c("Fine-tune" = "", req(select_models()$names_dt$display_name)))
   })
-  # fine tune fit start ----
+  # < fine tune sliders ----
+  ## 2 tabs have similar ui, write together in parallel so it's easier to compare for duplicates and differences.
   observeEvent(input$tune_selected, {
     if (input$tune_selected != "") {
       # LOG fine tune start
@@ -1935,7 +1935,7 @@ output:
     values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
       slider_to_CTMM()
   })
-  # fine tune fit end ----
+  # fine tune sliders > ----
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
              size = "l", file = "help/5_c_model_selection.md")
