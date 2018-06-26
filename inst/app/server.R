@@ -1651,10 +1651,9 @@ output:
     height <- figure_height * row_count
     return(list(row_count = row_count, height = height))
   }
-  # vario_intervals ----
-  # multiple intervals with units create a multi schedule for one variogram.
-  # each dt parameter row added to a reactive value. select_data_vario take it to apply on variogram parameters. a table take it to display current rows, which can be reset.
-  # init select input in select_data, also clear the reactive value in case data updated. similiarly, homerange weight need init and clear in select_model.
+  # multi schedule ----
+  ## multiple intervals with units create a multi schedule for one variogram. all UI are used to create values$multi_schedule_dt, which show summary as vario_intervals_table, each row for some animal and some intervals. the dt get processed in select_data_vario reactive.
+  ## init select input in select_data, also clear the reactive value in case data updated. similiarly, homerange weight need init and clear in select_model. reactive values (not expression) often need these manual maintaince.
   values$multi_schedule_dt <- NULL
   observeEvent(input$add_vario_intervals, {
     multi_schedule_row <- data.table(
@@ -1687,42 +1686,19 @@ output:
     values$multi_schedule_dt <- NULL
   })
   # pool vario ----
-  # each pooled variogram replace the individual variogram, the plot only plot one copy, but underlying list stay the same, keep the variogram:individual 1:1 mapping. dt, pool all reflected on variogram object, change plot title but not the variogram list name, keep the other tabs consistent.
-  # to keep the UI simple, don't show a DT table.
+  ## just create a list of pooled ids. each item is a vector of ids. processed in select_data_vario. to keep the UI simple, no need for a DT table, as the result is obvious in plot titles.
+  # each pooled variogram replace the individual variogram, the plot only plot one copy, but underlying list stay the same, keep the variogram:individual 1:1 mapping. multi schedule, pool all reflected on variogram object, change plot title but not the variogram list name, keep the other tabs consistent.
   values$pooled_vario_id_list <- NULL
   observeEvent(input$apply_pool_vario, {
     req(length(input$pool_vario_ids) > 1)
     values$pooled_vario_id_list <- c(values$pooled_vario_id_list,
                                 list(input$pool_vario_ids))
-    # updateSelectInput(session, "pool_vario_ids", choices = info$identity,
-    #                   selected = NULL)
-    # pooled_vario_row <- data.table(
-    #   pool_ids = list(req(input$pool_vario_ids)))
-    # # why unique here get silent result?
-    # values$pooled_vario_dt <- rbindlist(list(values$pooled_vario_dt,
-    #                                          pooled_vario_row))
   })
-  # output$pool_vario_table <- DT::renderDT({
-  #   dt <- copy(req(values$pooled_vario_dt))
-  #   # list column cannot be shown by DT, must convert to string
-  #   dt[, pooled_variograms := paste(pool_ids[[1]], collapse = ", "),
-  #      by = 1:nrow(dt)]
-  #   # to show as result table
-  #   DT::datatable(dt[, .(pooled_variograms)],
-  #                 options = list(dom = 't', ordering = FALSE),
-  #                 rownames = FALSE)
-  # })
-  # observeEvent(input$remove_row_pool_vario, {
-  #   req(length(input$pool_vario_table_rows_selected) > 0)
-  #   dt_left <- values$pooled_vario_dt[!input$pool_vario_table_rows_selected]
-  #   # need to be NULL instead of empty table for easier req usage
-  #   values$pooled_vario_dt <- if (nrow(dt_left) == 0) NULL else dt_left
-  # })
   observeEvent(input$reset_pool_vario, {
     values$pooled_vario_id_list <- NULL
   })
   # select_data_vario() ----
-  # variogram list and layout for current data in vario 1 and 2, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
+  ## variogram list and layout for current data before the model fit, based on select_data in visualization page. modeled mode have multiple models for every animal, need to have additional selection on models and new set of input, layout. The non-model mode and model mode are separate and need to independent from each other, both available no matter what mode is selected in UI, because home range/occurrence need model layout, fine-tune etc need vario info to avoid recalculation
   select_data_vario <- reactive({
     tele_list <- select_data()$tele_list
     # take vario-dt parameter list
@@ -1735,6 +1711,7 @@ output:
     # item name as animal name, value as title content
     names(subtitle_dt_list) <- names(tele_list)
     subtitle_pool_list <- subtitle_dt_list
+    # multi schedule --
     ms_dt <- values$multi_schedule_dt
     if (!is.null(ms_dt)) {
       for (i in 1:nrow(ms_dt)) {
@@ -1747,8 +1724,8 @@ output:
         }
       }
     }
-    # vario_list <- lapply(tele_list, ctmm::variogram)
-    # original vario from tele need to be maintained in case new pool need some individuals
+    # pool vario --
+    # original vario from tele need to be maintained in case new pool need some individuals that were pooled
     vario_list_tele <- lapply(names(tele_list), function(x) {
       ctmm::variogram(tele_list[[x]], dt = dt_para_list[[x]])
     })
@@ -1765,26 +1742,17 @@ output:
         pooled_name <- paste0(current_ids, collapse = ", ")
         subtitle_pool_list[current_ids] <- paste0("\n(", pooled_name, ")")
       }
-      # all_pooled_ids <- unique(unlist(pool_dt, use.names = FALSE))
-      # remained_names <- names(vario_list_pool)[!(names(vario_list_pool) %in%
-      #                                            all_pooled_ids)]
-      # vario_list_pool <- vario_list_pool[remained_names]
-      # title_list_pool <- title_list_pool[remained_names]
     }
     # needed for figure title to include additional info
     # title_vec <- unlist(subtitle_list)
     # subtitle_vec <- unlist(subtitle_list)
     subtitle_list <- paste0(subtitle_dt_list, subtitle_pool_list)
     names(subtitle_list) <- names(subtitle_dt_list)
-    # tab 1, 2 plot title. tab 3 need different treatment
+    # plot title before model fit. after model fit need different treatment
     vario_title_vec <- paste0(names(vario_list), subtitle_list)
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
-    # tab 1 version, remove duplicate pooled variograms
-    # vario_list_1 <- vario_list[!duplicated(title_vec)]
-    # title_vec_1 <- title_vec[!duplicated(title_vec)]
-    # vario_layout_1 <- layout_group(vario_list_1,
-    #                                input$vario_height, input$vario_columns)
+    # guess list --
     # generate guess with variogram input
     # guess value need to be reactive value so it can be modified in manual fit.
     values$selected_data_guess_list <- lapply(seq_along(tele_list),
@@ -1793,11 +1761,7 @@ output:
                              interactive = FALSE)
             })
     return(list(vario_list = vario_list,
-                # vario_list_1 = vario_list_1,
                 vario_layout = vario_layout,
-                # vario_layout_1 = vario_layout_1,
-                # title_vec_1 = title_vec_1,
-                # title_vec = title_vec
                 vario_title_vec = vario_title_vec,
                 subtitle_list = subtitle_list))
   })
