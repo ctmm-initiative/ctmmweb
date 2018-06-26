@@ -851,7 +851,7 @@ output:
     # values$selected_data_model_try_res <- NULL
     DT::selectRows(proxy_model_dt, list())
     updateRadioButtons(session, "vario_mode", selected = "empirical")
-    updateSelectInput(session, "vario_dt_ids", choices = info$identity)
+    updateSelectInput(session, "vario_intervals_ids", choices = info$identity)
     updateSelectInput(session, "pool_vario_ids", choices = info$identity)
     values$multi_schedule_dt <- NULL
     values$pooled_vario_dt <- NULL
@@ -1651,20 +1651,21 @@ output:
     height <- figure_height * row_count
     return(list(row_count = row_count, height = height))
   }
-  # vario_dt ----
+  # vario_intervals ----
+  # multiple intervals with units create a multi schedule for one variogram.
   # each dt parameter row added to a reactive value. select_data_vario take it to apply on variogram parameters. a table take it to display current rows, which can be reset.
   # init select input in select_data, also clear the reactive value in case data updated. similiarly, homerange weight need init and clear in select_model.
   values$multi_schedule_dt <- NULL
-  observeEvent(input$add_vario_dt, {
+  observeEvent(input$add_vario_intervals, {
     multi_schedule_row <- data.table(
-      selected_names = list(req(input$vario_dt_ids)),
+      selected_names = list(req(input$vario_intervals_ids)),
       input_intervals = list(req(ctmmweb:::parse_comma_text_input(
-        input$vario_dt, NULL))),
-      time_unit = input$vario_dt_unit)
+        input$vario_intervals, NULL))),
+      time_unit = input$vario_intervals_unit)
     values$multi_schedule_dt <- rbindlist(list(values$multi_schedule_dt,
                                                multi_schedule_row))
   })
-  output$vario_dt_table <- DT::renderDT({
+  output$vario_intervals_table <- DT::renderDT({
     dt <- copy(req(values$multi_schedule_dt))
     # list column cannot be shown by DT, must convert to string
     dt[, identities := paste(selected_names[[1]], collapse = ", "),
@@ -1676,13 +1677,13 @@ output:
                   options = list(dom = 't', ordering = FALSE),
                   rownames = FALSE)
   })
-  observeEvent(input$remove_row_vario_dt, {
-    req(length(input$vario_dt_table_rows_selected) > 0)
-    dt_left <- values$multi_schedule_dt[!input$vario_dt_table_rows_selected]
+  observeEvent(input$remove_row_vario_intervals, {
+    req(length(input$vario_intervals_table_rows_selected) > 0)
+    dt_left <- values$multi_schedule_dt[!input$vario_intervals_table_rows_selected]
     # need to be NULL instead of empty table for easier req usage
     values$multi_schedule_dt <- if (nrow(dt_left) == 0) NULL else dt_left
   })
-  observeEvent(input$reset_vario_dt, {
+  observeEvent(input$reset_vario_intervals, {
     values$multi_schedule_dt <- NULL
   })
   # pool vario ----
