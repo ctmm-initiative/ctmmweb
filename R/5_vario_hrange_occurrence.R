@@ -22,6 +22,9 @@
 #'   overlay guesstimate variogram.
 #'   - list of fitted models from [ctmm::ctmm.select()] on `vario_list`, overlay
 #'   modeled variogram.
+#'   - It can be a list of list, with each item provide list of `CTMM` objects
+#'   that to be plotted in each variogram. `model_color` can be a vector
+#'   to specify color for each model.
 #' @param title_vec vector of figure titles. If not provided, names of
 #' `vario_list` or `model_list` will be used.
 #' @param fraction Fraction of time-lag range, 0 ~ 1.
@@ -31,7 +34,8 @@
 #' - Absolute mode operate on the max Time-lag range individual in group, and
 #' all others scaled with same X, Y axes for easier comparison.
 #' @param cex The magnification factor of plot text and symbols. See [par()].
-#' @param model_color The color of model variogram
+#' @param model_color The color of model variogram. It'll be same for every
+#' plot.
 #' @param columns The columns of the group plot layout.
 #'
 #' @export

@@ -1,4 +1,4 @@
-# abstract original code into module so it can be reused. need to support two curves. Need to use camelcase naming convention
+# abstract original code into module so it can be reused. need to support two curves. Need to use camelcase naming convention. If we move this inside package, need to use full qualifer in a lot of places, also the changes need to be installed to be reflected, the only advantage is we don't need to source it. For now doesn't worth it since not outside usage need. In future it can be a basis for a shiny gadget work similar to manipulate vario feature.
 # previously slider id is built with vfitz_sigma, vfitz_z, vfitz_tau1 etc. now with module id, should use slider name directly.
 varioSlidersInput <- function(id, dialog_title) {
   ns <- NS(id)

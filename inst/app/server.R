@@ -1768,16 +1768,16 @@ output:
                 subtitle_list = subtitle_list))
   })
   # vario 1:empri, guess ----
-  ## show guess by default, since it's available. no need to turn off since it's the only curve.
-  # no model, model_color parameter
+  ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
   output$vario_plot_empirical <- renderPlot({
     title_vec <-
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
+                        values$selected_data_guess_list,
                         title_vec = select_data_vario()$vario_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
-                        cex = 0.72,
+                        model_color = ctmm_colors[1:2], cex = 0.72,
                         columns = input$vario_columns)
     # LOG save pic
     log_save_vario("vario", select_data_vario()$vario_layout$row_count,
@@ -1838,7 +1838,7 @@ output:
   observeEvent(input$tune_selected, {
     if (input$tune_selected != "") {
       # LOG fine tune start
-      log_msg("Fine-tune Parameters for", input$tune_selected)
+      log_msg("Fine-tune Guesstimate for", input$tune_selected)
       # showModal(modalDialog(title = paste0("Fine-tune parameters for ",
       #                                      input$tune_selected),
       #                 fluidRow(column(4, uiOutput("fit_sliders")),
@@ -1856,7 +1856,7 @@ output:
       #                       style = ctmmweb:::STYLES$page_action)))
       #                       ))
       showModal(varioSlidersInput("tune_guess",
-                                  paste0("Fine-tune parameters for ",
+                                  paste0("Fine-tune Guesstimate for ",
                                          input$tune_selected)))
     }
   })
