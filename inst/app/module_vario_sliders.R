@@ -50,6 +50,16 @@ varioSliders <- function(input, output, session, sliders_info, color_vec) {
     # req(slider_to_CTMM())  # otherwise error: replacement of length zero
     # within module we can access input without ns, it will be converted. ns is only used in creating ui items.
     # use list, draw existing curve and adjusted curve.
+    # <<version for debugging ctmm_obj values --
+    # ~if two curves are identical, only draw one to avoid color mixing from 2 colors. this is to make the init view identical to group vario plot, otherwise the color change can be confusing~ doesn't work because of precision problem.
+    # ctmm_obj_1 <- sliders_info()$ctmm_obj
+    # ctmm_obj_2 <- req(get_current_ctmm())
+    # browser()
+    # # they are not identical here. some precision problem, and error is logical false for 1, integer 0 for 2. error as a slider is implementing logical as 0/1 integer.
+    # if (identical(ctmm_obj_1, ctmm_obj_2)) ctmm_obj_2 <- NULL
+    # plot(sliders_info()$vario, CTMM = list(ctmm_obj_1, ctmm_obj_2),
+    #      col.CTMM = color_vec, fraction = 10 ^ input$z)
+    # debug code end>> --
     plot(sliders_info()$vario, CTMM = list(sliders_info()$ctmm_obj,
                                            req(get_current_ctmm())),
          col.CTMM = color_vec, fraction = 10 ^ input$z)

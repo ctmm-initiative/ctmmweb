@@ -46,12 +46,12 @@ plot_vario <- function(vario_list, model_list = NULL, title_vec = NULL,
     title_vec <- if (is.null(model_list)) names(vario_list)
     else names(model_list)
   }
-  # if two curves are identical, only draw one to avoid color mixing from 2 colors
-  for (i in 1:length(model_list)) {
-    if (identical(model_list[[i]][[1]], model_list[[i]][[2]])) {
-      model_list[[i]][[2]] <- NULL
-    }
-  }
+  # ~if two curves are identical, only draw one to avoid color mixing from 2 colors~ stop this since slider page have to draw two together
+  # for (i in 1:length(model_list)) {
+  #   if (identical(model_list[[i]][[1]], model_list[[i]][[2]])) {
+  #     model_list[[i]][[2]] <- NULL
+  #   }
+  # }
   row_count <- ceiling(length(vario_list) / columns)
   # the shared group code is not much, and it involves env setup and restoration, would need on.exit if abstracted to function. just copy, basically 3 lines.
   def.par <- graphics::par(no.readonly = TRUE)
