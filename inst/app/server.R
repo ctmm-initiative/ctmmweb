@@ -1646,7 +1646,7 @@ output:
   names(ctmm_colors) <- c("0_guess", "0_guess_tuned",
                           "1_model", "1_model_tuned",
                           "2_model")
-  # values$selected_data_guess_list guessed parameters for current data, also can be manual adjusted from fine tune.
+  # values$selected_data_guess_list current guessed parameters for current data, the manual adjusted value from fine tune are also updated here. original value are saved inside select_data_vario for reference
   values$selected_data_guess_list <- NULL
   # calculate group plot row count and total canvas height from group list length and UI. this is needed in vario plot, overlap home range plot. vario mode and model mode need different value because model mode can coexist (home range/occur rely on it)
   layout_group <- function(group_list, figure_height, column) {
@@ -1756,16 +1756,17 @@ output:
                                      input$vario_height, input$vario_columns)
     # -- guess list --
     # generate guess with variogram input
-    # guess value need to be reactive value so it can be modified in manual fit.
-    values$selected_data_guess_list <- lapply(seq_along(tele_list),
+    original_guess_list <- lapply(seq_along(tele_list),
           function(i) {
             ctmm::ctmm.guess(tele_list[[i]], variogram = vario_list[[i]],
                              interactive = FALSE)
             })
+    values$selected_data_guess_list <- original_guess_list
     return(list(vario_list = vario_list,
                 vario_layout = vario_layout,
                 vario_title_vec = vario_title_vec,
-                subtitle_list = subtitle_list))
+                subtitle_list = subtitle_list,
+                original_guess_list = original_guess_list))
   })
   # vario 1:empri, guess ----
   ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
@@ -1773,7 +1774,8 @@ output:
     title_vec <-
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
-                        values$selected_data_guess_list,
+            ctmmweb::align_list(select_data_vario()$original_guess_list,
+                                values$selected_data_guess_list),
                         title_vec = select_data_vario()$vario_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
@@ -1867,6 +1869,7 @@ output:
     vario_id <- input$tune_selected
     vario_names <- names(vario_list)
     vario <- vario_list[vario_names == vario_id][[1]]
+    # using order logical, not names
     ctmm_obj <- values$selected_data_guess_list[vario_names == vario_id][[1]]
     get_sliders_info(vario, ctmm_obj, input$zoom_lag_fraction, "tune_guess")
   })
