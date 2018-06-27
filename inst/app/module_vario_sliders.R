@@ -19,72 +19,11 @@ varioSlidersInput <- function(id, dialog_title) {
                                     style = ctmmweb:::STYLES$page_action)))
   )
 }
-# sliders id are created in get_sliders_info with module_id, so we don't need to get ns from session$ns, just make sure module_id is same with id parameter
-varioSliders <- function(input, output, session, get_page_data, color_vec) {
-  # init sliders ----
-  output$fit_sliders <- renderUI({
-    req(get_page_data()$control_sliders)
-  })
-  output$fit_zoom <- renderUI({
-    # js function need to know the id of zoom slider, which is also used in plot code. logify is also needed.
-    list(tags$head(tags$script(HTML(ctmmweb::JS.logify(3)))),
-         tags$head(tags$script(HTML(ctmmweb::JS.onload(session$ns("z"))))),
-         req(get_page_data()$zoom_slider))
-  })
-  # get_current_ctmm()----
-  # convert current slider value to ctmm object. also returned by module server function. apply button will take that to update app global variable
-  get_current_ctmm <- reactive({
-    # there is a time when sliders are initialized but without value, then later storer call get NULL parameters
-    # cat(input$sigma)
-    req(!is.null(input$sigma))
-    # slider names can be dynamic depend on data
-    slider_values <- lapply(get_page_data()$control_dt$name,
-                            function(x) {
-                              input[[x]]
-                            })
-    names(slider_values) <- get_page_data()$control_dt$name
-    CTMM <- do.call(get_page_data()$STUFF$storer, slider_values)
-  })
-  # plot by sliders ----
-  output$fit_plot <- renderPlot({
-    # req(slider_to_CTMM())  # otherwise error: replacement of length zero
-    # within module we can access input without ns, it will be converted. ns is only used in creating ui items.
-    # use list, draw existing curve and adjusted curve.
-    # <<version for debugging ctmm_obj values --
-    # ~if two curves are identical, only draw one to avoid color mixing from 2 colors. this is to make the init view identical to group vario plot, otherwise the color change can be confusing~ doesn't work because of precision problem.
-    # ctmm_obj_1 <- get_page_data()$ctmm_obj
-    # ctmm_obj_2 <- req(get_current_ctmm())
-    # browser()
-    # # they are not identical here. some precision problem, and error is logical false for 1, integer 0 for 2. error as a slider is implementing logical as 0/1 integer.
-    # if (identical(ctmm_obj_1, ctmm_obj_2)) ctmm_obj_2 <- NULL
-    # plot(get_page_data()$vario, CTMM = list(ctmm_obj_1, ctmm_obj_2),
-    #      col.CTMM = color_vec, fraction = 10 ^ input$z)
-    # debug code end>> --
-    plot(get_page_data()$vario, CTMM = list(get_page_data()$ctmm_obj_ref,
-                                           req(get_current_ctmm())),
-         col.CTMM = color_vec, fraction = 10 ^ input$z)
-  })
-  # center sliders ----
-  observeEvent(input$center_slider, {
-    adjust_slider <- function(name) {
-      # Shiny will complain for named vector
-      # id <- paste0("vfit_", name)
-      # error slider usually have initial value of 0, double that will get 0.
-      if (input[[name]] != 0) {
-        updateSliderInput(session, name,
-                          max = round(input[[name]] * 2, 2))
-      }
-    }
-    lapply(get_page_data()$control_dt$name, adjust_slider)
-  })
-  return(get_current_ctmm)
-
-}
-# will be called inside reactive expression, serve as dynamic data holder for all data in page.
+# will be called inside reactive expression, serve as dynamic data holder for all data in page. the reactive expression will be used as data parameter of module server function.
 # initialize slider values from vario, ctmm_obj_current. ctmm_obj_ref is the reference curve of original value, just transfered in and out. if user modified it then modify again, will still show original ref curve, but using new current curve. this is only needed by plot, but we are putting all info needed in ui here. fraction is the internal value of zoom slider in vario control box. module using id- as prefix. for our purpose, it's easier to further wrap input processing code here, only provide the original input value in parameter.
 get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
-                            fraction_internal_value,
-                            module_id) {
+                               fraction_internal_value,
+                               module_id) {
   fraction_face_value <- 10 ^ fraction_internal_value
   STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = ctmm_obj_current,
                                         fraction = fraction_face_value, b = 10)
@@ -113,4 +52,65 @@ get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
               STUFF = STUFF, control_dt = dt[name != "z"],
               control_sliders = slider_list[names(slider_list) != "z"],
               zoom_slider = slider_list[names(slider_list) == "z"]))
+}
+# sliders id are created in get_sliders_info with module_id, so we don't need to get ns from session$ns, just make sure module_id is same with id parameter. page_data is reactive expression which called get_tune_page_data, need to be used with () inside the server function.
+varioSliders <- function(input, output, session, page_data, color_vec) {
+  # init sliders ----
+  output$fit_sliders <- renderUI({
+    req(page_data()$control_sliders)
+  })
+  output$fit_zoom <- renderUI({
+    # js function need to know the id of zoom slider, which is also used in plot code. logify is also needed.
+    list(tags$head(tags$script(HTML(ctmmweb::JS.logify(3)))),
+         tags$head(tags$script(HTML(ctmmweb::JS.onload(session$ns("z"))))),
+         req(page_data()$zoom_slider))
+  })
+  # get_current_ctmm()----
+  # convert current slider value to ctmm object. also returned by module server function. apply button will take that to update app global variable
+  get_current_ctmm <- reactive({
+    # there is a time when sliders are initialized but without value, then later storer call get NULL parameters
+    # cat(input$sigma)
+    req(!is.null(input$sigma))
+    # slider names can be dynamic depend on data
+    slider_values <- lapply(page_data()$control_dt$name,
+                            function(x) {
+                              input[[x]]
+                            })
+    names(slider_values) <- page_data()$control_dt$name
+    CTMM <- do.call(page_data()$STUFF$storer, slider_values)
+  })
+  # plot by sliders ----
+  output$fit_plot <- renderPlot({
+    # req(slider_to_CTMM())  # otherwise error: replacement of length zero
+    # within module we can access input without ns, it will be converted. ns is only used in creating ui items.
+    # use list, draw existing curve and adjusted curve.
+    # <<version for debugging ctmm_obj values --
+    # ~if two curves are identical, only draw one to avoid color mixing from 2 colors. this is to make the init view identical to group vario plot, otherwise the color change can be confusing~ doesn't work because of precision problem.
+    # ctmm_obj_1 <- page_data()$ctmm_obj
+    # ctmm_obj_2 <- req(get_current_ctmm())
+    # browser()
+    # # they are not identical here. some precision problem, and error is logical false for 1, integer 0 for 2. error as a slider is implementing logical as 0/1 integer.
+    # if (identical(ctmm_obj_1, ctmm_obj_2)) ctmm_obj_2 <- NULL
+    # plot(page_data()$vario, CTMM = list(ctmm_obj_1, ctmm_obj_2),
+    #      col.CTMM = color_vec, fraction = 10 ^ input$z)
+    # debug code end>> --
+    plot(page_data()$vario, CTMM = list(page_data()$ctmm_obj_ref,
+                                           req(get_current_ctmm())),
+         col.CTMM = color_vec, fraction = 10 ^ input$z)
+  })
+  # center sliders ----
+  observeEvent(input$center_slider, {
+    adjust_slider <- function(name) {
+      # Shiny will complain for named vector
+      # id <- paste0("vfit_", name)
+      # error slider usually have initial value of 0, double that will get 0.
+      if (input[[name]] != 0) {
+        updateSliderInput(session, name,
+                          max = round(input[[name]] * 2, 2))
+      }
+    }
+    lapply(page_data()$control_dt$name, adjust_slider)
+  })
+  return(get_current_ctmm)
+
 }

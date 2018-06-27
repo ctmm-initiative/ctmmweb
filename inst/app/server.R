@@ -1862,8 +1862,9 @@ output:
                                          input$tune_selected)))
     }
   })
-  # get_guess_page_data() ----
-  get_guess_page_data <- reactive({
+  # guess_page_data() ----
+  ## this reactive expression will be used as function parameter without (), so it's named like a noun.
+  guess_page_data <- reactive({
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     vario_list <- req(select_data_vario()$vario_list)
     vario_id <- input$tune_selected
@@ -1876,7 +1877,7 @@ output:
                        input$zoom_lag_fraction, "tune_guess")
   })
   guess_ctmm <- callModule(varioSliders, "tune_guess",
-                           get_guess_page_data, ctmm_colors[1:2])
+                           guess_page_data, ctmm_colors[1:2])
   # init values of sliders ---
   # init_slider_values <- reactive({
   #   vario_list <- req(select_data_vario()$vario_list)
