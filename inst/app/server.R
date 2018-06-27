@@ -1862,18 +1862,21 @@ output:
                                          input$tune_selected)))
     }
   })
-  # guess sliders ----
-  guess_slider_values <- reactive({
+  # get_guess_page_data() ----
+  get_guess_page_data <- reactive({
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     vario_list <- req(select_data_vario()$vario_list)
     vario_id <- input$tune_selected
     vario_names <- names(vario_list)
     vario <- vario_list[vario_names == vario_id][[1]]
     # using order logical, not names
-    ctmm_obj <- values$selected_data_guess_list[vario_names == vario_id][[1]]
-    get_sliders_info(vario, ctmm_obj, input$zoom_lag_fraction, "tune_guess")
+    ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_names == vario_id][[1]]
+    ctmm_obj_current <- values$selected_data_guess_list[vario_names == vario_id][[1]]
+    get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
+                       input$zoom_lag_fraction, "tune_guess")
   })
-  guess_ctmm <- callModule(varioSliders, "tune_guess", guess_slider_values, ctmm_colors[1:2])
+  guess_ctmm <- callModule(varioSliders, "tune_guess",
+                           get_guess_page_data, ctmm_colors[1:2])
   # init values of sliders ---
   # init_slider_values <- reactive({
   #   vario_list <- req(select_data_vario()$vario_list)

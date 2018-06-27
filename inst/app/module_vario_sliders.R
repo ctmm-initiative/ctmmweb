@@ -20,16 +20,16 @@ varioSlidersInput <- function(id, dialog_title) {
   )
 }
 # sliders id are created in get_sliders_info with module_id, so we don't need to get ns from session$ns, just make sure module_id is same with id parameter
-varioSliders <- function(input, output, session, sliders_info, color_vec) {
+varioSliders <- function(input, output, session, get_page_data, color_vec) {
   # init sliders ----
   output$fit_sliders <- renderUI({
-    req(sliders_info()$control_sliders)
+    req(get_page_data()$control_sliders)
   })
   output$fit_zoom <- renderUI({
     # js function need to know the id of zoom slider, which is also used in plot code. logify is also needed.
     list(tags$head(tags$script(HTML(ctmmweb::JS.logify(3)))),
          tags$head(tags$script(HTML(ctmmweb::JS.onload(session$ns("z"))))),
-         req(sliders_info()$zoom_slider))
+         req(get_page_data()$zoom_slider))
   })
   # get_current_ctmm()----
   # convert current slider value to ctmm object. also returned by module server function. apply button will take that to update app global variable
@@ -38,12 +38,12 @@ varioSliders <- function(input, output, session, sliders_info, color_vec) {
     # cat(input$sigma)
     req(!is.null(input$sigma))
     # slider names can be dynamic depend on data
-    slider_values <- lapply(sliders_info()$control_dt$name,
+    slider_values <- lapply(get_page_data()$control_dt$name,
                             function(x) {
                               input[[x]]
                             })
-    names(slider_values) <- sliders_info()$control_dt$name
-    CTMM <- do.call(sliders_info()$STUFF$storer, slider_values)
+    names(slider_values) <- get_page_data()$control_dt$name
+    CTMM <- do.call(get_page_data()$STUFF$storer, slider_values)
   })
   # plot by sliders ----
   output$fit_plot <- renderPlot({
@@ -52,15 +52,15 @@ varioSliders <- function(input, output, session, sliders_info, color_vec) {
     # use list, draw existing curve and adjusted curve.
     # <<version for debugging ctmm_obj values --
     # ~if two curves are identical, only draw one to avoid color mixing from 2 colors. this is to make the init view identical to group vario plot, otherwise the color change can be confusing~ doesn't work because of precision problem.
-    # ctmm_obj_1 <- sliders_info()$ctmm_obj
+    # ctmm_obj_1 <- get_page_data()$ctmm_obj
     # ctmm_obj_2 <- req(get_current_ctmm())
     # browser()
     # # they are not identical here. some precision problem, and error is logical false for 1, integer 0 for 2. error as a slider is implementing logical as 0/1 integer.
     # if (identical(ctmm_obj_1, ctmm_obj_2)) ctmm_obj_2 <- NULL
-    # plot(sliders_info()$vario, CTMM = list(ctmm_obj_1, ctmm_obj_2),
+    # plot(get_page_data()$vario, CTMM = list(ctmm_obj_1, ctmm_obj_2),
     #      col.CTMM = color_vec, fraction = 10 ^ input$z)
     # debug code end>> --
-    plot(sliders_info()$vario, CTMM = list(sliders_info()$ctmm_obj,
+    plot(get_page_data()$vario, CTMM = list(get_page_data()$ctmm_obj_ref,
                                            req(get_current_ctmm())),
          col.CTMM = color_vec, fraction = 10 ^ input$z)
   })
@@ -75,18 +75,18 @@ varioSliders <- function(input, output, session, sliders_info, color_vec) {
                           max = round(input[[name]] * 2, 2))
       }
     }
-    lapply(sliders_info()$control_dt$name, adjust_slider)
+    lapply(get_page_data()$control_dt$name, adjust_slider)
   })
   return(get_current_ctmm)
 
 }
-
-# get slider info from vario, ctmm_obj. fraction is the internal value of zoom slider in vario control box. module using id- as prefix. for our purpose, it's easier to further wrap input processing code here, only provide the original input value in parameter.
-get_sliders_info <- function(vario, ctmm_obj,
+# will be called inside reactive expression, serve as dynamic data holder for all data in page.
+# initialize slider values from vario, ctmm_obj_current. ctmm_obj_ref is the reference curve of original value, just transfered in and out. if user modified it then modify again, will still show original ref curve, but using new current curve. this is only needed by plot, but we are putting all info needed in ui here. fraction is the internal value of zoom slider in vario control box. module using id- as prefix. for our purpose, it's easier to further wrap input processing code here, only provide the original input value in parameter.
+get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
                             fraction_internal_value,
                             module_id) {
   fraction_face_value <- 10 ^ fraction_internal_value
-  STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = ctmm_obj,
+  STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = ctmm_obj_current,
                                         fraction = fraction_face_value, b = 10)
   dt <- data.table(STUFF$DF)
   dt[, name := row.names(STUFF$DF)]
@@ -108,7 +108,8 @@ get_sliders_info <- function(vario, ctmm_obj,
   })
   names(slider_list) <- dt$name
   # need to separate the zoom slider and control slider
-  return(list(vario = vario, ctmm_obj = ctmm_obj,  # for convinence
+  return(list(vario = vario, ctmm_obj_ref = ctmm_obj_ref,  # for convinence
+              ctmm_obj_current = ctmm_obj_current,
               STUFF = STUFF, control_dt = dt[name != "z"],
               control_sliders = slider_list[names(slider_list) != "z"],
               zoom_slider = slider_list[names(slider_list) == "z"]))
