@@ -1828,41 +1828,34 @@ output:
     select_models()$vario_layout$height
   }
   )
-  # fine tune the guesstimate
+  # fine tune the guesstimate. it could be possible to further wrap these parts to module as they are duplications, but that require nested modules, and these UI/server code is relatively simple, maybe not worth the wrapping.
   output$tune_selector_guess <- renderUI({
-    selectInput("tune_selected", NULL,
+    selectInput("tune_selected_guess", NULL,
                 c("Fine-tune" = "", req(select_data()$info$identity)))
   })
   # fine tune model, base on selected model, display name
   output$tune_selector_model <- renderUI({
-    selectInput("tune_selected", NULL,
+    selectInput("tune_selected_model", NULL,
                 c("Fine-tune" = "", req(select_models()$names_dt$display_name)))
   })
   # < fine tune sliders ----
   ## 2 tabs have similar ui, write together in parallel so it's easier to compare for duplicates and differences.
-  observeEvent(input$tune_selected, {
-    if (input$tune_selected != "") {
+  observeEvent(input$tune_selected_guess, {
+    if (input$tune_selected_guess != "") {
       # LOG fine tune start
-      log_msg("Fine-tune Guesstimate for", input$tune_selected)
-      # showModal(modalDialog(title = paste0("Fine-tune parameters for ",
-      #                                      input$tune_selected),
-      #                 fluidRow(column(4, uiOutput("fit_sliders")),
-      #                          column(8, plotOutput("fit_plot")),
-      #                          column(4, offset = 2, uiOutput("fit_zoom"))),
-      #                 size = "l",
-      #                 footer = fluidRow(
-      #   column(3, actionButton("center_slider", "Center current sliders",
-      #                          icon = icon("align-center"))),
-      #   column(3, offset = 2,
-      #          modalButton("Cancel", icon = icon("ban"))),
-      #   column(2, offset = 2,
-      #          actionButton("tuned", "Apply",
-      #                       icon = icon("check"),
-      #                       style = ctmmweb:::STYLES$page_action)))
-      #                       ))
+      log_msg("Fine-tune Guesstimate for", input$tune_selected_guess)
       showModal(varioSlidersInput("tune_guess",
                                   paste0("Fine-tune Guesstimate for ",
-                                         input$tune_selected)))
+                                         input$tune_selected_guess)))
+    }
+  })
+  observeEvent(input$tune_selected_model, {
+    if (input$tune_selected_model != "") {
+      # LOG fine tune start
+      log_msg("Fine-tune Model result for", input$tune_selected_model)
+      showModal(varioSlidersInput("tune_model",
+                                  paste0("Fine-tune Model result for ",
+                                         input$tune_selected_model)))
     }
   })
   # guess_page_data() ----
@@ -1870,7 +1863,7 @@ output:
   guess_page_data <- reactive({
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     vario_list <- req(select_data_vario()$vario_list)
-    vario_id <- input$tune_selected
+    vario_id <- input$tune_selected_guess
     vario_names <- names(vario_list)
     vario <- vario_list[vario_names == vario_id][[1]]
     # using order logical, not names
@@ -1881,6 +1874,21 @@ output:
   })
   guess_ctmm <- callModule(varioSliders, "tune_guess",
                            guess_page_data, ctmm_colors[1:2])
+  # model_page_data() ----
+  model_page_data <- reactive({
+    # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
+    vario_list <- req(select_data_vario()$vario_list)
+    vario_id <- input$tune_selected_guess
+    vario_names <- names(vario_list)
+    vario <- vario_list[vario_names == vario_id][[1]]
+    # using order logical, not names
+    ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_names == vario_id][[1]]
+    ctmm_obj_current <- values$selected_data_guess_list[vario_names == vario_id][[1]]
+    get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
+                       input$zoom_lag_fraction, "tune_model")
+  })
+  model_ctmm <- callModule(varioSliders, "tune_model",
+                           model_page_data, ctmm_colors[3:4])
   # init values of sliders ---
   # init_slider_values <- reactive({
   #   vario_list <- req(select_data_vario()$vario_list)
@@ -1971,7 +1979,7 @@ output:
     removeModal()
     ids <- sapply(select_data_vario()$vario_list,
                   function(vario) vario@info$identity)
-    values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
+    values$selected_data_guess_list[ids == input$tune_selected_guess][[1]] <-
       guess_ctmm()
   })
   # fine tune sliders > ----

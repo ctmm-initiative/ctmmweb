@@ -1,4 +1,28 @@
 # abstract original code into module so it can be reused. need to support two curves. Need to use camelcase naming convention. If we move this inside package, need to use full qualifer in a lot of places, also the changes need to be installed to be reflected, the only advantage is we don't need to source it. For now doesn't worth it since not outside usage need. In future it can be a basis for a shiny gadget work similar to manipulate vario feature.
+# # ~nested modules with renderUI is too complicated for reducing simple duplications.~
+# # some code used log_msg, which is a function defined in server.R, so this cannot work independently
+# # selectInput UI
+# tuneSelectorUI <- function(id) {
+#   ns <- NS(id)
+#   uiOutput(ns("tune_selector"))
+# }
+# tuneSelector <- function(input, output, session, selections) {
+#   ns <- session$ns
+#   output$tune_selector <- renderUI({
+#     selectInput(ns("tune_selected"), NULL,
+#                 c("Fine-tune" = "", selections()))
+#   })
+#   observeEvent(input$tune_selected, {
+#     if (input$tune_selected != "") {
+#       # LOG fine tune start
+#       # log_msg("Fine-tune ", input$tune_selected)
+#       showModal(varioSlidersInput(ns("tune"),
+#                                   paste0("Fine-tune ",
+#                                          input$tune_selected)))
+#     }
+#   })
+# }
+
 # previously slider id is built with vfitz_sigma, vfitz_z, vfitz_tau1 etc. now with module id, should use slider name directly.
 varioSlidersInput <- function(id, dialog_title) {
   ns <- NS(id)
