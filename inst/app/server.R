@@ -242,6 +242,7 @@ output:
     }
   }
   # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
+  # DEBUG app(data): when there is error in loading app with parameter, the app can fail and error captured in app so not visible, comment this line off so error can be shown. note browser will open the installed script, so edit need to be written in original source, not the tab opened by browser.
   isolate(setup_error_capture())
   # isolate({
   #   values$error_file <- tempfile()
@@ -411,6 +412,8 @@ output:
     ctmmweb:::sort_tele_list(tele_list)
   }
   # update app input data with tele list, all kinds of maintenences
+  # when loading with app(data), the proxy neeed to be initialized first before calling the clear action
+  proxy_individuals <- DT::dataTableProxy("individuals")
   update_input_data <- function(tele_list) {
     # need to clear existing variables, better collect all values variable in one place
     # values <- reactiveValues()
@@ -813,7 +816,7 @@ output:
               stringr::str_c(chosen_ids, collapse = ", "))
     }
   })
-  proxy_individuals <- DT::dataTableProxy("individuals")
+
   observeEvent(input$select_all, {
     # this always select all rows
     # DT::selectRows(proxy_individuals, 1:nrow(values$data$merged$info))
