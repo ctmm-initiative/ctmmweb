@@ -231,6 +231,7 @@ output:
   # the setup is run in beginning, also run with checkbox event. don't run twice if already exist
   ERROR_CAPTURED <- FALSE
   setup_error_capture <- function(){
+    # only run when not already captured, otherwise will cause problem
     if (!ERROR_CAPTURED) {
       # each session have one error log file. different client will have different file in same server
       values$error_file <- tempfile()
@@ -445,9 +446,11 @@ output:
   # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
   # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
   calling_env <- parent.env(environment())
-  # app() mode: if not from global
+  # app launched from app()
   if (!identical(parent.env(calling_env), globalenv())) {
     # cat("running in app() mode\n")
+    # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console.
+    updateCheckboxInput(session, "capture_error", value = FALSE)
     #set app directory to installed package app folder (from app()), which is needed by loading help documentations
     APP_wd <- get("app_DIR", envir = calling_env)
     # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
