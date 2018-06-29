@@ -477,7 +477,7 @@ output:
     APP_wd <- "."
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
-  source(file.path(APP_wd, "module_vario_sliders.R"))
+  # source(file.path(APP_wd, "module_server_code.R"))
   # upload dialog
   observeEvent(input$tele_file, {
     req(input$tele_file)
@@ -1828,66 +1828,79 @@ output:
     select_models()$vario_layout$height
   }
   )
-  # fine tune the guesstimate. it could be possible to further wrap these parts to module as they are duplications, but that require nested modules, and these UI/server code is relatively simple, maybe not worth the wrapping.
-  output$tune_selector_guess <- renderUI({
-    selectInput("tune_selected_guess", NULL,
-                c("Fine-tune" = "", req(select_data()$info$identity)))
-  })
-  # fine tune model, base on selected model, display name
-  output$tune_selector_model <- renderUI({
-    selectInput("tune_selected_model", NULL,
-                c("Fine-tune" = "", req(select_models()$names_dt$display_name)))
-  })
+  # ~old code of duplicated ui~
+  # output$tune_selector_guess <- renderUI({
+  #   selectInput("tune_selected_guess", NULL,
+  #               c("Fine-tune" = "", req(select_data()$info$identity)))
+  # })
+  # # fine tune model, base on selected model, display name
+  # output$tune_selector_model <- renderUI({
+  #   selectInput("tune_selected_model", NULL,
+  #               c("Fine-tune" = "", req(select_models()$names_dt$display_name)))
+  # })
   # < fine tune sliders ----
   ## 2 tabs have similar ui, write together in parallel so it's easier to compare for duplicates and differences.
-  observeEvent(input$tune_selected_guess, {
-    if (input$tune_selected_guess != "") {
-      # LOG fine tune start
-      log_msg("Fine-tune Guesstimate for", input$tune_selected_guess)
-      showModal(varioSlidersInput("tune_guess",
-                                  paste0("Fine-tune Guesstimate for ",
-                                         input$tune_selected_guess)))
-    }
-  })
-  observeEvent(input$tune_selected_model, {
-    if (input$tune_selected_model != "") {
-      # LOG fine tune start
-      log_msg("Fine-tune Model result for", input$tune_selected_model)
-      showModal(varioSlidersInput("tune_model",
-                                  paste0("Fine-tune Model result for ",
-                                         input$tune_selected_model)))
-    }
-  })
+  # the layers of id namespace marked with ID:
+  # ID: selector called with guess/model, this is the first layer, in beginning, note ui and callModule using same value
+  # selection is dynamic and need to be an unresolved reactive expression
+  callModule(tuneSelector, "guess",
+             reactive(req(select_data()$info$identity)), log_msg)
+  callModule(tuneSelector, "model",
+             reactive(req(select_models()$names_dt$display_name)), log_msg)
+  # observeEvent(input$tune_selected_guess, {
+  #   if (input$tune_selected_guess != "") {
+  #     # LOG fine tune start
+  #     log_msg("Fine-tune Guesstimate for", input$tune_selected_guess)
+  #     showModal(varioSlidersInput("tune_guess",
+  #                                 paste0("Fine-tune Guesstimate for ",
+  #                                        input$tune_selected_guess)))
+  #   }
+  # })
+  # observeEvent(input$tune_selected_model, {
+  #   if (input$tune_selected_model != "") {
+  #     # LOG fine tune start
+  #     log_msg("Fine-tune Model result for", input$tune_selected_model)
+  #     showModal(varioSlidersInput("tune_model",
+  #                                 paste0("Fine-tune Model result for ",
+  #                                        input$tune_selected_model)))
+  #   }
+  # })
   # guess_page_data() ----
   ## this reactive expression will be used as function parameter without (), so it's named like a noun.
+  # when code outside module need to access input inside module, we need to have id properly
+  # ID: accessing input$`guess-tune_selected` directly, so need to construct id. guess as 1st layer, tune_selected as the real part defined in tuneSelector server code.
+  # ID: also function need slider module id, `guess` used in selector module call, `tune` used in slider module UI call inside selector server code, so slider module's UI call actually is `guess-tune`, which is also slider module server call id.
   guess_page_data <- reactive({
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     vario_list <- req(select_data_vario()$vario_list)
-    vario_id <- input$tune_selected_guess
+    vario_id <- input$`guess-tune_selected`  # need the proper id
     vario_names <- names(vario_list)
     vario <- vario_list[vario_names == vario_id][[1]]
     # using order logical, not names
     ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_names == vario_id][[1]]
     ctmm_obj_current <- values$selected_data_guess_list[vario_names == vario_id][[1]]
     get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
-                       input$zoom_lag_fraction, "tune_guess")
+                       input$zoom_lag_fraction, "guess-tune")  # use module id
   })
-  guess_ctmm <- callModule(varioSliders, "tune_guess",
+  # ID: slider module id same with the slider UI called inside selector module, `guess-tune`
+  guess_ctmm <- callModule(varioSliders, "guess-tune",
                            guess_page_data, ctmm_colors[1:2])
   # model_page_data() ----
+  # ID: accessing input$`guess-tune_selected`
+  # ID: model-tune
   model_page_data <- reactive({
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     vario_list <- req(select_data_vario()$vario_list)
-    vario_id <- input$tune_selected_guess
+    vario_id <- input$`model-tune_selected`
     vario_names <- names(vario_list)
     vario <- vario_list[vario_names == vario_id][[1]]
     # using order logical, not names
     ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_names == vario_id][[1]]
     ctmm_obj_current <- values$selected_data_guess_list[vario_names == vario_id][[1]]
     get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
-                       input$zoom_lag_fraction, "tune_model")
+                       input$zoom_lag_fraction, "model-tune")
   })
-  model_ctmm <- callModule(varioSliders, "tune_model",
+  model_ctmm <- callModule(varioSliders, "model-tune",
                            model_page_data, ctmm_colors[3:4])
   # init values of sliders ---
   # init_slider_values <- reactive({
@@ -1972,14 +1985,16 @@ output:
   #   values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
   #     slider_to_CTMM()
   # })
-  # - is not valid in symbol
-  observeEvent(input$`tune_guess-tuned`, {
+  # - is not valid in symbol, note how the id is constructed
+  # ID: apply button id tuned, module ns guess-tune, so final `guess-tune-tuned`
+  # ID: accessing selector selection input$`guess-tune_selected`
+  observeEvent(input$`guess-tune-tuned`, {
     # LOG fine tune apply
     log_msg("Apply Fine-tuned Parameters")
     removeModal()
     ids <- sapply(select_data_vario()$vario_list,
                   function(vario) vario@info$identity)
-    values$selected_data_guess_list[ids == input$tune_selected_guess][[1]] <-
+    values$selected_data_guess_list[ids == input$`guess-tune_selected`][[1]] <-
       guess_ctmm()
   })
   # fine tune sliders > ----

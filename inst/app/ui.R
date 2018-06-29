@@ -1,4 +1,4 @@
-# help module ui part ----
+# help module ui ----
 help_button <- function(module_id) {
   prefix <- NS(module_id)
   actionButton(prefix("help"),
@@ -7,6 +7,7 @@ help_button <- function(module_id) {
                style = ctmmweb:::STYLES$help_button
   )
 }
+# header ----
 header <- dashboardHeader(title = "ctmmweb",
                           dropdownMenuOutput("messageMenu")
             # dropdownMenu(type = "messages",
@@ -560,7 +561,7 @@ tabPanel("Pool",
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-empty"), "1. Empirical"), value = "1",
               fluidRow(
-                column(6, offset = 0, uiOutput("tune_selector_guess")),
+                column(6, offset = 0, tuneSelectorUI("guess")),
                 column(2, offset = 4, help_button("variograms")),
                 column(12, br(), plotOutput("vario_plot_empirical",
                                              width = "99%", height = "98%"))
@@ -579,7 +580,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
         #                              icon = icon("hourglass-start"),
         #                              style = ctmmweb:::STYLES$page_action),
         #        br(), br()),
-        column(6, offset = 0, uiOutput("tune_selector_model")),
+        column(6, offset = 0, tuneSelectorUI("model")),
         column(2, offset = 4, help_button("model_selection")),
         column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%")),

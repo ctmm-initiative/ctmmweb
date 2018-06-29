@@ -13,3 +13,5 @@ pacman::p_load(shiny, shinydashboard, DT,
 # PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 # switch to turn on debug button
 # DEBUG_BUTTON <- FALSE
+# have to source module here to make them both available to ui and server. tried to put ui in ui.R, source server in server.R, but server code need ui function (the simple help module don't need that) because it's renderUI which is not available.
+source("module_server_code.R")
