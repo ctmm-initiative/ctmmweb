@@ -449,9 +449,9 @@ output:
   # app launched from app()
   if (!identical(parent.env(calling_env), globalenv())) {
     # cat("running in app() mode\n")
-    # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console.
+    # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console. Since the console is definitely available in this mode, it's OK to use that as default.
     updateCheckboxInput(session, "capture_error", value = FALSE)
-    #set app directory to installed package app folder (from app()), which is needed by loading help documentations
+    # set app directory to installed package app folder (from app()), which is needed by loading help documentations
     APP_wd <- get("app_DIR", envir = calling_env)
     # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
     # input exist and not NULL, need to import data. otherwise just go ahead without data
