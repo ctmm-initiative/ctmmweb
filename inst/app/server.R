@@ -32,6 +32,7 @@ server <- function(input, output, session) {
   })
   values <- reactiveValues()
   # log/error options ----
+  ## they used lots of global variables or external variables not in function parameter(or even modified global variables), so not in package now. to move them into package need to add some parameters.
   # log functions will use these options, so need to prepare them first
   # test checkbox status passively, one time read when called. wrap it into a function because if we decided to switch between independent checkbox or checkboxgroup, the changes only happens here, not every calling place.
   option_selected <- function(option) {
