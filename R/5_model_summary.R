@@ -24,7 +24,7 @@ ctmm_summary_to_dt <- function(ctmm_summary) {
   res_dt[, item := NULL]
 }
 # par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, named by animal
-# this result was converted into a data.table models_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information. model name is just model type, not the full name with the animal name part. we need the separate model name col for coloring of model summary table.
+# this result was converted into a data.table model_list_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information. model name is just model type, not the full name with the animal name part. we need the separate model name col for coloring of model summary table.
 model_try_res_to_model_list_dt <- function(model_try_res) {
   animal_names_dt <- data.table(identity = names(model_try_res))
   model_type_list <- lapply(model_try_res, names)
@@ -32,55 +32,55 @@ model_try_res_to_model_list_dt <- function(model_try_res) {
   animal_names_dt[, model_type_list :=
                     list(list(model_type_list[[identity]])),
                   by = 1:nrow(animal_names_dt)]
-  models_dt <- animal_names_dt[, .(model_type = unlist(model_type_list)),
+  model_list_dt <- animal_names_dt[, .(model_type = unlist(model_type_list)),
                                by = identity]
-  models_dt[, model := list(list(model_try_res[[identity]][[model_type]])),
-            by = 1:nrow(models_dt)]
-  models_dt[, model_no := .I]
+  model_list_dt[, model := list(list(model_try_res[[identity]][[model_type]])),
+            by = 1:nrow(model_list_dt)]
+  model_list_dt[, model_no := .I]
   # also add the AICc col
   get_aicc_col <- function(model_list) {
     res <- summary(model_list, units = FALSE)
     data.frame(res)$dAICc
   }
-  models_dt[, dAICc := get_aicc_col(model), by = identity]
+  model_list_dt[, dAICc := get_aicc_col(model), by = identity]
   # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
-  models_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
+  model_list_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions
-model_list_dt_to_model_summary_dt <- function(models_dt) {
+model_list_dt_to_model_summary_dt <- function(model_list_dt) {
   # make copy first because we will remove column later
   # a list of converted summary on each model
-  model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
-    summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+  model_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
+    summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
                                              units = FALSE))
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no,
+  res_dt <- merge(model_list_dt[, .(identity, model_type, model_name, model_no,
                                 dAICc)],
                   model_summary_dt,
                   by = "model_no")
 }
 # home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
-hrange_list_dt_to_model_summary_dt <- function(models_dt, level.UD = 0.95) {
+hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
   # make copy first because we will remove column later
   # a list of converted summary on each model. now we have additional level by level, need to combine first
-  model_summary_dt_list <- lapply(1:nrow(models_dt), function(i) {
+  model_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
     dt_list <- lapply(level.UD, function(level_value) {
-      summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+      summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
                                                units = FALSE,
                                                level.UD = level_value))
       summary_dt[, model_no := i]
       summary_dt[, quantile := level_value * 100]
     })
     rbindlist(dt_list, fill = TRUE)
-    # summary_dt <- ctmm_summary_to_dt(summary(models_dt$model[[i]],
+    # summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
     #                                          units = FALSE))
     # summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
   # there is no dAICc column from summary of list of home range.
-  res_dt <- merge(models_dt[, .(identity, model_type, model_name, model_no)],
+  res_dt <- merge(model_list_dt[, .(identity, model_type, model_name, model_no)],
                   model_summary_dt,
                   by = "model_no")
   # move level.UD col to after estimate
@@ -162,12 +162,12 @@ format_model_summary_dt <- function(model_summary_dt) {
 # combined steps to make usage easier, otherwise the function name could be confusing
 # Generate Formated Model Summary Table From Model List Table
 #
-# models_dt a `data.table` holding model information and models objects
+# model_list_dt a `data.table` holding model information and models objects
 #   as list column
 #
 # return formated model summary table
-model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
-  model_summary_dt <- model_list_dt_to_model_summary_dt(models_dt)
+model_list_dt_to_formated_model_summary_dt <- function(model_list_dt) {
+  model_summary_dt <- model_list_dt_to_model_summary_dt(model_list_dt)
   format_model_summary_dt(model_summary_dt)
 }
 # exported version, make the interface simpler. our internal version need intermediate steps because we need the intermediate data
@@ -179,9 +179,9 @@ model_list_dt_to_formated_model_summary_dt <- function(models_dt) {
 #' @return A `data.table` of model summary
 #' @export
 summary_tried_models <- function(model_try_res) {
-  models_dt <- model_try_res_to_model_list_dt(model_try_res)
+  model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
   # use [] to make sure calling function directly will print in console.
-  model_list_dt_to_formated_model_summary_dt(models_dt)[]
+  model_list_dt_to_formated_model_summary_dt(model_list_dt)[]
 }
 #' Flatten model list
 #'
@@ -192,9 +192,9 @@ summary_tried_models <- function(model_try_res) {
 #' @return A single level list of models with names
 #' @export
 flatten_models <- function(model_try_res) {
-  models_dt <- model_try_res_to_model_list_dt(model_try_res)
-  model_list <- models_dt$model
-  names(model_list) <- models_dt$model_name
+  model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
+  model_list <- model_list_dt$model
+  names(model_list) <- model_list_dt$model_name
   return(model_list)
 }
 # it requires more manual code to assemble a table for home range, temporarily not exporting these function untill requested
@@ -239,9 +239,9 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt,
 #   hrange_list_dt <- build_hrange_list_dt(names(hrange_list),
 #                                          hrange_list)
 #   dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
-#   models_dt <- model_try_res_to_model_list_dt(model_try_res)
+#   model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
 #   # use [] to make sure calling function directly will print in console.
-#   model_list_dt_to_formated_model_summary_dt(models_dt)[]
+#   model_list_dt_to_formated_model_summary_dt(model_list_dt)[]
 # }
 
 # convert ctmm::overlap result matrix into data.table ----

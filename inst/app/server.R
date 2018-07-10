@@ -2061,13 +2061,13 @@ output:
   # summary table and model dt with model as list column
   summary_models <- reactive({
     # the dt with model in list column
-    models_dt <- ctmmweb:::model_try_res_to_model_list_dt(
+    model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(
       # req(values$selected_data_model_try_res)
       try_models()
       )
     # the model summary table
     formated_summary_dt <-
-      ctmmweb:::model_list_dt_to_formated_model_summary_dt(models_dt)
+      ctmmweb:::model_list_dt_to_formated_model_summary_dt(model_list_dt)
     if (input$hide_ci_model) {
       formated_summary_dt <- formated_summary_dt[
         !stringr::str_detect(estimate, "CI")]
@@ -2090,7 +2090,7 @@ output:
     dt[, row_no := .I]
     model_position <- if (input$hide_ci_model) 1 else 2
     first_models <- dt[, row_no[model_position], by = identity]$V1
-    return(list(models_dt = models_dt, # with CTMM model in column
+    return(list(model_list_dt = model_list_dt, # with CTMM model in column
                 summary_dt = formated_summary_dt,
                 model_names_dt = model_names_dt, # full name, color
                 hr_pal = hr_pal,
@@ -2197,14 +2197,14 @@ output:
     display_color <- selected_names_dt$model_color
     names(display_color) <- selected_names_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
-    selected_models_dt <- merge(selected_names_dt, summary_models()$models_dt,
+    selected_model_list_dt <- merge(selected_names_dt, summary_models()$model_list_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
     # data.table of further selection of models on row selection select_data()
     selected_data_dt <- select_data()$data_dt[
       identity %in% selected_names_dt$identity]
-    selected_model_list <- selected_models_dt$model
+    selected_model_list <- selected_model_list_dt$model
     # the modeled variogram plot title come from here. For now it's model_name.
     names(selected_model_list) <- selected_names_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
