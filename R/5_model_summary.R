@@ -56,9 +56,14 @@ model_list_dt_to_model_summary_dt <- function(model_list_dt) {
     summary_dt[, model_no := i]
   })
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
-  res_dt <- merge(model_list_dt[, .(identity, model_type, model_name, model_no,
-                                dAICc)],
-                  model_summary_dt,
+  # individual usage in command line don't have fit_no, but app need that. previously list column name to pick subset (skip models column), also give a proper order. if we leave col order code to outside, the package usage need more adjustment, and the model summary columns can be dynamic, it's easier just put model info cols in left side. use conditional col subsetting instead
+  export_cols <- c("identity", "model_type", "model_name", "model_no", "dAICc")
+  if ("fit_no" %in% names(model_list_dt)) export_cols <- c("fit_no", export_cols)
+  # res_dt <- merge(model_list_dt[, .(identity, model_type, model_name, model_no,
+  #                               dAICc)],
+  #                 model_summary_dt,
+  #                 by = "model_no")
+  res_dt <- merge(model_list_dt[, ..export_cols], model_summary_dt,
                   by = "model_no")
 }
 # home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
