@@ -44,7 +44,7 @@ model_try_res_to_model_list_dt <- function(model_try_res) {
   }
   model_list_dt[, dAICc := get_aicc_col(model), by = identity]
   # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
-  model_list_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
+  model_list_dt[, model_name := stringr::str_c(model_no, ". ", identity, " - ", model_type)]
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions
 model_list_dt_to_model_summary_dt <- function(model_list_dt) {
@@ -58,7 +58,7 @@ model_list_dt_to_model_summary_dt <- function(model_list_dt) {
   model_summary_dt <- rbindlist(model_summary_dt_list, fill = TRUE)
   # individual usage in command line don't have fit_no, but app need that. previously list column name to pick subset (skip models column), also give a proper order. if we leave col order code to outside, the package usage need more adjustment, and the model summary columns can be dynamic, it's easier just put model info cols in left side. use conditional col subsetting instead
   export_cols <- c("identity", "model_type", "model_name", "model_no", "dAICc")
-  if ("fit_no" %in% names(model_list_dt)) export_cols <- c("fit_no", export_cols)
+  # if ("fit_no" %in% names(model_list_dt)) export_cols <- c("fit_no", export_cols)
   # res_dt <- merge(model_list_dt[, .(identity, model_type, model_name, model_no,
   #                               dAICc)],
   #                 model_summary_dt,
