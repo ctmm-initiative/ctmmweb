@@ -2010,6 +2010,7 @@ output:
   # this is the try model (model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   # values$selected_data_model_try_res <- NULL  # need to clear this at input change too
   # try_models() ----
+  ## auto fit models for current data, using current guess values. init models_dt, which have models in list column, and other information in columns
   try_models <- reactive({
     # need 1st tab ready. write separately, don't want to check length on req
     req(values$selected_data_guess_list)
@@ -2058,7 +2059,7 @@ output:
   #   DT::selectRows(proxy_model_dt, summary_models()$first_models)
   # })
   # summary_models() ----
-  # summary table and model dt with model as list column
+  ## lots of action: create formated summary_dt for table, model_names_dt for model color, hr_pal color function, best models for each animal
   summary_models <- reactive({
     # the dt with model in list column
     model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(

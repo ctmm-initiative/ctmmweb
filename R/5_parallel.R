@@ -174,7 +174,7 @@ par_try_tele_guess <- function(tele_guess_list,
     par_try_tele_guess_multi(tele_guess_list, cores, parallel)
   }
 }
-# convenience wrapped to take telemetry list, guess them, fit models. In app we want more control and didn't use this.
+# convenience wrapped to take telemetry list, guess them, fit models. In app we need modified guess list so didn't use this.
 
 #' Parallel fitting models on telemetry list
 #'
