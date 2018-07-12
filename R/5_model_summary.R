@@ -48,17 +48,21 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   model_list_dt[, model :=
                   list(list(model_try_res[[res_list_index]][[model_type]])),
                 by = model_no]
-  # also add the AICc col
   get_aicc_col <- function(model_list) {
     res <- summary(model_list, units = FALSE)
     data.frame(res)$dAICc
   }
-  # AICc come from the summary of a group models, by each list item, for sub items
+  # AICc come from the summary of a group models, by each list item, for sub items. it's grouped by res_list_index now. previously we can just ready by identity, now need to read it by res_list_index. any other name?
   model_list_dt[, dAICc := get_aicc_col(model), by = res_list_index]
   # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
   model_list_dt[, model_name := stringr::str_c(model_no, ". ", identity, " - ", model_type)]
   # additional columns needed by app
-  model_list_dt[, as_init_ctmm := model]
+  # the init condition of this model, to be used for variogram plot. value is empty but the col type need to be right
+  model_list_dt[, init_ctmm_base := vector('list', nrow(model_list_dt))]
+  # name of the init condition model. guess/modified guess for auto fit, model name for refit.
+  model_list_dt[, init_ctmm_base_name := NA_character_]
+  # init_ctmm_next to be used as init for next refit
+  model_list_dt[, init_ctmm_next := model]
   model_list_dt[, fine_tuned := FALSE]
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions
