@@ -25,26 +25,41 @@ ctmm_summary_to_dt <- function(ctmm_summary) {
 }
 # par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, named by animal
 # this result was converted into a data.table model_list_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information. model name is just model type, not the full name with the animal name part. we need the separate model name col for coloring of model summary table.
-model_try_res_to_model_list_dt <- function(model_try_res) {
-  animal_names_dt <- data.table(identity = names(model_try_res))
-  model_type_list <- lapply(model_try_res, names)
-  # must use per row by to create list column, otherwise dt try to apply whole column to function
+# when multiple copies of same animal data with different init conditions are tried, the result will be unnamed item with sub item of models named by model type. previously we use animal name as item name when they are unique. This is still the  default option, but we need to provide animal names in a separate vector when duplicate exist, as they cannot be used as item names because of dupliates.
+# previously used identity as key, now we need to switch to model_no
+model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
+  if (is.null(animal_names)) animal_names <- names(model_try_res)
+  animal_names_dt <- data.table(res_list_index = seq_along(model_try_res),
+                                identity = animal_names)
+  # each row map to one list item, named by item names and they can be duplicated
+  # model_type_list <- lapply(model_try_res, names)
+  # must use per row by to create list column, otherwise dt try to apply whole column to function and have error of no such index at level 2. not sure why previous usage worked (identity indexing should not work), and why model_type_list[[res_list_index]] doesn't work, have to use names function call directly
+  # animal_names_dt[, model_type_list := list(list(model_type_list[[res_list_index]])),
+  #                 by = res_list_index]
   animal_names_dt[, model_type_list :=
-                    list(list(model_type_list[[identity]])),
-                  by = 1:nrow(animal_names_dt)]
-  model_list_dt <- animal_names_dt[, .(model_type = unlist(model_type_list)),
-                               by = identity]
-  model_list_dt[, model := list(list(model_try_res[[identity]][[model_type]])),
-            by = 1:nrow(model_list_dt)]
+                    list(list(names(model_try_res[[res_list_index]]))),
+                  by = res_list_index]
+  # spread list items
+  model_list_dt <- animal_names_dt[, .(identity = identity,
+                                       model_type = unlist(model_type_list)),
+                                   by = res_list_index]
   model_list_dt[, model_no := .I]
+  # previously we used identity to access res list items, now we use item index
+  model_list_dt[, model :=
+                  list(list(model_try_res[[res_list_index]][[model_type]])),
+                by = model_no]
   # also add the AICc col
   get_aicc_col <- function(model_list) {
     res <- summary(model_list, units = FALSE)
     data.frame(res)$dAICc
   }
-  model_list_dt[, dAICc := get_aicc_col(model), by = identity]
+  # AICc come from the summary of a group models, by each list item, for sub items
+  model_list_dt[, dAICc := get_aicc_col(model), by = res_list_index]
   # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
   model_list_dt[, model_name := stringr::str_c(model_no, ". ", identity, " - ", model_type)]
+  # additional columns needed by app
+  model_list_dt[, as_init_ctmm := model]
+  model_list_dt[, fine_tuned := FALSE]
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions
 model_list_dt_to_model_summary_dt <- function(model_list_dt) {
