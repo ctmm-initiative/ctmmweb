@@ -23,10 +23,15 @@ ctmm_summary_to_dt <- function(ctmm_summary) {
   res_dt <- merge(dof_dt, ci_dt, by = "item")
   res_dt[, item := NULL]
 }
-# par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, named by animal
-# this result was converted into a data.table model_list_dt, with the model objects as a list column, note each list is various models for same animal, a summary on list was used to generate dAICc information. model name is just model type, not the full name with the animal name part. we need the separate model name col for coloring of model summary table.
-# when multiple copies of same animal data with different init conditions are tried, the result will be unnamed item with sub item of models named by model type. previously we use animal name as item name when they are unique. This is still the  default option, but we need to provide animal names in a separate vector when duplicate exist, as they cannot be used as item names because of dupliates.
-# previously used identity as key, now we need to switch to model_no
+# update model_no and model_name for dt. will be used in app so abstracted as function, in case we want to change the model_name notation. Note this modify dt in place.
+update_model_no <- function(model_list_dt) {
+  model_list_dt[, model_no := .I]
+  # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
+  model_list_dt[, model_name := stringr::str_c(model_no, ". ", identity, " - ", model_type)]
+}
+# convert ctmm.select/try_tele_guess result into data.table with model in list column.
+# par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, unnamed item with sub item of models named by model type. previously we use animal name as item name since they are natural group condition. Now multiple copies of same animal data with different init conditions can be tried to refit, animal name as item name will have duplicate and indexing problem. Provide animal names in a separate vector (with duplicates). The default value is still to use list names.
+# previously used identity as key, now we need to switch to model_no. a summary on each list item was used to generate dAICc information, res_list_index is important.
 model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   if (is.null(animal_names)) animal_names <- names(model_try_res)
   animal_names_dt <- data.table(res_list_index = seq_along(model_try_res),
@@ -43,7 +48,8 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   model_list_dt <- animal_names_dt[, .(identity = identity,
                                        model_type = unlist(model_type_list)),
                                    by = res_list_index]
-  model_list_dt[, model_no := .I]
+  # add model_no, model_name
+  update_model_no(model_list_dt)
   # previously we used identity to access res list items, now we use item index
   model_list_dt[, model :=
                   list(list(model_try_res[[res_list_index]][[model_type]])),
@@ -54,8 +60,6 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   }
   # AICc come from the summary of a group models, by each list item, for sub items. it's grouped by res_list_index now. previously we can just ready by identity, now need to read it by res_list_index. any other name?
   model_list_dt[, dAICc := get_aicc_col(model), by = res_list_index]
-  # need a col that represent each model uniquely so it can be used to create home range color palette, which need to separate for each possible models across animals and model types. It need to be "global" for full table no matter what subset is selected.
-  model_list_dt[, model_name := stringr::str_c(model_no, ". ", identity, " - ", model_type)]
   # additional columns needed by app
   # the init condition of this model, to be used for variogram plot. value is empty but the col type need to be right
   model_list_dt[, init_ctmm_base := vector('list', nrow(model_list_dt))]

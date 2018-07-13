@@ -32,7 +32,7 @@ server <- function(input, output, session) {
   })
   values <- reactiveValues()
   # log/error options ----
-  ## they used lots of global variables or external variables not in function parameter(or even modified global variables), so not in package now. to move them into package need to add some parameters.
+  ## used lots of global variables or external variables not in function parameter(or even modified global variables), so not in package now. to move them into package need to add some parameters which become quite verbose.
   # log functions will use these options, so need to prepare them first
   # test checkbox status passively, one time read when called. wrap it into a function because if we decided to switch between independent checkbox or checkboxgroup, the changes only happens here, not every calling place.
   option_selected <- function(option) {
@@ -160,6 +160,7 @@ output:
 '
   log_add_rmd(rmd_header)
   # page observer ----
+  ## report page changes, need to be ready befoer log start
   # add subtitle in log for every page. need to sync with ui.R for this.
   page_title <- list(import = "Import Data",
                      plots = "Visualization",
@@ -176,10 +177,10 @@ output:
     log_msg_console(stringr::str_c("## ", title))
     log_add_rmd(stringr::str_c("\n## ", title, "\n"))
   }
-  # log each page, also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
+  # log page, also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
   observeEvent(input$tabs, {
     req(values$data)
-    # since we req data, so it will not record pages without data. This is good.
+    # it will not record pages without data because req data.
     log_page(page_title[[input$tabs]])
     # time subset page need single animal be selected
     if (input$tabs == "subset") {
@@ -190,15 +191,6 @@ output:
           type = "error", duration = 6)
       }
     }
-    # # overlap page will jump to home range if it's not calculated yt
-    # if (input$tabs == "overlap") {
-    #   if (!ctmmweb:::reactive_validated(select_models_hranges())) {
-    #     shinydashboard::updateTabItems(session, "tabs", "homerange")
-    #     showNotification(
-    #       "Please check home range first",
-    #       type = "warning", duration = 5)
-    #   }
-    # }
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
@@ -214,7 +206,7 @@ output:
                            if (input$record_on) "On" else "Off"), on = TRUE)
   })
   # help module server ----
-  # help function now have proper folder
+  # need app folder so was placed here, otherwise need to add parameter
   click_help <- function(input, output, session, title, size, file){
     observeEvent(input$help, {
       showModal(modalDialog(
@@ -245,15 +237,8 @@ output:
   }
   # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
   # DEBUG app(data): when there is error in loading app with parameter, the app can fail and error captured in app so not visible, comment this line off so error can be shown. note browser will open the installed script, so edit need to be written in original source, not the tab opened by browser.
-  isolate(setup_error_capture())
-  # isolate({
-  #   values$error_file <- tempfile()
-  #   # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
-  #   values$error_file_con <- file(values$error_file, open = "a")
-  #   sink(values$error_file_con, type = "message")
-  #   log_msg("Error messages captured in App")
-  # })
-  # # clean up. needed in app exit and checking option off.
+  isolate(setup_error_capture())  # comment off when debugging app import
+  # clean up. needed in app exit and checking option off.
   clean_up_error_capture <- function(error_con) {
     # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
     sink(type = "message")
@@ -332,7 +317,7 @@ output:
     ctmmweb::par_occur,
     cache = memoise::cache_filesystem(cache_path))
   # p1. import ----
-  # run this after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from combine. this should got run automatically? no if not referenced. need reactive expression to refer values$.
+  # a safety check for data intergrity when turned on. will run after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from combine. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
     if (VERIFY_DATA_SYNC) {
@@ -417,8 +402,7 @@ output:
   # when loading with app(data), the proxy neeed to be initialized first before calling the clear action
   proxy_individuals <- DT::dataTableProxy("individuals")
   update_input_data <- function(tele_list) {
-    # need to clear existing variables, better collect all values variable in one place
-    # values <- reactiveValues()
+    # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$input_tele_list <- tele_list
     values$data$tele_list <- tele_list
     values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
