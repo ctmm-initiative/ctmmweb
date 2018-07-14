@@ -60,7 +60,7 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   }
   # AICc come from the summary of a group models, by each list item, for sub items. it's grouped by res_list_index now. previously we can just ready by identity, now need to read it by res_list_index. any other name?
   model_list_dt[, dAICc := get_aicc_col(model), by = res_list_index]
-  # additional columns needed by app
+  # prepare additional columns needed by app.
   # the init condition of this model, to be used for variogram plot. value is empty but the col type need to be right
   model_list_dt[, init_ctmm_base := vector('list', nrow(model_list_dt))]
   # name of the init condition model. guess/modified guess for auto fit, model name for refit.
