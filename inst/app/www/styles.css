@@ -8,6 +8,12 @@
   font-weight: 600;
   font-size: small;
 }
+/* adjust radio button vertical alignment. right now only adjust specific item in place */
+/*
+.shiny-options-group {
+  margin-top: 4px;
+}
+*/
 
 #shiny-notification-panel {
   bottom: 50%;

@@ -11,6 +11,6 @@
 
 ### Restore Progress
 - Using `Save Progress` button in sidebar to save input data, cached calculation results and work report.
-- Uploading the saved zip with `Restore Progress` will restore the input data and previous caches. The time consuming operations like model selection, home range and occurrence can be finished instanly if the calculation is exactly same, i.e. same data and same selections.
+- Uploading the saved zip with `Restore Progress` will restore the input data and previous caches. The time consuming operations like model selection, home range and occurrence can be finished instanly if the calculation is exactly same, i.e. same data and same selections. Note this cache only works when saved progress was using exactly same app package version.
 - The saved work report is also opened for reference if app is running in local mode.
 

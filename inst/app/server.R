@@ -1877,6 +1877,7 @@ output:
   # ID: accessing input$`guess-tune_selected`
   # ID: model-tune
   model_page_data <- reactive({
+    # TODO we only have drop down selection as start, which is model_name. need to look up animal name (to get vario since it's only unique by animal) and model curves etc.
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     vario_list <- req(select_data_vario()$vario_list)
     vario_id <- input$`model-tune_selected`
