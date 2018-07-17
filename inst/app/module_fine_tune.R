@@ -8,11 +8,15 @@ tuneSelectorUI <- function(id) {
 # selections is dynamic, need to be transfered as a reactive expression not resolved, so the server function can take the dynamic value. calling with the reactive value directly doesn't work because to update inside means the call need to be updated
 # log_msg function is not available in this context, transfer it as parameter
 # called slider module with tune as id. so slider module will have namespace from `selector id - tune`
-tuneSelector <- function(input, output, session, selections, log_msg) {
+tuneSelector <- function(input, output, session, placeholder, selections, log_msg) {
   ns <- session$ns
   output$tune_selector <- renderUI({
+    # the first choice is empty, used as a placeholder. need to create that choice item from variable first
+    init_choice <- list("")
+    names(init_choice) <- placeholder
     selectInput(ns("tune_selected"), NULL,
-                c("Fine-tune" = "", selections()))
+                # c("Fine-tune" = "", selections()))
+                c(init_choice, selections()))
   })
   observeEvent(input$tune_selected, {
     if (input$tune_selected != "") {

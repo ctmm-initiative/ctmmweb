@@ -559,7 +559,7 @@ tabPanel("Pool",
 )
 # p5.b variograms ----
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
-     tabPanel(div(icon("battery-empty"), "1. Empirical"), value = "1",
+     tabPanel(div(icon("battery-half"), "1. Empirical"), value = "1",
               fluidRow(
                 column(6, offset = 0, tuneSelectorUI("guess")),
                 column(2, offset = 4, help_button("variograms")),
@@ -576,27 +576,42 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      # ),
      tabPanel(div(icon("hourglass-start"), icon("battery-full"), "2. Modeled"),
       fluidRow(
-        # column(3, offset = 0, actionButton("try_models", "Try Models",
-        #                              icon = icon("hourglass-start"),
-        #                              style = ctmmweb:::STYLES$page_action),
-        #        br(), br()),
-        column(6, offset = 0, tuneSelectorUI("model")),
-        column(2, offset = 4, help_button("model_selection")),
-        column(12, plotOutput("vario_plot_modeled",
-                              width = "99%", height = "98%")),
-        # model selection table
-        column(12, hr()),
+        # model summary/selection table --
+        # refit tool row
+        column(2, offset = 0, actionButton("refit", "Refit",
+                                           icon = icon("hourglass-start"),
+                                           style = ctmmweb:::STYLES$page_action)),
+        column(8, offset = 0, radioButtons("refit_option", label = NULL, inline = TRUE,
+                               choiceNames = list(div(icon("flag-checkered"),
+                                                      HTML('&nbsp;'),
+                                                      "Fine-tuned Only"),
+                                                  div(icon("flag"),
+                                                      HTML('&nbsp;'),
+                                                      "All selected models")),
+                               choiceValues = list("fine_tuned", "all_selected"))),
+        column(2, offset = 0, help_button("model_selection")),
+        # selection tool row
+        column(12, br()),
+
         column(3, actionButton("select_1st_models", "Select Best Models",
                                icon = icon("square-o"),
                                style = ctmmweb:::STYLES$page_action)),
         column(4, offset = 1, checkboxInput("hide_ci_model",
-                                "Hide Confidence Intervals")),
+                                            "Hide Confidence Intervals")),
         column(3, offset = 1, actionButton("clear_models", "Clear Selection",
-                               icon = icon("square-o"),
-                               style = ctmmweb:::STYLES$page_action)),
-        # column(2, offset = 3, help_button("model_selection")),
-        column(12, br()),
-        column(12, DT::DTOutput("tried_models_summary"))
+                                           icon = icon("square-o"),
+                                           style = ctmmweb:::STYLES$page_action)),
+        column(12, hr()),
+        column(12, DT::DTOutput("tried_models_summary")),
+        # model variograms --
+        # column(3, offset = 0, actionButton("try_models", "Try Models",
+        #                              icon = icon("hourglass-start"),
+        #                              style = ctmmweb:::STYLES$page_action),
+        #        br(), br()),
+        column(12, hr()),
+        column(6, offset = 0, tuneSelectorUI("model")),
+        column(12, plotOutput("vario_plot_modeled",
+                              width = "99%", height = "98%"))
       )
      ))
 # p6. home range ----
