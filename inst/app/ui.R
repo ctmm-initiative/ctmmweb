@@ -558,11 +558,23 @@ tabPanel("Pool",
         )
 )
 # p5.b variograms ----
+ctmm_colors <- ctmmweb:::ctmm_colors
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-half"), "1. Empirical"), value = "1",
               fluidRow(
-                column(6, offset = 0, tuneSelectorUI("guess")),
-                column(2, offset = 4, help_button("variograms")),
+                column(6, div(style = ctmmweb:::STYLES$align_check_radio,
+                       checkboxGroupInput("guess_curve_selector",
+              label = NULL, inline = TRUE,
+              choiceNames = list(div(style = paste0("color:", ctmm_colors[1]),
+                                     "Guesstimate"),
+                                 div(style = paste0("color:", ctmm_colors[2]),
+                                     "Fine-tuned Guesstimate")),
+              choiceValues = names(ctmm_colors)[1:2],
+              selected = names(ctmm_colors)[1:2]))
+                       ),
+                column(4, offset = 0, tuneSelectorUI("guess")),
+                column(2, offset = 0, help_button("variograms"))),
+              fluidRow(
                 column(12, br(), plotOutput("vario_plot_empirical",
                                              width = "99%", height = "98%"))
               )
@@ -582,7 +594,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                            icon = icon("hourglass-start"),
                                            style = ctmmweb:::STYLES$page_action)),
         # adjust radiobutton vertical alignment, only change this for now. if need to change for all radiobuttons, use styles.css
-        column(8, offset = 0, div(style = "margin-top: 4px;",
+        column(8, offset = 0, div(style = ctmmweb:::STYLES$align_check_radio,
               radioButtons("refit_option", label = NULL, inline = TRUE,
                            choiceNames = list(div(icon("flag-checkered"),
                                                   HTML('&nbsp;'),
@@ -595,7 +607,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
         ),
         column(2, offset = 0, help_button("model_selection")),
         # selection tool row
-        column(12, br()),
+        column(12, hr()),
         column(12, DT::DTOutput("tried_models_summary")),
         column(12, br()),
         column(3, actionButton("select_1st_models", "Select Best",
@@ -612,7 +624,19 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
         #                              style = ctmmweb:::STYLES$page_action),
         #        br(), br()),
         column(12, hr()),
-        column(6, offset = 0, tuneSelectorUI("model")),
+        column(12, offset = 0, tuneSelectorUI("model")),
+        column(12, div(style = ctmmweb:::STYLES$align_check_radio,
+                      checkboxGroupInput("model_curve_selector",
+             label = NULL, inline = TRUE,
+             choiceNames = list(div(style = paste0("color:", ctmm_colors[3]),
+                                    "Model"),
+                                div(style = paste0("color:", ctmm_colors[4]),
+                                    "Fine-tuned Model"),
+                                div(style = paste0("color:", ctmm_colors[5]),
+                                    "Refitted Model")),
+             choiceValues = names(ctmm_colors)[3:5],
+             selected = names(ctmm_colors)[3:5]))
+        ),
         column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%"))
       )

@@ -1633,10 +1633,11 @@ output:
   callModule(click_help, "variograms", title = "Variograms",
              size = "l", file = "help/5_b_variograms.md")
   # various curve colors in variogram, tuned color is brighter variant
-  ctmm_colors <- c("#803D38", "#FF7970", "#008026", "#00FF4D", "#619CFF")
-  names(ctmm_colors) <- c("0_guess", "0_guess_tuned",
-                          "1_model", "1_model_tuned",
-                          "2_model")
+  # ctmm_colors <- c("#803D38", "#FF7970", "#008026", "#00FF4D", "#619CFF")
+  # names(ctmm_colors) <- c("0_guess", "0_guess_tuned",
+  #                         "1_model", "1_model_tuned",
+  #                         "2_model")
+  ctmm_colors <- ctmmweb:::ctmm_colors
   # values$selected_data_guess_list current guessed parameters for current data, the manual adjusted value from fine tune are also updated here. original value are saved inside select_data_vario for reference
   values$selected_data_guess_list <- NULL
   # calculate group plot row count and total canvas height from group list length and UI. this is needed in vario plot, overlap home range plot. vario mode and model mode need different value because model mode can coexist (home range/occur rely on it)
@@ -1762,7 +1763,7 @@ output:
   # vario 1:empri, guess ----
   ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
   output$vario_plot_empirical <- renderPlot({
-    title_vec <-
+    # title_vec <-
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
             ctmmweb::align_list(select_data_vario()$original_guess_list,

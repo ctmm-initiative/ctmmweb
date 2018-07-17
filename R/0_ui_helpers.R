@@ -75,6 +75,15 @@ STYLES <- list(
   page_switch = "background-color: #7ad0f7;font-weight: 500;width:100%;",
   external_link = "background-color: #a7c1fc;font-weight: 500;width:100%;",
   download_button = "color: #2196F3;width:100%;",
-  help_button = "background-color: #8bc34a;width:100%;"
+  help_button = "background-color: #8bc34a;width:100%;",
+  # vertical align checkbox, radio buttons to button in same line.
+  align_check_radio = "margin-top: 5px;"
   # info box blue #00c0ef
 )
+# variogram curve colors ----
+## need this in curve checkbox (in ui) and server code, put it into package so it can be shared.
+# various curve colors in variogram, tuned color is brighter variant
+ctmm_colors <- c("#803D38", "#FF7970", "#008026", "#00FF4D", "#619CFF")
+names(ctmm_colors) <- c("0_guess", "0_guess_tuned",
+                        "1_model", "1_model_tuned",
+                        "2_model")
