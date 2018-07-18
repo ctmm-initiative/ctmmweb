@@ -66,7 +66,7 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   # name of the init condition model. guess/modified guess for auto fit, model name for refit.
   model_list_dt[, init_ctmm_base_name := NA_character_]
   # init_ctmm_next to be used as init for next refit
-  model_list_dt[, model_tuned := model]
+  model_list_dt[, model_current := model]
   model_list_dt[, fine_tuned := FALSE]
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt.
