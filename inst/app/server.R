@@ -1874,9 +1874,8 @@ output:
   # previously summary_models generate model_list_dt from res of try_models. now we need to put model_list_dt in reactive value so it can be modified from multiple places.
   values$model_list_dt <- NULL
   # try_models() ----
-  ## auto fit models for current data, using current guess values. init model_list_dt, which have models in list column, and other information in columns.
+  ## auto fit models for current data, using current guess values. we want to init model_list_dt here because it should only happen in auto fit. summary_model could update for refit, if that triggered the dt will get initialized again in middle.
   try_models <- reactive({
-    browser()
     # need 1st tab ready. write separately, don't want to check length on req
     req(values$selected_data_guess_list)
     # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
@@ -1907,6 +1906,8 @@ output:
   # summary_models() ----
   ## lots of action: create formated summary_dt for table, model_names_dt for model color, hr_pal color function, best models for each animal
   summary_models <- reactive({
+    # we need to reference try_models in summary_models otherwise it will not be executed.
+    try_models()
     # the model summary table to be shown, so it's formated.
     summary_dt <- ctmmweb:::model_list_dt_to_summary_dt(
       req(values$model_list_dt))
@@ -1968,7 +1969,7 @@ output:
     # should not need to use req on reactive expression if that expression have req inside.
     dt <- copy(summary_models()$summary_dt)
     # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
-    dt[, model_no := NULL]
+    # dt[, model_no := NULL]
     dt[, model_name := NULL]
     # LOG tried models
     log_dt_md(dt, "Tried Models")
