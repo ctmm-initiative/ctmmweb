@@ -591,7 +591,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
         # model summary/selection table --
         # refit tool row
         column(2, offset = 0, actionButton("refit", "Refit",
-                                           icon = icon("hourglass-start"),
+                                           icon = icon("undo"),
                                            style = ctmmweb:::STYLES$page_action)),
         # adjust radiobutton vertical alignment, only change this for now. if need to change for all radiobuttons, use styles.css
         column(8, offset = 0, div(style = ctmmweb:::STYLES$align_check_radio,
@@ -629,7 +629,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                       checkboxGroupInput("model_curve_selector",
              label = NULL, inline = TRUE,
              choiceNames = list(div(style = paste0("color:", ctmm_colors[3]),
-                                    "Fit Initial Condition"),
+                                    "Initial Parameter"),
                                 div(style = paste0("color:", ctmm_colors[4]),
                                     "Model Result"),
                                 div(style = paste0("color:", ctmm_colors[5]),
