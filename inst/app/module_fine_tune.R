@@ -95,9 +95,9 @@ varioSliders <- function(input, output, session, page_data, color_vec, log_dt_md
   # init sliders ----
   output$fit_sliders <- renderUI({
     # LOG slider values
-    ## it's convenient for us that this just print in fine-tune begin and end. not sure why. after apply, pop up removed, vario group updated, this got run and print result. could be the page_data reactive updated.
+    ## it's convenient for us that this just print in fine-tune begin and end. page_data is a reactive expression calling on ctmm_obj_current, which is part of guess list. apply action changed guess list value, triggered change in page_data reactive, triggered change here, even after pop up page is removed. the order of log is a little bit not perfect, alternative is print outside this function using isolate, then print again in apply action, kind of duplicate.
     log_dt_md(page_data()$control_dt[, .(label, value = initial)],
-              "Slider Values")
+              "Parameter Values")
     req(page_data()$control_sliders)
   })
   output$fit_zoom <- renderUI({

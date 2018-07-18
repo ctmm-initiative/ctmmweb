@@ -1830,7 +1830,8 @@ output:
   guess_ctmm <- callModule(varioSliders, "guess-tune",
                            guess_page_data, ctmm_colors[1:2], log_dt_md)
   # model_page_data() ----
-  # ID: accessing input$`guess-tune_selected`
+  # using data defined later in model selection part, put code here for comparison
+  # ID: accessing input$`model-tune_selected`
   # ID: model-tune
   model_page_data <- reactive({
     # TODO we only have drop down selection as start, which is model_name. need to look up animal name (to get vario since it's only unique by animal) and model curves etc.
