@@ -1876,6 +1876,7 @@ output:
   # try_models() ----
   ## auto fit models for current data, using current guess values. init model_list_dt, which have models in list column, and other information in columns.
   try_models <- reactive({
+    browser()
     # need 1st tab ready. write separately, don't want to check length on req
     req(values$selected_data_guess_list)
     # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
@@ -1906,20 +1907,14 @@ output:
   # summary_models() ----
   ## lots of action: create formated summary_dt for table, model_names_dt for model color, hr_pal color function, best models for each animal
   summary_models <- reactive({
-    # the dt with model in list column
-    model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(
-      # req(values$selected_data_model_try_res)
-      try_models()
-      )
-    # the model summary table
-    formated_summary_dt <-
-      ctmmweb:::model_list_dt_to_formated_model_summary_dt(model_list_dt)
+    # the model summary table to be shown, so it's formated.
+    summary_dt <- ctmmweb:::model_list_dt_to_summary_dt(
+      req(values$model_list_dt))
     if (input$hide_ci_model) {
-      formated_summary_dt <- formated_summary_dt[
-        !stringr::str_detect(estimate, "CI")]
+      summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
     }
-    # need a full model table with identity(for base color), full name to create model color, basically a full version of selected model table. the color pallete and mapping function must be based on full table, not current selected subset.
-    model_names_dt <- unique(formated_summary_dt[,
+    # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table.
+    model_names_dt <- unique(summary_dt[,
                             .(identity, model_type, model_name)])
     # prepare model color, identity color function
     model_names_dt[, base_color := values$id_pal(identity)]
@@ -1932,12 +1927,12 @@ output:
                           model_names_dt$model_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # we don't want the row number to show in the final table
-    dt <- copy(formated_summary_dt)
+    dt <- copy(summary_dt)
     dt[, row_no := .I]
     model_position <- if (input$hide_ci_model) 1 else 2
     first_models <- dt[, row_no[model_position], by = identity]$V1
     return(list(model_list_dt = model_list_dt, # with CTMM model in column
-                summary_dt = formated_summary_dt,
+                summary_dt = summary_dt,
                 model_names_dt = model_names_dt, # full name, color
                 hr_pal = hr_pal,
                 first_models = first_models))
@@ -2130,10 +2125,6 @@ output:
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range summary ----
   output$range_summary <- DT::renderDT({
-    # hrange_summary_dt <- model_list_dt_to_model_summary_dt(
-    #   build_hrange_list_dt(select_models()$names_dt, select_models_hranges()),
-    #   hrange = TRUE)
-    # dt <- format_hrange_summary_dt(hrange_summary_dt)
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$names_dt,
                                            select_models_hranges())
     dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
