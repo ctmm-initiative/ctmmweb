@@ -1764,7 +1764,6 @@ output:
   # vario 1: empri, guess ----
   ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
   output$vario_plot_empirical <- renderPlot({
-    # title_vec <-
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
             ctmmweb::align_list(select_data_vario()$original_guess_list,
@@ -1856,9 +1855,8 @@ output:
     # LOG fine tune apply
     log_msg("Apply Fine-tuned Parameters")
     removeModal()
-    ids <- sapply(select_data_vario()$vario_list,
-                  function(vario) vario@info$identity)
-    values$selected_data_guess_list[ids == input$`guess-tune_selected`][[1]] <-
+    # with pooled vario, the variogram internal name may change, but list item name is still same, we still use animal name as index.
+    values$selected_data_guess_list[input$`guess-tune_selected`][[1]] <-
       guess_ctmm()
   })
   # apply model tuned ----
