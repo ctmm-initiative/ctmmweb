@@ -1760,7 +1760,7 @@ output:
                 subtitle_list = subtitle_list,
                 original_guess_list = original_guess_list))
   })
-  # vario 1:empri, guess ----
+  # vario 1: empri, guess ----
   ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
   output$vario_plot_empirical <- renderPlot({
     # title_vec <-
@@ -1780,24 +1780,7 @@ output:
     select_data_vario()$vario_layout$height
     }
   )
-  # variogram 2:guess ---
-  # output$vario_plot_2 <- renderPlot({
-  #   # actual fraction value from slider is not in log, need to convert
-  #   ctmmweb::plot_vario(select_data_vario()$vario_list,
-  #                       values$selected_data_guess_list,
-  #                       title_vec = select_data_vario()$vario_title_vec,
-  #                       fraction = 10 ^ input$zoom_lag_fraction,
-  #                       relative_zoom = (input$vario_option == "relative"),
-  #                       model_color = "green", cex = 0.72,
-  #                       columns = input$vario_columns)
-  #   # LOG save pic
-  #   log_save_vario("vario", select_data_vario()$vario_layout$row_count,
-  #                  input$vario_columns)
-  # }, height = function() { # always use current selected layout
-  #   select_data_vario()$vario_layout$height
-  # }
-  # )
-  # vario 2:modeled ----
+  # vario 2: modeled ----
   # all based on model selection table rows, by select_models(), only update after table generated and there is row selection updates. select_models() find model and variogram based on row selection, but if row selection didn't change, the reactive is not triggered so no modeled variogram drawn.
   output$vario_plot_modeled <- renderPlot({
     model_title_vec <- paste0(names(select_models()$model_list),
@@ -1817,16 +1800,6 @@ output:
     select_models()$vario_layout$height
   }
   )
-  # ~old code of duplicated ui~
-  # output$tune_selector_guess <- renderUI({
-  #   selectInput("tune_selected_guess", NULL,
-  #               c("Fine-tune" = "", req(select_data()$info$identity)))
-  # })
-  # # fine tune model, base on selected model, display name
-  # output$tune_selector_model <- renderUI({
-  #   selectInput("tune_selected_model", NULL,
-  #               c("Fine-tune" = "", req(select_models()$names_dt$display_name)))
-  # })
   # < fine tune sliders ----
   ## 2 tabs have similar ui, write together in parallel so it's easier to compare for duplicates and differences.
   # the layers of id namespace marked with ID:
@@ -1836,24 +1809,6 @@ output:
              reactive(req(select_data()$info$identity)), log_msg)
   callModule(tuneSelector, id = "model", placeholder = "Fine-tune Model",
              reactive(req(select_models()$names_dt$model_name)), log_msg)
-  # observeEvent(input$tune_selected_guess, {
-  #   if (input$tune_selected_guess != "") {
-  #     # LOG fine tune start
-  #     log_msg("Fine-tune Guesstimate for", input$tune_selected_guess)
-  #     showModal(varioSlidersInput("tune_guess",
-  #                                 paste0("Fine-tune Guesstimate for ",
-  #                                        input$tune_selected_guess)))
-  #   }
-  # })
-  # observeEvent(input$tune_selected_model, {
-  #   if (input$tune_selected_model != "") {
-  #     # LOG fine tune start
-  #     log_msg("Fine-tune Model result for", input$tune_selected_model)
-  #     showModal(varioSlidersInput("tune_model",
-  #                                 paste0("Fine-tune Model result for ",
-  #                                        input$tune_selected_model)))
-  #   }
-  # })
   # guess_page_data() ----
   ## this reactive expression will be used as function parameter without (), so it's named like a noun.
   # when code outside module need to access input inside module, we need to have id properly
@@ -1893,89 +1848,7 @@ output:
   })
   model_ctmm <- callModule(varioSliders, "model-tune",
                            model_page_data, ctmm_colors[3:4], log_dt_md)
-  # init values of sliders ---
-  # init_slider_values <- reactive({
-  #   vario_list <- req(select_data_vario()$vario_list)
-  #   ids <- names(vario_list)
-  #   vario <- vario_list[ids == input$tune_selected][[1]]
-  #   CTMM <- values$selected_data_guess_list[ids == input$tune_selected][[1]]
-  #   fraction <- 10 ^ input$zoom_lag_fraction
-  #   STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = CTMM,
-  #                                         fraction = fraction, b = 10)
-  #   dt <- data.table(STUFF$DF)
-  #   dt[, name := row.names(STUFF$DF)]
-  #   # zoom slider used different base, and minus 1 from min,max.
-  #   dt[name == "z", c("min", "max") := list(min - 1, max - 1)]
-  #   # initial is taken from last page control directly
-  #   dt[name == "z", initial := input$zoom_lag_fraction]
-  #   # didn't use the step value in ctmm. use 0.001 instead, but need to adjust for error when data is calibrated
-  #   dt[, step := 0.001]
-  #   if ("MSE" %in% names(vario)) {
-  #     dt[name == "error", step := 1]
-  #   }
-  #   slider_list <- lapply(1:nrow(dt), function(i) {
-  #     sliderInput(
-  #       inputId = paste0("vfit_", dt[i, name]),
-  #       label = dt[i, label], min = round(dt[i, min], 3),
-  #       max = round(dt[i, max], 3), value = round(dt[i, initial], 3),
-  #       step = dt[i, step])
-  #   })
-  #   names(slider_list) <- dt$name
-  #
-  #   # zoom is for view only, separate it from others
-  #   return(list(vario = vario, STUFF = STUFF,
-  #               control_dt = dt[name != "z"],
-  #               control_sliders = slider_list[names(slider_list) != "z"],
-  #               zoom_slider = slider_list[names(slider_list) == "z"]))
-  # })
-  # init control sliders
-  # output$fit_sliders <- renderUI({
-  #   req(init_slider_values()$control_sliders)
-  # })
-  # output$fit_zoom <- renderUI({
-  #   list(tags$head(tags$script(HTML(ctmmweb::JS.onload("vfit_z")))),
-  #        req(init_slider_values()$zoom_slider))
-  # })
-  # observeEvent(input$center_slider, {
-  #   adjust_slider <- function(name) {
-  #     # Shiny will complain for named vector
-  #     id <- paste0("vfit_", name)
-  #     # error slider usually have initial value of 0, double that will get 0.
-  #     if (input[[id]] != 0) {
-  #       updateSliderInput(session, id,
-  #                         max = round(input[[id]] * 2, 2))
-  #     }
-  #   }
-  #   lapply(init_slider_values()$control_dt$name, adjust_slider)
-  # })
-  # # current CTMM according to sliders
-  # slider_to_CTMM <- reactive({
-  #   # there is a time when sliders are initialized but without value, then later storer call get NULL parameters
-  #   req(!is.null(input$vfit_sigma))
-  #   slider_values <- lapply(init_slider_values()$control_dt$name,
-  #                           function(x) {
-  #                             input[[paste0("vfit_", x)]]
-  #   })
-  #   names(slider_values) <- init_slider_values()$control_dt$name
-  #   CTMM <- do.call(init_slider_values()$STUFF$storer, slider_values)
-  # })
-  # # update plot by sliders ---
-  # output$fit_plot <- renderPlot({
-  #   req(slider_to_CTMM())  # otherwise error: replacement of length zero
-  #   fraction <- 10 ^ input$vfit_z
-  #   plot(init_slider_values()$vario, CTMM = slider_to_CTMM(),
-  #        col.CTMM = "green", fraction = fraction)
-  # })
-  # apply tune ----
-  # observeEvent(input$tuned, {
-  #   # LOG fine tune apply
-  #   log_msg("Apply Fine-tuned Parameters")
-  #   removeModal()
-  #   ids <- sapply(select_data_vario()$vario_list,
-  #                 function(vario) vario@info$identity)
-  #   values$selected_data_guess_list[ids == input$tune_selected][[1]] <-
-  #     slider_to_CTMM()
-  # })
+  # apply guess tuned ----
   # - is not valid in symbol, note how the id is constructed
   # ID: apply button id tuned, module ns guess-tune, so final `guess-tune-tuned`
   # ID: accessing selector selection input$`guess-tune_selected`
@@ -1988,6 +1861,8 @@ output:
     values$selected_data_guess_list[ids == input$`guess-tune_selected`][[1]] <-
       guess_ctmm()
   })
+  # apply model tuned ----
+
   # fine tune sliders > ----
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",

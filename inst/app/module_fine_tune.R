@@ -1,4 +1,5 @@
 # abstract original code into module so it can be reused. need to support two curves. Need to use camelcase naming convention. If we move this inside package, need to use full qualifer in a lot of places, also the changes need to be installed to be reflected, not suitable for current development phrase. will move to package in future (for now also leave the functions in global environment after app running. In future it can be a basis for a shiny gadget work similar to manipulate vario feature.
+# also check server.R code comment for usage
 # tuneSelector ----
 ## the UI and selector code for fine-tune. client code just place the UI with module id, call module server function with selections etc. The selection action in turn call varioSliders UI with selector module id as namespace.
 #  nesting modules will be too complicated, so only call slider module ui inside this module, leave the slider server module call outside in user code.
