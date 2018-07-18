@@ -1753,6 +1753,7 @@ output:
             ctmm::ctmm.guess(tele_list[[i]], variogram = vario_list[[i]],
                              interactive = FALSE)
             })
+    names(original_guess_list) <- names(tele_list)
     values$selected_data_guess_list <- original_guess_list
     return(list(vario_list = vario_list,
                 vario_layout = vario_layout,
@@ -1815,15 +1816,13 @@ output:
   # ID: accessing input$`guess-tune_selected` directly, so need to construct id. guess as 1st layer, tune_selected as the real part defined in tuneSelector server code.
   # ID: also function need slider module id, `guess` used in selector module call, `tune` used in slider module UI call inside selector server code, so slider module's UI call actually is `guess-tune`, which is also slider module server call id.
   guess_page_data <- reactive({
-    # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
+    # in this page one animal should have only one vario, so everything is named/indexed by animal name. model page will be more complex, need model_name
     vario_list <- req(select_data_vario()$vario_list)
     vario_id <- input$`guess-tune_selected`  # need the proper id
-    vario_names <- names(vario_list)
-    vario <- vario_list[vario_names == vario_id][[1]]
-    # using order logical, not names
-    ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_names == vario_id][[1]]
-    ctmm_obj_current <- values$selected_data_guess_list[vario_names == vario_id][[1]]
-    get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
+    ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_id][[1]]
+    ctmm_obj_current <- values$selected_data_guess_list[vario_id][[1]]
+    get_tune_page_data(vario_list[vario_id][[1]],
+                       ctmm_obj_ref, ctmm_obj_current,
                        input$zoom_lag_fraction, "guess-tune")  # use module id
   })
   # ID: slider module id same with the slider UI called inside selector module, `guess-tune`
@@ -1872,8 +1871,10 @@ output:
   # use value instead of reactive expression, because we used a button so need to use observeEvent, cannot start fit automatically by reactive expression.
   # this is the try model (model selection in ctmm context, but we have a select model process, so use different names now) results for current animal subset. home range and occurence are based on further selected models
   # values$selected_data_model_try_res <- NULL  # need to clear this at input change too
+  # previously summary_models generate model_list_dt from res of try_models. now we need to put model_list_dt in reactive value so it can be modified from multiple places.
+  values$model_list_dt <- NULL
   # try_models() ----
-  ## auto fit models for current data, using current guess values. init models_dt, which have models in list column, and other information in columns
+  ## auto fit models for current data, using current guess values. init model_list_dt, which have models in list column, and other information in columns.
   try_models <- reactive({
     # need 1st tab ready. write separately, don't want to check length on req
     req(values$selected_data_guess_list)
@@ -1894,8 +1895,12 @@ output:
     # we are selecting rows on a table just generated.
     # this line caused update loop, the summary_models changed
     # DT::selectRows(proxy_model_dt, summary_models()$first_models)
+    # initialize model_list_dt in auto fit
+    values$model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
+    values$model_list_dt[, init_ctmm_base_name := "guess"]
+    values$model_list_dt[, init_ctmm_base := list(list(
+      values$selected_data_guess_list[[identity]])), by = model_no]
     return(res)
-    # }
   })
   # observeEvent(input$try_models, {
   #   # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
