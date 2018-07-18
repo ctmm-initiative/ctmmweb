@@ -84,6 +84,7 @@ STYLES <- list(
 ## need this in curve checkbox (in ui) and server code, put it into package so it can be shared.
 # various curve colors in variogram, tuned color is brighter
 ctmm_colors <- c("#FF7970", "#803D38", "#00BA38", "#619CFF", "#314E80")
-names(ctmm_colors) <- c("guess", "guess_tuned",
+# need to map with data structure. current is either original or tuned (if tuned).
+names(ctmm_colors) <- c("guess", "guess_current",
                         "init_ctmm",
-                        "model", "model_tuned")
+                        "model", "model_current")
