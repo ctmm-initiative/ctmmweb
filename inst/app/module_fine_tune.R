@@ -1,5 +1,8 @@
 # abstract original code into module so it can be reused. need to support two curves. Need to use camelcase naming convention. If we move this inside package, need to use full qualifer in a lot of places, also the changes need to be installed to be reflected, not suitable for current development phrase. will move to package in future (for now also leave the functions in global environment after app running. In future it can be a basis for a shiny gadget work similar to manipulate vario feature.
-# the UI and selector code for fine-tune. nesting modules will be too complicated, so only call slider module ui inside this module, leave the slider server module call outside in user code.
+# tuneSelector ----
+## the UI and selector code for fine-tune. client code just place the UI with module id, call module server function with selections etc. The selection action in turn call varioSliders UI with selector module id as namespace.
+#  nesting modules will be too complicated, so only call slider module ui inside this module, leave the slider server module call outside in user code.
+# check 05_1_model_variogram.Rmd vario_slider_module for script
 # selectInput UI
 tuneSelectorUI <- function(id) {
   ns <- NS(id)
@@ -28,6 +31,8 @@ tuneSelector <- function(input, output, session, placeholder, selections, log_ms
     }
   })
 }
+# varioSliders ----
+## sliders' UI code, but actual sliders need to dynamic generated in server code
 # previously slider id is built with vfitz_sigma, vfitz_z, vfitz_tau1 etc. now with module id, should use slider name directly.
 varioSlidersInput <- function(id, dialog_title) {
   ns <- NS(id)
@@ -48,6 +53,7 @@ varioSlidersInput <- function(id, dialog_title) {
                                     style = ctmmweb:::STYLES$page_action)))
   )
 }
+## utility function to calculate slider parameters from data values(check its input and return value).
 # will be called inside reactive expression, serve as dynamic data holder for all data in page. the reactive expression will be used as data parameter of module server function.
 # initialize slider values from vario, ctmm_obj_current. ctmm_obj_ref is the reference curve of original value, just transfered in and out. if user modified it then modify again, will still show original ref curve, but using new current curve. this is only needed by plot, but we are putting all info needed in ui here. fraction is the internal value of zoom slider in vario control box. module using id- as prefix. for our purpose, it's easier to further wrap input processing code here, only provide the original input value in parameter.
 get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
@@ -82,10 +88,15 @@ get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
               control_sliders = slider_list[names(slider_list) != "z"],
               zoom_slider = slider_list[names(slider_list) == "z"]))
 }
+## draw sliders with slider data, which came from reactive expression as parameter. the reactive expression page_data is created in server.R using function above (just a utility function, not reactive or module), then transferred as parameter.
 # sliders id are created in get_sliders_info with module_id, so we don't need to get ns from session$ns, just make sure module_id is same with id parameter. page_data is reactive expression which called get_tune_page_data, need to be used with () inside the server function.
-varioSliders <- function(input, output, session, page_data, color_vec) {
+varioSliders <- function(input, output, session, page_data, color_vec, log_dt_md) {
   # init sliders ----
   output$fit_sliders <- renderUI({
+    # LOG slider values
+    ## it's convenient for us that this just print in fine-tune begin and end. not sure why. after apply, pop up removed, vario group updated, this got run and print result. could be the page_data reactive updated.
+    log_dt_md(page_data()$control_dt[, .(label, value = initial)],
+              "Slider Values")
     req(page_data()$control_sliders)
   })
   output$fit_zoom <- renderUI({

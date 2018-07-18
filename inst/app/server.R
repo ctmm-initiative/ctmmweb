@@ -122,7 +122,7 @@ server <- function(input, output, session) {
     if (!on) return()
     grDevices::dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
   }
-  # save dt into markdown table or csv. note the msg could be in different format
+  # save dt into markdown table. note the msg could be in different format
   log_dt_md <- function(dt, msg, on = option_selected("record_on")) {
     if (!on) return()
     # need the extra \t because log_msg put \t before first line of detail
@@ -1873,13 +1873,14 @@ output:
   })
   # ID: slider module id same with the slider UI called inside selector module, `guess-tune`
   guess_ctmm <- callModule(varioSliders, "guess-tune",
-                           guess_page_data, ctmm_colors[1:2])
+                           guess_page_data, ctmm_colors[1:2], log_dt_md)
   # model_page_data() ----
   # ID: accessing input$`guess-tune_selected`
   # ID: model-tune
   model_page_data <- reactive({
     # TODO we only have drop down selection as start, which is model_name. need to look up animal name (to get vario since it's only unique by animal) and model curves etc.
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
+    # TODO current code is just guess orignal, guess tuned. we may need to get dynamically from table. group vario may draw 3 curves, but fine-tune page only draw two curves. too complex to draw 3 curves in pop up.
     vario_list <- req(select_data_vario()$vario_list)
     vario_id <- input$`model-tune_selected`
     vario_names <- names(vario_list)
@@ -1891,7 +1892,7 @@ output:
                        input$zoom_lag_fraction, "model-tune")
   })
   model_ctmm <- callModule(varioSliders, "model-tune",
-                           model_page_data, ctmm_colors[3:4])
+                           model_page_data, ctmm_colors[3:4], log_dt_md)
   # init values of sliders ---
   # init_slider_values <- reactive({
   #   vario_list <- req(select_data_vario()$vario_list)
