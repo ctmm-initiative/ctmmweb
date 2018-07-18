@@ -1638,7 +1638,7 @@ output:
   #                         "1_model", "1_model_tuned",
   #                         "2_model")
   ctmm_colors <- ctmmweb:::ctmm_colors
-  # values$selected_data_guess_list current guessed parameters for current data, the manual adjusted value from fine tune are also updated here. original value are saved inside select_data_vario for reference
+  # values$selected_data_guess_list current guessed parameters for current data, the manual adjusted value from fine tune are also updated here. original value are saved inside select_data_vario for reference. guess list should always have one guess for one animal, so this is named/indexed by animal name
   values$selected_data_guess_list <- NULL
   # calculate group plot row count and total canvas height from group list length and UI. this is needed in vario plot, overlap home range plot. vario mode and model mode need different value because model mode can coexist (home range/occur rely on it)
   layout_group <- function(group_list, figure_height, column) {
@@ -1747,7 +1747,7 @@ output:
     vario_layout <- layout_group(vario_list,
                                      input$vario_height, input$vario_columns)
     # -- guess list --
-    # generate guess with variogram input
+    # generate guess with variogram input. guess always map to animal 1:1, so named/indexed by animal name
     original_guess_list <- lapply(seq_along(tele_list),
           function(i) {
             ctmm::ctmm.guess(tele_list[[i]], variogram = vario_list[[i]],
@@ -1897,35 +1897,12 @@ output:
     # DT::selectRows(proxy_model_dt, summary_models()$first_models)
     # initialize model_list_dt in auto fit
     values$model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
+    # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
     values$model_list_dt[, init_ctmm_base_name := "guess"]
     values$model_list_dt[, init_ctmm_base := list(list(
       values$selected_data_guess_list[[identity]])), by = model_no]
     return(res)
   })
-  # observeEvent(input$try_models, {
-  #   # it's common to use existing table row selection in some reactives, until the correct selection updated and reactive evaluate again. With previous fitted models and selection rows, next fit on different animal will first try to plot with existing selection number. Freeze it so we can update the correct selection first. freeze halt the chain (like req), then thaw after other finished.
-  #   # freeze didn't solve the problem when fit models and have table generated, row selected. disable paralle, fit again, table didn't update, no row selection event, no selected models update. this can be solved by selecting some row in table.
-  #   # freezeReactiveValue(input, "tried_models_summary_rows_selected")
-  #   # instead, we clear the table selection, which should solve both needs. the clear is not executed until fitting finished, but it's queued before actual selecting, so table did update.
-  #   DT::selectRows(proxy_model_dt, list())
-  #   # guess_list is updated inside select_data_vario_list, but select_data_vario_list is not referenced here, if still in model mode, it was not referenced in UI too, so it didn't get updated.
-  #   tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
-  #                                 values$selected_data_guess_list)
-  #   # LOG try models
-  #   log_msg("Trying different models...")
-  #   withProgress(print(system.time(
-  #     values$selected_data_model_try_res <-
-  #       par_try_tele_guess_mem(tele_guess_list,
-  #                              parallel = option_selected("parallel")))),
-  #     message = "Trying different models to find the best ...")
-  #   # always save names in list
-  #   names(values$selected_data_model_try_res) <- names(select_data()$tele_list)
-  #   # sometimes nothing is shown in 3 modes. could be data lock in complex reactive relationship. try to freeze the radio button to make sure it update in last
-  #   # freezeReactiveValue(input, "vario_mode")
-  #   # updateRadioButtons(session, "vario_mode", selected = "modeled")
-  #   # we are selecting rows on a table just generated.
-  #   DT::selectRows(proxy_model_dt, summary_models()$first_models)
-  # })
   # summary_models() ----
   ## lots of action: create formated summary_dt for table, model_names_dt for model color, hr_pal color function, best models for each animal
   summary_models <- reactive({
