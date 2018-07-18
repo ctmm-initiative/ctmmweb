@@ -1700,7 +1700,7 @@ output:
     # take vario-dt parameter list
     dt_para_list <- vector("list", length = length(tele_list))
     names(dt_para_list) <- names(tele_list)
-    # 3 tabs have different requirement on plot titles. main title always come from animal name or model name, sub title when dt/pool need to be marked.
+    # 2 tabs have different requirement on plot titles. main title always come from animal name or model name, sub title when dt/pool need to be marked. all operations of vario are applied to variogram, which is animal based, so no matter what model, subtitle came from animal.
     # need to maintain dt part and pool part separately, if user click pool repeatitively, pool part should not add to another line.
     subtitle_dt_list <- vector("list", length = length(tele_list))
     subtitle_dt_list[1:length(subtitle_dt_list)] <- ""
@@ -1930,7 +1930,8 @@ output:
     dt[, row_no := .I]
     model_position <- if (input$hide_ci_model) 1 else 2
     first_models <- dt[, row_no[model_position], by = identity]$V1
-    return(list(model_list_dt = model_list_dt, # with CTMM model in column
+    return(list(
+      # model_list_dt = values$model_list_dt,
                 summary_dt = summary_dt,
                 model_names_dt = model_names_dt, # full name, color
                 hr_pal = hr_pal,
@@ -2037,7 +2038,7 @@ output:
     display_color <- selected_names_dt$model_color
     names(display_color) <- selected_names_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
-    selected_model_list_dt <- merge(selected_names_dt, summary_models()$model_list_dt,
+    selected_model_list_dt <- merge(selected_names_dt, values$model_list_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]

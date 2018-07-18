@@ -34,6 +34,7 @@
 #' - Absolute mode operate on the max Time-lag range individual in group, and
 #' all others scaled with same X, Y axes for easier comparison.
 #' @param cex The magnification factor of plot text and symbols. See [par()].
+#' You may need a smaller value if figure margins is too large
 #' @param model_color The color of model variogram. It'll be same for every
 #' plot.
 #' @param columns The columns of the group plot layout.
