@@ -58,12 +58,6 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   model_list_dt[, model :=
                   list(list(model_try_res[[res_list_index]][[model_type]])),
                 by = model_no]
-  get_aicc_col <- function(model_list) {
-    res <- summary(model_list, units = FALSE)
-    data.frame(res)$dAICc
-  }
-  # AICc come from the summary of a group models, by each list item, for sub items. it's grouped by res_list_index now. previously we can just ready by identity, now need to read it by res_list_index. any other name?
-  model_list_dt[, dAICc := get_aicc_col(model), by = res_list_index]
   # prepare additional columns needed by app.
   # the init condition of this model, to be used for variogram plot. value is empty but the col type need to be right
   model_list_dt[, init_ctmm_base := vector('list', nrow(model_list_dt))]
@@ -75,19 +69,25 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   setkeyv(model_list_dt, model_dt_key_cols)
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt.
+# it's the summary on model that create CI columns, expand one model into 3 rows. model_list_dt will just sort by model_no(fit order), only summary_dt will sort by identity and dAICc
 model_list_dt_to_model_summary_dt <- function(model_list_dt) {
-  # make copy first because we will remove column later
+  # dAICc info was generated in model_res convertion before, but we now need to add refit models to existing table, calculate dAICc again. need to move dAICc calculation here.
+  get_aicc_col <- function(model_list) {
+    res <- summary(model_list, units = FALSE)
+    data.frame(res)$dAICc
+  }
+  # AICc come from the summary of a group models, always by animal, even models may came from different fit passes
+  # we don't want to change model_list_dt by adding dAICc column in reference, so add it in subset. summary only need them anyway.
+  model_info_dt <- model_list_dt[, ..model_dt_key_cols]
+  model_info_dt[, dAICc := get_aicc_col(model), by = identity]
   # a list of converted summary on each model
-  ctmm_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
-    summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
+  ctmm_summary_dt_list <- lapply(1:nrow(model_info_dt), function(i) {
+    summary_dt <- ctmm_summary_to_dt(summary(model_info_dt$model[[i]],
                                              units = FALSE))
     summary_dt[, model_no := i]
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
-  # summary dt don't need model list columns, just the information columns
-  export_cols <- c("model_no", "identity", "model_type", "model_name", "dAICc")
-  model_summary_dt <- merge(model_list_dt[, ..export_cols], ctmm_summary_dt,
-                  by = "model_no")
+  model_summary_dt <- merge(model_info_dt, ctmm_summary_dt, by = "model_no")
   setkeyv(model_summary_dt, model_dt_key_cols)
 }
 # home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
