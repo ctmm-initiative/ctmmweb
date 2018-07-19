@@ -1,4 +1,7 @@
 # build ctmm model summary table ----
+# all model related table use same key columns, so merge will be easier. otherwise need to specify all common columns.
+# model_list_dt, model_summary_dt using this
+model_dt_key_cols <- c("model_no", "identity", "model_type", "model_name")
 # each model object is a CTMM object, summary(ctmm_obj) give some information in a list, which is converted into a table. summary(ctmm_obj_list) give some comparison among models, dAIIc col.
 # only convert the summary list as we need more flexibility in summary call
 ctmm_summary_to_dt <- function(ctmm_summary) {
@@ -68,6 +71,7 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   # init_ctmm_next to be used as init for next refit
   model_list_dt[, model_current := model]
   model_list_dt[, fine_tuned := FALSE]
+  setkeyv(model_list_dt, model_dt_key_cols)
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt.
 model_list_dt_to_model_summary_dt <- function(model_list_dt) {
@@ -83,6 +87,7 @@ model_list_dt_to_model_summary_dt <- function(model_list_dt) {
   export_cols <- c("model_no", "identity", "model_type", "model_name", "dAICc")
   model_summary_dt <- merge(model_list_dt[, ..export_cols], ctmm_summary_dt,
                   by = "model_no")
+  setkeyv(model_summary_dt, model_dt_key_cols)
 }
 # home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
 hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {

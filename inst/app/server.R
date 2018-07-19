@@ -1871,6 +1871,8 @@ output:
   # values$selected_data_model_try_res <- NULL  # need to clear this at input change too
   # previously summary_models generate model_list_dt from res of try_models. now we need to put model_list_dt in reactive value so it can be modified from multiple places.
   values$model_list_dt <- NULL
+  # all model dt have same key columns for easier merge, use local variable so we can refer it inside dt.
+  model_dt_key_cols <- ctmmweb:::model_dt_key_cols
   # try_models() ----
   ## auto fit models for current data, using current guess values. we want to init model_list_dt here because it should only happen in auto fit. summary_model could update for refit, if that triggered the dt will get initialized again in middle.
   try_models <- reactive({
@@ -1903,15 +1905,14 @@ output:
   summary_models <- reactive({
     # we need to reference try_models in summary_models otherwise it will not be executed.
     try_models()
-    # the model summary table to be shown, so it's formated.
+    # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values
     summary_dt <- ctmmweb:::model_list_dt_to_summary_dt(
       req(values$model_list_dt))
     if (input$hide_ci_model) {
       summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
     }
-    # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table.
-    model_info_dt <- unique(summary_dt[,
-                            .(model_no, identity, model_type, model_name)])
+    # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table. note this table don't have CI columns, each model only have 1 row
+    model_info_dt <- unique(summary_dt[, ..model_dt_key_cols])
     # prepare model color, identity color function
     model_info_dt[, base_color := values$id_pal(identity)]
     model_info_dt[, variation_number := seq_len(.N), by = identity]
@@ -1922,7 +1923,8 @@ output:
     hr_pal <- leaflet::colorFactor(model_info_dt$model_color,
                           model_info_dt$model_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
-    # we don't want the row number to show in the final table
+    # assuming the model table always sorted by dAICc, which should be true from model summary.
+    # each model has 3 rows, so row number is different from existing columns, and we need the row number for row selection. don't want the row number to show in the final table
     dt <- copy(summary_dt)
     dt[, row_no := .I]
     model_position <- if (input$hide_ci_model) 1 else 2
@@ -2005,9 +2007,8 @@ output:
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
-
     selected_info_dt <- unique(model_summary_dt[rows_selected_sorted,
-                                .(model_no, identity, model_type, model_name)])
+                                                ..model_dt_key_cols])
     # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
     # display_name is a dynamic column depend on selection so it's created here. use simple animal name when no duplicate, full model name when multiple models from same animal are selected. Although created here, it's not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
     # home range table, plot, overlap page take display_name. the model page still use modal name even no duplication, because the model table exists.
@@ -2018,8 +2019,7 @@ output:
     }
     # get color
     selected_info_dt <- merge(summary_models()$model_info_dt,
-                               selected_info_dt,
-                    by = c("model_no", "identity", "model_type", "model_name"))
+                               selected_info_dt)
     # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
     # These information came from model_summary (display name depend on row selection, in select_models)
     # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
@@ -2032,7 +2032,6 @@ output:
     names(display_color) <- selected_info_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_model_list_dt <- merge(selected_info_dt, values$model_list_dt,
-          by = c("model_no", "identity", "model_type", "model_name"),
           sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_info_dt$identity]
@@ -2067,6 +2066,18 @@ output:
                 vario_layout = selected_vario_layout
                 ))
   })
+  # refit ----
+  ## with current selected models, depend on option fine-tune only/all, refit
+  observeEvent(input$refit, {
+    browser()
+    req(values$model_list_dt)
+    model_list_dt_current <- switch(input$refit_option,
+                                    fine_tuned =
+                                      values$model_list_dt[(fine_tuned)],
+                                    all_selected = values$model_list_dt)
+    refit_dt <- merge(select_models()$info_dt, model_list_dt_current)
+  })
+
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
