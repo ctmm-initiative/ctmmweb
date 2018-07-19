@@ -1808,7 +1808,7 @@ output:
   callModule(tuneSelector, id = "guess", placeholder = "Fine-tune Guesstimate",
              reactive(req(select_data()$info$identity)), log_msg)
   callModule(tuneSelector, id = "model", placeholder = "Fine-tune Model",
-             reactive(req(select_models()$names_dt$model_name)), log_msg)
+             reactive(req(select_models()$info_dt$model_name)), log_msg)
   # guess_page_data() ----
   ## this reactive expression will be used as function parameter without (), so it's named like a noun.
   # when code outside module need to access input inside module, we need to have id properly
@@ -2005,19 +2005,19 @@ output:
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
-    selected_names_dt <- unique(model_summary_dt[rows_selected_sorted,
+    selected_info_dt <- unique(model_summary_dt[rows_selected_sorted,
                                            .(identity, model_type, model_name)])
     # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
     # display_name is a dynamic column depend on selection so it's created here. use simple animal name when no duplicate, full model name when multiple models from same animal are selected. Although created here, it's not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
     # home range table, plot, overlap page take display_name. the model page still use modal name even no duplication, because the model table exists.
-    if (anyDuplicated(selected_names_dt, by = "identity") != 0) {
-      selected_names_dt[, display_name := model_name]
+    if (anyDuplicated(selected_info_dt, by = "identity") != 0) {
+      selected_info_dt[, display_name := model_name]
     } else {
-      selected_names_dt[, display_name := identity]
+      selected_info_dt[, display_name := identity]
     }
     # get color
-    selected_names_dt <- merge(summary_models()$model_info_dt,
-                               selected_names_dt,
+    selected_info_dt <- merge(summary_models()$model_info_dt,
+                               selected_info_dt,
                                by = c("identity", "model_type", "model_name"))
     # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
     # These information came from model_summary (display name depend on row selection, in select_models)
@@ -2027,36 +2027,36 @@ output:
     # home range/occurrence plot need color vector in same order
     # we create a named vector [display_name = color] for indexing, and create a function from that vector in home range plot. compare to creating the mapping function here, the indexing vector is created in one time merging instead of each checking need a merge, and the transfered parameter is a static vector instead of a function with enclosed variables.
     # all needs can be satisfied with this named vector.
-    display_color <- selected_names_dt$model_color
-    names(display_color) <- selected_names_dt$display_name
+    display_color <- selected_info_dt$model_color
+    names(display_color) <- selected_info_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
-    selected_model_list_dt <- merge(selected_names_dt, values$model_list_dt,
+    selected_model_list_dt <- merge(selected_info_dt, values$model_list_dt,
                                 by = c("identity", "model_type"), sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
-    selected_tele_list <- select_data()$tele_list[selected_names_dt$identity]
+    selected_tele_list <- select_data()$tele_list[selected_info_dt$identity]
     # data.table of further selection of models on row selection select_data()
     selected_data_dt <- select_data()$data_dt[
-      identity %in% selected_names_dt$identity]
+      identity %in% selected_info_dt$identity]
     selected_model_list <- selected_model_list_dt$model
     # the modeled variogram plot title come from here. For now it's model_name.
-    names(selected_model_list) <- selected_names_dt$model_name
+    names(selected_model_list) <- selected_info_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
-      selected_names_dt$identity]
+      selected_info_dt$identity]
     selected_subtitle_list <- select_data_vario()$subtitle_list[
-      selected_names_dt$identity]
-    # selected_names_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
+      selected_info_dt$identity]
+    # selected_info_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
     selected_vario_layout <- layout_group(selected_vario_list,
                                      input$vario_height, input$vario_columns)
     # LOG selected models
-    log_dt_md(selected_names_dt[, .(identity, model_type)], "Selected Models")
+    log_dt_md(selected_info_dt[, .(identity, model_type)], "Selected Models")
     # update home range weight selector choices
     updateSelectInput(session, "hrange_weight",
-                      choices = selected_names_dt$display_name)
+                      choices = selected_info_dt$display_name)
     # this value is not updated yet when selectinput itself changed
     values$hrange_weight_vec <- NULL
     # must make sure all items in same order
-    return(list(names_dt = selected_names_dt,
+    return(list(info_dt = selected_info_dt,
                 display_color = display_color,
                 tele_list = selected_tele_list,
                 data_dt = selected_data_dt,
@@ -2081,7 +2081,7 @@ output:
   get_hrange_weight_para <- reactive({
     tele_list <- select_models()$tele_list
     # must use display name since it's possible to have same animal different models
-    display_names <- select_models()$names_dt$display_name
+    display_names <- select_models()$info_dt$display_name
     # need default value to be FALSE instead of NULL
     weights_list <- as.list(rep(FALSE, length(tele_list)))
     names(weights_list) <- display_names
@@ -2109,7 +2109,7 @@ output:
       message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
     # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
-    names(res) <- select_models()$names_dt$display_name
+    names(res) <- select_models()$info_dt$display_name
     return(res)
   })
   # home range levels ----
@@ -2117,7 +2117,7 @@ output:
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range summary ----
   output$range_summary <- DT::renderDT({
-    hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$names_dt,
+    hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
                                            select_models_hranges())
     dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
                                                                 get_hr_levels())
@@ -2167,7 +2167,7 @@ output:
           ctmm::writeRaster(hrange_list[[i]], folder = folder_path,
                             file = file.path(folder_path,
           # every component in file.path is a level in folder, file name need to concatenated first.
-              paste0(select_models()$names_dt$model_name[i],
+              paste0(select_models()$info_dt$model_name[i],
                      ".", file_extension)
                                     ))
         }
@@ -2190,7 +2190,7 @@ output:
         for (i in seq_along(hrange_list)) {
           ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
                                folder = folder_path,
-                               file = select_models()$names_dt$model_name[i])
+                               file = select_models()$info_dt$model_name[i])
         }
       }
       return(write_f)
@@ -2446,7 +2446,7 @@ output:
     # }
     # add name so plot can take figure title from it
     # # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
-    names(res) <- select_models()$names_dt$display_name
+    names(res) <- select_models()$info_dt$display_name
     res
   })
   # function on input didn't update, need a reactive expression?
@@ -2515,11 +2515,11 @@ output:
       # the pallete function always came from full data
       hr_pal <- summary_models()$hr_pal
       # so we need to use full model_name as domains
-      selected_model_names <- select_models()$names_dt$model_name
+      selected_model_names <- select_models()$info_dt$model_name
       # though the layer name can be different. they are all just vectors in certain order, the home range/model_name/mapped color/display name all in same order.
       # use display name as layer name, but need to add post fix in simple format, when identity is not duplicated and used as display name directly
-      if (anyDuplicated(select_models()$names_dt, by = "identity") == 0) {
-       hrange_layer_names <- stringr::str_c(select_models()$names_dt$identity,
+      if (anyDuplicated(select_models()$info_dt, by = "identity") == 0) {
+       hrange_layer_names <- stringr::str_c(select_models()$info_dt$identity,
                                             " - Home Range")
       } else {
         hrange_layer_names <- selected_model_names
