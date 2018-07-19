@@ -1890,9 +1890,6 @@ output:
       message = "Trying different models to find the best ...")
     # always save names in list
     names(res) <- names(select_data()$tele_list)
-    # we are selecting rows on a table just generated.
-    # this line caused update loop, the summary_models changed
-    # DT::selectRows(proxy_model_dt, summary_models()$first_models)
     # initialize model_list_dt in auto fit
     values$model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
     # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
@@ -1902,7 +1899,7 @@ output:
     return(res)
   })
   # summary_models() ----
-  ## lots of action: create formated summary_dt for table, model_names_dt for model color, hr_pal color function, best models for each animal
+  ## lots of action: create formated summary_dt for table, model_info_dt for model color, hr_pal color function, best models for each animal
   summary_models <- reactive({
     # we need to reference try_models in summary_models otherwise it will not be executed.
     try_models()
@@ -1913,17 +1910,17 @@ output:
       summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
     }
     # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table.
-    model_names_dt <- unique(summary_dt[,
+    model_info_dt <- unique(summary_dt[,
                             .(identity, model_type, model_name)])
     # prepare model color, identity color function
-    model_names_dt[, base_color := values$id_pal(identity)]
-    model_names_dt[, variation_number := seq_len(.N), by = identity]
-    model_names_dt[, model_color :=
+    model_info_dt[, base_color := values$id_pal(identity)]
+    model_info_dt[, variation_number := seq_len(.N), by = identity]
+    model_info_dt[, model_color :=
                      ctmmweb:::vary_color(base_color, .N)[variation_number],
                    by = identity]
     # need ordered = TRUE for character vector not being factor yet.
-    hr_pal <- leaflet::colorFactor(model_names_dt$model_color,
-                          model_names_dt$model_name, ordered = TRUE)
+    hr_pal <- leaflet::colorFactor(model_info_dt$model_color,
+                          model_info_dt$model_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # we don't want the row number to show in the final table
     dt <- copy(summary_dt)
@@ -1933,7 +1930,7 @@ output:
     return(list(
       # model_list_dt = values$model_list_dt,
                 summary_dt = summary_dt,
-                model_names_dt = model_names_dt, # full name, color
+                model_info_dt = model_info_dt, # full name, color
                 hr_pal = hr_pal,
                 first_models = first_models))
   })
@@ -1974,13 +1971,8 @@ output:
     log_dt_md(dt, "Tried Models")
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
-    # CI_colors <- color_CI(values$data$merged$info$identity)
     # base::sort have different result in linux, hosted server.
     model_types <- stringr::str_sort(unique(dt$model_type))
-    # DT_table <- render_model_summary_DT(dt, model_types, info_p)
-    # # select models otherwise no variogram plot
-    # DT::selectRows(proxy_model_dt, summary_models()$first_models)
-    # return(DT_table)
     # pre-select with init parameter instead of proxy
     render_model_summary_DT(dt, model_types, info_p,
                             summary_models()$first_models)
@@ -2024,7 +2016,7 @@ output:
       selected_names_dt[, display_name := identity]
     }
     # get color
-    selected_names_dt <- merge(summary_models()$model_names_dt,
+    selected_names_dt <- merge(summary_models()$model_info_dt,
                                selected_names_dt,
                                by = c("identity", "model_type", "model_name"))
     # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
@@ -2519,7 +2511,7 @@ output:
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
     if (ctmmweb:::reactive_validated(select_models_hranges())) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
-      # hr_pal <- model_pal(summary_models()$model_names_dt, id_pal)
+      # hr_pal <- model_pal(summary_models()$model_info_dt, id_pal)
       # the pallete function always came from full data
       hr_pal <- summary_models()$hr_pal
       # so we need to use full model_name as domains
