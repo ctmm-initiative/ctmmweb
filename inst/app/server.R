@@ -1893,11 +1893,13 @@ output:
     # always save names in list
     names(res) <- names(select_data()$tele_list)
     # initialize model_list_dt in auto fit
-    values$model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
+    model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
     # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
-    values$model_list_dt[, init_ctmm_base_name := "guess"]
-    values$model_list_dt[, init_ctmm_base := list(list(
+    model_list_dt[, init_ctmm_base_name := "guess"]
+    model_list_dt[, init_ctmm_base := list(list(
       values$selected_data_guess_list[[identity]])), by = model_no]
+    # we want to initialize it in auto fit, but refit will change it which could trigger try_models to re-evaluate.
+    isolate(values$model_list_dt <- model_list_dt)
     return(res)
   })
   # summary_models() ----
@@ -2069,13 +2071,40 @@ output:
   # refit ----
   ## with current selected models, depend on option fine-tune only/all, refit
   observeEvent(input$refit, {
-    browser()
-    req(values$model_list_dt)
-    model_list_dt_current <- switch(input$refit_option,
-                                    fine_tuned =
-                                      values$model_list_dt[(fine_tuned)],
-                                    all_selected = values$model_list_dt)
-    refit_dt <- merge(select_models()$info_dt, model_list_dt_current)
+    # option of fine-tune only/all selected. we have tele, data of selected rows in select_models(), it's easier to start from there.
+    refit_dt <- merge(select_models()$info_dt, req(values$model_list_dt))
+    # refit_dt map to select_models tables, so we can use logical index on other list output to select subset.
+    refit_dt[, to_refit := if (input$refit_tuned_only) fine_tuned else TRUE]
+    if (!any(refit_dt$to_refit)) {
+      showNotification("No model meet the requirement ", duration = 4,
+                       type = "error")
+    } else {
+      tele_list <- select_models()$tele_list[refit_dt$to_refit]
+      init_ctmm_list <- refit_dt[(to_refit), model_current]
+      tele_guess_list <- ctmmweb::align_list(tele_list,
+                                             init_ctmm_list)
+      # LOG try models
+      log_msg("Refitting models...")
+      withProgress(print(system.time(
+        res <-
+          par_try_tele_guess_mem(tele_guess_list,
+                                 parallel = option_selected("parallel")))),
+        message = "Refitting models ...")
+      # always use unique names in list, note these are base model full names
+      names(res) <- refit_dt[(to_refit), model_name]
+      # add to model_list_dt
+      model_list_dt_2 <- ctmmweb:::model_try_res_to_model_list_dt(res,
+                                  refit_dt[(to_refit), identity])
+      # there could be multiple models from one base model
+      browser()
+      model_list_dt_2[, init_ctmm_base_name := names(res)[res_list_index]]
+      model_list_dt_2[, init_ctmm_base := list(list(
+        init_ctmm_list[[res_list_index]])), by = model_no]
+      new_dt <- rbindlist(list(values$model_list_dt, model_list_dt_2))
+      # clear first to trigger changes
+      values$model_list_dt <- NULL
+      values$model_list_dt <- ctmmweb:::update_model_no(new_dt)
+    }
   })
 
   # p6. home range ----

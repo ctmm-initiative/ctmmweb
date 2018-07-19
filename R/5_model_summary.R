@@ -33,7 +33,8 @@ update_model_no <- function(model_list_dt) {
   model_list_dt[, model_name := stringr::str_c(model_no, ". ", identity, " - ", model_type)]
 }
 # convert ctmm.select/try_tele_guess result into data.table with model in list column.
-# par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, unnamed item with sub item of models named by model type. previously we use animal name as item name since they are natural group condition. Now multiple copies of same animal data with different init conditions can be tried to refit, animal name as item name will have duplicate and indexing problem. Provide animal names in a separate vector (with duplicates). The default value is still to use list names.
+# par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, unnamed item with sub item of models named by model type. previously we use animal name as item name since they are natural group condition. Now multiple copies of same animal data with different init conditions can be tried to refit, animal name as item name will have duplicate and indexing problem.
+# always use unique name for list items, so animal name in auto fit, model name in refit and provide animal names in a separate vector (with duplicates).
 # previously used identity as key, now we need to switch to model_no. a summary on each list item was used to generate dAICc information, res_list_index is important.
 model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   if (is.null(animal_names)) animal_names <- names(model_try_res)
