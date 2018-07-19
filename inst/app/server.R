@@ -1911,7 +1911,7 @@ output:
     }
     # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table.
     model_info_dt <- unique(summary_dt[,
-                            .(identity, model_type, model_name)])
+                            .(model_no, identity, model_type, model_name)])
     # prepare model color, identity color function
     model_info_dt[, base_color := values$id_pal(identity)]
     model_info_dt[, variation_number := seq_len(.N), by = identity]
@@ -2005,8 +2005,9 @@ output:
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
+
     selected_info_dt <- unique(model_summary_dt[rows_selected_sorted,
-                                           .(identity, model_type, model_name)])
+                                .(model_no, identity, model_type, model_name)])
     # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
     # display_name is a dynamic column depend on selection so it's created here. use simple animal name when no duplicate, full model name when multiple models from same animal are selected. Although created here, it's not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
     # home range table, plot, overlap page take display_name. the model page still use modal name even no duplication, because the model table exists.
@@ -2018,7 +2019,7 @@ output:
     # get color
     selected_info_dt <- merge(summary_models()$model_info_dt,
                                selected_info_dt,
-                               by = c("identity", "model_type", "model_name"))
+                    by = c("model_no", "identity", "model_type", "model_name"))
     # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
     # These information came from model_summary (display name depend on row selection, in select_models)
     # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
@@ -2031,7 +2032,8 @@ output:
     names(display_color) <- selected_info_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_model_list_dt <- merge(selected_info_dt, values$model_list_dt,
-                                by = c("identity", "model_type"), sort = FALSE)
+          by = c("model_no", "identity", "model_type", "model_name"),
+          sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_info_dt$identity]
     # data.table of further selection of models on row selection select_data()
@@ -2044,12 +2046,11 @@ output:
       selected_info_dt$identity]
     selected_subtitle_list <- select_data_vario()$subtitle_list[
       selected_info_dt$identity]
-    # selected_info_dt[, model_name := stringr::str_c(identity, " - ", model_type)]
     # vario layout for selected models
     selected_vario_layout <- layout_group(selected_vario_list,
                                      input$vario_height, input$vario_columns)
     # LOG selected models
-    log_dt_md(selected_info_dt[, .(identity, model_type)], "Selected Models")
+    log_dt_md(selected_info_dt[, .(model_no, identity, model_type)], "Selected Models")
     # update home range weight selector choices
     updateSelectInput(session, "hrange_weight",
                       choices = selected_info_dt$display_name)
