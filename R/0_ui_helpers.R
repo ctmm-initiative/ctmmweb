@@ -77,7 +77,8 @@ STYLES <- list(
   download_button = "color: #2196F3;width:100%;",
   help_button = "background-color: #8bc34a;width:100%;",
   # vertical align checkbox, radio buttons to button in same line.
-  align_check_radio = "margin-top: 5px;"
+  align_down = "margin-top: 5px;",
+  align_up = "margin-top: -5px;"
   # info box blue #00c0ef
 )
 # variogram curve colors ----
