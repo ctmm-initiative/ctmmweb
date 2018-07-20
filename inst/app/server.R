@@ -1892,6 +1892,8 @@ output:
     names(res) <- names(select_data()$tele_list)
     # initialize model_list_dt in auto fit
     model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
+    # always add dAICc columns after conversion, after merge list_dt
+    ctmmweb:::compare_models(model_list_dt)
     # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
     model_list_dt[, init_ctmm_base_name := "guess"]
     model_list_dt[, init_ctmm_base := list(list(
@@ -2018,9 +2020,10 @@ output:
     } else {
       selected_info_dt[, display_name := identity]
     }
-    # get color
-    selected_info_dt <- merge(summary_models()$model_info_dt,
-                               selected_info_dt)
+    # get color, keep order
+    selected_info_dt <- merge(selected_info_dt,
+                              summary_models()$model_info_dt,
+                              by = model_dt_id_cols, sort = FALSE)
     # overlap table, overlap home range plot need colors. it cannot be based on identity only because multiple models of same identity can be selected. so it will be model_color, just like maps. apply them to home range, occurenc too.
     # These information came from model_summary (display name depend on row selection, in select_models)
     # color overlap table need a function map from v1 v2 value to color. all v1 v2 value came from display name, so we just add a color column.
@@ -2033,7 +2036,7 @@ output:
     names(display_color) <- selected_info_dt$display_name
     # selections can be any order, need to avoid sort to keep the proper model order
     selected_model_list_dt <- merge(selected_info_dt, values$model_list_dt,
-          sort = FALSE)
+                                    by = model_dt_id_cols, sort = FALSE)
     # the row click may be any order or have duplicate individuals, need to index by name instead of index
     selected_tele_list <- select_data()$tele_list[selected_info_dt$identity]
     # data.table of further selection of models on row selection select_data()
@@ -2056,7 +2059,7 @@ output:
                       choices = selected_info_dt$display_name)
     # this value is not updated yet when selectinput itself changed
     values$hrange_weight_vec <- NULL
-    # must make sure all items in same order
+    # must make sure all items in same order, all order came from same source, all merge kept the order.
     return(list(info_dt = selected_info_dt,
                 display_color = display_color,
                 tele_list = selected_tele_list,
@@ -2070,8 +2073,9 @@ output:
   # refit ----
   ## with current selected models, depend on option fine-tune only/all, refit
   observeEvent(input$refit, {
-    # option of fine-tune only/all selected. we have tele, data of selected rows in select_models(), it's easier to start from there.
-    refit_dt <- merge(select_models()$info_dt, req(values$model_list_dt))
+    # option of fine-tune only/all selected. we have tele, data of selected rows in select_models(), it's easier to start from there. no need to keep order here, the result will be sorted
+    refit_dt <- merge(select_models()$info_dt, req(values$model_list_dt),
+                      by = model_dt_id_cols)
     # refit_dt map to select_models tables, so we can use logical index on other list output to select subset.
     refit_dt[, to_refit := if (input$refit_tuned_only) fine_tuned else TRUE]
     if (!any(refit_dt$to_refit)) {
@@ -2094,15 +2098,20 @@ output:
       # add to model_list_dt
       model_list_dt_2 <- ctmmweb:::model_try_res_to_model_list_dt(res,
                                   refit_dt[(to_refit), identity])
+      # need to generate dAICc columns even that's not complete, otherwise merge will fail
+      ctmmweb:::compare_models(model_list_dt_2)
       # there could be multiple models from one base model
       browser()
       model_list_dt_2[, init_ctmm_base_name := names(res)[res_list_index]]
       model_list_dt_2[, init_ctmm_base := list(list(
         init_ctmm_list[[res_list_index]])), by = model_no]
       new_dt <- rbindlist(list(values$model_list_dt, model_list_dt_2))
+      # update model_no, dAICc columns
+      new_dt <- new_dt %>% ctmmweb:::update_model_no() %>%
+                           ctmmweb:::compare_models()
       # clear first to trigger changes
       values$model_list_dt <- NULL
-      values$model_list_dt <- ctmmweb:::update_model_no(new_dt)
+      values$model_list_dt <- new_dt
     }
   })
 

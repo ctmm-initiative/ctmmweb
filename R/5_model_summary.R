@@ -1,7 +1,7 @@
 # build ctmm model summary table ----
 # all model related table use same key columns, so merge will be easier. otherwise need to specify all common columns.
-# model_list_dt, model_summary_dt using this
-model_dt_key_cols <- c("model_no", "identity", "model_type", "model_name")
+# model_list_dt, model_summary_dt using this. use this in merge, but not setkey, which will sort the table, but we want to sort by identity and aicc.
+model_dt_id_cols <- c("model_no", "identity", "model_type", "model_name")
 # each model object is a CTMM object, summary(ctmm_obj) give some information in a list, which is converted into a table. summary(ctmm_obj_list) give some comparison among models, dAIIc col.
 # only convert the summary list as we need more flexibility in summary call
 ctmm_summary_to_dt <- function(ctmm_summary) {
@@ -66,29 +66,43 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   # init_ctmm_next to be used as init for next refit
   model_list_dt[, model_current := model]
   model_list_dt[, fine_tuned := FALSE]
-  setkeyv(model_list_dt, model_dt_key_cols)
 }
-# generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt.
-# it's the summary on model that create CI columns, expand one model into 3 rows. model_list_dt will just sort by model_no(fit order), only summary_dt will sort by identity and dAICc
-model_list_dt_to_model_summary_dt <- function(model_list_dt) {
-  # dAICc info was generated in model_res convertion before, but we now need to add refit models to existing table, calculate dAICc again. need to move dAICc calculation here.
-  get_aicc_col <- function(model_list) {
+# aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added)
+# use this after try_res conversion, after merge of two model_list_dt. i.e. after auto fit and refit, each fit, merge result.
+compare_models <- function(model_list_dt) {
+  # summary on model list always give results sorted, with row names of list item names. we need to map back by row names. and summary can only take model name from list items, we need to provide names when using a data.table column as model list (which don't have name)
+  get_aicc_table <- function(model_list, model_names) {
+    names(model_list) <- model_names
     res <- summary(model_list, units = FALSE)
-    data.frame(res)$dAICc
+    # res seemed to be data.frame directly. get a named vector for easier indexing. a data.table seemed to be too complicated in by function and indexing, result assigning
+    # data.table(res, keep.rownames = TRUE)
+    vec <- res$dAICc
+    names(vec) <- row.names(res)
+    return(vec)
   }
   # AICc come from the summary of a group models, always by animal, even models may came from different fit passes
-  # we don't want to change model_list_dt by adding dAICc column in reference, so add it in subset. summary only need them anyway.
-  model_info_dt <- model_list_dt[, ..model_dt_key_cols]
-  model_info_dt[, dAICc := get_aicc_col(model), by = identity]
+  model_list_dt[, dAICc := get_aicc_table(model, model_name)[model_name],
+                by = identity]
+  # sort it, so model_list_dt and summary are always sorted by same criteria
+  setorder(model_list_dt, identity, dAICc)
+}
+# generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt.
+# it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and dAICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
+# expect dAICc column, always compare model before summary.
+model_list_dt_to_model_summary_dt <- function(model_list_dt) {
   # a list of converted summary on each model
-  ctmm_summary_dt_list <- lapply(1:nrow(model_info_dt), function(i) {
-    summary_dt <- ctmm_summary_to_dt(summary(model_info_dt$model[[i]],
+  ctmm_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
+    summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
                                              units = FALSE))
-    summary_dt[, model_no := i]
+    # model_no must be taken from model_list_dt. lots of assumption changed. need to assign here, because each model have 3 rows, share same model_no
+    summary_dt[, model_no := model_list_dt[i, model_no]]
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
-  model_summary_dt <- merge(model_info_dt, ctmm_summary_dt, by = "model_no")
-  setkeyv(model_summary_dt, model_dt_key_cols)
+  export_cols <- c(model_dt_id_cols, "dAICc")
+  # merge by common columns, keep the order. the summary table only has model_no
+  model_summary_dt <- merge(model_list_dt[, ..export_cols],
+                            ctmm_summary_dt, by = "model_no",
+                            sort = FALSE)
 }
 # home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
 hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
