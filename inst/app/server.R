@@ -1012,12 +1012,10 @@ output:
     # req(!is.na(as.numeric(input$device_error)))
     outlier_page_data <- req(select_data())  # data, info, tele_list
     animals_dt <- outlier_page_data$data_dt
-    # need telemetry list for error info
+    # need telemetry list for error info. if data is calibrated, the error slot is take as logical thus not interfering. if not calibrated, the 10 is a good default value. see comments around https://github.com/ctmm-initiative/ctmmweb/issues/49#issuecomment-396723237
     animals_dt <- animals_dt %>%
-      ctmmweb::assign_distance(outlier_page_data$tele_list,
-                               10) %>%
-      ctmmweb::assign_speed(outlier_page_data$tele_list,
-                            10)
+      ctmmweb::assign_distance(outlier_page_data$tele_list, 10) %>%
+      ctmmweb::assign_speed(outlier_page_data$tele_list, 10)
     outlier_page_data$data_dt <- animals_dt
     return(outlier_page_data)
   })
@@ -1872,7 +1870,7 @@ output:
   # previously summary_models generate model_list_dt from res of try_models. now we need to put model_list_dt in reactive value so it can be modified from multiple places.
   values$model_list_dt <- NULL
   # all model dt have same key columns for easier merge, use local variable so we can refer it inside dt.
-  model_dt_key_cols <- ctmmweb:::model_dt_key_cols
+  model_dt_id_cols <- ctmmweb:::model_dt_id_cols
   # try_models() ----
   ## auto fit models for current data, using current guess values. we want to init model_list_dt here because it should only happen in auto fit. summary_model could update for refit, if that triggered the dt will get initialized again in middle.
   try_models <- reactive({
@@ -1914,7 +1912,7 @@ output:
       summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
     }
     # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table. note this table don't have CI columns, each model only have 1 row
-    model_info_dt <- unique(summary_dt[, ..model_dt_key_cols])
+    model_info_dt <- unique(summary_dt[, ..model_dt_id_cols])
     # prepare model color, identity color function
     model_info_dt[, base_color := values$id_pal(identity)]
     model_info_dt[, variation_number := seq_len(.N), by = identity]
@@ -2009,8 +2007,9 @@ output:
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
     model_summary_dt <- summary_models()$summary_dt
+    # note this can be any order, not original row order
     selected_info_dt <- unique(model_summary_dt[rows_selected_sorted,
-                                                ..model_dt_key_cols])
+                                                ..model_dt_id_cols])
     # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
     # display_name is a dynamic column depend on selection so it's created here. use simple animal name when no duplicate, full model name when multiple models from same animal are selected. Although created here, it's not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
     # home range table, plot, overlap page take display_name. the model page still use modal name even no duplication, because the model table exists.
