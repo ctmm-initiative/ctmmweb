@@ -60,12 +60,12 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
                 by = model_no]
   # prepare additional columns needed by app.
   # the init condition of this model, to be used for variogram plot. value is empty but the col type need to be right
-  model_list_dt[, init_ctmm_base := vector('list', nrow(model_list_dt))]
+  model_list_dt[, init_ctmm := vector('list', nrow(model_list_dt))]
   # name of the init condition model. guess/modified guess for auto fit, model name for refit.
-  model_list_dt[, init_ctmm_base_name := NA_character_]
+  model_list_dt[, init_ctmm_name := NA_character_]
   # init_ctmm_next to be used as init for next refit
   model_list_dt[, model_current := model]
-  model_list_dt[, fine_tuned := FALSE]
+  model_list_dt[, model_tuned := FALSE]
 }
 # aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added)
 # use this after try_res conversion, after merge of two model_list_dt. i.e. after auto fit and refit, each fit, merge result.

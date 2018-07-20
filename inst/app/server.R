@@ -1895,8 +1895,8 @@ output:
     # always add dAICc columns after conversion, after merge list_dt
     ctmmweb:::compare_models(model_list_dt)
     # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
-    model_list_dt[, init_ctmm_base_name := "guess"]
-    model_list_dt[, init_ctmm_base := list(list(
+    model_list_dt[, init_ctmm_name := "guess"]
+    model_list_dt[, init_ctmm := list(list(
       values$selected_data_guess_list[[identity]])), by = model_no]
     # we want to initialize it in auto fit, but refit will change it which could trigger try_models to re-evaluate.
     isolate(values$model_list_dt <- model_list_dt)
@@ -2077,7 +2077,7 @@ output:
     refit_dt <- merge(select_models()$info_dt, req(values$model_list_dt),
                       by = model_dt_id_cols)
     # refit_dt map to select_models tables, so we can use logical index on other list output to select subset.
-    refit_dt[, to_refit := if (input$refit_tuned_only) fine_tuned else TRUE]
+    refit_dt[, to_refit := if (input$refit_tuned_only) model_tuned else TRUE]
     if (!any(refit_dt$to_refit)) {
       showNotification("No model meet the requirement ", duration = 4,
                        type = "error")
@@ -2102,8 +2102,8 @@ output:
       ctmmweb:::compare_models(model_list_dt_2)
       # there could be multiple models from one base model
       browser()
-      model_list_dt_2[, init_ctmm_base_name := names(res)[res_list_index]]
-      model_list_dt_2[, init_ctmm_base := list(list(
+      model_list_dt_2[, init_ctmm_name := names(res)[res_list_index]]
+      model_list_dt_2[, init_ctmm := list(list(
         init_ctmm_list[[res_list_index]])), by = model_no]
       new_dt <- rbindlist(list(values$model_list_dt, model_list_dt_2))
       # update model_no, dAICc columns
