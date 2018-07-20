@@ -21,6 +21,14 @@ align_list <- function(list_a, list_b) {
     list(a = list_a[[i]], b = list_b[[i]])
   })
 }
+# align 3 lists. this is used to plot 3 curves in variogram by group.
+align_list_3 <- function(list_a, list_b, list_c) {
+  stopifnot(length(list_a) == length(list_b))
+  stopifnot(length(list_b) == length(list_c))
+  lapply(seq_along(list_a), function(i) {
+    list(a = list_a[[i]], b = list_b[[i]], c = list_c[[i]])
+  })
+}
 
 # used to write parallel as last parameter, then para_ll(ll, fun, parallel = TRUE) is interpreted as win_init = {parallel = TRUE}
 

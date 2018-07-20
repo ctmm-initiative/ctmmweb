@@ -1783,13 +1783,16 @@ output:
   output$vario_plot_modeled <- renderPlot({
     model_title_vec <- paste0(names(select_models()$model_list),
                               select_models()$subtitle_list)
+    # always 3 curves: init_ctmm, model, model_current, same with color vec
+    m_dt <- select_models()$model_list_dt
+    ctmm_list <- ctmmweb:::align_list_3(m_dt$init_ctmm, m_dt$model, m_dt$model_current)
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_models()$vario_list,
-                        select_models()$model_list,
+                        ctmm_list,
                         title_vec = model_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
-                        model_color = "purple", cex = 0.72,
+                        model_color = ctmm_colors[3:5], cex = 0.72,
                         columns = input$vario_columns)
     # LOG save pic
     log_save_vario("vario", select_models()$vario_layout$row_count,
@@ -2064,7 +2067,8 @@ output:
                 display_color = display_color,
                 tele_list = selected_tele_list,
                 data_dt = selected_data_dt,
-                model_list = selected_model_list,
+                model_list = selected_model_list,  # with item named
+                model_list_dt = selected_model_list_dt,
                 vario_list = selected_vario_list,
                 subtitle_list = selected_subtitle_list,
                 vario_layout = selected_vario_layout
@@ -2101,7 +2105,6 @@ output:
       # need to generate dAICc columns even that's not complete, otherwise merge will fail
       ctmmweb:::compare_models(model_list_dt_2)
       # there could be multiple models from one base model
-      browser()
       model_list_dt_2[, init_ctmm_name := names(res)[res_list_index]]
       model_list_dt_2[, init_ctmm := list(list(
         init_ctmm_list[[res_list_index]])), by = model_no]
