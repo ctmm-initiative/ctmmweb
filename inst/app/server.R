@@ -1836,18 +1836,17 @@ output:
     # TODO we only have drop down selection as start, which is model_name. need to look up animal name (to get vario since it's only unique by animal) and model curves etc.
     # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
     # TODO current code is just guess orignal, guess tuned. we may need to get dynamically from table. group vario may draw 3 curves, but fine-tune page only draw two curves. too complex to draw 3 curves in pop up.
-    vario_list <- req(select_data_vario()$vario_list)
+    vario_list <- req(select_models()$vario_list)
     vario_id <- input$`model-tune_selected`
-    vario_names <- names(vario_list)
-    vario <- vario_list[vario_names == vario_id][[1]]
-    # using order logical, not names
-    ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_names == vario_id][[1]]
-    ctmm_obj_current <- values$selected_data_guess_list[vario_names == vario_id][[1]]
+    vario <- vario_list[vario_id][[1]]
+    # note the fine-tune only draw 2 curves, model result and modified. too complex to include 2 and 3 in one module
+    ctmm_obj_ref <- select_models()$model_list_dt[model_name == vario_id, model][[1]]
+    ctmm_obj_current <- select_models()$model_list_dt[model_name == vario_id, model_current][[1]]
     get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
                        input$zoom_lag_fraction, "model-tune")
   })
   model_ctmm <- callModule(varioSliders, "model-tune",
-                           model_page_data, ctmm_colors[3:4], log_dt_md)
+                           model_page_data, ctmm_colors[4:5], log_dt_md)
   # apply guess tuned ----
   # - is not valid in symbol, note how the id is constructed
   # ID: apply button id tuned, module ns guess-tune, so final `guess-tune-tuned`
@@ -2016,8 +2015,8 @@ output:
     selected_info_dt <- unique(model_summary_dt[rows_selected_sorted,
                                                 ..model_dt_id_cols])
     # we want to remove the model part from displayed name if there is no multiple models from same animal. model_name is a unique full name, better keep it as it's used in color mapping, while the displayed name can change depend on selection -- once selected multiple models with same animal, displayed name will change.
-    # display_name is a dynamic column depend on selection so it's created here. use simple animal name when no duplicate, full model name when multiple models from same animal are selected. Although created here, it's not shown in model summary table, but can be used in plot title, overlap tables. the condition is negative here but it matches the verb: !=0 means duplicate exist.
-    # home range table, plot, overlap page take display_name. the model page still use modal name even no duplication, because the model table exists.
+    # home range table, plot, overlap page often only select one model per animal, thus created display_name to use animal name instead of full model name if no duplication. For model page, tab 1 is always animal name (no model yet), tab 2 is always model_name (we are dealing with models), not using this.
+    # the condition is negative here but it matches the verb: !=0 means duplicate exist.
     if (anyDuplicated(selected_info_dt, by = "identity") != 0) {
       selected_info_dt[, display_name := model_name]
     } else {
@@ -2046,10 +2045,12 @@ output:
     selected_data_dt <- select_data()$data_dt[
       identity %in% selected_info_dt$identity]
     selected_model_list <- selected_model_list_dt$model
-    # the modeled variogram plot title come from here. For now it's model_name.
+    # the modeled variogram plot title come from here.
     names(selected_model_list) <- selected_info_dt$model_name
     selected_vario_list <- select_data_vario()$vario_list[
       selected_info_dt$identity]
+    # fine-tune pick by model_name, so we need to name vario_list by model_name, compare to tab 1 named by animal name
+    names(selected_vario_list) <- selected_info_dt$model_name
     selected_subtitle_list <- select_data_vario()$subtitle_list[
       selected_info_dt$identity]
     # vario layout for selected models
