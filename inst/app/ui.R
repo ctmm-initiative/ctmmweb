@@ -562,15 +562,17 @@ ctmm_colors <- ctmmweb:::ctmm_colors
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-half"), "1. Empirical"), value = "1",
               fluidRow(
-                column(6, div(style = ctmmweb:::STYLES$align_down,
+                column(6,
+                       div(style = ctmmweb:::STYLES$align_up_group,
                        checkboxGroupInput("guess_curve_selector",
-              label = NULL, inline = TRUE,
+              label = NULL, inline = FALSE,
               choiceNames = list(div(style = paste0("color:", ctmm_colors[1]),
-                                     "Guesstimate"),
+                                     "Original Guesstimate"),
                                  div(style = paste0("color:", ctmm_colors[2]),
                                      "Current Guesstimate")),
               choiceValues = names(ctmm_colors)[1:2],
-              selected = names(ctmm_colors)[1:2]))
+              selected = names(ctmm_colors)[1:2])
+              )
                        ),
                 column(4, offset = 0, tuneSelectorUI("guess")),
                 column(2, offset = 0, help_button("variograms"))),
@@ -579,13 +581,6 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                              width = "99%", height = "98%"))
               )
      ),
-     # tabPanel(div(icon("battery-half"), "2. Guesstimate"),
-     #          fluidRow(
-     #            column(3, offset = 0, uiOutput("tune_selector")),
-     #            column(12, plotOutput("vario_plot_2",
-     #                                  width = "99%", height = "98%"))
-     #          )
-     # ),
      tabPanel(div(icon("hourglass-start"), icon("battery-full"), "2. Modeled"),
       fluidRow(
         # model summary/selection table --
@@ -624,24 +619,20 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                            icon = icon("square-o"),
                                            style = ctmmweb:::STYLES$page_action)),
         # model variograms --
-        # column(3, offset = 0, actionButton("try_models", "Try Models",
-        #                              icon = icon("hourglass-start"),
-        #                              style = ctmmweb:::STYLES$page_action),
-        #        br(), br()),
         column(12, hr()),
-        column(12, offset = 0, tuneSelectorUI("model")),
-        column(12, div(style = ctmmweb:::STYLES$align_down,
+        column(4, div(style = ctmmweb:::STYLES$align_up_group,
                       checkboxGroupInput("model_curve_selector",
-             label = NULL, inline = TRUE,
+             label = NULL, inline = FALSE,
              choiceNames = list(div(style = paste0("color:", ctmm_colors[3]),
                                     "Initial Parameter"),
                                 div(style = paste0("color:", ctmm_colors[4]),
-                                    "Model Result"),
+                                    "Fitted Model Result"),
                                 div(style = paste0("color:", ctmm_colors[5]),
                                     "Current Model Result")),
              choiceValues = names(ctmm_colors)[3:5],
              selected = names(ctmm_colors)[3:5]))
         ),
+        column(6, offset = 2, br(), tuneSelectorUI("model")),
         column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%"))
       )
