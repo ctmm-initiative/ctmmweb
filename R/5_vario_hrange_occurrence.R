@@ -1,3 +1,13 @@
+align_curve_lists <- function(list_lst) {
+  dimension <- length(list_lst)
+  # no 1st sublist so need to separate processing
+  if (dimension == 0) return(NULL)
+  # by length of sublist 1
+  lapply(seq_along(list_lst[[1]]), function(i) {
+    lapply(list_lst, getElement, i)  # function format of `[[`
+  })
+}
+
 # the app can use a 0.72 cex but package functions may need a smaller default.
 # S3 generic on list https://github.com/ctmm-initiative/ctmm/blob/master/R/generic.R#L109
 # plot.list <- ctmm:::plot.list

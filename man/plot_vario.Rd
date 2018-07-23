@@ -25,6 +25,9 @@ Better use named parameters for others in this case.
 overlay guesstimate variogram.
 \item list of fitted models from \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on \code{vario_list}, overlay
 modeled variogram.
+\item It can be a list of list, with each item provide list of \code{CTMM} objects
+that to be plotted in each variogram. \code{model_color} can be a vector
+to specify color for each model.
 }}
 
 \item{title_vec}{vector of figure titles. If not provided, names of
@@ -39,9 +42,11 @@ X, Y axes are not synced.
 all others scaled with same X, Y axes for easier comparison.
 }}
 
-\item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.}
+\item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.
+You may need a smaller value if figure margins is too large}
 
-\item{model_color}{The color of model variogram}
+\item{model_color}{The color of model variogram. It'll be same for every
+plot.}
 
 \item{columns}{The columns of the group plot layout.}
 }

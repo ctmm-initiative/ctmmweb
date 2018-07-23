@@ -14,19 +14,11 @@
 #'
 #' @export
 #'
-align_list <- function(list_a, list_b) {
+align_2_list <- function(list_a, list_b) {
   stopifnot(length(list_a) == length(list_b))
   # use lapply instead of for only because we can get a list without initialization
   lapply(seq_along(list_a), function(i) {
     list(a = list_a[[i]], b = list_b[[i]])
-  })
-}
-# align 3 lists. this is used to plot 3 curves in variogram by group.
-align_list_3 <- function(list_a, list_b, list_c) {
-  stopifnot(length(list_a) == length(list_b))
-  stopifnot(length(list_b) == length(list_c))
-  lapply(seq_along(list_a), function(i) {
-    list(a = list_a[[i]], b = list_b[[i]], c = list_c[[i]])
   })
 }
 
@@ -46,7 +38,7 @@ align_list_3 <- function(list_a, list_b, list_c) {
 #'   function is accepted, otherwise it's difficult to determine how to assign
 #'   input parameters to each list item and worker. You need to convert multiple
 #'   parameter function into a function take single list parameter, and assign
-#'   parameters in that list accordingly. [align_list()] is a helper function to
+#'   parameters in that list accordingly. [align_2_list()] is a helper function to
 #'   align two lists.
 #' @param cores the core count to be used for cluster. Could be a positive
 #'  integer or
@@ -197,7 +189,7 @@ par_try_tele_guess <- function(tele_guess_list,
 par_try_models <- function(tele_list,
                            cores = NULL,
                               parallel = TRUE) {
-  tele_guess_list <- align_list(tele_list,
+  tele_guess_list <- align_2_list(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
@@ -218,7 +210,7 @@ par_try_models <- function(tele_list,
 par_fit_models <- function(tele_list,
                            cores = NULL,
                            parallel = TRUE) {
-  tele_guess_list <- align_list(tele_list,
+  tele_guess_list <- align_2_list(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
@@ -245,7 +237,7 @@ par_fit_models <- function(tele_list,
 par_occur <- function(tele_list, model_list,
                       cores = NULL,
                       parallel = TRUE) {
-  tele_model_list <- align_list(tele_list, model_list)
+  tele_model_list <- align_2_list(tele_list, model_list)
   occur_calc <- function(tele_model_list) {
     ctmm::occurrence(tele_model_list$a, tele_model_list$b)
   }

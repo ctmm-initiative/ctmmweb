@@ -25,7 +25,8 @@ interval only take effect when contour exsits.}
 
 \item{columns}{The columns of the group plot layout.}
 
-\item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.}
+\item{cex}{The magnification factor of plot text and symbols. See \code{\link[=par]{par()}}.
+You may need a smaller value if figure margins is too large}
 
 \item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. When provided, animal
 locations are overlayed in plot. This should only be used for home range

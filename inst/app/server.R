@@ -1767,14 +1767,16 @@ output:
     ctmm_list <- list(select_data_vario()$original_guess_list,
                       values$selected_data_guess_list)
     names(ctmm_list) <- names(ctmm_colors)[1:2]
-    # if no curves is selected, need a NULL instead of empty list. note using vector %in% vector will get a vector of logical, not what we want
-    selected_curves <- if (is.null(input$guess_curve_selector)) {
-       NULL
-    } else if (setequal(names(ctmm_list), input$guess_curve_selector)) {
-      ctmmweb::align_list(ctmm_list[[1]], ctmm_list[[2]])
-    } else {
-      ctmm_list[[input$guess_curve_selector]]
-    }
+    # # if no curves is selected, need a NULL instead of empty list. note using vector %in% vector will get a vector of logical, not what we want
+    # selected_curves <- if (is.null(input$guess_curve_selector)) {
+    #    NULL
+    # } else if (setequal(names(ctmm_list), input$guess_curve_selector)) {
+    #   ctmmweb::align_list(ctmm_list[[1]], ctmm_list[[2]])
+    # } else {
+    #   ctmm_list[[input$guess_curve_selector]]
+    # }
+    selected_curves <- ctmmweb:::align_curve_lists(
+      ctmm_list[input$guess_curve_selector])
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_data_vario()$vario_list,
                         selected_curves,
@@ -1895,7 +1897,7 @@ output:
     # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
     req(length(select_data()$tele_list) ==
           length(values$selected_data_guess_list))
-    tele_guess_list <- ctmmweb::align_list(select_data()$tele_list,
+    tele_guess_list <- ctmmweb::align_2_list(select_data()$tele_list,
                                            values$selected_data_guess_list)
     # LOG try models
     log_msg("Trying different models...")
@@ -2103,7 +2105,7 @@ output:
     } else {
       tele_list <- select_models()$tele_list[refit_dt$to_refit]
       init_ctmm_list <- refit_dt[(to_refit), model_current]
-      tele_guess_list <- ctmmweb::align_list(tele_list,
+      tele_guess_list <- ctmmweb::align_2_list(tele_list,
                                              init_ctmm_list)
       # LOG try models
       log_msg("Refitting models...")
