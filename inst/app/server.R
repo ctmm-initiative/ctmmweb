@@ -1762,19 +1762,11 @@ output:
   # vario 1: empri, guess ----
   ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
   output$vario_plot_empirical <- renderPlot({
-    # select curves based on checkbox (came from ctmm_colors item name), a subset of c("guess", "guess_tuned"). need to map a aligned list. the mapping cannot be done simply with indexing, have to assign for each case. color can use mapping directly since we have fixed order.
-    # note our 2nd list is "current guess values", not "tuned guess" because of our data structure.
+    # select curves based on checkbox (came from ctmm_colors item name), a subset of c("guess", "guess_current"). note color also need subsetting.
+    # note the 2nd is "current guess values", not "tuned guess" because of our data structure.
     ctmm_list <- list(select_data_vario()$original_guess_list,
                       values$selected_data_guess_list)
     names(ctmm_list) <- names(ctmm_colors)[1:2]
-    # # if no curves is selected, need a NULL instead of empty list. note using vector %in% vector will get a vector of logical, not what we want
-    # selected_curves <- if (is.null(input$guess_curve_selector)) {
-    #    NULL
-    # } else if (setequal(names(ctmm_list), input$guess_curve_selector)) {
-    #   ctmmweb::align_list(ctmm_list[[1]], ctmm_list[[2]])
-    # } else {
-    #   ctmm_list[[input$guess_curve_selector]]
-    # }
     selected_curves <- ctmmweb:::align_curve_lists(
       ctmm_list[input$guess_curve_selector])
     # actual fraction value from slider is not in log, need to convert
@@ -1799,16 +1791,21 @@ output:
   output$vario_plot_modeled <- renderPlot({
     model_title_vec <- paste0(names(select_models()$model_list),
                               select_models()$subtitle_list)
-    # always 3 curves: init_ctmm, model, model_current, same with color vec
+    # 3 curves: init_ctmm, model, model_current, same with color vec. select curves based on checkbox (all came from ctmm_colors item name)
     m_dt <- select_models()$model_list_dt
-    ctmm_list <- ctmmweb:::align_list_3(m_dt$init_ctmm, m_dt$model, m_dt$model_current)
+    ctmm_list <- list(m_dt$init_ctmm, m_dt$model, m_dt$model_current)
+    names(ctmm_list) <- names(ctmm_colors)[3:5]
+    selected_curves <- ctmmweb:::align_curve_lists(
+      ctmm_list[input$model_curve_selector])
     # actual fraction value from slider is not in log, need to convert
     ctmmweb::plot_vario(select_models()$vario_list,
-                        ctmm_list,
+                        selected_curves,
                         title_vec = model_title_vec,
                         fraction = 10 ^ input$zoom_lag_fraction,
                         relative_zoom = (input$vario_option == "relative"),
-                        model_color = ctmm_colors[3:5], cex = 0.72,
+                        model_color = ctmm_colors[3:5][
+                          input$model_curve_selector],
+                        cex = 0.72,
                         columns = input$vario_columns)
     # LOG save pic
     log_save_vario("vario", select_models()$vario_layout$row_count,

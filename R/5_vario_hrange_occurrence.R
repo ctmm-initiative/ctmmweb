@@ -1,3 +1,4 @@
+# take a list of (list_a, list_b, ....) align them into a list of items of (list_a[[1]], list_b[[1]], ...). expand on align_list of 2 list, also take list(). the input came from list of list and checkboxgroup selection as name index, so it's a list of list already. output is also designed for specific usage, need to be NULL for NULL input
 align_curve_lists <- function(list_lst) {
   dimension <- length(list_lst)
   # no 1st sublist so need to separate processing
