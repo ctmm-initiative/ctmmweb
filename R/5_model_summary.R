@@ -70,19 +70,16 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
 # aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added)
 # use this after try_res conversion, after merge of two model_list_dt. i.e. after auto fit and refit, each fit, merge result.
 compare_models <- function(model_list_dt) {
-  # summary on model list always give results sorted, with row names of list item names. we need to map back by row names. and summary can only take model name from list items, we need to provide names when using a data.table column as model list (which don't have name)
-  get_aicc_table <- function(model_list, model_names) {
-    names(model_list) <- model_names
+  # summary on model list always give results sorted, with row names of list item names. reorder result to be same order of input, and function call is simpler
+  get_aicc_vec <- function(model_list) {
+    # use fixed name to replace existing or non-existing name
+    names(model_list) <- seq_along(model_list)
     res <- summary(model_list, units = FALSE)
-    # res seemed to be data.frame directly. get a named vector for easier indexing. a data.table seemed to be too complicated in by function and indexing, result assigning
-    # data.table(res, keep.rownames = TRUE)
-    vec <- res$dAICc
-    names(vec) <- row.names(res)
-    return(vec)
+    # res is data.frame. the index need to be character, if using numbers will use row number which is not correct
+    res[as.character(seq_along(model_list)), "dAICc"]
   }
   # AICc come from the summary of a group models, always by animal, even models may came from different fit passes
-  model_list_dt[, dAICc := get_aicc_table(model, model_name)[model_name],
-                by = identity]
+  model_list_dt[, dAICc := get_aicc_vec(model), by = identity]
   # sort it, so model_list_dt and summary are always sorted by same criteria
   setorder(model_list_dt, identity, dAICc)
 }
