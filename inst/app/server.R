@@ -1763,7 +1763,7 @@ output:
   ## show guess by default, since it's available. no need to turn off since it's the only curve. plot_vario support list of ctmm list, so we can plot two curves.
   output$vario_plot_empirical <- renderPlot({
     # select curves based on checkbox (came from ctmm_colors item name), a subset of c("guess", "guess_current"). note color also need subsetting.
-    # note the 2nd is "current guess values", not "tuned guess" because of our data structure.
+    # note the 2nd is "current guess values", not "tuned guess" because of our data structure. it will be more useful in model page, and work as legend (base plot legend was in plot box by default, need manual tweaking to put outside, not an option)
     ctmm_list <- list(select_data_vario()$original_guess_list,
                       values$selected_data_guess_list)
     names(ctmm_list) <- names(ctmm_colors)[1:2]
@@ -2733,19 +2733,22 @@ output:
         }
         # also save report for reference
         generate_report(preview = FALSE)
-        # move to same directory for easier packing. use rename to reduce effort
-        # file.copy(values$html_path, file.path(session_tmpdir, "report.html"),
-        #           overwrite = TRUE)
+        # move to same directory for easier packing.
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # the whole LOG folder with plot png/pdf in separate files. zip folder put zip to one level up the target folder, which is session_tmpdir. because the generated report was moved (not copied) to upper level, only other files are put in this zip.
         ctmmweb::zip_folder(LOG_folder, "plot.zip")
-        # pack to saved.zip, this is a temp name anyway. being sepecific should be better than zip everything.
+        # pack to saved.zip, this is a temp name anyway.
+        # files to be saved: "cache.zip", "data.rds", "report.html", "combined_data_table.csv", "plot.zip". error_log.txt could present or not depend on option, so didn't use a fixed name list(also difficult to maintain).
+        # list.files will get folders in non-recursive mode, have to exclude them
+        files_folders <- list.files(session_tmpdir)
+        folders <- list.dirs(session_tmpdir,
+                             recursive = FALSE, full.names = FALSE)
+        files_to_save <- setdiff(files_folders, folders)
         saved_zip_path <- ctmmweb:::zip_relative_files(
-          session_tmpdir, c("cache.zip", "data.rds", "report.html",
-                            "error_log.txt",
-                            "combined_data_table.csv", "plot.zip"),
-          "saved.zip")
-        file.copy(saved_zip_path, file)
+          session_tmpdir, files_to_save, "saved.zip")
+        # we need to remove the temp zip from folder. otherwise if user saved data at one time, then try to save again later, the zip input will have saved.zip and zip target is saved.zip, cause infinite writing.
+        # file.copy(saved_zip_path, file)
+        file.rename(saved_zip_path, file)
       }
     }
   )
