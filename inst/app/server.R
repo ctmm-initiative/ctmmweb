@@ -2744,11 +2744,14 @@ output:
         folders <- list.dirs(session_tmpdir,
                              recursive = FALSE, full.names = FALSE)
         files_to_save <- setdiff(files_folders, folders)
+        # we want to put target zip file in a different folder than input files, otherwise if user saved data at one time, then try to save again later, the zip input will have saved.zip and zip target is saved.zip, cause infinite writing. alternatively we can move the target zip instead of copy, but putting in different folder is safer
+        saved_zip_folder <- "saved_zip_folder"
+        ctmmweb:::create_folder(file.path(session_tmpdir, saved_zip_folder))
+        # target zip path is constructed from base folder and relative path, so we can use the partial path here
         saved_zip_path <- ctmmweb:::zip_relative_files(
-          session_tmpdir, files_to_save, "saved.zip")
-        # we need to remove the temp zip from folder. otherwise if user saved data at one time, then try to save again later, the zip input will have saved.zip and zip target is saved.zip, cause infinite writing.
-        # file.copy(saved_zip_path, file)
-        file.rename(saved_zip_path, file)
+          session_tmpdir, files_to_save,
+          file.path(saved_zip_folder, "saved.zip"))
+        file.copy(saved_zip_path, file, overwrite = TRUE)
       }
     }
   )

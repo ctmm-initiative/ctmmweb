@@ -5,8 +5,11 @@ current_timestamp <- function() {
   #        tz = "UTC")
   format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 }
+# will not have warning if folder already exist; can create a path chain directly
 create_folder <- function(folder_path) {
-  dir.create(folder_path, recursive = TRUE)
+  if (!dir.exists(folder_path)) {
+    dir.create(folder_path, recursive = TRUE)
+  }
   return(folder_path)
 }
 #' Compress a folder into zip
@@ -38,11 +41,12 @@ zip_folder <- function(folder_path, zip_name) {
   return(zip_path)
 }
 # compress select files under one folder with relative path. zip will be put in same folder
-zip_relative_files <- function(base_folder, relative_paths, zip_name) {
+# target zip file can be single file name or a partial path relative to base_folder
+zip_relative_files <- function(base_folder, relative_paths, zip_relative_path) {
   previous_wd <- getwd()
   # one level up folder, so we can use relative path in zip
   setwd(base_folder)
-  zip_path <- file.path(base_folder, zip_name)
+  zip_path <- file.path(base_folder, zip_relative_path)
   zip::zip(zip_path, relative_paths,
            compression_level = 5)
   setwd(previous_wd)
