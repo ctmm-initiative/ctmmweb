@@ -1132,7 +1132,6 @@ output:
   output$distance_outlier_plot <- renderPlot({
     animals_dt <- req(bin_by_distance()$animals_dt)
     animal_selected_data <- select_distance_range()$animal_selected_data
-    # browser()
     g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x, y)) +
       ggplot2::geom_point(size = 0.05, alpha = 0.6, colour = "gray") +
       ggplot2::geom_point(data = animal_selected_data,
@@ -1306,7 +1305,6 @@ output:
       # cat("selected points in table\n")
       # print(selected_points)
       # draw rectangle around selected points
-      # browser()
       g <- g +
         ggplot2::geom_point(data = selected_points, size = 3.5, alpha = 1,
                                    color = "blue", shape = 22)
@@ -1872,7 +1870,20 @@ output:
       guess_ctmm()
   })
   # apply model tuned ----
-
+  observeEvent(input$`model-tune-tuned`, {
+    # LOG fine tune apply
+    log_msg("Apply Fine-tuned Parameters")
+    removeModal()
+    # must assign NULL to trigger change as data.table modify by reference
+    # this will reevaluate summary_models and select_models, although the visible model table doesn't change. difficult to prevent this reevaluation.
+    dt <- values$model_list_dt
+    dt[model_name == input$`model-tune_selected`,
+       model_current := list(list(model_ctmm()))]
+    dt[model_name == input$`model-tune_selected`,
+       model_tuned := TRUE]
+    values$model_list_dt <- NULL
+    values$model_list_dt <- dt
+  })
   # fine tune sliders > ----
   # p5. model selection ----
   callModule(click_help, "model_selection", title = "Model Selection",
@@ -1913,6 +1924,7 @@ output:
     model_list_dt[, init_ctmm := list(list(
       values$selected_data_guess_list[[identity]])), by = model_no]
     # we want to initialize it in auto fit, but refit will change it which could trigger try_models to re-evaluate.
+    cat("auto fit triggered\n")
     isolate(values$model_list_dt <- model_list_dt)
     return(res)
   })
@@ -2203,8 +2215,6 @@ output:
   })
   # home range plot ----
   output$range_plot <- renderPlot({
-    # browser()
-    # selected_tele_list <- select_models()$tele_list
     hranges <- select_models_hranges()
     # change title in place to show weight parameter
     names(hranges) <- get_hrange_weight_para()$title_vec
