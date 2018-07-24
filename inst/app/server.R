@@ -1846,15 +1846,14 @@ output:
   # ID: accessing input$`model-tune_selected`
   # ID: model-tune
   model_page_data <- reactive({
-    # TODO we only have drop down selection as start, which is model_name. need to look up animal name (to get vario since it's only unique by animal) and model curves etc.
-    # TODO vario list, ctmm_obj_list name may not be animal name. there could be multi models for same animal, the drop down list need to be model name, then need to map to vario by animal name
-    # TODO current code is just guess orignal, guess tuned. we may need to get dynamically from table. group vario may draw 3 curves, but fine-tune page only draw two curves. too complex to draw 3 curves in pop up.
-    vario_list <- req(select_models()$vario_list)
-    vario_id <- input$`model-tune_selected`
+    vario_list <- req(select_models()$vario_list)  # named by model_name
+    vario_id <- input$`model-tune_selected`  # model_name
     vario <- vario_list[vario_id][[1]]
-    # note the fine-tune only draw 2 curves, model result and modified. too complex to include 2 and 3 in one module
-    ctmm_obj_ref <- select_models()$model_list_dt[model_name == vario_id, model][[1]]
-    ctmm_obj_current <- select_models()$model_list_dt[model_name == vario_id, model_current][[1]]
+    # note the fine-tune only draw 2 curves instead of 3 in group vario plot, model result and modified. too complex to include 2 and 3 in one module
+    ctmm_obj_ref <- select_models()$model_list_dt[
+      model_name == vario_id, model][[1]]
+    ctmm_obj_current <- select_models()$model_list_dt[
+      model_name == vario_id, model_current][[1]]
     get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
                        input$zoom_lag_fraction, "model-tune")
   })
@@ -2081,9 +2080,9 @@ output:
                 display_color = display_color,
                 tele_list = selected_tele_list,
                 data_dt = selected_data_dt,
-                model_list = selected_model_list,  # with item named
+                model_list = selected_model_list,  # named by model_name
                 model_list_dt = selected_model_list_dt,
-                vario_list = selected_vario_list,
+                vario_list = selected_vario_list,  # named by model_name
                 subtitle_list = selected_subtitle_list,
                 vario_layout = selected_vario_layout
                 ))
@@ -2739,7 +2738,7 @@ output:
         ctmmweb::zip_folder(LOG_folder, "plot.zip")
         # pack to saved.zip, this is a temp name anyway.
         # files to be saved: "cache.zip", "data.rds", "report.html", "combined_data_table.csv", "plot.zip". error_log.txt could present or not depend on option, so didn't use a fixed name list(also difficult to maintain).
-        # list.files will get folders in non-recursive mode, have to exclude them
+        # will get folders in non-recursive mode, have to exclude them
         files_folders <- list.files(session_tmpdir)
         folders <- list.dirs(session_tmpdir,
                              recursive = FALSE, full.names = FALSE)
