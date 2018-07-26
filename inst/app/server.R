@@ -217,7 +217,8 @@ output:
   callModule(click_help, "app_options", title = "App Options",
              size = "l", file = "help/1_app_options.md")
   # capture error ----
-  # the setup is run in beginning, also run with checkbox event. don't run twice if already exist
+  ## 1st version always capture in web mode, not capture in local mode. 2nd version capture by default, switch by checkbox, which require setup in beginning, each checkbox event need to clean up or setup. 3rd version not capture by default, capture in web mode. the initial run trigger event on uncheck so need to check if the temp file exist already (we could skip init event but that will lost the log msg of error direction)
+  # the setup is run in beginning, also run with checkbox event. don't run twice if already exist. global switch variable need to detect status.
   ERROR_CAPTURED <- FALSE
   setup_error_capture <- function(){
     # only run when not already captured, otherwise will cause problem
@@ -234,12 +235,19 @@ output:
   # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
   # DEBUG app(data): when there is error in loading app with parameter, the app can fail and error captured in app so not visible, comment this line off so error can be shown. note browser will open the installed script, so edit need to be written in original source, not the tab opened by browser.
   # isolate(setup_error_capture())  # comment off when debugging app import
+  # decided to turn it off by default, unless in hosted mode
+  if (!APP_local) {
+    updateCheckboxInput(session, "capture_error", value = TRUE)
+    }
   # clean up. needed in app exit and checking option off.
   clean_up_error_capture <- function(error_con) {
-    # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
-    sink(type = "message")
-    flush(error_con)
-    close(error_con)
+    # app default to not capture, app start trigger checkbox false mode which try to clean up, but not setup yet
+    if (!is.null(error_con)) {
+      # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
+      sink(type = "message")
+      flush(error_con)
+      close(error_con)
+    }
   }
   # checking on/off option should either prepare the error file or clean it up
   observeEvent(input$capture_error, {
@@ -250,7 +258,9 @@ output:
       ERROR_CAPTURED <<- FALSE
       log_msg("Error message directed to R Console")
     }
-  })
+  }
+  # , ignoreInit = TRUE
+  )
   # clean up ----
   # on.exit need to be inside server function so outside of renderUI
   onStop(function() {
@@ -430,8 +440,8 @@ output:
   # app launched from app()
   if (!identical(parent.env(calling_env), globalenv())) {
     # cat("running in app() mode\n")
-    # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console. Since the console is definitely available in this mode, it's OK to use that as default.
-    updateCheckboxInput(session, "capture_error", value = FALSE)
+    # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console. Since the console is definitely available in this mode, it's OK to use that as default. /this is by default now
+    # updateCheckboxInput(session, "capture_error", value = FALSE)
     # set app directory to installed package app folder (from app()), which is needed by loading help documentations
     APP_wd <- get("app_DIR", envir = calling_env)
     # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
@@ -469,8 +479,6 @@ output:
     ]
     DT::datatable(dataset_info_dt, options = list(dom = 't'),
                   rownames = FALSE, selection = 'single')
-    # %>%
-    #   DT::formatStyle(1, target = 'row', color = "#00c0ef")
   })
   observeEvent(input$tele_file, {
     req(input$tele_file)
