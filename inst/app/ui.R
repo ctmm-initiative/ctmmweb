@@ -99,27 +99,40 @@ app_options_box <- box(title = "App Options",
 upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 12,
-  fluidRow(column(8, radioButtons('load_option', NULL,
+  fluidRow(
+    column(12, radioButtons('load_option', NULL,
                                   c("Use Bufflo Data in ctmm" = 'ctmm',
                                     "Use Sample of Buffalo Data" = 'ctmm_sample',
                                     "Upload File" = 'upload'),
                                   selected = "upload")
                   ),
-          column(4, numericInput("sample_size", "Sample Size",
-                                 value = 100, step = 50)),
-          column(12, fileInput('tele_file', label =
-                         shiny::a("Move Bank Format", target = "_blank",
+    column(12, h3("Dataset in ctmm package")),
+    column(4, checkboxInput("take_sample",
+                            div(icon("filter"),
+                                HTML('&nbsp;'),
+                                "Take a sample of"),
+                            value = TRUE)),
+    column(2, numericInput("sample_size", NULL,
+                         value = 100, step = 50)),
+    column(2, offset = 0, actionButton("load_internal_data", "Load",
+                           icon = icon("database"),
+                           style = ctmmweb:::STYLES$page_action)),
+    column(2, offset = 2, help_button("import")),
+    column(12, DT::DTOutput("data_set_table")),
+    column(12, hr(), h3("Upload")),
+          column(6, fileInput('tele_file', label =
+                         shiny::a("Move Bank Format Data",
+                                  target = "_blank",
                                   href = "https://www.movebank.org/node/13",
                                   style = "text-decoration: underline;"),
                                  # "Movebank Format",
                          multiple = TRUE,
                          buttonLabel = "Browse or Drop...",
                          placeholder = "(multiple) csv or zip")),
-          column(12, fileInput("load_data", label = "Restore Progress",
+          column(6, fileInput("load_data", label = "Restore Progress",
                                buttonLabel = "Browse or Drop...",
                                placeholder = "Previously saved zip"
-                           )),
-          column(5, offset = 7, help_button("import"))
+                           ))
            )
     )
 # movebank_login_box <- box(title = "Movebank Login",

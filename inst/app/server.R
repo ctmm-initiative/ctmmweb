@@ -233,7 +233,7 @@ output:
   }
   # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
   # DEBUG app(data): when there is error in loading app with parameter, the app can fail and error captured in app so not visible, comment this line off so error can be shown. note browser will open the installed script, so edit need to be written in original source, not the tab opened by browser.
-  isolate(setup_error_capture())  # comment off when debugging app import
+  # isolate(setup_error_capture())  # comment off when debugging app import
   # clean up. needed in app exit and checking option off.
   clean_up_error_capture <- function(error_con) {
     # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
@@ -462,7 +462,16 @@ output:
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
-  # upload dialog
+  # 1.1.a upload dialog ----
+  output$data_set_table <- DT::renderDT({
+    dataset_info_dt <- data.table(data(package = "ctmm")[["results"]])[
+      , .(Dataset = Item, Description = Title)
+    ]
+    DT::datatable(dataset_info_dt, options = list(dom = 't'),
+                  rownames = FALSE, selection = 'single')
+    # %>%
+    #   DT::formatStyle(1, target = 'row', color = "#00c0ef")
+  })
   observeEvent(input$tele_file, {
     req(input$tele_file)
     # LOG file upload. need to be outside of import_tele_to_app function because that only have the temp file path, not original file name. thus always call import_tele function with separate log msg line.
