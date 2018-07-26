@@ -1,4 +1,10 @@
 # helper functions that too specific to shiny app and no need to be put inside package. Some are exported for individual uses. All functions are placed in one file for easier search for now.
+# build id_pal from info. this is needed in importing tele data, and restoring session data.
+build_id_pal <- function(info) {
+  leaflet::colorFactor(
+    scales::hue_pal()(nrow(info)), info$identity, ordered = TRUE
+  )
+}
 # parse text input of numerical values
 parse_num_text_input <- function(num_text) {
   parsed_values <- as.numeric(num_text)

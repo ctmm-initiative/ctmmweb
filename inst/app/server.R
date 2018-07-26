@@ -342,17 +342,11 @@ output:
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
   # selected_model_try_res is updated in model fitting stage, need to be cleared when input change too.
-  # build id_pal from info. this is needed in importing tele data, and restoring session data.
-  build_id_pal <- function(info) {
-    leaflet::colorFactor(
-      scales::hue_pal()(nrow(info)), info$identity, ordered = TRUE
-    )
-  }
   # 1.1 import to telemetry list ----
-  # this only import parameter and return a tele list, with all error/warning handling. use import_tele_to_app to update app input data (also have other tasks), use tele_import directly in calibration data import as it doesn change app input data
+  # this only import parameter and return a tele list, with all error/warning handling. use import_tele_to_app to update app input data (also have other tasks), use safe_import_tele directly in calibration data import as it doesn change app input data
   # multiple input options: app start with file path(s), data frame, tele list; movebank import data.frame; upload files. in the end all files, data.frame need to go through as.telemetry import for error checking and report here. tele list can use update_input_data directly.
   # there are multiple messages and error checking in import stage, so this need to work on both files and data.frame (from movebank download, or app start).
-  tele_import <- function(as_telemetry_input) {
+  safe_import_tele <- function(as_telemetry_input) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Importing data..."),
@@ -417,7 +411,7 @@ output:
     # values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
-    values$id_pal <- build_id_pal(values$data$merged$info)
+    values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
     # clear previous selection
     DT::selectRows(proxy_individuals, list())
     shinydashboard::updateTabItems(session, "tabs", "plots")
@@ -426,7 +420,7 @@ output:
   }
   # import tele input to app input data
   import_tele_to_app <- function(as_telemetry_input) {
-    update_input_data(tele_import(as_telemetry_input))
+    update_input_data(safe_import_tele(as_telemetry_input))
     # importing should always move to visualization page.
     shinydashboard::updateTabItems(session, "tabs", "plots")
   }
@@ -473,13 +467,33 @@ output:
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
   # 1.1.a upload dialog ----
-  output$data_set_table <- DT::renderDT({
-    dataset_info_dt <- data.table(data(package = "ctmm")[["results"]])[
-      , .(Dataset = Item, Description = Title)
+  ctmm_dataset_info_dt <- data.table(data(package = "ctmm")[["results"]])[
+    , .(Dataset = Item, Description = Title)
     ]
-    DT::datatable(dataset_info_dt, options = list(dom = 't'),
+  output$data_set_table <- DT::renderDT({
+    DT::datatable(ctmm_dataset_info_dt, options = list(dom = 't'),
                   rownames = FALSE, selection = 'single')
   })
+  # use ctmm internal data --
+  observeEvent(input$load_ctmm_data, {
+    req(input$data_set_table_rows_selected)
+    browser()
+    data_set_name <- ctmm_dataset_info_dt[input$data_set_table_rows_selected,
+                                          Dataset]
+    # load to current evaluation environment. use list parameter because the first parameter require literal instead of variable
+    data(list = data_set_name, package = "ctmm", envir = environment())
+    data_set <- get(data_set_name, envir = environment())
+    if (input$take_sample) {
+      data_set <- ctmmweb:::pick_tele_list(data_set, req(input$sample_size))
+      # LOG sample data used
+      log_msg("Using sample from ctmm data", data_set_name)
+    } else {
+      # LOG data used
+      log_msg("Using ctmm data", data_set_name)
+    }
+    update_input_data(data_set)
+  })
+  # upload movebank format file --
   observeEvent(input$tele_file, {
     req(input$tele_file)
     # LOG file upload. need to be outside of import_tele_to_app function because that only have the temp file path, not original file name. thus always call import_tele function with separate log msg line.
@@ -488,43 +502,43 @@ output:
     # also change radio button status, so it's consistent and radio button switch can be effective
     updateRadioButtons(session, "load_option", selected = "upload")
   })
-  # abstract because need to do this in 2 places
-  set_sample_data <- function() {
-    data("buffalo", package = "ctmm", envir = environment())
-    sample_data <- ctmmweb:::pick_tele_list(buffalo, input$sample_size)
-    # LOG use sample
-    log_msg("Using data", "buffalo sample from ctmm")
-    update_input_data(sample_data)
-  }
-  # observe radio button changes
-  observeEvent(input$load_option, {
-    switch(input$load_option,
-           ctmm = {
-             data("buffalo", package = "ctmm", envir = environment())
-             # LOG use buffalo
-             log_msg("Using data", "buffalo from ctmm")
-             update_input_data(buffalo)
-           },
-           ctmm_sample = {
-             set_sample_data()
-           }
-           # ,
-           # upload = {
-           #   # ~the radiobutton itself doesn't upload, just reuse previously uploaded file if switched back~. cannot keep this feature now. when we upload a file by drag/drop, it will be imported, then radio button updated after import(which is needed, otherwise you cannot switch to internal data later), which trigger code here and import again.
-           #   # need to check NULL input from source, stop error in downstream
-           #   req(input$tele_file)
-           #   # LOG file upload.
-           #   log_msg("Importing file", input$tele_file$name)
-           #   import_tele_to_app(input$tele_file$datapath)
-           # }
-           )
-  })
-  # also update the app when sample size changed and is already in sample mode
-  observeEvent(input$sample_size, {
-    if (input$load_option == "ctmm_sample") {
-      set_sample_data()
-    }
-  })
+  # # abstract because need to do this in 2 places
+  # set_sample_data <- function() {
+  #   data("buffalo", package = "ctmm", envir = environment())
+  #   sample_data <- ctmmweb:::pick_tele_list(buffalo, input$sample_size)
+  #   # LOG use sample
+  #   log_msg("Using data", "buffalo sample from ctmm")
+  #   update_input_data(sample_data)
+  # }
+  # # observe radio button changes
+  # observeEvent(input$load_option, {
+  #   switch(input$load_option,
+  #          ctmm = {
+  #            data("buffalo", package = "ctmm", envir = environment())
+  #            # LOG use buffalo
+  #            log_msg("Using data", "buffalo from ctmm")
+  #            update_input_data(buffalo)
+  #          },
+  #          ctmm_sample = {
+  #            set_sample_data()
+  #          }
+  #          # ,
+  #          # upload = {
+  #          #   # ~the radiobutton itself doesn't upload, just reuse previously uploaded file if switched back~. cannot keep this feature now. when we upload a file by drag/drop, it will be imported, then radio button updated after import(which is needed, otherwise you cannot switch to internal data later), which trigger code here and import again.
+  #          #   # need to check NULL input from source, stop error in downstream
+  #          #   req(input$tele_file)
+  #          #   # LOG file upload.
+  #          #   log_msg("Importing file", input$tele_file$name)
+  #          #   import_tele_to_app(input$tele_file$datapath)
+  #          # }
+  #          )
+  # })
+  # # also update the app when sample size changed and is already in sample mode
+  # observeEvent(input$sample_size, {
+  #   if (input$load_option == "ctmm_sample") {
+  #     set_sample_data()
+  #   }
+  # })
   callModule(click_help, "import", title = "Data Import Options", size = "l",
              file = "help/1_import_options.md")
   # 1.2 movebank login ----
@@ -979,7 +993,7 @@ output:
     req(input$cali_file)
     # LOG file upload.
     log_msg("Loading calibration data", input$cali_file$name)
-    values$cali_tele_list <- tele_import(input$cali_file$datapath)
+    values$cali_tele_list <- safe_import_tele(input$cali_file$datapath)
     # values$cali_uere <- ctmm::uere(values$cali_tele_list)
     uere_value <- ctmm::uere(values$cali_tele_list)
     updateTextInput(session, "uere_text_input",
@@ -2784,11 +2798,11 @@ output:
     }
   )
   # load data ----
-  observeEvent(input$load_data, {
+  observeEvent(input$load_saved_data, {
     # LOG load data
-    log_msg("Loading previously saved data", input$load_data$name)
+    log_msg("Loading previously saved data", input$load_saved_data$name)
     # saved.zip -> cache.zip, data.rds, report.html, combined_data_table.csv
-    utils::unzip(input$load_data$datapath, exdir = session_tmpdir)
+    utils::unzip(input$load_saved_data$datapath, exdir = session_tmpdir)
     if (APP_local) {
       utils::browseURL(file.path(session_tmpdir, "report.html"))
     }
@@ -2799,7 +2813,7 @@ output:
     loaded_data <- readRDS(file.path(session_tmpdir, "data.rds"))
     # restore variables, also need to update id_pal, which are outside of data thus not restored, but it need to be built.
     values$data <- loaded_data
-    values$id_pal <- build_id_pal(values$data$merged$info)
+    values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
     shinydashboard::updateTabItems(session, "tabs", "plots")
   })
   # view_report ----
