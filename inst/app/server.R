@@ -1830,7 +1830,7 @@ output:
   # the layers of id namespace marked with ID:
   # ID: selector called with guess/model, this is the first layer, in beginning, note ui and callModule using same value
   # selection is dynamic and need to be an unresolved reactive expression
-  callModule(tuneSelector, id = "guess", placeholder = "Fine-tune Guesstimate",
+  callModule(tuneSelector, id = "guess", placeholder = "Fine-tune",
              reactive(req(select_data()$info$identity)), log_msg)
   callModule(tuneSelector, id = "model", placeholder = "Fine-tune Model",
              reactive(req(select_models()$info_dt$model_name)), log_msg)

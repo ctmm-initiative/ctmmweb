@@ -560,9 +560,8 @@ ctmm_colors <- ctmmweb:::ctmm_colors
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-half"), "1. Empirical"), value = "1",
               fluidRow(
-                column(6,
-                       div(style = ctmmweb:::STYLES$align_up_group,
-                       checkboxGroupInput("guess_curve_selector",
+                column(4, div(style = ctmmweb:::STYLES$align_up_group,
+              checkboxGroupInput("guess_curve_selector",
               label = NULL, inline = FALSE,
               choiceNames = list(div(style = paste0("color:", ctmm_colors[1]),
                                      "Original Guesstimate"),
@@ -572,7 +571,9 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
               selected = names(ctmm_colors)[1:2])
               )
                        ),
-                column(4, offset = 0, tuneSelectorUI("guess")),
+                column(3, offset = 0, tuneSelectorUI("guess")),
+                column(3, div(style = ctmmweb:::STYLES$align_up,
+                       checkboxInput("guess_error_on", "Turn on error"))),
                 column(2, offset = 0, help_button("variograms"))),
               fluidRow(
                 column(12, br(), plotOutput("vario_plot_empirical",
