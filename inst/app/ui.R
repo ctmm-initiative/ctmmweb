@@ -92,30 +92,8 @@ app_options_box <- box(title = "App Options",
                                 HTML('&nbsp;'),
                                 "Parallel Mode"),
                             value = TRUE)),
-    # column(4, checkboxGroupInput("error_log_parallel", label = NULL,
-    #                              choiceNames = list(
-    #                                div(icon("exclamation-triangle"),
-    #                                    HTML('&nbsp;'),
-    #                                    "Capture Error Messages"),
-    #                                div(icon("cogs"),
-    #                                    HTML('&nbsp;'),
-    #                                    "Parallel Mode")),
-    #                              choiceValues = list("capture_error",
-    #                                                  "parallel"),
-    #                              selected = "parallel")),
     column(3, uiOutput("view_report")),
-    # column(3, offset = 6, actionButton("show_error", "Error Messages",
-    #                        icon = icon("exclamation-triangle"),
-    #                        style = ctmmweb:::STYLES$page_action)),
-    # column(12, br()),
-    # column(3, offset = 6, help_button("report"))
     column(3, offset = 6, help_button("app_options"))
-
-    # if (DEBUG_BUTTON) {
-    #   # debug mode, to inject browser in running. not sure if it will
-    #   column(3, actionButton("inject_debug", "Debug", icon = icon("bug")))
-    # },
-    # column(3, offset = if (DEBUG_BUTTON) 0 else 3, help_button("app_options"))
                                       ))
 upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
