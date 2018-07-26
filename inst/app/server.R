@@ -322,7 +322,6 @@ output:
   par_occur_mem <- memoise::memoise(
     ctmmweb::par_occur,
     cache = memoise::cache_filesystem(cache_path))
-  # p1. import ----
   # a safety check for data intergrity when turned on. will run after every modification on data and list separately. i.e. values$data$tele_list changes, or data not coming from combine. this should got run automatically? no if not referenced. need reactive expression to refer values$.
   # this is a side effect reactive expression that depend on a switch.
   verify_global_data <- reactive({
@@ -342,7 +341,7 @@ output:
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
   # selected_model_try_res is updated in model fitting stage, need to be cleared when input change too.
-  # 1.1 import to telemetry list ----
+  # import to telemetry list ----
   # this only import parameter and return a tele list, with all error/warning handling. use import_tele_to_app to update app input data (also have other tasks), use safe_import_tele directly in calibration data import as it doesn change app input data
   # multiple input options: app start with file path(s), data frame, tele list; movebank import data.frame; upload files. in the end all files, data.frame need to go through as.telemetry import for error checking and report here. tele list can use update_input_data directly.
   # there are multiple messages and error checking in import stage, so this need to work on both files and data.frame (from movebank download, or app start).
@@ -466,18 +465,21 @@ output:
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
-  # 1.1.a upload dialog ----
+  # p1. import ----
+  # 1.1.a import dialog ----
+  # only some data are in movebank format (other only have x,y,t, without timestamp and coordinates, app will not work)
   ctmm_dataset_info_dt <- data.table(data(package = "ctmm")[["results"]])[
     , .(Dataset = Item, Description = Title)
-    ]
+    ][Dataset %in% c("buffalo")]
   output$data_set_table <- DT::renderDT({
     DT::datatable(ctmm_dataset_info_dt, options = list(dom = 't'),
-                  rownames = FALSE, selection = 'single')
+                  rownames = FALSE, selection = list(mode = "single",
+                                                     selected = 1,
+                                                     target = 'row'))
   })
   # use ctmm internal data --
   observeEvent(input$load_ctmm_data, {
     req(input$data_set_table_rows_selected)
-    browser()
     data_set_name <- ctmm_dataset_info_dt[input$data_set_table_rows_selected,
                                           Dataset]
     # load to current evaluation environment. use list parameter because the first parameter require literal instead of variable
@@ -499,8 +501,8 @@ output:
     # LOG file upload. need to be outside of import_tele_to_app function because that only have the temp file path, not original file name. thus always call import_tele function with separate log msg line.
     log_msg("Importing file", input$tele_file$name)
     import_tele_to_app(input$tele_file$datapath)
-    # also change radio button status, so it's consistent and radio button switch can be effective
-    updateRadioButtons(session, "load_option", selected = "upload")
+    # # also change radio button status, so it's consistent and radio button switch can be effective
+    # updateRadioButtons(session, "load_option", selected = "upload")
   })
   # # abstract because need to do this in 2 places
   # set_sample_data <- function() {

@@ -100,12 +100,12 @@ upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 12,
   fluidRow(
-    column(12, radioButtons('load_option', NULL,
-                                  c("Use Bufflo Data in ctmm" = 'ctmm',
-                                    "Use Sample of Buffalo Data" = 'ctmm_sample',
-                                    "Upload File" = 'upload'),
-                                  selected = "upload")
-                  ),
+    # column(12, radioButtons('load_option', NULL,
+    #                               c("Use Bufflo Data in ctmm" = 'ctmm',
+    #                                 "Use Sample of Buffalo Data" = 'ctmm_sample',
+    #                                 "Upload File" = 'upload'),
+    #                               selected = "upload")
+    #               ),
     column(12, h3("Dataset in ctmm package")),
     column(4, checkboxInput("take_sample",
                             div(icon("filter"),
