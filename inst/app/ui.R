@@ -72,7 +72,7 @@ sidebar <- dashboardSidebar(
   # uiOutput("outlier_msg", inline = TRUE)
   # h4(" message about outlier")
 )
-# p1. import ----
+# p1.a app options ----
 app_options_box <- box(title = "App Options",
                                       status = "primary", solidHeader = TRUE,
                                       width = 12,
@@ -95,9 +95,10 @@ app_options_box <- box(title = "App Options",
     column(3, uiOutput("view_report")),
     column(3, offset = 6, help_button("app_options"))
                                       ))
+# p1.b upload ----
 upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
-                  status = "info", solidHeader = TRUE, width = 6,
+                  status = "info", solidHeader = TRUE, width = 12,
   fluidRow(column(8, radioButtons('load_option', NULL,
                                   c("Use Bufflo Data in ctmm" = 'ctmm',
                                     "Use Sample of Buffalo Data" = 'ctmm_sample',
@@ -121,26 +122,32 @@ upload_box <- box(title = "Local Data Import",
           column(5, offset = 7, help_button("import"))
            )
     )
-movebank_login_box <- box(title = "Movebank Login",
-                          status = "warning", solidHeader = TRUE, width = 6,
-                          # height = ctmmweb:::STYLES$height_movebank_login_box,
-                          fluidRow(
-                            column(12, br(), br(), br(), br()),
-                            column(12,
-                                  textInput("user", "User Name"), br(), br(),
-                                  passwordInput("pass", label = "Password")),
-                            column(12, br()),
-                            column(5, actionButton("login", "Login",
-                                          icon = icon("sign-in"),
-                                          style = ctmmweb:::STYLES$page_action)),
-                            column(5, offset = 2,
-                                  help_button("login"))
-                            # ,
-                            # column(12, br())
-                            ))
-movebank_studies_box <- box(title = "Movebank Studies",
-                                            collapsible = TRUE,
-                            status = "primary", solidHeader = TRUE, width = 12,
+# movebank_login_box <- box(title = "Movebank Login",
+#                           status = "warning", solidHeader = TRUE, width = 6,
+#                           # height = ctmmweb:::STYLES$height_movebank_login_box,
+#                           fluidRow(
+#                             column(12, br(), br(), br(), br()),
+#                             column(12,
+#                                   textInput("user", "User Name"), br(), br(),
+#                                   passwordInput("pass", label = "Password")),
+#                             column(12, br()),
+#                             column(5, actionButton("login", "Login",
+#                                           icon = icon("sign-in"),
+#                                           style = ctmmweb:::STYLES$page_action)),
+#                             column(5, offset = 2,
+#                                   help_button("login"))
+#                             ))
+# p1.c movebank studies ----
+movebank_studies_box <- box(title = "Movebank Studies", collapsible = TRUE,
+                            status = "warning", solidHeader = TRUE, width = 12,
+      fluidRow(
+        column(4, textInput("user", label = NULL, placeholder = "User Name")),
+        column(3, passwordInput("pass", label = NULL, placeholder = "Password")),
+        column(2, offset = 1, actionButton("login", "Login",
+                               icon = icon("sign-in"),
+                               style = ctmmweb:::STYLES$page_action)),
+        column(2, help_button("login"))
+      ),
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                column(3, checkboxInput("data_manager",
                                        "Only Show I'm Data Manager"))),
@@ -863,7 +870,7 @@ body <- dashboardBody(
     # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     tabItem(tabName = "import",
                             fluidRow(app_options_box,
-                                     upload_box, movebank_login_box),
+                                     upload_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,
                                      movebank_study_preview_box)),
