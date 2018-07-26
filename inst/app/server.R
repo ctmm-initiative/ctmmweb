@@ -1757,9 +1757,15 @@ output:
                                      input$vario_height, input$vario_columns)
     # -- guess list --
     # generate guess with variogram input. guess always map to animal 1:1, so named/indexed by animal name
+    ctmm_parameter <- if (input$guess_error_on) {
+      ctmm(error = TRUE)
+    } else {
+      ctmm()
+    }
     original_guess_list <- lapply(seq_along(tele_list),
           function(i) {
             ctmm::ctmm.guess(tele_list[[i]], variogram = vario_list[[i]],
+                             CTMM = ctmm_parameter,
                              interactive = FALSE)
             })
     names(original_guess_list) <- names(tele_list)
