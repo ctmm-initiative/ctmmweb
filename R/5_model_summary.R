@@ -1,3 +1,17 @@
+# helper functions ----
+# newly created column are always in the end. If it's created based on a reference column, we may want to move to right after reference column. not considering new column are just updating and in the middle.
+move_last_col_after_ref <- function(dt, col_name) {
+  all_col_names <- names(dt)
+  current_col_index <- match(col_name, all_col_names)
+  last_col_index <- length(all_col_names)
+  # if reference col was last column, no need to reorder (the last part of new_index_vec will be like 16:15, which will not work)
+  if (last_col_index != current_col_index + 1) {
+    new_index_vec <- c(1:current_col_index,  # up to current one
+                       last_col_index,  # the last one, just created
+                       (current_col_index + 1):(last_col_index - 1))
+    setcolorder(dt, new_index_vec)
+  }  # no need to return as it modify input
+}
 # build ctmm model summary table ----
 # all model related table use same key columns, so merge will be easier. otherwise need to specify all common columns.
 # model_list_dt, model_summary_dt using this. use this in merge, but not setkey, which will sort the table, but we want to sort by identity and aicc.
@@ -85,7 +99,7 @@ compare_models <- function(model_list_dt) {
   # sort it, so model_list_dt and summary are always sorted by same criteria
   setorder(model_list_dt, identity, dAICc)
 }
-# generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt.
+# generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt. the unformatted summary is only intermediate stage, not used in app.
 # it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and dAICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
 # expect dAICc column, always compare model before summary.
 model_list_dt_to_model_summary_dt <- function(model_list_dt) {
@@ -197,16 +211,45 @@ format_model_summary_dt <- function(model_summary_dt) {
                          "error" = pick_unit_distance)
   format_dt_unit(dt, name_unit_list, round_by_model = FALSE)
 }
+# combine ci rows in formatted model summary table, get single row table
+combine_summary_ci <- function(summary_dt) {
+  dt <- copy(summary_dt)  # we add columns then take subset, better make copy
+  # only apply to the sub dt for each model, there are only 3 rows
+  get_ci_col_name <- function(col_name) {
+    stringr::str_replace(col_name, stringr::fixed("("), "CI (")
+  }
+  get_ci_col_value <- function(dt, col_name) {
+    ci_values <- dt[estimate %in% c("CI low", "CI high")][[col_name]]
+    if (all(is.na(ci_values))) {
+      NA_character_
+    } else {
+      paste0("(", paste0(ci_values, collapse = " – "), ")")
+    }
+  }
+  # columns with (, i.e. with units, the column with CI. DOF columns don't have it. note run this function on already converted function will also include ci cols as target cols. no need to check that since no that usage for now.
+  target_cols <- stringr::str_subset(names(dt), stringr::fixed("("))
+  lapply(target_cols, function(col_name) {
+    new_col_name <- get_ci_col_name(col_name)
+    dt[, (new_col_name) := get_ci_col_value(.SD, col_name),
+       by = model_no]
+    move_last_col_after_ref(dt, col_name)
+    return(dt)  # the else branch of if clause will be NULL if use if clause as last expression.
+  })
+  res <- dt[estimate == "ML"]
+  res[, estimate := NULL]
+}
 # combined steps to make usage easier, otherwise the function name could be confusing, use summary_dt to represent formated modle_summary, the final shape. didn't use this pattern for home range.
 # Generate Formated Model Summary Table From Model List Table
 #
 # model_list_dt a `data.table` holding model information and models objects
 #   as list column
 #
-# return formated model summary table
+# return formated model summary table, with ci columns combined
 model_list_dt_to_summary_dt <- function(model_list_dt) {
-  model_summary_dt <- model_list_dt_to_model_summary_dt(model_list_dt)
-  format_model_summary_dt(model_summary_dt)
+  model_list_dt %>%
+    model_list_dt_to_model_summary_dt %>%
+    format_model_summary_dt %>%
+    combine_summary_ci
 }
 # exported functions ----
 # make the interface simpler. our internal version need intermediate steps because we need the intermediate data

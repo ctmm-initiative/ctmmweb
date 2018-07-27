@@ -1959,7 +1959,6 @@ output:
     model_list_dt[, init_ctmm := list(list(
       values$selected_data_guess_list[[identity]])), by = model_no]
     # we want to initialize it in auto fit, but refit will change it which could trigger try_models to re-evaluate.
-    cat("auto fit triggered\n")
     isolate(values$model_list_dt <- model_list_dt)
     return(res)
   })
@@ -1968,12 +1967,12 @@ output:
   summary_models <- reactive({
     # we need to reference try_models in summary_models otherwise it will not be executed.
     try_models()
-    # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values
+    # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values -- now become single row table
     summary_dt <- ctmmweb:::model_list_dt_to_summary_dt(
       req(values$model_list_dt))
-    if (input$hide_ci_model) {
-      summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
-    }
+    # if (input$hide_ci_model) {
+    #   summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
+    # }
     # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table. note this table don't have CI columns, each model only have 1 row
     model_info_dt <- unique(summary_dt[, ..model_dt_id_cols])
     # prepare model color, identity color function
@@ -1987,11 +1986,12 @@ output:
                           model_info_dt$model_name, ordered = TRUE)
     # calculate the first model row number depend on table mode (hide/show CI)
     # assuming the model table always sorted by dAICc, which should be true from model summary.
-    # each model has 3 rows, so row number is different from existing columns, and we need the row number for row selection. don't want the row number to show in the final table
-    dt <- copy(summary_dt)
-    dt[, row_no := .I]
-    model_position <- if (input$hide_ci_model) 1 else 2
-    first_models <- dt[, row_no[model_position], by = identity]$V1
+    # each model has 3 rows, so row number is different from existing columns, and we need the row number for row selection. don't want the row number to show in the final table // one row now, but model_no may not be continous sorted, with the clean up models features. still need to use row_no
+    # dt <- copy(summary_dt)  # instead of copy, create column then delete
+    summary_dt[, row_no := .I]
+    # model_position <- if (input$hide_ci_model) 1 else 2
+    first_models <- summary_dt[, row_no[1], by = identity]$V1
+    summary_dt[, row_no := NULL]
     return(list(
       # model_list_dt = values$model_list_dt,
                 summary_dt = summary_dt,
@@ -2000,7 +2000,7 @@ output:
                 first_models = first_models))
   })
   # model summary ----
-  # format model summary table as DT, also used in home range page
+  # format model summary table as DT, also used in home range page. the color need to be based on global table, so model_types, info_p need to be transfered
   render_model_summary_DT <- function(dt, model_types, info_p, selected_rows) {
     DT::datatable(dt, selection = list(mode = "multiple",
                                        selected = selected_rows,
@@ -2010,7 +2010,7 @@ output:
                                  lengthMenu = c(18, 36, 72)),
                   rownames = FALSE) %>%
       # majority cells in color by model type
-      DT::formatStyle('model_type', target = 'row',
+      DT::formatStyle('type', target = 'row',
                       color = DT::styleEqual(
                         model_types, scales::hue_pal()(length(model_types)))
       ) %>%
@@ -2018,13 +2018,14 @@ output:
       DT::formatStyle('identity', target = 'cell',
                       color = DT::styleEqual(info_p$identity,
                                              scales::hue_pal()(nrow(info_p)))
-      ) %>%
-      # override the low/high cols with background
-      DT::formatStyle('estimate', target = 'row',
-                      backgroundColor = DT::styleEqual(
-                        c("CI low", "ML" , "CI high"),
-                        c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
       )
+    # %>%
+    #   # override the low/high cols with background
+    #   DT::formatStyle('estimate', target = 'row',
+    #                   backgroundColor = DT::styleEqual(
+    #                     c("CI low", "ML" , "CI high"),
+    #                     c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
+    #   )
   }
   output$tried_models_summary <- DT::renderDT({
     # should not need to use req on reactive expression if that expression have req inside.
@@ -2032,12 +2033,14 @@ output:
     # delete extra col here so it will not be shown, need to copy first otherwise it get modified.
     # dt[, model_no := NULL]
     dt[, model_name := NULL]
+    # use shorter column names. this should only affect display table and log table, not internal structure
+    setnames(dt, c("model_no", "model_type"), c("no", "type"))
     # LOG tried models
     log_dt_md(dt, "Tried Models")
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     # base::sort have different result in linux, hosted server.
-    model_types <- stringr::str_sort(unique(dt$model_type))
+    model_types <- stringr::str_sort(unique(dt$type))
     # pre-select with init parameter instead of proxy
     render_model_summary_DT(dt, model_types, info_p,
                             summary_models()$first_models)
