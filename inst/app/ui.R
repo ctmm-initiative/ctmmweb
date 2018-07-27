@@ -698,9 +698,9 @@ range_summary_box <- box(title = "Home Range Summary",
                                          status = "primary",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
-                        column(4, checkboxInput("hide_ci_hrange",
-                                                "Hide Confidence Intervals")),
-                        column(2, offset = 6, help_button("home_range")),
+                        # column(4, checkboxInput("hide_ci_hrange",
+                        #                         "Hide Confidence Intervals")),
+                        column(2, offset = 10, help_button("home_range")),
                         column(12, DT::DTOutput("range_summary"))
                         )
 )

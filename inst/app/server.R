@@ -2240,17 +2240,19 @@ output:
   output$range_summary <- DT::renderDT({
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
                                            select_models_hranges())
+
     dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
                                                                 get_hr_levels())
     # remove extra columns to save space
-    dt[, model_no := NULL]
+    # dt[, model_no := NULL]
     dt[, model_name := NULL]
+    setnames(dt, "model_no", "no")
     # LOG home range summary
     log_dt_md(dt, "Home Range Summary")
-    if (input$hide_ci_hrange) {
-      dt <- dt[!stringr::str_detect(estimate, "CI")]
-      # dt[, estimate := NULL]
-    }
+    # if (input$hide_ci_hrange) {
+    #   dt <- dt[!stringr::str_detect(estimate, "CI")]
+    #   # dt[, estimate := NULL]
+    # }
     info_p <- values$data$merged$info
     # still use the full model type table color mapping to make it consistent.
     model_types <- stringr::str_sort(unique(
