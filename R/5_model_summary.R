@@ -126,16 +126,16 @@ hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
       summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
                                                units = FALSE,
                                                level.UD = level_value))
-      summary_dt[, model_no := i]
+      summary_dt[, model_no := model_list_dt[i, model_no]]
       summary_dt[, quantile := level_value * 100]
     })
     rbindlist(dt_list, fill = TRUE)
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
   # there is no dAICc column from summary of list of home range.
-  res_dt <- merge(model_list_dt[, .(identity, model_type, model_name, model_no)],
+  res_dt <- merge(model_list_dt[, ..model_dt_id_cols],
                   ctmm_summary_dt,
-                  by = "model_no")
+                  by = "model_no", sort = FALSE)
   # move level.UD col to after estimate
   setcolorder(res_dt,
               c(names(res_dt)[1:(ncol(res_dt) - 2)], "quantile", "area"))
@@ -212,12 +212,13 @@ format_model_summary_dt <- function(model_summary_dt) {
   format_dt_unit(dt, name_unit_list, round_by_model = FALSE)
 }
 # combine ci rows in formatted model summary table, get single row table
-combine_summary_ci <- function(summary_dt) {
+combine_summary_ci <- function(summary_dt, hrange = FALSE) {
   dt <- copy(summary_dt)  # we add columns then take subset, better make copy
   # only apply to the sub dt for each model, there are only 3 rows
   get_ci_col_name <- function(col_name) {
     stringr::str_replace(col_name, stringr::fixed("("), "CI (")
   }
+  # model page always have one model, each 3 rows. In home range one model can have multiple copy on different level.UD.
   get_ci_col_value <- function(dt, col_name) {
     ci_values <- dt[estimate %in% c("CI low", "CI high")][[col_name]]
     if (all(is.na(ci_values))) {
@@ -228,10 +229,15 @@ combine_summary_ci <- function(summary_dt) {
   }
   # columns with (, i.e. with units, the column with CI. DOF columns don't have it. note run this function on already converted function will also include ci cols as target cols. no need to check that since no that usage for now.
   target_cols <- stringr::str_subset(names(dt), stringr::fixed("("))
+  model_id_cols <- if (hrange) {
+    c("model_no", "quantile")
+  } else {
+    "model_no"
+  }
   lapply(target_cols, function(col_name) {
     new_col_name <- get_ci_col_name(col_name)
     dt[, (new_col_name) := get_ci_col_value(.SD, col_name),
-       by = model_no]
+       by = model_id_cols]
     move_last_col_after_ref(dt, col_name)
     return(dt)  # the else branch of if clause will be NULL if use if clause as last expression.
   })
@@ -291,7 +297,7 @@ flatten_models <- function(model_try_res) {
 build_hrange_list_dt <- function(selected_model_names_dt, selected_hrange_list) {
   dt <- copy(selected_model_names_dt)
   dt[, model := list(selected_hrange_list)]
-  dt[, model_no := .I]
+  # dt[, model_no := .I]  # use model_no from last table
 }
 format_hrange_summary_dt <- function(hrange_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
@@ -310,9 +316,10 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
 # return formated home range summary table
 hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt,
                                                         level.UD = 0.95) {
-  hrange_summary_dt <- hrange_list_dt_to_model_summary_dt(hrange_list_dt,
-                                                          level.UD)
-  format_hrange_summary_dt(hrange_summary_dt)
+  hrange_list_dt_to_model_summary_dt(hrange_list_dt, level.UD) %>%
+    format_hrange_summary_dt %>%
+    combine_summary_ci(hrange = TRUE)
+  # format_hrange_summary_dt(hrange_summary_dt)
 }
 # it's difficult to get a home range summary table function, because we reused same summary function and need a model name table, which is borrowed from model summary table, see build_hrange_list_dt. unless we put model name in hrange_list names, get id names, now they are combined. only build when needed. From user's perspective we can use selected model list, and go a long way inside function to get the table.
 # rebuild model_try_res from selected_model_list? then build summary. too much hassles. ask user to use regular summary?
