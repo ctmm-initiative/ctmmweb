@@ -1970,9 +1970,14 @@ output:
     # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values -- now become single row table
     summary_dt <- ctmmweb:::model_list_dt_to_summary_dt(
       req(values$model_list_dt))
-    # if (input$hide_ci_model) {
-    #   summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
-    # }
+    summary(values$model_list_dt[4, model][[1]]) # not unit problem
+    # hide ci now hide ci columns, not rows
+    if (input$hide_ci_model) {
+      # summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
+      all_cols <- names(summary_dt)
+      cols_keep <- all_cols[!stringr::str_detect(all_cols, "CI")]
+      summary_dt <- summary_dt[, ..cols_keep]
+    }
     # also need an internal table to hold full model information (not limited to selected rows subset in model table, because color pallete and mapping function need to be based on full table). identity is needed for base color, model_name (as full name) needed for color indexing, basically a full version of selected model table. note this table don't have CI columns, each model only have 1 row
     model_info_dt <- unique(summary_dt[, ..model_dt_id_cols])
     # prepare model color, identity color function
@@ -2006,11 +2011,12 @@ output:
                                        selected = selected_rows,
                                        target = 'row'),
                   options = list(scrollX = TRUE,
+                                 autoWidth = TRUE,
                                  pageLength = 18,
                                  lengthMenu = c(18, 36, 72)),
                   rownames = FALSE) %>%
       # majority cells in color by model type
-      DT::formatStyle('type', target = 'row',
+      DT::formatStyle('model_type', target = 'row',
                       color = DT::styleEqual(
                         model_types, scales::hue_pal()(length(model_types)))
       ) %>%
@@ -2034,13 +2040,13 @@ output:
     # dt[, model_no := NULL]
     dt[, model_name := NULL]
     # use shorter column names. this should only affect display table and log table, not internal structure
-    setnames(dt, c("model_no", "model_type"), c("no", "type"))
+    setnames(dt, "model_no", "no")
     # LOG tried models
     log_dt_md(dt, "Tried Models")
     # need the full info table to keep the color mapping when only a subset is selected
     info_p <- values$data$merged$info
     # base::sort have different result in linux, hosted server.
-    model_types <- stringr::str_sort(unique(dt$type))
+    model_types <- stringr::str_sort(unique(dt$model_type))
     # pre-select with init parameter instead of proxy
     render_model_summary_DT(dt, model_types, info_p,
                             summary_models()$first_models)
