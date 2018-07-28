@@ -256,7 +256,7 @@ output:
     } else {
       clean_up_error_capture(values$error_file_con)
       ERROR_CAPTURED <<- FALSE
-      log_msg("Error message directed to R Console")
+      log_msg("Error messages directed to R Console")
     }
   }
   # , ignoreInit = TRUE
