@@ -2,6 +2,7 @@
 
 S3method(pick,list)
 S3method(pick,telemetry)
+export("%>%")
 export(JS.logify)
 export(JS.onload)
 export(add_control)
@@ -37,3 +38,4 @@ export(summary_tried_models)
 export(zip_folder)
 import(ctmm)
 import(data.table)
+importFrom(magrittr,"%>%")
