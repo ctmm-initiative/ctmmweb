@@ -588,21 +588,13 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                            icon = icon("undo"),
                                            style = ctmmweb:::STYLES$page_action)),
         # adjust radiobutton vertical alignment, only change this for now. if need to change for all radiobuttons, use styles.css
-        column(8,
-               div(style = ctmmweb:::STYLES$align_up,
-                    checkboxInput("refit_tuned_only",
-                                    label = "Fine-tuned Only")
-              # radioButtons("refit_option", label = NULL, inline = TRUE,
-              #              selected = "all_selected",
-              #              choiceNames = list(div(icon("flag-checkered"),
-              #                                     HTML('&nbsp;'),
-              #                                     "Fine-tuned Only"),
-              #                                 div(icon("flag"),
-              #                                     HTML('&nbsp;'),
-              #                                     "All selected models")),
-              #              choiceValues = list("fine_tuned", "all_selected"))
-                                  )
-        ),
+        column(3, div(style = ctmmweb:::STYLES$align_up,
+                    checkboxInput("refit_tuned_only", label = "Fine-tuned Only")
+              )),
+        column(4, offset = 1, actionButton("remove_bad_models",
+                                           "Remove Suboptimals",
+                               icon = icon("trash-o"),
+                               style = ctmmweb:::STYLES$page_action)),
         column(2, offset = 0, help_button("model_selection")),
         # selection tool row
         column(12, br()),

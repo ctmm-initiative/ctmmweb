@@ -71,6 +71,7 @@ get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
   dt[name == "z", initial := fraction_internal_value]
   # didn't use the step value in ctmm. use 0.001 instead, but need to adjust for error when data is calibrated
   dt[, step := 0.001]
+  # no longer need this for calibrated data. however removing error slider caused error in getting slider value: promise already under evaluation: recursive default argument reference or earlier problems?. keep it now.
   if ("MSE" %in% names(vario)) {
     dt[name == "error", step := 1]
   }

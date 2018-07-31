@@ -2186,7 +2186,17 @@ output:
       values$model_list_dt <- new_dt
     }
   })
-
+  # remove suboptimals ----
+  observeEvent(input$remove_bad_models, {
+    # find best model in each type for every animal. note one row per model now.
+    dt <- copy(req(values$model_list_dt))
+    dt[, row_no := .I]
+    best_models <- dt[, row_no[1], by = c("identity", "model_type")]$V1
+    dt[, row_no := NULL]
+    # only keep best
+    values$model_list_dt <- NULL
+    values$model_list_dt <- dt[best_models]
+  })
   # p6. home range ----
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
