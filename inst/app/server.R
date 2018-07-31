@@ -2014,6 +2014,7 @@ output:
                                  autoWidth = TRUE,
                                  pageLength = 18,
                                  lengthMenu = c(18, 36, 72)),
+                  class = 'white-space: nowrap display',
                   rownames = FALSE) %>%
       # majority cells in color by model type
       DT::formatStyle('model_type', target = 'row',
