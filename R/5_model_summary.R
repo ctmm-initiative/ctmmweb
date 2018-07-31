@@ -13,6 +13,8 @@ move_last_col_after_ref <- function(dt, col_name) {
   }  # no need to return as it modify input
 }
 # build ctmm model summary table ----
+# names in each step of workflow
+## model_list_dt -> model_list_dt_compared -> model_summary_dt -(format)> summary_dt
 # all model related table use same key columns, so merge will be easier. otherwise need to specify all common columns.
 # model_list_dt, model_summary_dt using this. use this in merge, but not setkey, which will sort the table, but we want to sort by identity and aicc.
 model_dt_id_cols <- c("model_no", "identity", "model_type", "model_name")
@@ -83,8 +85,9 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   model_list_dt[, model_current := list(model)]
   model_list_dt[, model_tuned := FALSE]
 }
-# aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added)
+# aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added to input parameter). better to make this transition step obvious.
 # use this after try_res conversion, after merge of two model_list_dt. i.e. after auto fit and refit, each fit, merge result.
+# need to run this between model_list_dt - model_summary_dt.
 compare_models <- function(model_list_dt) {
   # summary on model list always give results sorted, with row names of list item names. reorder result to be same order of input, and function call is simpler
   get_aicc_vec <- function(model_list) {
@@ -102,7 +105,7 @@ compare_models <- function(model_list_dt) {
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt. the unformatted summary is only intermediate stage, not used in app.
 # it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and dAICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
 # expect dAICc column, always compare model before summary.
-model_list_dt_to_model_summary_dt <- function(model_list_dt) {
+model_list_dt_compared_to_model_summary_dt <- function(model_list_dt) {
   # a list of converted summary on each model
   ctmm_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
     summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
@@ -159,8 +162,8 @@ round_CIs <- function(vec, digits = 2) {
   }
 }
 # given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name. For model summary table, CI rows need to be round properly by each model. There are other tables that don't have CI rows and no model_no column. we have two usage for regular tables: data summary, outlier summary, and two usage of model tables here, make the other usage default as they are spreaded.
-# the round by CI feature may not be expected, turned off now.
-format_dt_unit <- function(dt, name_unit_list, round_by_model = FALSE) {
+# the round CI values by model feature may not be expected, turned off now. if need to turn it on, need to assign it in calling functions.
+format_dt_unit <- function(dt, name_unit_list, round_by_CI = FALSE) {
   # the col name list have error, which may not exist in some cases
   valid_col_names <- intersect(names(dt), names(name_unit_list))
   lapply(valid_col_names, function(col_name) {
@@ -170,7 +173,7 @@ format_dt_unit <- function(dt, name_unit_list, round_by_model = FALSE) {
     # dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
     # cannot use col_name variable in round_CI call, so use a temp col instead
     dt[, temp := dt[[col_name]] / best_unit$scale]
-    if (round_by_model) {
+    if (round_by_CI) {
       # could be warnings for NA input
       suppressWarnings(
         # note the individual rows rounded at individual points, but data frame print in R used highest precision. checking subset of dt showing proper digits. DT in app is showing them properly
@@ -186,30 +189,28 @@ format_dt_unit <- function(dt, name_unit_list, round_by_model = FALSE) {
   return(dt)
   # dt[, (valid_col_names) := NULL]
 }
+round_cols <- function(dt, col_name_vec, digits = 3) {
+  lapply(col_name_vec, function(col_name) {
+    dt[, (col_name) := round(dt[[col_name]], digits)]
+  })
+}
 # the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
-  # speed is m/day, need manual adjust before ctmm update on this
-  # dt[, speed := speed / (24 * 3600)]
-  # round up dof mean, area
-  dt[, `DOF mean` := round(`DOF mean`, 3)]
-  dt[, `DOF area` := round(`DOF area`, 3)]
-  dt[, dAICc := round(dAICc, 3)]
-  # NA cells should have units removed or just empty values. apply this before the column names changed with units
-  # these columns are numeric now, will have real NA instead of text of NA. not needed
-  # dt[stringr::str_detect(`tau velocity`, "^NA "),
-  #        c("tau velocity", "speed") := NA_real_]
-  # remove the duplicated values in CI rows to reduce cluter
-  dt[stringr::str_detect(estimate, "CI"),
-         c("dAICc", "DOF mean", "DOF area") := NA_real_]
+  cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "dAICc")
+  round_cols(dt, cols_roundup)
+  # empty cells will have NA since they are numeric columns.
+  # remove the duplicated values in CI rows to reduce cluter. - this is not needed with the 1 row design, but leave it in comment in case we want to switch back.
+  # dt[stringr::str_detect(estimate, "CI"),
+  #        c("dAICc", "DOF mean", "DOF area") := NA_real_]
   # need a list to hold function as element, c have same effect but list is more verbose
   name_unit_list <- list("area" = pick_unit_area,
                          "tau position" = pick_unit_seconds,
                          "tau velocity" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
-  format_dt_unit(dt, name_unit_list, round_by_model = FALSE)
+  format_dt_unit(dt, name_unit_list)
 }
 # combine ci rows in formatted model summary table, get single row table
 combine_summary_ci <- function(summary_dt, hrange = FALSE) {
@@ -251,9 +252,9 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
 #   as list column
 #
 # return formated model summary table, with ci columns combined
-model_list_dt_to_summary_dt <- function(model_list_dt) {
+model_list_dt_compared_to_summary_dt <- function(model_list_dt) {
   model_list_dt %>%
-    model_list_dt_to_model_summary_dt %>%
+    model_list_dt_compared_to_model_summary_dt %>%
     format_model_summary_dt %>%
     combine_summary_ci
 }
@@ -267,9 +268,14 @@ model_list_dt_to_summary_dt <- function(model_list_dt) {
 #' @return A `data.table` of model summary
 #' @export
 summary_tried_models <- function(model_try_res) {
-  model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
-  # use [] to make sure calling function directly will print in console.
-  model_list_dt_to_summary_dt(model_list_dt)[]
+  res <- model_try_res %>%
+    model_try_res_to_model_list_dt %>%
+    compare_models %>%
+    model_list_dt_compared_to_summary_dt
+  res[]
+  # model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
+  # # use [] to make sure calling function directly will print in console.
+  # model_list_dt_compared_to_summary_dt(model_list_dt)[]
 }
 #' Flatten model list
 #'
@@ -307,7 +313,7 @@ format_hrange_summary_dt <- function(hrange_summary_dt) {
   dt[stringr::str_detect(estimate, "CI"),
      c("DOF area", "DOF bandwidth") := NA_real_]
   name_unit_list <- list("area" = pick_unit_area)
-  format_dt_unit(dt, name_unit_list, round_by_model = FALSE)
+  format_dt_unit(dt, name_unit_list)
 }
 # Generate Formated Home Range Summary Table From Home Range List Table
 #
@@ -330,7 +336,7 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt,
 #   dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
 #   model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
 #   # use [] to make sure calling function directly will print in console.
-#   model_list_dt_to_summary_dt(model_list_dt)[]
+#   model_list_dt_compared_to_summary_dt(model_list_dt)[]
 # }
 
 # convert ctmm::overlap result matrix into data.table ----

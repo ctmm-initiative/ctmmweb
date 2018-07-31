@@ -1968,7 +1968,7 @@ output:
     # we need to reference try_models in summary_models otherwise it will not be executed.
     try_models()
     # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values -- now become single row table
-    summary_dt <- ctmmweb:::model_list_dt_to_summary_dt(
+    summary_dt <- ctmmweb:::model_list_dt_compared_to_summary_dt(
       req(values$model_list_dt))
     summary(values$model_list_dt[4, model][[1]]) # not unit problem
     # hide ci now hide ci columns, not rows
