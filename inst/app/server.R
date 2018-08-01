@@ -1852,9 +1852,9 @@ output:
   # the layers of id namespace marked with ID:
   # ID: selector called with guess/model, this is the first layer, in beginning, note ui and callModule using same value
   # selection is dynamic and need to be an unresolved reactive expression
-  callModule(tuneSelector, id = "guess", placeholder = "Fine-tune",
+  callModule(ctmmweb:::tuneSelector, id = "guess", placeholder = "Fine-tune",
              reactive(req(select_data()$info$identity)), log_msg)
-  callModule(tuneSelector, id = "model", placeholder = "Fine-tune Model",
+  callModule(ctmmweb:::tuneSelector, id = "model", placeholder = "Fine-tune Model",
              reactive(req(select_models()$info_dt$model_name)), log_msg)
   # guess_page_data() ----
   ## this reactive expression will be used as function parameter without (), so it's named like a noun.
@@ -1867,12 +1867,12 @@ output:
     vario_id <- input$`guess-tune_selected`  # need the proper id
     ctmm_obj_ref <- select_data_vario()$original_guess_list[vario_id][[1]]
     ctmm_obj_current <- values$selected_data_guess_list[vario_id][[1]]
-    get_tune_page_data(vario_list[vario_id][[1]],
+    ctmmweb:::get_tune_page_data(vario_list[vario_id][[1]],
                        ctmm_obj_ref, ctmm_obj_current,
                        input$zoom_lag_fraction, "guess-tune")  # use module id
   })
   # ID: slider module id same with the slider UI called inside selector module, `guess-tune`
-  guess_ctmm <- callModule(varioSliders, "guess-tune",
+  guess_ctmm <- callModule(ctmmweb:::varioSliders, "guess-tune",
                            guess_page_data, ctmm_colors[1:2], log_dt_md)
   # model_page_data() ----
   # using data defined later in model selection part, put code here for comparison
@@ -1887,10 +1887,10 @@ output:
       model_name == vario_id, model][[1]]
     ctmm_obj_current <- select_models()$model_list_dt[
       model_name == vario_id, model_current][[1]]
-    get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
+    ctmmweb:::get_tune_page_data(vario, ctmm_obj_ref, ctmm_obj_current,
                        input$zoom_lag_fraction, "model-tune")
   })
-  model_ctmm <- callModule(varioSliders, "model-tune",
+  model_ctmm <- callModule(ctmmweb:::varioSliders, "model-tune",
                            model_page_data, ctmm_colors[4:5], log_dt_md)
   # apply guess tuned ----
   # - is not valid in symbol, note how the id is constructed

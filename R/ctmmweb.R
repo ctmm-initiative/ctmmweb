@@ -14,6 +14,7 @@
 #' @name ctmmweb
 #' @import ctmm
 #' @import data.table
+#' @import shiny
 NULL
 
 #' Pipe operator

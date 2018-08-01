@@ -571,7 +571,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
               selected = names(ctmm_colors)[1:2])
               )
                        ),
-                column(3, offset = 0, tuneSelectorUI("guess")),
+                column(3, offset = 0, ctmmweb:::tuneSelectorUI("guess")),
                 column(3, div(style = ctmmweb:::STYLES$align_up,
                        checkboxInput("guess_error_on", "Turn on error"))),
                 column(2, offset = 0, help_button("variograms"))),
@@ -623,7 +623,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
              choiceValues = names(ctmm_colors)[3:5],
              selected = names(ctmm_colors)[3:5]))
         ),
-        column(6, offset = 2, br(), tuneSelectorUI("model")),
+        column(6, offset = 2, br(), ctmmweb:::tuneSelectorUI("model")),
         column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%"))
       )
