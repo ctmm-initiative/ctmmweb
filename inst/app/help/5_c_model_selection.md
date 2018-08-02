@@ -1,17 +1,18 @@
 ### Try Models
-- In this tab, the app will start to [test possible models in parallel](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way) for every individual in current subset.
-    + Depend on platform (Windows/Mac/Linux), different parallel processes are used. There will be a time report in console when running app in local mode. 
+- In this tab, the app will automatically [test possible models in parallel](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way) for every individual in current subset.
     + If the app was terminated by force, there could be forked R sessions remained active. It's better to clean up all R sessions in your system's task manager after force quitting the app.
-    + `data.table` is known to have conflict with `mclapply` in Mac R 3.4 with openMP. The error is 
-somewhat random, restart R session can often make it dissappear.
-- The process need information from 1st tab of `Empirical`, usually it's expected to check 3 tabs in order. 
 
-### Model Selection
-- After model fitting finished, a summary table of attempted models is shown. Individual name is colored by same color theme in visualization page. Other columns are colored by model type, so same model type will have same color. 
-- You can use the search box to filter the table. For example, `ML` will show the ML rows only, `OUF` will show OUF models only.
-- The first model for each individual is pre-selected. Selected models are applied to Variograms in modeled mode, `Home Range` and `Occurrence`. Just select models and switch to `Home Range` or `Occurrence` page will calculate by selected models. The figure height and column control also apply to them all.
-- If you selected the checkbox of `Hide Confidence Intervals`, the table will update and no rows are selected, thus the variograms above are empty. You can use the button `Select Best Models` to select first model for each animal.
-- [Related vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way), [function `ctmm.select`](https://ctmm-initiative.github.io/ctmm/reference/ctmm.fit.html)
+### Model Summary Table and Variograms
+- After model fitting finished, a summary table of attempted models is shown. Confidence intervals are shown as value pairs.
+- Animal name is colored by same color theme in visualization page. Other columns are colored by model type, so same model type will have same color. You can use the search box to filter the table. 
+- Selected models in the table will have their variograms shown below. The app always select the best model (calculated from dAICc) for each animal by default. The latter stages in app are also based on selected models, like `Home Range`, `Overlap` and `Occurrence`.
+- `Refit` button will take selected models as initial condition to fit again. Select a model from the dropdown list to fine-tune it will update the model result, and `Refit` will use updated result if available.
+- `Initial Parameter` came from the initial condition for model fitting, which could be the (fine-tuned) guesstimate value from last tab, or (fine-tuned) model result of this tab before refit.
+- `Remove Suboptimals` can remove all the less optimal models for each model type and animal.
+
+
+### Reference
+- For more information see [vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way), [`ctmm.select`](https://ctmm-initiative.github.io/ctmm/reference/ctmm.fit.html)
 - Reference table of models
 
   |Movement Models            |Position Autocorrelation  |Velocity Autocorrelation |Home Range |Parameterization |
