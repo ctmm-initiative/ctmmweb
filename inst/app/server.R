@@ -470,7 +470,7 @@ output:
   # only some data are in movebank format (other only have x,y,t, without timestamp and coordinates, app will not work)
   ctmm_dataset_info_dt <- data.table(data(package = "ctmm")[["results"]])[
     , .(Dataset = Item, Description = Title)
-    ][Dataset %in% c("buffalo")]
+    ][Dataset %in% c("buffalo", "coati")]
   output$data_set_table <- DT::renderDT({
     DT::datatable(ctmm_dataset_info_dt, options = list(dom = 't'),
                   rownames = FALSE, selection = list(mode = "single",

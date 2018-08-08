@@ -42,7 +42,8 @@ factor_fill <- function(fac) {
 }
 factor_alpha <- function(fac) {
   # scale_alpha_discrete(drop = FALSE, breaks = levels(droplevels(fac)))
-  factor_mapper(fac, ggplot2::scale_alpha_discrete)
+  # ggplot2 3.0 give warnings, have to suppress
+  suppressWarnings(factor_mapper(fac, ggplot2::scale_alpha_discrete))
 }
 # plot 2 overview
 
