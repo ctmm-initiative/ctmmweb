@@ -251,7 +251,8 @@ par_occur <- function(tele_list, model_list,
 #' waiting time in developing code that involved time consuming modeling
 #' processes. After code is tested and stablized, full size dataset can be used.
 #'
-#' @param m m even spaced points are taken from each object.
+#' @param m m even spaced points are taken from each object. If m > data size,
+#'   all points are taken.
 #'
 #' @export
 pick <- function(object, m) {UseMethod("pick")}
@@ -266,7 +267,7 @@ pick <- function(object, m) {UseMethod("pick")}
 #' @import ctmm
 pick.telemetry <- pick_tele <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
-  tele[floor(seq(from = 1, to = nrow(tele), length.out = m)), ]
+  tele[floor(seq(from = 1, to = nrow(tele), length.out = min(nrow(tele), m))), ]
 }
 
 #' @describeIn pick pick subset from each [ctmm::as.telemetry()] telemetry object

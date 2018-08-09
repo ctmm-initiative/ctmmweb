@@ -13,7 +13,8 @@ pick(object, m)
 \method{pick}{list}(tele_list, m)
 }
 \arguments{
-\item{m}{m even spaced points are taken from each object.}
+\item{m}{m even spaced points are taken from each object. If m > data size,
+all points are taken.}
 
 \item{tele}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object}
 
