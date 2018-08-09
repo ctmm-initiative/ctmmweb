@@ -141,14 +141,15 @@ assign_distance <- function(animals_dt, tele_list, device_error = 10) {
              by = group_index]
   return(animals_dt)
 }
+# coati data has speed column, may have estimated speed later. change speed column name to assigned_speed
 # the naive definition of leaving speed. the NA cleaning is not ideal
 assign_speed_leaving <- function(animals_dt, tele_list, device_error) {
-  animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
-  animals_dt[is.infinite(speed), speed := NaN]
+  animals_dt[, assigned_speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
+  animals_dt[is.infinite(assigned_speed), assigned_speed := NaN]
   # if last point n is outlier, n-1 will have high speed according to our definition, and n have no speed definition. assign n-1 speed to it. Then we don't need to clean up NA in speed too
   # this removed NaN too. The NA values caused speed outlier plot default subset to NULL. should not keep NA, NaN in speed, will cause too many troubles. could use negative value to mark
-  for (i in animals_dt[is.na(speed), which = TRUE]) {
-    animals_dt[i, speed := animals_dt[i - 1, speed]]
+  for (i in animals_dt[is.na(assigned_speed), which = TRUE]) {
+    animals_dt[i, assigned_speed := animals_dt[i - 1, assigned_speed]]
   }
   return(animals_dt)
 }
@@ -158,11 +159,11 @@ assign_speed_pmin <- function(animals_dt, tele_list, device_error) {
   # dt == 0, use the sampling resolution to estimate the time difference
   # animals_dt[inc_t == 0]
   # sampling_resolution <- gcd_vec(diff(animals_dt$t))
-  animals_dt[, speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
+  animals_dt[, assigned_speed := sqrt(inc_x ^ 2 + inc_y ^ 2) / inc_t]
   # TODO these NA cleaning are temporary. not sure which is optimal. histogram will remove infinite value but we may want to filter these points. since this is just fallback temp method and mainly rely on ctmm function, stop here now. probably should clean dup time first in separate method, maybe remove them to list with a warning. in my leaving speed just assign to point before it, which is not ideal but hide all problems.
   # animals_dt[is.na(speed)]
-  animals_dt[is.infinite(speed), speed := NaN]
-  animals_dt[, speed_min := pmin(speed, shift(speed, 1L), na.rm = TRUE), by = id]
+  animals_dt[is.infinite(assigned_speed), assigned_speed := NaN]
+  animals_dt[, speed_min := pmin(assigned_speed, shift(assigned_speed, 1L), na.rm = TRUE), by = id]
   # the extended definition of pmin, take min(1->3, 1->2), min(N-2 ->N, N-1 ->N) speed for 1 and N. 1->2 and N-1 ->N are the previous defined value, the leaving speed of 1 and N-1. using x,y,t of next point - current point to get speed for current point.
   point_1 <- animals_dt[, .I[1], by = id]
   point_N <- animals_dt[, .I[.N], by = id]
@@ -172,7 +173,7 @@ assign_speed_pmin <- function(animals_dt, tele_list, device_error) {
     y_3_1 = shift(y, 1L, type = "lead") - y,
     t_3_1 = shift(t, 1L, type = "lead") - t), by = id]
   animals_dt[point_1$V1, speed_min_n :=
-               pmin(speed, sqrt(x_3_1 ^ 2 + y_3_1 ^ 2) / t_3_1,
+               pmin(assigned_speed, sqrt(x_3_1 ^ 2 + y_3_1 ^ 2) / t_3_1,
                     na.rm = TRUE),
              by = id]
   # for N we are using N, N-2 order so still using lead, note order of t
@@ -181,13 +182,13 @@ assign_speed_pmin <- function(animals_dt, tele_list, device_error) {
     y_N_2 = y - shift(y, 1L, type = "lead"),
     t_N_2 = t - shift(t, 1L, type = "lead")), by = id]
   animals_dt[point_N$V1, speed_min_n :=
-               pmin(speed, sqrt(x_N_2 ^ 2 + y_N_2 ^ 2) / t_N_2,
+               pmin(assigned_speed, sqrt(x_N_2 ^ 2 + y_N_2 ^ 2) / t_N_2,
                     na.rm = TRUE),
              by = id]
   # View(animals_dt[c(point_1$V1, point_1$V1 + 2, point_N$V1, point_N$V1 - 2), c(1:13, 17:25), with = TRUE][order(id)])
-  # to accompany extended definition, use speed_min first, now replace the speed column.
-  animals_dt[, speed := speed_min]
-  animals_dt[c(point_1$V1, point_N$V1), speed := speed_min_n]
+  # to accompany extended definition, use speed_min first, now replace the assigned_speed column.
+  animals_dt[, assigned_speed := speed_min]
+  animals_dt[c(point_1$V1, point_N$V1), assigned_speed := speed_min_n]
   animals_dt[, c("speed_min", "x_3_1", "y_3_1", "t_3_1", "speed_min_n",
                  "x_N_2", "y_N_2", "t_N_2") := NULL]
   return(animals_dt)
@@ -202,7 +203,7 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   #            by = identity]
   # when using by = identity, each .SD don't have identity column, it's outside.
   # follow usage in ctmm::outlie, error is calculated in distance function
-  animals_dt[, speed := ctmm:::assign_speeds(
+  animals_dt[, assigned_speed := ctmm:::assign_speeds(
                           tele_list[[identity]][row_name,],
                           UERE = error)$v.t,
              by = identity]
@@ -221,8 +222,8 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
 #'
 #' @inheritParams assign_distance
 #'
-#' @return The input `data.table` with speed columns added. The name `assign`
-#'   hint on this nature.
+#' @return The input `data.table` with `assigned_speed` columns added. The name
+#'  `assign` hint on this nature.
 #' @export
 #'
 assign_speed <- function(animals_dt, tele_list, device_error = 10) {

@@ -17,8 +17,8 @@ need error information from it.}
 VHF: 100}
 }
 \value{
-The input \code{data.table} with speed columns added. The name \code{assign}
-hint on this nature.
+The input \code{data.table} with \code{assigned_speed} columns added. The name
+\code{assign} hint on this nature.
 }
 \description{
 It's difficult to get a simple speed definition yet robust to all kinds of

@@ -1089,7 +1089,7 @@ output:
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
     unit_distance <- ctmmweb:::pick_unit_distance(animals_dt$distance_center)
-    unit_speed <- ctmmweb:::pick_unit_speed(animals_dt$speed)
+    unit_speed <- ctmmweb:::pick_unit_speed(animals_dt$assigned_speed)
     # get this first otherwise the colname is changed
     dt <- animal_selected_data[, .(id, row_no,
        timestamp = ctmmweb:::format_datetime(timestamp),
@@ -1098,11 +1098,11 @@ output:
        #                          digits = 3),
        # distance_unit = unit_distance$name,
        # speed = format(speed / unit_speed$scale, digits = 3),
-       speed = speed
+       assigned_speed = assigned_speed
        # speed_unit = unit_speed$name
        )]
     name_unit_list <- list("distance_center" = ctmmweb:::pick_unit_distance,
-                           "speed" = ctmmweb:::pick_unit_speed)
+                           "assigned_speed" = ctmmweb:::pick_unit_speed)
     ctmmweb:::format_dt_unit(dt, name_unit_list)
   }
   # brush selection function
@@ -1118,7 +1118,7 @@ output:
                animals_dt <- req(bin_by_distance()$animals_dt)
              },
              speed = {
-               col_name = quote(speed)
+               col_name = quote(assigned_speed)
                format_f <- ctmmweb:::format_speed_f
                # unit_name <- " m/s"
                animals_dt <- req(bin_by_speed()$animals_dt)
@@ -1216,9 +1216,11 @@ output:
     # removed_points <- values$data$merged$data_dt[
     #   row_name %in% row_names_to_remove]
     # distance and speed color_break will add each own factor column, so two tab have different columns. we only need the extra columns minus these factor column in summary table
-    points_to_remove <- points_to_remove[, timestamp:speed]
+    # with coati data, the speed column is in earlier position, so do not make subsets now
+    # points_to_remove <- points_to_remove[, timestamp:speed]
+    # color factor columns added by distance or speed. the dt came from page data which has the factor columns even our factor function didn't modify input parameter. use fill here, alternatively we can remove color columns
     values$data$all_removed_outliers <- rbindlist(list(
-      values$data$all_removed_outliers, points_to_remove))
+      values$data$all_removed_outliers, points_to_remove), fill = TRUE)
     animals_dt <- values$data$merged$data_dt[
       !(row_name %in% values$data$all_removed_outliers[, row_name])]
     # update tele obj. more general apporach is update them according to data frame changes.
@@ -1264,29 +1266,29 @@ output:
     # animals_dt <- req(select_data()$data_dt)
     animals_dt <- req(calc_outlier()$data_dt)
     # too large UERE value will result calculated speed in 0
-    zero_speeds <- all(range(animals_dt$speed) == c(0,0))
+    zero_speeds <- all(range(animals_dt$assigned_speed) == c(0,0))
     if (zero_speeds) {
       showNotification("Calculated Speed = 0, is device error too big?",
                        type = "error")
     }
     req(!zero_speeds)
     return(ctmmweb:::color_break(input$speed_his_bins, animals_dt,
-                       "speed", ctmmweb:::format_speed_f))
+                       "assigned_speed", ctmmweb:::format_speed_f))
   })
   output$speed_histogram <- renderPlot({
     speed_binned <- req(bin_by_speed())
     animals_dt <- speed_binned$animals_dt
     # cat("dataset in speed page\n")
     # print(animals_dt[, .N, by = id])
-    g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x = speed)) +
+    g <- ggplot2::ggplot(animals_dt, ggplot2::aes(x = assigned_speed)) +
       ggplot2::geom_histogram(breaks = speed_binned$color_bin_breaks,
-                              ggplot2::aes(fill = speed_color_factor,
-                         alpha = speed_color_factor)) +
+                              ggplot2::aes(fill = assigned_speed_color_factor,
+                         alpha = assigned_speed_color_factor)) +
       # need to exclude 0 count groups
       ggplot2::geom_text(stat = 'bin', ggplot2::aes(label = ifelse(..count.. != 0, ..count.., "")),
                 vjust = -1, breaks = speed_binned$color_bin_breaks) +
-      ctmmweb:::factor_fill(animals_dt$speed_color_factor) +
-      ctmmweb:::factor_alpha(animals_dt$speed_color_factor) +
+      ctmmweb:::factor_fill(animals_dt$assigned_speed_color_factor) +
+      ctmmweb:::factor_alpha(animals_dt$assigned_speed_color_factor) +
       ggplot2::scale_x_continuous(breaks = speed_binned$non_empty_breaks,
                          labels = speed_binned$vec_formatter) +
       ggplot2::coord_cartesian(ylim = c(0, input$speed_his_y_limit)) +
@@ -1313,11 +1315,11 @@ output:
                  # alpha = ifelse(is.null(input$speed_his_brush),
                  #                0.6,
                  #                input$speed_alpha),
-                 ggplot2::aes(colour = speed_color_factor,
-                     alpha = speed_color_factor)) +
-      ctmmweb:::factor_color(animal_selected_data$speed_color_factor) +
+                 ggplot2::aes(colour = assigned_speed_color_factor,
+                     alpha = assigned_speed_color_factor)) +
+      ctmmweb:::factor_color(animal_selected_data$assigned_speed_color_factor) +
       # scale_alpha_discrete(breaks = bin_by_speed()$color_bin_breaks) +
-      ctmmweb:::factor_alpha(animal_selected_data$speed_color_factor) +
+      ctmmweb:::factor_alpha(animal_selected_data$assigned_speed_color_factor) +
       ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animals_dt$x)) +
       ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animals_dt$y)) +
       ggplot2::coord_fixed(xlim = speed_outlier_plot_range$x,
