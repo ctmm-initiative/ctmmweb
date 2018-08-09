@@ -16,3 +16,6 @@
   - `Contour`: `level.UD`. You can input a series of comma separated values like `20, 50, 95` in contours input, note they are percentage values so the real value will be `0.20, 0.50, 0.95`. 
   - `Confidence Envelopes` : `level`.
   - `Location Points` : also draw telemetry locations.
+
+### Reference
+- [K. Winner, M. J. Noonan, C. H. Fleming, K. Olson, T. Mueller, D. Sheldon, J. M. Calabrese. Statistical inference for home range overlap. Methods in Ecology and Evolution, DOI:10.1111/2041-210X.13027 (2018).](https://doi.org/10.1111/2041-210X.13027)

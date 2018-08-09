@@ -22,3 +22,9 @@
   |Ornstein–Uhlenbeck (OU)    |Yes                       |No                       |Yes        |τ = τr           |
   |Integrated OU (IOU)        |Yes                       |Yes                      |No         |τ = {∞, τv}      |
   |Ornstein-Uhlenbeck F (OUF) |Yes                       |Yes                      |Yes        |τ = {τr, τv}     |
+
+- [C. H. Fleming, J. M. Calabrese, T. Mueller, K.A. Olson, P. Leimgruber, W. F. Fagan. From fine-scale foraging to home ranges: A semi-variance approach to identifying movement modes across spatiotemporal scales. The American Naturalist, 183:5, E154-E167 (2014).](https://doi.org/10.1086/675504)
+
+- [C. H. Fleming, Y. Subasi, J. M. Calabrese. A maximum-entropy description of animal movement. Physical Review E, 91, 032107 (2015).](https://doi.org/10.1103/PhysRevE.91.032107)
+
+- [C. H. Fleming, D. Sheldon, E. Gurarie, W. F. Fagan, S. LaPoint, J. M. Calabrese. Kálmán filters for continuous-time movement models. Ecological Informatics, 40, 8-21 (2017).](https://doi.org/10.1016/j.ecoinf.2017.04.008)
