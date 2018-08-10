@@ -23,6 +23,7 @@ https://github.com/ctmm-initiative/ctmmweb
 1. Install [the latest R](https://www.r-project.org/). 
 
     Note R 3.4 bring some big changes, so it's better to upgrade all the existing packages if you have earlier version installed.
+    ggplot2 3.0 also have some breaking changes and more warnings, please upgrade ggplot2 to 3.0 as the app can only be compatible with the latest stable release.
     
     [RStudio](https://www.rstudio.com/products/rstudio/download/) is not required but recommended.
 

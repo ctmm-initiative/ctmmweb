@@ -584,31 +584,30 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
       fluidRow(
         # model summary/selection table --
         # refit tool row
-        column(2, offset = 0, actionButton("refit", "Refit",
+        column(3, offset = 0, actionButton("refit", "Refit",
                                            icon = icon("undo"),
                                            style = ctmmweb:::STYLES$page_action)),
         # adjust radiobutton vertical alignment, only change this for now. if need to change for all radiobuttons, use styles.css
         column(3, div(style = ctmmweb:::STYLES$align_up,
                     checkboxInput("refit_tuned_only", label = "Fine-tuned Only")
               )),
-        column(4, offset = 1, actionButton("remove_bad_models",
-                                           "Remove Suboptimals",
+        column(3, offset = 3, actionButton("remove_bad_models",
+                                           "Keep Best Only",
                                icon = icon("trash-o"),
                                style = ctmmweb:::STYLES$page_action)),
-        column(2, offset = 0, help_button("model_selection")),
+        column(12, DT::DTOutput("tried_models_summary")),
         # selection tool row
         column(12, br()),
         column(3, actionButton("select_1st_models", "Select Best",
-                               icon = icon("square-o"),
+                               icon = icon("check-square-o"),
                                style = ctmmweb:::STYLES$page_action)),
-        column(4, offset = 1, div(style = ctmmweb:::STYLES$align_up,
+        column(4, offset = 0, div(style = ctmmweb:::STYLES$align_up,
                                   checkboxInput("hide_ci_model",
                                                 "Hide Confidence Intervals"))),
-        column(3, offset = 1, actionButton("clear_models", "Clear Selection",
+        column(3, offset = 2, actionButton("clear_models", "Clear Selection",
                                            icon = icon("square-o"),
                                            style = ctmmweb:::STYLES$page_action)),
         # column(12, hr()),
-        column(12, DT::DTOutput("tried_models_summary")),
         # model variograms --
         column(12, hr()),
         column(4, div(style = ctmmweb:::STYLES$align_up_group,
@@ -623,7 +622,8 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
              choiceValues = names(ctmm_colors)[3:5],
              selected = names(ctmm_colors)[3:5]))
         ),
-        column(6, offset = 2, br(), ctmmweb:::tuneSelectorUI("model")),
+        column(5, offset = 1, br(), ctmmweb:::tuneSelectorUI("model")),
+        column(2, offset = 0, help_button("model_selection")),
         column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%"))
       )
@@ -720,7 +720,7 @@ overlap_plot_box <- tabBox(title = "Plot", id = "overlap_tabs", width = 12,
                      column(12,
                              plotOutput("overlap_plot_value_range",
                                         width = "99%", height = "100%")))),
-          tabPanel("Home Range",
+          tabPanel("Pairwise Plots",
            fluidRow(
              column(4, checkboxGroupInput("overlap_hrange_option", label = NULL,
                           choiceNames = list(div(icon("circle-o"),

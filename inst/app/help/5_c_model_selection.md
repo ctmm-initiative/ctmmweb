@@ -3,7 +3,7 @@
     + If the app was terminated by force, there could be forked R sessions remained active. It's better to clean up all R sessions in your system's task manager after force quitting the app.
 
 ### Model Summary Table and Variograms
-- After model fitting finished, a summary table of attempted models is shown. Confidence intervals are shown as value pairs.
+- After model fitting finished, a summary table of attempted models is shown. Confidence intervals are shown as value pairs. Note models can be less accurate when small sampled data is used.
 - Animal name is colored by same color theme in visualization page. Other columns are colored by model type, so same model type will have same color. You can use the search box to filter the table. 
 - Selected models in the table will have their variograms shown below. The app always select the best model (calculated from dAICc) for each animal by default. The latter stages in app are also based on selected models, like `Home Range`, `Overlap` and `Occurrence`.
 - `Refit` button will take selected models as initial condition to fit again. Select a model from the dropdown list to fine-tune it will update the model result, and `Refit` will use updated result if available.
