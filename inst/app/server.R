@@ -1483,7 +1483,7 @@ output:
   output$histogram_subsetting <- renderPlot({
     animal_binned <- color_bin_animal()
     g <- ggplot2::ggplot(data = animal_binned$data_dt, ggplot2::aes(x = timestamp)) +
-      ggplot2::geom_histogram(breaks = as.numeric(animal_binned$color_bin_breaks),
+      ggplot2::geom_histogram(breaks = animal_binned$color_bin_breaks,
                      fill = scales::hue_pal()(input$time_color_bins)) +
       ggplot2::scale_x_datetime(breaks = animal_binned$color_bin_breaks,
                        labels = scales::date_format("%Y-%m-%d %H:%M:%S")) +
