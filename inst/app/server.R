@@ -901,7 +901,8 @@ output:
     },
     content = function(file) {
       # LOG export current
-      log_msg("Export current data")
+      # log_msg("Export current data")
+      log_dt_md(select_data()$info, "Export current data")
       export_current_path <- file.path(session_tmpdir, "export.csv")
       fwrite(select_data()$data_dt, file = export_current_path)
       file.copy(export_current_path, file)
