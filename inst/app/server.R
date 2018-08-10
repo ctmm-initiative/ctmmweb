@@ -847,6 +847,8 @@ output:
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
     DT::selectRows(proxy_individuals, list())
   })
+  # crop data ----
+
   # select_data() ----
   # selected rows or current page, all pages start from this current subset
   # with lots of animals, the color gradient could be subtle or have duplicates
