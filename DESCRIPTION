@@ -12,15 +12,15 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1.9000
 Roxygen: list(markdown = TRUE)
-Imports: shiny,
+Imports: shiny (>= 1.1.0),
     crayon,
     rmarkdown,
     knitr,
-    data.table,
+    data.table (>= 1.11.4),
     ctmm,
     parallel,
     memoise,
-    ggplot2,
+    ggplot2 (>= 3.0.0),
     scales,
     grid,
     gridExtra,
