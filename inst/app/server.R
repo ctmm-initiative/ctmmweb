@@ -791,8 +791,11 @@ output:
     # prevent select_data to run before this finished with updated data.
     freezeReactiveValue(input, "individuals_rows_current")
     info_p <- values$data$merged$info
-    DT::datatable(info_p, options = list(pageLength = 6,
-                                     lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
+    DT::datatable(info_p,
+                  options = list(
+                    columnDefs = list(list(className = 'dt-center',
+                                           targets = "_all")),
+                    pageLength = 6, lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
       DT::formatStyle('identity', target = 'row',
                   color = DT::styleEqual(info_p$identity,
                                      scales::hue_pal()(nrow(info_p)))
@@ -2012,10 +2015,14 @@ output:
     DT::datatable(dt, selection = list(mode = "multiple",
                                        selected = selected_rows,
                                        target = 'row'),
-                  options = list(scrollX = TRUE,
-                                 autoWidth = TRUE,
-                                 pageLength = 18,
-                                 lengthMenu = c(18, 36, 72)),
+                  options = list(
+                    columnDefs = list(list(className = 'dt-center',
+                                           targets = "_all")),
+                    scrollX = TRUE,
+                    # this caused header misalignment
+                    # autoWidth = TRUE,
+                    pageLength = 18,
+                    lengthMenu = c(18, 36, 72)),
                   class = 'white-space: nowrap display',
                   rownames = FALSE) %>%
       # majority cells in color by model type
