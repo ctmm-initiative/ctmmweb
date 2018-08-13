@@ -451,13 +451,13 @@ selected_plot_box <- box(title = "Locations in Selected Time Range",
                            min = 0.05, max = 1, value = 0.1, step = 0.05,
                            width = "100%")),
          column(4, offset = 3, br(), br(),
-                actionButton("crop_loc_subset", "Crop Location Subset",
+                actionButton("crop_loc_subset", "Crop to New Subset",
                              icon = icon("crop"),
                              style = ctmmweb:::STYLES$page_action))),
-       plotOutput("selected_loc",
-                  dblclick = "selected_loc_dblclick",
+       plotOutput("loc_in_selected_time",
+                  dblclick = "loc_in_selected_time_dblclick",
                   brush = brushOpts(
-                    id = "selected_loc_brush",
+                    id = "loc_in_selected_time_brush",
                     resetOnNew = TRUE)
                   # ,
                   # width = "99%", height = "100%"
