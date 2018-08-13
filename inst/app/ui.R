@@ -235,7 +235,7 @@ location_plot_box <- tabBox(title = "Animal Locations",
             sliderInput("point_size_1", "Size of Points in Plot",
                         min = 0.05, max = 1, value = 0.1, step = 0.05,
                         width = "100%")),
-     column(3, offset = 1, br(), br(), actionButton("crop_subset",
+     column(3, offset = 1, br(), br(), actionButton("crop_loc_subset",
                                         "Crop Subset",
                                         icon = icon("crop"),
                                         style = ctmmweb:::STYLES$page_action))

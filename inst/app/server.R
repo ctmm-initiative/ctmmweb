@@ -333,8 +333,8 @@ output:
   # data hold various aspects of core data, 4 items need to be synced
   values$data <- NULL
   # important reactive value and expressions need special comments, use <--. the design need to well thought
-  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. Once it's used, no need to keep the copy. thus add it with the new time subset. We don't need to keep the dt version because we can often just use existing dt and other info. do need to verify tele and dt is synced.
-  # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting.
+  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
+  # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting. we want to save input_tele_list because we may want to reset outlier/subsetting and back to original input without importing again.
   # merged hold $data_dt and $info. we used to call $dt but it was renamed because of exported function may have naming conflict with dt. data is a more generic name with more items, data_dt is the main dt.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
@@ -397,25 +397,34 @@ output:
     # sort list by identity. only sort list, not info table. that's why we need to sort it again after time subsetting.
     ctmmweb:::sort_tele_list(tele_list)
   }
-  # update app input data with tele list, all kinds of maintenences
+  # update app input data with tele list, There are quite some maintenences needed, esp some global variables, better go through this for data changes.
   # when loading with app(data), the proxy neeed to be initialized first before calling the clear action
   proxy_individuals <- DT::dataTableProxy("individuals")
+  # update input tele list and others
   update_input_data <- function(tele_list) {
-    # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$input_tele_list <- tele_list
+    update_data(tele_list)
+  }
+  # update tele data (and dt data if available already)
+  update_data <- function(tele_list, merged = NULL) {
+    # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$tele_list <- tele_list
-    values$data$merged <- ctmmweb:::combine_tele_list(tele_list)
+    values$data$merged <- if (is.null(merged)) {
+      ctmmweb:::combine_tele_list(tele_list)
+    } else {
+      merged
+    }
     values$data$all_removed_outliers <- NULL
     values$pooled_vario_id_list <- NULL
     # values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
-    # however saveRDS save this to a 19M rds. have to put it outside of data, rebuild it when loading session. (update input will update it here)
+    # however saveRDS save this to a 19M rds (function saved with its closure?). have to put it outside of values$data, rebuild it when loading session. (update input will update it here)
     values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
     # clear previous selection
     DT::selectRows(proxy_individuals, list())
     shinydashboard::updateTabItems(session, "tabs", "plots")
-    # LOG input data updated
-    log_msg("Input data updated")
+    # LOG data updated
+    log_msg("Data updated")
   }
   # import tele input to app input data
   import_tele_to_app <- function(as_telemetry_input) {
@@ -847,8 +856,6 @@ output:
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
     DT::selectRows(proxy_individuals, list())
   })
-  # crop data ----
-
   # select_data() ----
   # selected rows or current page, all pages start from this current subset
   # with lots of animals, the color gradient could be subtle or have duplicates
@@ -903,7 +910,6 @@ output:
     },
     content = function(file) {
       # LOG export current
-      # log_msg("Export current data")
       log_dt_md(select_data()$info, "Export current data")
       export_current_path <- file.path(session_tmpdir, "export.csv")
       fwrite(select_data()$data_dt, file = export_current_path)
@@ -945,6 +951,64 @@ output:
     log_save_ggplot(g, "plot_2_overview")
   }, height = function() { input$canvas_height }, width = "auto"
   )
+  # for cropped location subset, crop from tele obj, thus generate dt from it
+  # for time subset, generate new_dt, then subset tele obj. both only apply to single animal, thus function take tele_obj instead of tele_list
+  # we can just importing everything again after tele change, but this will save a lot of computations (need more maintenance though)
+  add_new_data_set <- function(new_id, new_tele, new_dt = NULL) {
+    new_tele@info$identity <- new_id
+    # need item name, and in list for most operations. and c work with list and list, not list with item.
+    new_tele_list <- ctmmweb:::wrap_single_telemetry(new_tele)
+    # add to input tele_list, import new tele and add to dt. no need to import whole dataset, but do need to sort and update info
+    all_tele_list <- ctmmweb:::sort_tele_list(
+      c(values$data$tele_list, new_tele_list)
+    )
+    # info better take all since unit formating may change, and it's not computation intensive.
+    all_info <- ctmmweb:::info_tele_list(all_tele_list)
+    # only convert new data for dt
+    if (is.null(new_dt)) { new_dt <- ctmmweb:::tele_list_to_dt(new_tele_list) }
+    all_dt <- rbindlist(list(values$data$merged$data_dt, new_dt))
+    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
+    all_dt[, id := factor(identity)]
+    all_dt[, row_no := .I]
+    all_merged <- list(data_dt = all_dt, info = all_info)
+    update_data(all_tele_list, all_merged)
+    # LOG subset added
+    log_msg("New Dataset Added", new_id)
+    msg <- paste0(new_id, " added to data")
+    showNotification(msg, duration = 2, type = "message")
+  }
+  # 2.2.1 crop subset ----
+  # generate next name from _subset_i or _crop_i
+  next_data_set_name <- function(all_names, base_name, pattern_string){
+    matches <- stringr::str_match(all_names,
+                                  paste0(base_name, pattern_string,
+                                         "(\\d+)$"))
+    matches[is.na(matches)] <- 0
+    last_index <- max(as.numeric(matches[,2]))
+    new_suffix <- paste0(pattern_string, last_index + 1)
+    new_id <- paste0(base_name, new_suffix)
+  }
+  # similar to time subsetting
+  observeEvent(input$crop_loc_subset, {
+    if (length(input$individuals_rows_selected) != 1) {
+      showNotification(
+        "Please select single individual first before cropping",
+        type = "error", duration = 6)
+    } else {
+      brush <- input$location_plot_gg_brush
+      if (!is.null(brush)) {
+        # current data tele obj
+        tele <- select_data()$tele_list[[1]]
+        # subset by range
+        new_tele <- tele[tele$x >= brush$xmin & tele$x <= brush$xmax &
+                         tele$y >= brush$ymin & tele$y <= brush$ymax, ]
+        # set name. we have to scan all names because there could be previous crops generated from same individual
+        new_id <- next_data_set_name(values$data$merged$info$identity,
+                                     new_tele@info$identity, "_crop_")
+        add_new_data_set(new_id, new_tele)
+      }
+    }
+  })
   # 2.3 facet ----
   output$location_plot_facet_fixed <- renderPlot({
     # by convention animals_dt mean the data frame, sometimes still need some other items from list, use full expression
