@@ -847,6 +847,8 @@ output:
     # use list() instead of NULL to avoid R 3.4 warning on I(NULL). After DT fixed this warning we can change back to NULL
     DT::selectRows(proxy_individuals, list())
   })
+  # crop data ----
+
   # select_data() ----
   # selected rows or current page, all pages start from this current subset
   # with lots of animals, the color gradient could be subtle or have duplicates
@@ -1446,7 +1448,7 @@ output:
     # LOG reset removal
     log_msg("All Removed Outliers Restored")
   })
-  # p4. subsetting ----
+  # p4. time subset ----
   callModule(click_help, "time_subsetting", title = "Subset data by time",
              size = "l", file = "help/4_time_subsetting.md")
   # color_bin_animal() ----
@@ -1538,8 +1540,8 @@ output:
       DT::formatStyle(1, target = 'row', color = "#00c0ef")
   })
   # 4.3 selected locations ----
-  loc_in_selected_time_ranges <- add_zoom("loc_in_selected_time")
-  output$loc_in_selected_time <- renderPlot({
+  selected_loc_ranges <- add_zoom("selected_loc")
+  output$selected_loc <- renderPlot({
     animal_binned <- color_bin_animal()
     time_range <- values$selected_time_range
     animal_selected_data <- animal_binned$data_dt[
@@ -1553,22 +1555,13 @@ output:
       ctmmweb:::factor_color(animal_selected_data$color_bin_start) +
       ggplot2::scale_x_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data_dt$x)) +
       ggplot2::scale_y_continuous(labels = ctmmweb:::format_distance_f(animal_binned$data_dt$y)) +
-      ggplot2::coord_fixed(xlim = loc_in_selected_time_ranges$x, ylim = loc_in_selected_time_ranges$y) +
+      ggplot2::coord_fixed(xlim = selected_loc_ranges$x, ylim = selected_loc_ranges$y) +
       ggplot2::theme(legend.position = "top",
             legend.direction = "horizontal") + ctmmweb:::BIGGER_KEY
     # LOG save pic
     log_save_ggplot(g, "plot_time_subsetting_plot")
   })
-  # 4.4 location subset ----
-  # crop data to current selected time range and space range by zoom box
-  observeEvent(input$crop_loc_subset, {
-    brush <- input$loc_in_selected_time_brush
-    if (!is.null(brush)) {
-      ranges$x <- c(brush$xmin, brush$xmax)
-      ranges$y <- c(brush$ymin, brush$ymax)
-    }
-  })
-  # 4.5 time range table ----
+  # 4.4 time range table ----
   # time_subsets hold a table of time ranges for current individual, this should only live in one time subsetting process(clear in beginning, in color_bin_animal. clear after finish, when subset is generated), which is always on single individual. If user moved around pages without changing individual, the states are kept. Once generated, the new subset instance data and tele obj are inserted to values$current and kept there, which hold for all input session.
   observeEvent(input$add_time, {
     l <- list(values$time_ranges, as.data.frame(values$selected_time_range))
