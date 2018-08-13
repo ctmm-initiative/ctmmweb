@@ -183,7 +183,7 @@ output:
       if (length(input$individuals_rows_selected) != 1) {
         shinydashboard::updateTabItems(session, "tabs", "plots")
         showNotification(
-          "Please select single individual first before time subsetting",
+          "Please select single individual first before subsetting",
           type = "error", duration = 6)
       }
     }
