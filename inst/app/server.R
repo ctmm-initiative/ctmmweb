@@ -31,6 +31,10 @@ server <- function(input, output, session) {
     )
   })
   # values that hold them all ----
+  # ideally should put everything more organized. could print str() after all possible action tried, in workreport action. then organize like this:
+  # input_tele_list
+  # data:
+  # page: each page data but want to hold between pages
   values <- reactiveValues()
   # log/error options ----
   ## used lots of global variables or external variables not in function parameter(or even modified global variables), so not in package now. to move them into package need to add some parameters which become quite verbose.
@@ -331,10 +335,10 @@ output:
     }
   })
   # values$ ----
+  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it. this is put outside data because we often need to clear data while keep data. so data is derived from input, augmented in app. now saved data doesn't include this, but that's a minor point, acceptable, easy to add if needed.
   # data hold various aspects of core data, 4 items need to be synced
   values$data <- NULL
   # important reactive value and expressions need special comments, use <--. the design need to well thought
-  # input_tele_list: telemetry obj list from as.telemetry on input data: movebank download, local upload, package data. all reference of this value should wrap req around it.
   # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting. we want to save input_tele_list because we may want to reset outlier/subsetting and back to original input without importing again.
   # merged hold $data_dt and $info. we used to call $dt but it was renamed because of exported function may have naming conflict with dt. data is a more generic name with more items, data_dt is the main dt.
   # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
@@ -403,23 +407,22 @@ output:
   proxy_individuals <- DT::dataTableProxy("individuals")
   # update input tele list and others. used in importing new data into app (multiple import options)
   update_input_data <- function(tele_list) {
-    values$data$input_tele_list <- tele_list
-    update_data(tele_list)
+    values$input_tele_list <- tele_list
+    update_augmented_data(tele_list)
   }
-  # clear every item in reactiveValue. we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
-  clear_reactiveValues <- function(values) {
+  # clear every item in augmented data(everything other than input. include other global values outside data, like id_pal etc). we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
+  reset_augmented <- function(values) {
     value_list <- reactiveValuesToList(values)
     # we only need the first level items, clearing them is enough. setting a list to NULL, assigning its subitem later is OK.
     lapply(names(value_list), function(x) {
-      values[[x]] <- NULL
-    })
+      if (x != "input_tele_list") values[[x]] <- NULL
+      })
   }
-  # update tele data (and dt data if available already). augmentation on input data, like time/loc subsetting, outlier removal, calibration. keep input_tele so everything can be reset back to input.
-  update_data <- function(tele_list, merged = NULL) {
+  # update augmented data with tele_list (or merged dt/info if available). this is to keep augmented data consistent with same source. leave input_tele unchanged so everything can be reset back to input. augmentation on input data, like time/loc subsetting (add subset to data set), outlier removal, calibration. later just call this with input_tele to reset. for import just init input_tele then start
+  update_augmented_data <- function(tele_list, merged = NULL) {
     # clear values for clean state
     # TODO
-    browser()
-    clear_reactiveValues(values)
+    reset_augmented(values)
     # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$tele_list <- tele_list
     values$data$merged <- if (is.null(merged)) {
@@ -945,7 +948,7 @@ output:
     all_dt[, id := factor(identity)]
     all_dt[, row_no := .I]
     all_merged <- list(data_dt = all_dt, info = all_info)
-    update_data(all_tele_list, all_merged)
+    update_augmented_data(all_tele_list, all_merged)
     # LOG subset added
     log_msg("New Dataset Added", new_id)
     msg <- paste0(new_id, " added to data")
@@ -1481,10 +1484,11 @@ output:
   # method 1. merge data back, just reverse the remove outlier. that require add rows to tele which is not possible now? need that tele update function later. if this is doable, pros: merge dt is faster than combine; time-subset don't need to update input tele, only need to maintain current tele/dt.
   # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
-    # TODO use update_data to reset. add notes to help
-    values$data$tele_list <- values$data$input_tele_list
-    values$data$merged <- ctmmweb:::combine_tele_list(values$data$tele_list)
-    values$data$all_removed_outliers <- NULL
+    # TODO use update_augmented_data to reset. add notes to help
+    update_augmented_data(values$input_tele_list)
+    # values$data$tele_list <- values$data$input_tele_list
+    # values$data$merged <- ctmmweb:::combine_tele_list(values$data$tele_list)
+    # values$data$all_removed_outliers <- NULL
     # LOG restore to original
     log_msg("Restored to original input data")
   })
@@ -1676,12 +1680,12 @@ output:
     values$data$tele_list <- c(values$data$tele_list,
                                ctmmweb:::wrap_single_telemetry(new_tele))
     # also update input tele from original input + new tele
-    values$data$input_tele_list <- c(values$data$input_tele_list,
+    values$input_tele_list <- c(values$input_tele_list,
                                      ctmmweb:::wrap_single_telemetry(new_tele))
     # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
     # sorted_names <- sort(names(values$data$tele_list))
     values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
-    values$data$input_tele_list <- ctmmweb:::sort_tele_list(values$data$input_tele_list)
+    values$input_tele_list <- ctmmweb:::sort_tele_list(values$input_tele_list)
     values$data$merged$info <- ctmmweb:::info_tele_list(values$data$tele_list)
     values$time_ranges <- NULL
     verify_global_data()
@@ -2828,7 +2832,7 @@ output:
     },
     content = function(file) {
       # we are checking input data instead of select_data, which is the real condition that can cause error, because it's easier to check and should be in same status
-      if (is.null(values$data$input_tele_list)) {
+      if (is.null(values$input_tele_list)) {
         showNotification("No data to save", duration = 7,
                          type = "error")
       } else {
