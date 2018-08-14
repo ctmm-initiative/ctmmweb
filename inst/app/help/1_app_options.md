@@ -15,8 +15,7 @@
 - `Save Progress` button in side bar will save these data as a zip:
   - `combined_data_table.csv`: the current combined telemetry `data.table`. It can be imported into app later as csv.
   - `data.rds`: a list that can be imported into R later with `readRDS`
-    - `input_tele_list`: the original input telemetry object list
-    - `tele_list`: the current telemetry object list, for example some outliers can be removed, new time subset may be added.
+    - `tele_list`: the telemetry object list with modifications made in app, for example some outliers can be removed, new time subset may be added.
     - `merged`: list of 
       - `data`: the combined `data.table` of all animals 
       - `info`: the summary table

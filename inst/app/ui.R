@@ -401,7 +401,7 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
 all_removed_outliers_box <- box(title = "Removed Outliers",
                            status = "primary", solidHeader = TRUE, width = 12,
                fluidRow(
-                        column(3, offset = 9,
+                        column(4, offset = 8,
                                actionButton("reset_outliers",
                                       "Restore to Original",
                                       icon = icon("ban"),
