@@ -400,13 +400,16 @@ output:
   # update app input data with tele list, There are quite some maintenences needed, esp some global variables, better go through this for data changes.
   # when loading with app(data), the proxy neeed to be initialized first before calling the clear action
   proxy_individuals <- DT::dataTableProxy("individuals")
-  # update input tele list and others
+  # update input tele list and others. used in importing new data into app (multiple import options)
   update_input_data <- function(tele_list) {
     values$data$input_tele_list <- tele_list
     update_data(tele_list)
   }
-  # update tele data (and dt data if available already)
+  # update tele data (and dt data if available already). augmentation on input data, like time/loc subsetting, outlier removal, calibration. keep input_tele so everything can be reset back to input.
   update_data <- function(tele_list, merged = NULL) {
+    # clear values, but we cannot use <- NULL or <- reactiveValues as it break the reactive value. use a function to get all sub items, then assign every one to NULL. otherwise it's difficult to track all values and maintain them.
+    # TODO
+    browser()
     # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$tele_list <- tele_list
     values$data$merged <- if (is.null(merged)) {
@@ -426,7 +429,7 @@ output:
     # LOG data updated
     log_msg("Data updated")
   }
-  # import tele input to app input data
+  # import tele input to app input data. the use case will log accordingly
   import_tele_to_app <- function(as_telemetry_input) {
     update_input_data(safe_import_tele(as_telemetry_input))
     # importing should always move to visualization page.
@@ -457,7 +460,7 @@ output:
            "telemetry" %in% class(app_input_data[[1]]))) {
         # tele obj/list already, update directly
         # LOG data loaded from app()
-        log_msg("Loading telemetry data from app(shiny_app_data)")
+        log_msg("Loading telemetry data directly to app")
         isolate(update_input_data(app_input_data))
       } else {
         # when the input need to be imported
@@ -510,46 +513,7 @@ output:
     # LOG file upload. need to be outside of import_tele_to_app function because that only have the temp file path, not original file name. thus always call import_tele function with separate log msg line.
     log_msg("Importing file", input$tele_file$name)
     import_tele_to_app(input$tele_file$datapath)
-    # # also change radio button status, so it's consistent and radio button switch can be effective
-    # updateRadioButtons(session, "load_option", selected = "upload")
   })
-  # # abstract because need to do this in 2 places
-  # set_sample_data <- function() {
-  #   data("buffalo", package = "ctmm", envir = environment())
-  #   sample_data <- ctmmweb:::pick_tele_list(buffalo, input$sample_size)
-  #   # LOG use sample
-  #   log_msg("Using data", "buffalo sample from ctmm")
-  #   update_input_data(sample_data)
-  # }
-  # # observe radio button changes
-  # observeEvent(input$load_option, {
-  #   switch(input$load_option,
-  #          ctmm = {
-  #            data("buffalo", package = "ctmm", envir = environment())
-  #            # LOG use buffalo
-  #            log_msg("Using data", "buffalo from ctmm")
-  #            update_input_data(buffalo)
-  #          },
-  #          ctmm_sample = {
-  #            set_sample_data()
-  #          }
-  #          # ,
-  #          # upload = {
-  #          #   # ~the radiobutton itself doesn't upload, just reuse previously uploaded file if switched back~. cannot keep this feature now. when we upload a file by drag/drop, it will be imported, then radio button updated after import(which is needed, otherwise you cannot switch to internal data later), which trigger code here and import again.
-  #          #   # need to check NULL input from source, stop error in downstream
-  #          #   req(input$tele_file)
-  #          #   # LOG file upload.
-  #          #   log_msg("Importing file", input$tele_file$name)
-  #          #   import_tele_to_app(input$tele_file$datapath)
-  #          # }
-  #          )
-  # })
-  # # also update the app when sample size changed and is already in sample mode
-  # observeEvent(input$sample_size, {
-  #   if (input$load_option == "ctmm_sample") {
-  #     set_sample_data()
-  #   }
-  # })
   callModule(click_help, "import", title = "Data Import Options", size = "l",
              file = "help/1_import_options.md")
   # 1.2 movebank login ----
@@ -1503,14 +1467,16 @@ output:
   })
   # tried to add delete rows like the time range table, but that need to update a lot of values in proper order, the reset is easy because it just use original input. Not really need this complex operations.
   # reset outlier removal ----
+  # there are multiple possible modifications to input data now: outlier, time/loc subset, calibration. The easiest way is to keep only one version, every reset back to input. too complex to keep the in-between version. user need to save the data in between.
   # method 1. merge data back, just reverse the remove outlier. that require add rows to tele which is not possible now? need that tele update function later. if this is doable, pros: merge dt is faster than combine; time-subset don't need to update input tele, only need to maintain current tele/dt.
   # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
+    # TODO use update_data to reset. add notes to help
     values$data$tele_list <- values$data$input_tele_list
     values$data$merged <- ctmmweb:::combine_tele_list(values$data$tele_list)
     values$data$all_removed_outliers <- NULL
-    # LOG reset removal
-    log_msg("All Removed Outliers Restored")
+    # LOG restore to original
+    log_msg("Restored to original input data")
   })
   # p4. time subset ----
   callModule(click_help, "time_subsetting", title = "Subset data by time",
@@ -1650,7 +1616,7 @@ output:
       }
     }
   })
-  observeEvent(input$reset_time_sub, {
+  observeEvent(input$clear_all_time_sub, {
     values$time_ranges <- NULL
     # LOG clear
     log_msg("Time Range List Cleared")
@@ -1659,6 +1625,7 @@ output:
   # need a explicit button because once applied, the data will change and the plot and histogram will change too. the result applied to values$data, not current select_data(). also clear time_ranges, move to the visualization page.
   # update input_tele for reset_remove_outlier, but need to use the input_tele + new timesub, not current tele + new timesub to include the possible outliers. so we cannot use already updated current tele.
   observeEvent(input$generate_time_sub, {
+    # TODO use add data set function
     req(values$time_ranges)
     animal_binned <- color_bin_animal()
     # skip the new added column color_bin_start. the name of last column may change depend on other changes in data structure
