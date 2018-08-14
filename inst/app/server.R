@@ -409,7 +409,6 @@ output:
   update_data <- function(tele_list, merged = NULL) {
     # clear values, but we cannot use <- NULL or <- reactiveValues as it break the reactive value. use a function to get all sub items, then assign every one to NULL. otherwise it's difficult to track all values and maintain them.
     # TODO
-    browser()
     # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$tele_list <- tele_list
     values$data$merged <- if (is.null(merged)) {
@@ -2431,8 +2430,7 @@ output:
   # select_models_overlap() ----
   select_models_overlap <- reactive({
     # home range overlap
-    overlap_hrange <- ctmm::overlap(select_models_hranges(),
-                                    CTMM = select_models()$model_list)
+    overlap_hrange <- ctmm::overlap(select_models_hranges())
     # data.table of overlap matrix. round 4 digits because value is 0 ~ 1
     overlap_hrange %>%
       ctmmweb::overlap_matrix_to_dt() %>%

@@ -56,7 +56,7 @@ info_tele <- function(object) {
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
   # calibrated <- is_calibrated(object)
-  uere_value <- round(uere(object)["horizontal"], 3)
+  uere_value <- round(uere(object)[["horizontal"]], 3)
   # format the duration/interval units in list to make them use same unit
   data.table(identity = object@info$identity,
              start = format_datetime(t_start),
