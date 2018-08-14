@@ -30,6 +30,7 @@ server <- function(input, output, session) {
                  headerText = "App Information"
     )
   })
+  # values that hold them all ----
   values <- reactiveValues()
   # log/error options ----
   ## used lots of global variables or external variables not in function parameter(or even modified global variables), so not in package now. to move them into package need to add some parameters which become quite verbose.
@@ -405,10 +406,20 @@ output:
     values$data$input_tele_list <- tele_list
     update_data(tele_list)
   }
+  # clear every item in reactiveValue. we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
+  clear_reactiveValues <- function(values) {
+    value_list <- reactiveValuesToList(values)
+    # we only need the first level items, clearing them is enough. setting a list to NULL, assigning its subitem later is OK.
+    lapply(names(value_list), function(x) {
+      values[[x]] <- NULL
+    })
+  }
   # update tele data (and dt data if available already). augmentation on input data, like time/loc subsetting, outlier removal, calibration. keep input_tele so everything can be reset back to input.
   update_data <- function(tele_list, merged = NULL) {
-    # clear values, but we cannot use <- NULL or <- reactiveValues as it break the reactive value. use a function to get all sub items, then assign every one to NULL. otherwise it's difficult to track all values and maintain them.
+    # clear values for clean state
     # TODO
+    browser()
+    clear_reactiveValues(values)
     # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$tele_list <- tele_list
     values$data$merged <- if (is.null(merged)) {
@@ -416,8 +427,8 @@ output:
     } else {
       merged
     }
-    values$data$all_removed_outliers <- NULL
-    values$pooled_vario_id_list <- NULL
+    # values$data$all_removed_outliers <- NULL
+    # values$pooled_vario_id_list <- NULL
     # values$selected_data_model_try_res <- NULL
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     # however saveRDS save this to a 19M rds (function saved with its closure?). have to put it outside of values$data, rebuild it when loading session. (update input will update it here)
