@@ -341,7 +341,7 @@ output:
   # important reactive value and expressions need special comments, use <--. the design need to well thought
   # tele_list, merged: the telemetry version and merged data.table version of updated data reflected changes on outlier removal and time subsetting. we want to save input_tele_list because we may want to reset outlier/subsetting and back to original input without importing again.
   # merged hold $data_dt and $info. we used to call $dt but it was renamed because of exported function may have naming conflict with dt. data is a more generic name with more items, data_dt is the main dt.
-  # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals.
+  # all_removed_outliers: records of all removed outliers. original - all removed = current. the table have id column so this can work across different individuals. this one is special as data + removed = input.
   # the time subset only live in time subsetting process, the result of the process update tele_list and merged.
   # the extra column of outliers only live in outlier page. the result of the process update whole data. note may need to use column subset when operating between dt with or without extra columns.
   # for any data source changes, need to update these 4 items together.
@@ -411,6 +411,7 @@ output:
     update_augmented_data(tele_list)
   }
   # clear every item in augmented data(everything other than input. include other global values outside data, like id_pal etc). we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
+  # TODO delete individual is still manually update for now, but that's tricky
   reset_augmented <- function(values) {
     value_list <- reactiveValuesToList(values)
     # we only need the first level items, clearing them is enough. setting a list to NULL, assigning its subitem later is OK.
@@ -419,9 +420,9 @@ output:
       })
   }
   # update augmented data with tele_list (or merged dt/info if available). this is to keep augmented data consistent with same source. leave input_tele unchanged so everything can be reset back to input. augmentation on input data, like time/loc subsetting (add subset to data set), outlier removal, calibration. later just call this with input_tele to reset. for import just init input_tele then start
+  # clear values except input, assign tele_list and merged, build id_pal
   update_augmented_data <- function(tele_list, merged = NULL) {
     # clear values for clean state
-    # TODO
     reset_augmented(values)
     # need to clear existing variables, better collect all values variable in one place. cannot just reset whole values variable, will cause problem
     values$data$tele_list <- tele_list
@@ -816,6 +817,7 @@ output:
       remaining_indice <- !(values$data$merged$info$identity %in% chosen_ids)
       values$data$merged$info <- values$data$merged$info[remaining_indice]
       values$data$tele_list <- values$data$tele_list[remaining_indice]
+      values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
       verify_global_data()
       # LOG delete inidividuals
       log_msg("Individuals deleted from data ",
@@ -1484,7 +1486,6 @@ output:
   # method 1. merge data back, just reverse the remove outlier. that require add rows to tele which is not possible now? need that tele update function later. if this is doable, pros: merge dt is faster than combine; time-subset don't need to update input tele, only need to maintain current tele/dt.
   # method 2. merge input. but time subset added new data. if we update input_tele with time subset, need to use the original input tele + new time subset, not the current tele which could have outlier removed. by merging tele we didn't keep two versions. but this could be expensive in merging.
   observeEvent(input$reset_outliers, {
-    # TODO use update_augmented_data to reset. add notes to help
     update_augmented_data(values$input_tele_list)
     # values$data$tele_list <- values$data$input_tele_list
     # values$data$merged <- ctmmweb:::combine_tele_list(values$data$tele_list)
@@ -1639,7 +1640,6 @@ output:
   # need a explicit button because once applied, the data will change and the plot and histogram will change too. the result applied to values$data, not current select_data(). also clear time_ranges, move to the visualization page.
   # update input_tele for reset_remove_outlier, but need to use the input_tele + new timesub, not current tele + new timesub to include the possible outliers. so we cannot use already updated current tele.
   observeEvent(input$generate_time_sub, {
-    # TODO use add data set function
     req(values$time_ranges)
     animal_binned <- color_bin_animal()
     # skip the new added column color_bin_start. the name of last column may change depend on other changes in data structure
@@ -1664,36 +1664,38 @@ output:
     # subset tele by row_name before it changes
     # new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
     new_tele <- new_tele[new_dt$row_name,]
-    new_tele@info$identity <- new_id
+    # new_tele@info$identity <- new_id
+    add_new_data_set(new_id, new_tele, new_dt)
     # update other columns
-    new_dt[, row_name := paste0(row_name, new_suffix)]
-    # update the row name in tele data frame by new row_name column
-    row.names(new_tele) <- new_dt$row_name
-    # update data
-    all_dt <- values$data$merged$data_dt
-    all_dt <- rbindlist(list(all_dt, new_dt))
-    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
-    all_dt[, id := factor(identity)]
-    all_dt[, row_no := .I]
-    values$data$merged$data_dt <- all_dt
-    # need to wrap single obj otherwise it was flattened by c
-    values$data$tele_list <- c(values$data$tele_list,
-                               ctmmweb:::wrap_single_telemetry(new_tele))
-    # also update input tele from original input + new tele
-    values$input_tele_list <- c(values$input_tele_list,
-                                     ctmmweb:::wrap_single_telemetry(new_tele))
-    # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
-    # sorted_names <- sort(names(values$data$tele_list))
-    values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
-    values$input_tele_list <- ctmmweb:::sort_tele_list(values$input_tele_list)
-    values$data$merged$info <- ctmmweb:::info_tele_list(values$data$tele_list)
-    values$time_ranges <- NULL
-    verify_global_data()
-    # LOG subset added
-    log_msg("New Time Range Subset Added", new_id)
-    shinydashboard::updateTabItems(session, "tabs", "plots")
-    msg <- paste0(new_id, " added to data")
-    showNotification(msg, duration = 2, type = "message")
+    # do we really need this? there will be duplicate row_name, but it should be specific to tele obj, i.e. always indexing in the matching tele obj, thus no duplication.
+    # new_dt[, row_name := paste0(row_name, new_suffix)]
+    # # update the row name in tele data frame by new row_name column
+    # row.names(new_tele) <- new_dt$row_name
+    # # update data
+    # all_dt <- values$data$merged$data_dt
+    # all_dt <- rbindlist(list(all_dt, new_dt))
+    # # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
+    # all_dt[, id := factor(identity)]
+    # all_dt[, row_no := .I]
+    # values$data$merged$data_dt <- all_dt
+    # # need to wrap single obj otherwise it was flattened by c
+    # values$data$tele_list <- c(values$data$tele_list,
+    #                            ctmmweb:::wrap_single_telemetry(new_tele))
+    # # also update input tele from original input + new tele
+    # values$input_tele_list <- c(values$input_tele_list,
+    #                                  ctmmweb:::wrap_single_telemetry(new_tele))
+    # # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
+    # # sorted_names <- sort(names(values$data$tele_list))
+    # values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
+    # values$input_tele_list <- ctmmweb:::sort_tele_list(values$input_tele_list)
+    # values$data$merged$info <- ctmmweb:::info_tele_list(values$data$tele_list)
+    # values$time_ranges <- NULL
+    # verify_global_data()
+    # # LOG subset added
+    # log_msg("New Time Range Subset Added", new_id)
+    # shinydashboard::updateTabItems(session, "tabs", "plots")
+    # msg <- paste0(new_id, " added to data")
+    # showNotification(msg, duration = 2, type = "message")
   })
   output$time_ranges <- DT::renderDT({
     # it could be NULL from clear, or empty data.table from delete
