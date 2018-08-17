@@ -782,7 +782,8 @@ output:
                   options = list(
                     columnDefs = list(list(className = 'dt-center',
                                            targets = "_all")),
-                    pageLength = 6, lengthMenu = c(2, 4, 6, 8, 10, 20))) %>%
+                    pageLength = 6, lengthMenu = c(2, 4, 6, 8, 10, 20)),
+                  rownames = FALSE) %>%
       DT::formatStyle('identity', target = 'row',
                   color = DT::styleEqual(info_p$identity,
                                      scales::hue_pal()(nrow(info_p)))
