@@ -37,9 +37,23 @@ import_tele_files <- function(files) {
   ctmm::projection(tele_list) <- ctmm::median(tele_list, k = 2)
   return(tele_list)
 }
-is_calibrated <- function(tele_obj) {
-  # make sure it's logical otherwise it may return a numerical value
-  isTRUE(ctmm::uere(tele_obj)["horizontal"])
+# is_calibrated <- function(tele_obj) {
+#   # make sure it's logical otherwise it may return a numerical value
+#   isTRUE(ctmm::uere(tele_obj)["horizontal"])
+# }
+# is_calibrated <- function(tele_obj) {
+#   # integer will become index in switch, not working with 0
+#   switch(as.character(ctmm:::is.calibrated(tele_obj)),
+#          "1" = "yes",
+#          "0" = "no",
+#          NA_character_)
+# }
+uere_calibrated <- function(tele_obj) {
+  if (is_calibrated(tele_obj) != "yes") {
+    return(NA_real_)
+  } else {
+    round(ctmm::uere(tele_obj)@.Data[["all", "horizontal"]], 3)
+  }
 }
 # get single animal info in one row data frame
 info_tele <- function(object) {
@@ -56,7 +70,7 @@ info_tele <- function(object) {
   t_start <- min(object$timestamp, na.rm = TRUE)
   t_end <- max(object$timestamp, na.rm = TRUE)
   # calibrated <- is_calibrated(object)
-  uere_value <- round(uere(object)[["horizontal"]], 3)
+  uere_value <- uere_calibrated(object)
   # format the duration/interval units in list to make them use same unit
   data.table(identity = object@info$identity,
              start = format_datetime(t_start),
@@ -64,7 +78,7 @@ info_tele <- function(object) {
              interval = sampling_interval,
              duration = sampling_range,
              points = nrow(object),
-             # calibrated = calibrated
+             # calibrated = calibrated,
              uere = uere_value)
 }
 

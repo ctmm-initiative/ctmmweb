@@ -782,6 +782,7 @@ output:
                   options = list(
                     columnDefs = list(list(className = 'dt-center',
                                            targets = "_all")),
+                    scrollX = TRUE,
                     pageLength = 6, lengthMenu = c(2, 4, 6, 8, 10, 20)),
                   rownames = FALSE) %>%
       DT::formatStyle('identity', target = 'row',
