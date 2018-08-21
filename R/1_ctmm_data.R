@@ -49,7 +49,7 @@ import_tele_files <- function(files) {
 #          NA_character_)
 # }
 uere_calibrated <- function(tele_obj) {
-  if (is_calibrated(tele_obj) != "yes") {
+  if (ctmm:::is.calibrated(tele_obj) != 1) {
     return(NA_real_)
   } else {
     round(ctmm::uere(tele_obj)@.Data[["all", "horizontal"]], 3)
