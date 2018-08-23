@@ -420,7 +420,7 @@ output:
       })
   }
   # update augmented data with tele_list (or merged dt/info if available). this is to keep augmented data consistent with same source. leave input_tele unchanged so everything can be reset back to input. augmentation on input data, like time/loc subsetting (add subset to data set), outlier removal, calibration. later just call this with input_tele to reset. for import just init input_tele then start
-  # clear values except input, assign tele_list and merged, build id_pal
+  # clear values except input, assign tele_list and merged, build id_pal. all_removed_outliers will be removed so cannot restore to original, but this is acceptable. can always load original from input.
   update_augmented_data <- function(tele_list, merged = NULL) {
     # clear values for clean state
     reset_augmented(values)
@@ -790,8 +790,8 @@ output:
                                      scales::hue_pal()(nrow(info_p)))
       )
   })
-  # delete selected individuals ----
-  # update tele_list, merged data and info, all removed outliers
+  # delete individuals ----
+  # update tele_list, merged data and info.note all removed outliers will reset so cannot undo outlier removal.
   observeEvent(input$delete_individuals, {
     req(values$data)
     req(input$individuals_rows_current)
@@ -805,22 +805,21 @@ output:
                          duration = 3, type = "error")
         return()
       }
-      # begin removal. freeze plots to avoid it update before data finish sync. we cannot freeze output, but the key factor is the selected rows which will reset after table updated, which could be slower than data updates. so we freeze the row selection which will also freeze select_data. This row selection is often slower than data update, same in remove outlier
-      # tried freeze overlap table rows here to solve the double update problem of home range plot, not working.
-      # freezeReactiveValue(input, "individuals_rows_selected")
-      if (!is.null(values$data$all_removed_outliers)) {
-        values$data$all_removed_outliers <- values$data$all_removed_outliers[
-          !(identity %in% chosen_ids)
-          ]
-      }
-      values$data$merged$data_dt <- values$data$merged$data_dt[
-        !(identity %in% chosen_ids)
-      ]
-      remaining_indice <- !(values$data$merged$info$identity %in% chosen_ids)
-      values$data$merged$info <- values$data$merged$info[remaining_indice]
-      values$data$tele_list <- values$data$tele_list[remaining_indice]
-      values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
-      verify_global_data()
+      # if (!is.null(values$data$all_removed_outliers)) {
+      #   values$data$all_removed_outliers <- values$data$all_removed_outliers[
+      #     !(identity %in% chosen_ids)
+      #     ]
+      # }
+      all_dt <- values$data$merged$data_dt[ !(identity %in% chosen_ids)]
+      all_dt[, id := factor(identity)]
+      all_dt[, row_no := .I]
+      remaining_id_indice <- !(values$data$merged$info$identity %in% chosen_ids)
+      all_info <- values$data$merged$info[remaining_id_indice]
+      all_tele_list <- values$data$tele_list[remaining_id_indice]
+      update_augmented_data(all_tele_list,
+                            list(data_dt = all_dt, info = all_info))
+      # values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
+      # verify_global_data()
       # LOG delete inidividuals
       log_msg("Individuals deleted from data ",
               stringr::str_c(chosen_ids, collapse = ", "))
@@ -948,11 +947,11 @@ output:
     # only convert new data for dt
     if (is.null(new_dt)) { new_dt <- ctmmweb:::tele_list_to_dt(new_tele_list) }
     all_dt <- rbindlist(list(values$data$merged$data_dt, new_dt))
-    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
+    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same. these maintenances are needed for any individual changes in dt.
     all_dt[, id := factor(identity)]
     all_dt[, row_no := .I]
-    all_merged <- list(data_dt = all_dt, info = all_info)
-    update_augmented_data(all_tele_list, all_merged)
+    update_augmented_data(all_tele_list,
+                          list(data_dt = all_dt, info = all_info))
     # LOG subset added
     log_msg("New Dataset Added", new_id)
     msg <- paste0(new_id, " added to data")
