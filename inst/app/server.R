@@ -1055,31 +1055,38 @@ output:
                error = as.numeric(input$error_plot_mode))
   })
   # load calibration data ----
+  # just import, save tele_list to values. not uere yet. because we cannot save to values$cali_uere yet before checking manual input
   observeEvent(input$cali_file, {
     req(input$cali_file)
     # LOG file upload.
     log_msg("Loading calibration data", input$cali_file$name)
     values$cali_tele_list <- safe_import_tele(input$cali_file$datapath)
     # values$cali_uere <- ctmm::uere(values$cali_tele_list)
-    uere_value <- ctmm::uere(values$cali_tele_list)
-    updateTextInput(session, "uere_text_input",
-                    value = as.character(round(uere_value, 3)))
+    # uere_value <- ctmm::uere(values$cali_tele_list)
+    # updateTextInput(session, "uere_text_input",
+    #                 value = as.character(round(uere_value, 3)))
   })
-  # print uere of calibration data
-  # output$cali_summary <- renderPrint({
-  #   values$cali_uere <- ctmm::uere(req(values$cali_tele_list))
-  #   values$cali_uere
-  # })
+  # print uere of calibration data. just calculate on the fly
+  output$uere_print <- renderPrint({
+    ctmm::uere(req(values$cali_tele_list))
+  })
   # apply current uere value ----
   observeEvent(input$apply_uere, {
     # we need to modify the values variable, not the select_data copy
     # each item get updated, but uere on list return NULL. is calibrated also didn't return true after update.
-    # req will stop at "" (designed for this usage) so button will not work without proper value
-    # uere is always a named vector. after parsing the name is lost, need to restore it, otherwise new uere was not named properly
-    values$cali_uere <- c(horizontal = req(ctmmweb:::parse_num_text_input(
-      req(input$uere_text_input))))
+    # if input box has content, use input box. otherwise use loaded calibration data.
+    if (input$uere_text_input == "") {
+      values$cali_uere <- ctmm::uere(req(values$cali_tele_list))
+    } else {
+      # uere is always a named vector. after parsing the name is lost, need to restore it, otherwise new uere was not named properly
+      values$cali_uere <- c(horizontal = req(ctmmweb:::parse_num_text_input(
+        input$uere_text_input)))
+    }
+    # uere_by_input <- c(horizontal = req(ctmmweb:::parse_num_text_input(
+    #   input$uere_text_input)))
+    # TODO may need to be changed when ctmm changed syntax on assignment
     ctmm::uere(values$data$tele_list[select_data()$chosen_ids]) <-
-      req(values$cali_uere)
+      values$cali_uere
     # need to update data with tele input changed
     update_input_data(values$data$tele_list)
     # restore previous selection after data/table update. no selection means no selection too, also what we want.

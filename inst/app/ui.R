@@ -276,19 +276,20 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                                  "Densities" = 3),
                                      selected = 2, inline = TRUE)),
              column(4, br(), help_button("device_error")),
-             column(12, plotOutput("error_plot")),
-             column(5, h5("Load Calibration Data")),
-             column(3, h5("UERE")),
-             column(5, fileInput("cali_file",
-                                 # "Load Calibration Data"
-                                 label = NULL
-                                 )),
-             column(3, textInput("uere_text_input", label = NULL)),
-             # column(3, verbatimTextOutput("cali_summary", placeholder = TRUE)),
-             column(4, actionButton("apply_uere",
-                                    "Apply To Current",
-                                    icon = icon("wrench"),
-                                    style = ctmmweb:::STYLES$page_action))
+             column(12, plotOutput("error_plot"))),
+           fluidRow(
+             column(9, h5("Load Calibration Data")),
+             column(3, offset = 0, h5("Or input UERE")),
+             column(9, fileInput("cali_file", label = NULL, width = "100%")),
+             column(3, offset = 0, textInput("uere_text_input", label = NULL))
+           ),
+           fluidRow(
+             column(9, verbatimTextOutput("uere_print", placeholder = TRUE)),
+             column(3, offset = 0, actionButton("apply_uere",
+                                                "Apply To Current",
+                                                icon = icon("wrench"),
+                                                style = ctmmweb:::STYLES$page_action))
+           )
              # column(12, hr()),
              # column(12, h4("Set UERE Manually")),
              #
@@ -296,7 +297,7 @@ location_plot_box <- tabBox(title = "Animal Locations",
              #                        "Apply To Current",
              #                        icon = icon("wrench"),
              #                        style = ctmmweb:::STYLES$page_action))
-           ))
+           )
   )
 histogram_facet_box <- box(title = "6. Sampling Time",
                            # height = ctmmweb:::STYLES$height_hist_box,
