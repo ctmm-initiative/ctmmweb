@@ -773,17 +773,29 @@ output:
              " outliers removed from original"))
     }
   })
+  # get_data_summary_page_length() ----
+  # save last page length and use it when table refreshes across session. In one session user may have a preference, and keep it unless changed by user is fine. We want to save last non-zero page length (it will become zero in table refresh). in init we need to either use this or initial value if it's not ready yet.
+  # it need to be triggered by page length change, not page refresh. if watching table rows, it will become null when refreshing, and stop the reactive expression when we need it.
+  # with state_save, we have these variables. and by default observer ignoreNull
+  individuals_PAGE_LENGTH <- 6  # to hint this is a global variable.
+  # with an internal global variable and observe ignoreNULL, we saved the value and ignored table refresh. with initial value of global variable, it can work in beginning.
+  observeEvent(input$individuals_state$length, {
+    individuals_PAGE_LENGTH <<- input$individuals_state$length
+  })
   output$individuals <- DT::renderDT({
     req(values$data)
     # prevent select_data to run before this finished with updated data.
     freezeReactiveValue(input, "individuals_rows_current")
     info_p <- values$data$merged$info
+    # stateSave save whole table state in html5 local storage, so it's across session unless restart R. setting stateDuration to session storage
     DT::datatable(info_p,
                   options = list(
+                    stateSave = TRUE, stateDuration = -1,
                     columnDefs = list(list(className = 'dt-center',
                                            targets = "_all")),
                     scrollX = TRUE,
-                    pageLength = 6, lengthMenu = c(2, 4, 6, 8, 10, 20)),
+                    pageLength = individuals_PAGE_LENGTH,
+                    lengthMenu = c(2, 4, 6, 8, 10, 20)),
                   rownames = FALSE) %>%
       DT::formatStyle('identity', target = 'row',
                   color = DT::styleEqual(info_p$identity,
