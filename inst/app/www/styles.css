@@ -15,6 +15,11 @@
 }
 */
 
+#outlier_report {
+  display: inline-block;
+}
+
+
 #shiny-notification-panel {
   bottom: 50%;
   right: 30%;

@@ -768,7 +768,7 @@ output:
   # 2.1 data summary ----
   output$outlier_report <- renderUI({
     if (!is.null(values$data$all_removed_outliers)) {
-      h4(style = "color: #F44336;font-weight: bold;text-decoration: underline;",
+      h4(style = "color: #F44336;border: 2px solid;border-radius: 5px;padding-left: 5px;padding-right: 5px;",
          paste0(nrow(values$data$all_removed_outliers),
              " outliers removed from original"))
     }
