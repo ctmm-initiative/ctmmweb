@@ -773,7 +773,7 @@ output:
              " outliers removed from original"))
     }
   })
-  # get_data_summary_page_length() ----
+  # PAGE_LENGTH ----
   # save last page length and use it when table refreshes across session. In one session user may have a preference, and keep it unless changed by user is fine. We want to save last non-zero page length (it will become zero in table refresh). in init we need to either use this or initial value if it's not ready yet.
   # it need to be triggered by page length change, not page refresh. if watching table rows, it will become null when refreshing, and stop the reactive expression when we need it.
   # with state_save, we have these variables. and by default observer ignoreNull
@@ -798,9 +798,11 @@ output:
                     lengthMenu = c(2, 4, 6, 8, 10, 20)),
                   rownames = FALSE) %>%
       DT::formatStyle('identity', target = 'row',
-                  color = DT::styleEqual(info_p$identity,
-                                     scales::hue_pal()(nrow(info_p)))
-      )
+                      color = DT::styleEqual(info_p$identity,
+                                             scales::hue_pal()(nrow(info_p)))
+      ) %>%
+      DT::formatStyle('calibrated', color = DT::styleEqual(c("yes", "no"),
+                                                           c('green', 'red')))
   })
   # delete individuals ----
   # update tele_list, merged data and info.note all removed outliers will reset so cannot undo outlier removal.
