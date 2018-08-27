@@ -169,9 +169,8 @@ format_dt_unit <- function(dt, name_unit_list, round_by_CI = FALSE) {
   lapply(valid_col_names, function(col_name) {
     best_unit <- name_unit_list[[col_name]](dt[[col_name]])
     # creating new cols, delete old later is easier to check result. though that will cause col order changes, since new cols added in end, old cols removed. updating existing col instead
-    # when using pick unit do the convert in dt, need to round digits, this was taken care of in format functions
-    # dt[, (col_name) := round(dt[[col_name]] / best_unit$scale, 2)]
     # cannot use col_name variable in round_CI call, so use a temp col instead
+    # calculate first, round according to need later
     dt[, temp := dt[[col_name]] / best_unit$scale]
     if (round_by_CI) {
       # could be warnings for NA input
