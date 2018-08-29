@@ -1068,7 +1068,7 @@ output:
   })
   # print uere of calibration data. just calculate on the fly
   output$uere_print <- renderPrint({
-    ctmm::uere(req(values$cali_tele_list))
+    ctmm::uere.fit(req(values$cali_tele_list))
   })
   # apply current uere value ----
   observeEvent(input$apply_uere, {
@@ -1076,15 +1076,16 @@ output:
     # each item get updated, but uere on list return NULL. is calibrated also didn't return true after update.
     # if input box has content, use input box. otherwise use loaded calibration data.
     if (input$uere_text_input == "") {
-      values$cali_uere <- ctmm::uere(req(values$cali_tele_list))
+      values$cali_uere <- ctmm::uere.fit(req(values$cali_tele_list))
     } else {
       # uere is always a named vector. after parsing the name is lost, need to restore it, otherwise new uere was not named properly
-      values$cali_uere <- c(horizontal = req(ctmmweb:::parse_num_text_input(
-        input$uere_text_input)))
+      # values$cali_uere <- c(horizontal = req(ctmmweb:::parse_num_text_input(
+      #   input$uere_text_input)))
+      values$cali_uere <- req(ctmmweb:::parse_num_text_input(
+        input$uere_text_input))
     }
     # uere_by_input <- c(horizontal = req(ctmmweb:::parse_num_text_input(
     #   input$uere_text_input)))
-    # TODO may need to be changed when ctmm changed syntax on assignment
     ctmm::uere(values$data$tele_list[select_data()$chosen_ids]) <-
       values$cali_uere
     # need to update data with tele input changed
