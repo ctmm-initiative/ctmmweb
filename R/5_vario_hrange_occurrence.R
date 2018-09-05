@@ -8,7 +8,24 @@ align_curve_lists <- function(list_lst) {
     lapply(list_lst, getElement, i)  # function format of `[[`
   })
 }
+# kmeans detection ----
+detect_clusters <- function(diff_t, k){
+  cl <- stats::kmeans(diff_t, k)
+  dtv <- sapply(1:k, function(i) {
+    median(diff_t[which(cl$cluster == i)])
+  })
+  return(sort(dtv))
+}
+# need to be in a function so it's easier to run per individual
+filter_inc_t <- function(inc_t, prob = 0.05) {
+  range_to_keep <- range(quantile(inc_t, probs = c(prob, 1 - prob),
+                                  na.rm = TRUE))
+  # need to keep same number of values, so assign NA instead of return subset
+  inc_t[inc_t < range_to_keep[1] | inc_t > range_to_keep[2]] <- NA_real_
+  return(inc_t)
+}
 
+# plot ----
 # the app can use a 0.72 cex but package functions may need a smaller default.
 # S3 generic on list https://github.com/ctmm-initiative/ctmm/blob/master/R/generic.R#L109
 # plot.list <- ctmm:::plot.list

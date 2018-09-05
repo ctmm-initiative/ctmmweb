@@ -5,10 +5,6 @@
 - `Absolute` mode operate on the max Time-lag range individual in group, and all others scaled with same X, Y axes for easier comparison.
 - `Relative` mode zoom every plot by fraction of their own Time-lag range. The X, Y axes are not synced.
 
-### Schedule
-- Check [vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#irregular-sampling-schedules) and [`?variogram`](https://ctmm-initiative.github.io/ctmm/reference/variogram.html) for details about `Multiple Sampling Schedules`.
-- Select animal from the `Identities` dropdown list, input the time intervals in comma separated format, click `Add` to set the schedule for selected animals.
-
 ### Pool
 - You can use pool variogram to replace the individual variogram, and it will be used for modeling.
 

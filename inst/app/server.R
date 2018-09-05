@@ -1733,6 +1733,8 @@ output:
   # p5. variogram ----
   callModule(click_help, "vario_control", title = "Plot Controls",
              size = "l", file = "help/5_a_vario_control.md")
+  callModule(click_help, "vario_schedule", title = "Multiple Schedule ",
+             size = "l", file = "help/5_a_2_vario_schedule.md")
   callModule(click_help, "variograms", title = "Variograms",
              size = "l", file = "help/5_b_variograms.md")
   # various curve colors in variogram, tuned color is brighter variant
@@ -1783,6 +1785,60 @@ output:
   })
   observeEvent(input$reset_vario_intervals, {
     values$multi_schedule_dt <- NULL
+  })
+  # detect with kmeans ----
+  # detect_schedules() ----
+  detect_schedules <- reactive({
+    if(input$enable_kmeans) {
+      dt <- copy(select_data()$data_dt)
+      # add inc_t columns
+      dt[, inc_t := t - shift(t, 1L), by = id]
+      dt[, inc_t_filtered := filter_inc_t(inc_t, prob = input$k_prob), by = id]
+      # wanted to use id as we want to keep the color mapping in subset, but factor cannot get join work.
+      kmeans_dt <- data.table(identity = unique(dt$identity),
+                              k = input$k_slider)
+      res <- lapply(1:nrow(kmeans_dt), function(i) {
+        ctmmweb:::detect_clusters(
+          na.omit(dt[identity == kmeans_dt[i, identity], inc_t_filtered]),
+          kmeans_dt[i, k])
+      })
+      kmeans_dt[, clusters := .(res)]
+      clusters_dt <- kmeans_dt[, unlist(clusters), by = identity]
+      # join with id factor column to keep color mapping
+      clusters_dt <- merge(clusters_dt, unique(dt, by = "id")[, .(identity, id)], by = "identity")
+      return(list(kmeans_dt = kmeans_dt, clusters_dt = clusters_dt))
+    }
+  })
+  # enable extra UI with checkbox. note the place holder have _ui as id postfix
+  output$k_prob_ui <- renderUI({
+    if(input$enable_kmeans) {
+      sliderInput("k_prob", label = "Filter Outlier",
+                  min = 0, max = 0.2, value = 0.05, step = 0.01)
+    }
+  })
+  output$kmeans_bins_ui <- renderUI({
+    if(input$enable_kmeans) {
+      sliderInput("k_prob", label = "Filter Outlier",
+                  min = 0, max = 0.2, value = 0.05, step = 0.01)
+    }
+  })
+  output$k_slider_ui <- renderUI({
+    if(input$enable_kmeans) {
+      sliderInput("k_slider", label = "k",
+                  min = 1, max = 5, value = 2, step = 1)
+    }
+  })
+  output$kmeans_table_ui <- renderUI({
+    if(input$enable_kmeans) {
+      DT::DTOutput("kmeans_table")
+    }
+  })
+  output$kmeans_table <- DT::renderDT(req(detect_schedules()$kmeans_dt))
+  output$kmeans_hist_ui <- renderUI({
+    if(input$enable_kmeans) {
+
+
+    }
   })
   # pool vario ----
   ## just create a list of pooled ids. each item is a vector of ids. processed in select_data_vario. to keep the UI simple, no need for a DT table, as the result is obvious in plot titles.
