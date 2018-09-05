@@ -885,8 +885,9 @@ output:
     updateSelectInput(session, "pool_vario_ids", choices = info$identity)
     values$multi_schedule_dt <- NULL
     # init k as 2, use slider to modify selectively
-    values$kmeans_dt <- data.table(identity = unique(animals_dt$identity),
-                                   k = 2)
+    values$kmeans_control_dt <- data.table(identity =
+                                             unique(animals_dt$identity),
+                                           k = 2)
     values$pooled_vario_dt <- NULL
     # LOG current selected individuals
     log_dt_md(info, "Current selected individuals")
@@ -1814,41 +1815,42 @@ output:
       )
     }
   })
-  # values$kmeans_dt was initialized in select_data()
+  # values$kmeans_control_dt was initialized in select_data()
   observeEvent(input$k_slider, {
     req(input$kmeans_table_rows_selected)
-    dt <- copy(values$kmeans_dt)
+    dt <- copy(values$kmeans_control_dt)
     dt[input$kmeans_table_rows_selected, k := input$k_slider]
-    values$kmeans_dt <- NULL
-    values$kmeans_dt <- dt
+    values$kmeans_control_dt <- NULL
+    values$kmeans_control_dt <- dt
   })
   # detect_schedules() ----
+  # need to separate the k control table from the kmeans result, otherwise k changed -> result changed -> trigger table change and reactive change again. if only reading isolated, k changes will not trigger reevaluate.
+  # instead, make left part as k_control_dt, which is reactive value initialized, controlled by slider. reactive expression here just read it and get result as part of expression, which were shown as table. expression doesn't change control table.
   detect_schedules <- reactive({
     if(input$enable_kmeans) {
       dt <- copy(select_data()$data_dt)
-      # need to read value first in isolated mode(otherwise the later change will trigger the expression reevaluate here, cause infinite loop), then modify it in the end with assigning to NULL to trigger changes.
-      kmeans_dt <- isolate(values$kmeans_dt)
+      kmeans_dt <- copy(values$kmeans_control_dt)
       # add inc_t columns
       dt[, inc_t := t - shift(t, 1L), by = id]
       dt[, inc_t_filtered := ctmmweb:::filter_inc_t(inc_t,
                                                     prob = input$k_prob),
          by = id]
       # wanted to use id as we want to keep the color mapping in subset, but factor cannot get join work.
-      res <- lapply(1:nrow(req(kmeans_dt)), function(i) {
+      res <- lapply(1:nrow(kmeans_dt), function(i) {
         ctmmweb:::detect_clusters(
           na.omit(dt[identity == kmeans_dt[i, identity], inc_t_filtered]),
           kmeans_dt[i, k])
       })
       kmeans_dt[, clusters := .(res)]
       # otherwise it will not trigger changes in table output
-      values$kmeans_dt <- NULL
-      values$kmeans_dt <- kmeans_dt
+      # values$kmeans_dt <- NULL
+      # values$kmeans_dt <- kmeans_dt
       # values$kmeans_dt[, clusters := .(res)]
       clusters_dt <- kmeans_dt[, unlist(clusters), by = identity]
       # join with id factor column to keep color mapping
       clusters_dt <- merge(unique(dt, by = "id")[, .(identity, id)],
                            clusters_dt, by = "identity", all.x = TRUE)
-      return(list(dt = dt, clusters_dt = clusters_dt))
+      return(list(dt = dt, kmeans_dt = kmeans_dt, clusters_dt = clusters_dt))
     }
   })
   output$kmeans_hist <- renderPlot({
@@ -1864,8 +1866,9 @@ output:
       ggplot2::facet_grid(id ~ .)
   })
   # when too much data was filtered, there may only have one cluster while k > 1, had error "more cluster centers than distinct data points."
+
   output$kmeans_table <- DT::renderDT(
-    DT::datatable(req(values$kmeans_dt),
+    DT::datatable(req(detect_schedules()$kmeans_dt),
                   options = list(columnDefs =
                                    list(list(className = 'dt-center',
                                              targets = "_all"))),
