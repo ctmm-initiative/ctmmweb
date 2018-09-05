@@ -1826,33 +1826,40 @@ output:
   detect_schedules <- reactive({
     if(input$enable_kmeans) {
       dt <- copy(select_data()$data_dt)
+      # need to read value first in isolated mode(otherwise the later change will trigger the expression reevaluate here, cause infinite loop), then modify it in the end with assigning to NULL to trigger changes.
+      kmeans_dt <- isolate(values$kmeans_dt)
       # add inc_t columns
       dt[, inc_t := t - shift(t, 1L), by = id]
       dt[, inc_t_filtered := ctmmweb:::filter_inc_t(inc_t,
                                                     prob = input$k_prob),
          by = id]
       # wanted to use id as we want to keep the color mapping in subset, but factor cannot get join work.
-      res <- lapply(1:nrow(req(values$kmeans_dt)), function(i) {
+      res <- lapply(1:nrow(req(kmeans_dt)), function(i) {
         ctmmweb:::detect_clusters(
-          na.omit(dt[identity == values$kmeans_dt[i, identity], inc_t_filtered]),
-          values$kmeans_dt[i, k])
+          na.omit(dt[identity == kmeans_dt[i, identity], inc_t_filtered]),
+          kmeans_dt[i, k])
       })
-      values$kmeans_dt[, clusters := .(res)]
-      clusters_dt <- values$kmeans_dt[, unlist(clusters), by = identity]
+      kmeans_dt[, clusters := .(res)]
+      # otherwise it will not trigger changes in table output
+      values$kmeans_dt <- NULL
+      values$kmeans_dt <- kmeans_dt
+      # values$kmeans_dt[, clusters := .(res)]
+      clusters_dt <- kmeans_dt[, unlist(clusters), by = identity]
       # join with id factor column to keep color mapping
-      clusters_dt <- merge(clusters_dt, unique(dt, by = "id")[, .(identity, id)], by = "identity")
+      clusters_dt <- merge(unique(dt, by = "id")[, .(identity, id)],
+                           clusters_dt, by = "identity", all.x = TRUE)
       return(list(dt = dt, clusters_dt = clusters_dt))
     }
   })
-
   output$kmeans_hist <- renderPlot({
     dt <- req(detect_schedules())$dt
     clusters_dt <- detect_schedules()$clusters_dt
     ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered, fill = id)) +
       ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE, show.legend = FALSE) +
-      geom_point(data = clusters_dt, aes(x = V1, y = 0),
+      geom_point(data = clusters_dt, aes(x = V1, y = 0), na.rm = TRUE,
                  color = "blue", shape = 2, show.legend = FALSE) +
-      geom_text_repel(data = clusters_dt, aes(x = V1, y = 0, label = V1)) +
+      geom_text_repel(data = na.omit(clusters_dt),
+                      aes(x = V1, y = 0, label = V1)) +
       ggplot2::xlab("Filtered Sampling Schedules(seconds)") +
       ggplot2::facet_grid(id ~ .)
   })

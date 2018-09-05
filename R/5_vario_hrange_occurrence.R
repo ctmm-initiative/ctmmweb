@@ -10,7 +10,12 @@ align_curve_lists <- function(list_lst) {
 }
 # kmeans detection ----
 detect_clusters <- function(diff_t, k){
-  cl <- stats::kmeans(diff_t, k)
+  cl <- try(stats::kmeans(diff_t, k))
+  if (class(cl) == "try-error") {
+    shiny::showNotification("Error in kmeans, check error messages",
+                            duration = 5, type = "error")
+    return(NULL)
+  }
   dtv <- sapply(1:k, function(i) {
     median(diff_t[which(cl$cluster == i)])
   })
