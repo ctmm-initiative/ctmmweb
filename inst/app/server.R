@@ -1793,7 +1793,9 @@ output:
       dt <- copy(select_data()$data_dt)
       # add inc_t columns
       dt[, inc_t := t - shift(t, 1L), by = id]
-      dt[, inc_t_filtered := filter_inc_t(inc_t, prob = input$k_prob), by = id]
+      dt[, inc_t_filtered := ctmmweb:::filter_inc_t(inc_t,
+                                                    prob = input$k_prob),
+         by = id]
       # wanted to use id as we want to keep the color mapping in subset, but factor cannot get join work.
       kmeans_dt <- data.table(identity = unique(dt$identity),
                               k = input$k_slider)
@@ -1806,40 +1808,46 @@ output:
       clusters_dt <- kmeans_dt[, unlist(clusters), by = identity]
       # join with id factor column to keep color mapping
       clusters_dt <- merge(clusters_dt, unique(dt, by = "id")[, .(identity, id)], by = "identity")
-      return(list(kmeans_dt = kmeans_dt, clusters_dt = clusters_dt))
+      return(list(dt = dt, kmeans_dt = kmeans_dt, clusters_dt = clusters_dt))
     }
   })
   # enable extra UI with checkbox. note the place holder have _ui as id postfix
-  output$k_prob_ui <- renderUI({
+  output$kmeans_extra_ui <- renderUI({
     if(input$enable_kmeans) {
-      sliderInput("k_prob", label = "Filter Outlier",
-                  min = 0, max = 0.2, value = 0.05, step = 0.01)
+      tagList(
+        fluidRow(
+          column(5, offset = 0,
+                 sliderInput("k_prob", label = "Filter Outlier",
+                             min = 0, max = 0.2, value = 0.05, step = 0.01)),
+          column(5, offset = 2,
+                 sliderInput("kmeans_bins", label = "Histogram Bins",
+                             min = 1, max = 15, value = 7, step = 1))
+        ),
+        fluidRow(column(12, plotOutput("kmeans_hist"))),
+        fluidRow(
+          # disable minor ticks
+          tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
+          column(4, offset = 4,
+                 sliderInput("k_slider", label = "k",
+                             min = 1, max = 5, value = 2, step = 1)),
+          column(12, DT::DTOutput("kmeans_table"))
+        )
+      )
     }
   })
-  output$kmeans_bins_ui <- renderUI({
-    if(input$enable_kmeans) {
-      sliderInput("k_prob", label = "Filter Outlier",
-                  min = 0, max = 0.2, value = 0.05, step = 0.01)
-    }
-  })
-  output$k_slider_ui <- renderUI({
-    if(input$enable_kmeans) {
-      sliderInput("k_slider", label = "k",
-                  min = 1, max = 5, value = 2, step = 1)
-    }
-  })
-  output$kmeans_table_ui <- renderUI({
-    if(input$enable_kmeans) {
-      DT::DTOutput("kmeans_table")
-    }
+  output$kmeans_hist <- renderPlot({
+    dt <- req(detect_schedules())$dt
+    clusters_dt <- detect_schedules()$clusters_dt
+    ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered, fill = id)) +
+      ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE) +
+      geom_point(data = clusters_dt, aes(x = V1, y = 0),
+                 color = "blue", shape = 2) +
+      geom_text_repel(data = clusters_dt, aes(x = V1, y = 0, label = V1)) +
+      ggplot2::xlab("Cleaned Sampling Schedules(seconds)") +
+      ggplot2::facet_grid(id ~ .)
   })
   output$kmeans_table <- DT::renderDT(req(detect_schedules()$kmeans_dt))
-  output$kmeans_hist_ui <- renderUI({
-    if(input$enable_kmeans) {
 
-
-    }
-  })
   # pool vario ----
   ## just create a list of pooled ids. each item is a vector of ids. processed in select_data_vario. to keep the UI simple, no need for a DT table, as the result is obvious in plot titles.
   # each pooled variogram replace the individual variogram, the plot only plot one copy, but underlying list stay the same, keep the variogram:individual 1:1 mapping. multi schedule, pool all reflected on variogram object, change plot title but not the variogram list name, keep the other tabs consistent.
