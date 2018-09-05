@@ -1839,14 +1839,21 @@ output:
     dt <- req(detect_schedules())$dt
     clusters_dt <- detect_schedules()$clusters_dt
     ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered, fill = id)) +
-      ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE) +
+      ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE, show.legend = FALSE) +
       geom_point(data = clusters_dt, aes(x = V1, y = 0),
-                 color = "blue", shape = 2) +
+                 color = "blue", shape = 2, show.legend = FALSE) +
       geom_text_repel(data = clusters_dt, aes(x = V1, y = 0, label = V1)) +
-      ggplot2::xlab("Cleaned Sampling Schedules(seconds)") +
+      ggplot2::xlab("Filtered Sampling Schedules(seconds)") +
       ggplot2::facet_grid(id ~ .)
   })
-  output$kmeans_table <- DT::renderDT(req(detect_schedules()$kmeans_dt))
+  # when too much data was filtered, there may only have one cluster while k > 1, had error "more cluster centers than distinct data points."
+  output$kmeans_table <- DT::renderDT(
+    DT::datatable(req(detect_schedules()$kmeans_dt),
+                  options = list(columnDefs =
+                                   list(list(className = 'dt-center',
+                                             targets = "_all"))),
+                  rownames = FALSE)
+    )
 
   # pool vario ----
   ## just create a list of pooled ids. each item is a vector of ids. processed in select_data_vario. to keep the UI simple, no need for a DT table, as the result is obvious in plot titles.
