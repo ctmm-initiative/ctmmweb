@@ -437,9 +437,6 @@ output:
     # this need to be built with full data, put as a part of values$data so it can be saved in session saving. if outside data, old data's value could be left to new data when updated in different route.
     # however saveRDS save this to a 19M rds (function saved with its closure?). have to put it outside of values$data, rebuild it when loading session. (update input will update it here)
     values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
-    # update data summary table without refreshing table. note the column need to be same.
-    DT::replaceData(proxy_individuals, values$data$merged$info,
-                    resetPaging = FALSE)
     # clear previous selection
     DT::selectRows(proxy_individuals, list())
     shinydashboard::updateTabItems(session, "tabs", "plots")
@@ -782,18 +779,18 @@ output:
   # with state_save, we have these variables. and by default observer ignoreNull
   individuals_PAGE_LENGTH <- 6  # to hint this is a global variable.
   # with an internal global variable and observe ignoreNULL, we saved the value and ignored table refresh. with initial value of global variable, it can work in beginning.
-  # observeEvent(input$individuals_state$length, {
-  #   individuals_PAGE_LENGTH <<- input$individuals_state$length
-  # })
+  observeEvent(input$individuals_state$length, {
+    individuals_PAGE_LENGTH <<- input$individuals_state$length
+  })
   output$individuals <- DT::renderDT({
     req(values$data)
     # prevent select_data to run before this finished with updated data.
     freezeReactiveValue(input, "individuals_rows_current")
-    info_p <- isolate(values$data$merged$info)
+    info_p <- values$data$merged$info
     # stateSave save whole table state in html5 local storage, so it's across session unless restart R. setting stateDuration to session storage
     DT::datatable(info_p,
                   options = list(
-                    # stateSave = TRUE, stateDuration = -1,
+                    stateSave = TRUE, stateDuration = -1,
                     columnDefs = list(list(className = 'dt-center',
                                            targets = "_all")),
                     scrollX = TRUE,
@@ -807,7 +804,6 @@ output:
       DT::formatStyle('calibrated', color = DT::styleEqual(c("yes", "no"),
                                                            c('green', 'red')))
   })
-
   # delete individuals ----
   # update tele_list, merged data and info.note all removed outliers will reset so cannot undo outlier removal.
   observeEvent(input$delete_individuals, {
