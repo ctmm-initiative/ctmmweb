@@ -1842,10 +1842,6 @@ output:
           kmeans_dt[i, k])
       })
       kmeans_dt[, clusters := .(res)]
-      # otherwise it will not trigger changes in table output
-      # values$kmeans_dt <- NULL
-      # values$kmeans_dt <- kmeans_dt
-      # values$kmeans_dt[, clusters := .(res)]
       clusters_dt <- kmeans_dt[, unlist(clusters), by = identity]
       # join with id factor column to keep color mapping
       clusters_dt <- merge(unique(dt, by = "id")[, .(identity, id)],
@@ -1863,10 +1859,10 @@ output:
       geom_text_repel(data = na.omit(clusters_dt),
                       aes(x = V1, y = 0, label = V1)) +
       ggplot2::xlab("Filtered Sampling Schedules(seconds)") +
-      ggplot2::facet_grid(id ~ .)
+      ggplot2::facet_grid(id ~ .) +
+      ctmmweb:::BIGGER_THEME
   })
   # when too much data was filtered, there may only have one cluster while k > 1, had error "more cluster centers than distinct data points."
-
   output$kmeans_table <- DT::renderDT(
     DT::datatable(req(detect_schedules()$kmeans_dt),
                   options = list(columnDefs =
@@ -1874,7 +1870,6 @@ output:
                                              targets = "_all"))),
                   rownames = FALSE)
     )
-
   # pool vario ----
   ## just create a list of pooled ids. each item is a vector of ids. processed in select_data_vario. to keep the UI simple, no need for a DT table, as the result is obvious in plot titles.
   # each pooled variogram replace the individual variogram, the plot only plot one copy, but underlying list stay the same, keep the variogram:individual 1:1 mapping. multi schedule, pool all reflected on variogram object, change plot title but not the variogram list name, keep the other tabs consistent.

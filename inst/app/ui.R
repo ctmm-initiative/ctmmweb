@@ -522,18 +522,8 @@ tabPanel("Schedule",
                                                 "Auto detect with kmeans"),
                                 value = FALSE, width = "100%")),
         column(2, help_button("vario_schedule"))),
-      fluidRow(column(12, uiOutput("kmeans_extra_ui"))),
-      # fluidRow(
-      #   column(5, offset = 0, uiOutput("k_prob_ui")),
-      #   column(5, offset = 2, uiOutput("kmeans_bins_ui"))
-      #   ),
-      # fluidRow(12, uiOutput("kmeans_hist_ui")),
-      # fluidRow(
-      #   # disable minor ticks
-      #   tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
-      #   column(5, offset = 0, uiOutput("k_slider_ui")),
-      #   column(12, uiOutput("kmeans_table_ui"))
-      #   ),
+      fluidRow(column(12, uiOutput("kmeans_extra_ui")),
+               column(12, hr())),
       # adding intervals --
       fluidRow(
         # choices updated in server side
