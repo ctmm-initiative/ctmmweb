@@ -1808,18 +1808,20 @@ output:
           # disable minor ticks
           tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"),
           column(4, offset = 4,
-                 sliderInput("k_slider", label = "Selected k",
-                             min = 1, max = 5, value = 2, step = 1)),
+                 numericInput("k_input", "Change k for selected", value = 2,
+                              min = 1, max = 5, step = 1)),
+                 # sliderInput("k_slider", label = "Selected k",
+                 #             min = 1, max = 5, value = 2, step = 1)),
           column(12, DT::DTOutput("kmeans_table"))
         )
       )
     }
   })
   # values$kmeans_control_dt was initialized in select_data()
-  observeEvent(input$k_slider, {
+  observeEvent(input$k_input, {
     req(input$kmeans_table_rows_selected)
     dt <- copy(values$kmeans_control_dt)
-    dt[input$kmeans_table_rows_selected, k := input$k_slider]
+    dt[input$kmeans_table_rows_selected, k := input$k_input]
     values$kmeans_control_dt <- NULL
     values$kmeans_control_dt <- dt
   })
