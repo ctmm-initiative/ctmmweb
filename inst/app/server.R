@@ -1837,10 +1837,14 @@ output:
       dt[, inc_t_filtered := ctmmweb:::filter_inc_t(inc_t,
                                                     prob = input$k_prob),
          by = id]
+      unit_picked <- ctmmweb:::pick_unit_seconds(dt$inc_t_filtered)
+      dt[, inc_t_filtered_converted := round(
+        inc_t_filtered / unit_picked$scale, 2)]
       # wanted to use id as we want to keep the color mapping in subset, but factor cannot get join work.
       res <- lapply(1:nrow(kmeans_dt), function(i) {
         ctmmweb:::detect_clusters(
-          na.omit(dt[identity == kmeans_dt[i, identity], inc_t_filtered]),
+          na.omit(dt[identity == kmeans_dt[i, identity],
+                     inc_t_filtered_converted]),
           kmeans_dt[i, k])
       })
       kmeans_dt[, clusters := .(res)]
@@ -1848,20 +1852,28 @@ output:
       # join with id factor column to keep color mapping
       clusters_dt <- merge(unique(dt, by = "id")[, .(identity, id)],
                            clusters_dt, by = "identity", all.x = TRUE)
-      return(list(dt = dt, kmeans_dt = kmeans_dt, clusters_dt = clusters_dt))
+
+      # the column is rendered with values too close in DT. need to convert to a better format. cannot update original column because different types list/characters. need to update it after clusters_dt is calculated because the fixed column name is easier
+      formated_col_name <- paste0("cluster_center(", unit_picked$name, ")")
+      kmeans_dt[, (formated_col_name) := paste(round(clusters[[1]], 2), collapse = ", "), by = 1:nrow(kmeans_dt)]
+      kmeans_dt[, clusters := NULL]
+      return(list(dt = dt, unit_picked = unit_picked,
+                  kmeans_dt = kmeans_dt, clusters_dt = clusters_dt))
     }
   })
   output$kmeans_hist <- renderPlot({
     dt <- req(detect_schedules())$dt
     clusters_dt <- detect_schedules()$clusters_dt
     # need to use fully qualified format after copied code from rmd, test with clean session, otherwise ggplot2 is loaded.
-    ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered, fill = id)) +
+    ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered_converted, fill = id)) +
       ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE, show.legend = FALSE) +
-      ggplot2::geom_point(data = clusters_dt, ggplot2::aes(x = V1, y = 0), na.rm = TRUE,
-                 color = "blue", shape = 2, show.legend = FALSE) +
+      ggplot2::geom_point(data = clusters_dt, ggplot2::aes(x = V1, y = 0),
+                          na.rm = TRUE, color = "blue", shape = 2,
+                          show.legend = FALSE) +
       ggrepel::geom_text_repel(data = na.omit(clusters_dt),
                                ggplot2::aes(x = V1, y = 0, label = V1)) +
-      ggplot2::xlab("Filtered Sampling Schedules(seconds)") +
+      ggplot2::xlab(paste0("Filtered Sampling Schedules(",
+                           detect_schedules()$unit_picked$name, ")")) +
       ggplot2::facet_grid(id ~ .) +
       ctmmweb:::factor_fill(dt$id) +
       ctmmweb:::BIGGER_THEME
