@@ -1854,12 +1854,13 @@ output:
   output$kmeans_hist <- renderPlot({
     dt <- req(detect_schedules())$dt
     clusters_dt <- detect_schedules()$clusters_dt
+    # need to use fully qualified format after copied code from rmd, test with clean session, otherwise ggplot2 is loaded.
     ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered, fill = id)) +
       ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE, show.legend = FALSE) +
-      geom_point(data = clusters_dt, aes(x = V1, y = 0), na.rm = TRUE,
+      ggplot2::geom_point(data = clusters_dt, ggplot2::aes(x = V1, y = 0), na.rm = TRUE,
                  color = "blue", shape = 2, show.legend = FALSE) +
-      geom_text_repel(data = na.omit(clusters_dt),
-                      aes(x = V1, y = 0, label = V1)) +
+      ggrepel::geom_text_repel(data = na.omit(clusters_dt),
+                               ggplot2::aes(x = V1, y = 0, label = V1)) +
       ggplot2::xlab("Filtered Sampling Schedules(seconds)") +
       ggplot2::facet_grid(id ~ .) +
       ctmmweb:::factor_fill(dt$id) +
