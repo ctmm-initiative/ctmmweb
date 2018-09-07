@@ -17,7 +17,7 @@ detect_clusters <- function(diff_t, k){
     return(NULL)
   }
   dtv <- sapply(1:k, function(i) {
-    median(diff_t[which(cl$cluster == i)])
+    round(median(diff_t[which(cl$cluster == i)]), 2)
   })
   return(sort(dtv))
 }

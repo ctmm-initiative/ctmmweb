@@ -1862,6 +1862,7 @@ output:
                       aes(x = V1, y = 0, label = V1)) +
       ggplot2::xlab("Filtered Sampling Schedules(seconds)") +
       ggplot2::facet_grid(id ~ .) +
+      ctmmweb:::factor_fill(dt$id) +
       ctmmweb:::BIGGER_THEME
   })
   # when too much data was filtered, there may only have one cluster while k > 1, had error "more cluster centers than distinct data points."
