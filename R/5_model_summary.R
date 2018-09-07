@@ -162,7 +162,7 @@ round_CIs <- function(vec, digits = 2) {
   }
 }
 # given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name. For model summary table, CI rows need to be round properly by each model. There are other tables that don't have CI rows and no model_no column. we have two usage for regular tables: data summary, outlier summary, and two usage of model tables here, make the other usage default as they are spreaded.
-# the round CI values by model feature may not be expected, turned off now. if need to turn it on, need to assign it in calling functions.
+# the round CI values by model feature may not be expected, turned off now. if need to turn it on, need to assign it in calling functions. The function is also used in info table formatting, note round_by_CI will not work with that usage because no model column
 format_dt_unit <- function(dt, name_unit_list, round_by_CI = FALSE) {
   # the col name list have error, which may not exist in some cases
   valid_col_names <- intersect(names(dt), names(name_unit_list))
