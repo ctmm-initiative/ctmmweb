@@ -1,26 +1,37 @@
-## version 0.1.0.9000, current alpha version
-- Update outlier page to use latest ctmm functions which take errors into account for both distance and speed.
-- Use home range plot for overlap location plot tab.
-- `app()` now open in system default browser instead of the RStudio embedded browser to avoid compatibility problems.
-- added package installation date in message menu, console log and work report. This can help to identify which version was installed. I didn't find an automatic way to save build date in package building.
-- There was some problem with current version `devtools::install_github`, namely existing packages get reinstalled, compiling dependency packages unneeded. `remotes` is now used for installing from github directly. A CRAN like repository is also hosted as alternative.
-- Added consistent plot control to home range plot and occurrence plot.
-- Variogram plot in model selection page are rearranged into 3 tabs.
-- units in tables were moved to column header so the columns can be sorted properly.
+## version 0.2.0.9000, current alpha version
+- Adding all `ctmm` internal datasets to app. 
+- Some of the datasets are anonymized, i.e. no referencee information available for location and time, only `x`, `y` and `t` which are relative values. A Pseudonymize process is added to simulate data with certain origin in location and time, so that the data can be analysized with app properly.
 
-## version 0.1.0, 2018/02/08
+
+## version 0.2.0, 2018/09/07, Telemetry Errors
+- Dealing with bugs, conflicts caused by `devtools::install_github`, dependency packages, alternative installation methods.
+- Units in tables were moved to column header so the columns can be sorted properly.
+- Capture warning/error in importing data, notify user when needed.
+- Take a location subset by cropping.
+
+### Telemetry Errors
+- Report Error information
+- Calibrate data with calibration data
+- Outlier page will use Error information
+
+### Model Selection Page
+- The design, workflow and reactive logic have been improved
+- [new features added](https://github.com/ctmm-initiative/ctmmweb/issues/54) on home range weights, multiple sampling schedules and pooling variograms.
+- Refit based on existing models, fine-tune model results as initial condition of next fit, showing multiple results in variograms.
+- Model result page improved and condensed.
+
+### Home Range/Occurrence plots
+- Added much more plot control to home range, occurrence and overlap plot in a consistent way.
+
+## version 0.1.0, 2018/02/08, adjust package, Overlap
+- [export most features of app as package functions](https://github.com/ctmm-initiative/ctmmweb/issues/41), so user can use them in their own analysis with more flexibility 
+- Established workflow with package functions.
+- Finished vignettes for package usage. 
+- Changed repo name to match package name
 - Moved package website to separate repo to reduce package download size and time.
 - Overlap page finished.
-- Changed cores parameter for `par_lapply`
 
-## version 0.0.9.9, 2017/12/27
-- Changed repo name to match package name
-- [export most features of app as package functions](https://github.com/ctmm-initiative/ctmmweb/issues/41) 
-- Established workflow with package functions.
-- Finished vignette of `package usage`. 
-- Renamed `Save Cache` to `Save Data` to make it easier to save cleaned data.
-
-## version 0.0.9, 2017/12/04, Package
+## version 0.0.9, 2017/12/04, convert to Package
 - The app has grown to a certain degree, when there are some features can be useful independently for advanced R users. Packing app into a package make reusing these features easier, and the app distribution will also be familiar for experienced R users.
 - Reference website is built
 - This is a time consuming process which involved:
