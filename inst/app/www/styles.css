@@ -39,9 +39,9 @@
 }
 
 .shiny-notification-warning {
-  background-color: #FFEB3B;
+  background-color: #f39c12;
   color: #000000;
-  border: 1px solid #ffe082;
+  border: 1px solid #f39c12;
 }
 
 .shiny-notification-error {

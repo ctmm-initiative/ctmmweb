@@ -162,6 +162,8 @@ output:
   log_add_rmd(rmd_header)
   # page observer ----
   ## report page changes, need to be ready befoer log start
+  # ANONYMIZED_data ----
+  ANONYMIZED_data <- FALSE
   # add subtitle in log for every page. need to sync with ui.R for this.
   page_title <- list(import = "Import Data",
                      plots = "Visualization",
@@ -184,13 +186,19 @@ output:
     # it will not record pages without data because req data.
     log_page(page_title[[input$tabs]])
     # time subset page need single animal be selected
-    if (input$tabs == "subset") {
-      if (length(input$individuals_rows_selected) != 1) {
-        shinydashboard::updateTabItems(session, "tabs", "plots")
-        showNotification(
-          "Please select single individual first before time subsetting",
-          type = "error", duration = 6)
-      }
+    if ((input$tabs == "subset") &&
+        (length(input$individuals_rows_selected) != 1)) {
+      shinydashboard::updateTabItems(session, "tabs", "plots")
+      showNotification(
+        "Please select single individual first before time subsetting",
+        type = "error", duration = 6)
+    }
+    # disable overlap and map page for anonoymized data
+    if (ANONYMIZED_data && (input$tabs %in% c("overlap", "map"))) {
+      shinydashboard::updateTabItems(session, "tabs", "plots")
+      showNotification(
+        "Overlap and Map features disabled for anonymized data",
+        type = "error", duration = 6)
     }
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
@@ -407,6 +415,17 @@ output:
   proxy_individuals <- DT::dataTableProxy("individuals")
   # update input tele list and others. used in importing new data into app (multiple import options)
   update_input_data <- function(tele_list) {
+    # if data is anonymized, need to simulate first, also set flag
+    if (!("timestamp" %in% names(tele_list[[1]]))) {
+      ANONYMIZED_data <<- TRUE
+      showNotification("Data is anonymized, simulating location and time",
+                       duration = 4, type = "warning")
+      # LOG anonymized data
+      log_msg("Anonymized data, simulated location and time added")
+      tele_list <- ctmm:::pseudonymize(tele_list)
+    } else {
+      ANONYMIZED_data <<- FALSE
+    }
     values$input_tele_list <- tele_list
     update_augmented_data(tele_list)
   }
@@ -496,7 +515,8 @@ output:
   # only some data are in movebank format (other only have x,y,t, without timestamp and coordinates, app will not work)
   ctmm_dataset_info_dt <- data.table(data(package = "ctmm")[["results"]])[
     , .(Dataset = Item, Description = Title)
-    ][Dataset %in% c("buffalo", "coati")]
+    ]
+  # [Dataset %in% c("buffalo", "coati")]
   output$data_set_table <- DT::renderDT({
     DT::datatable(ctmm_dataset_info_dt, options = list(dom = 't'),
                   rownames = FALSE, selection = list(mode = "single",
@@ -519,6 +539,7 @@ output:
       # LOG data used
       log_msg("Using ctmm data", data_set_name)
     }
+    # dataset is telemetry obj list, so update directly, no need to import
     update_input_data(data_set)
   })
   # upload movebank format file --
