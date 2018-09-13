@@ -523,7 +523,7 @@ output:
                                                      selected = 1,
                                                      target = 'row'))
   })
-  # use ctmm internal data --
+  # ctmm internal data ----
   observeEvent(input$load_ctmm_data, {
     req(input$data_set_table_rows_selected)
     data_set_name <- ctmm_dataset_info_dt[input$data_set_table_rows_selected,
@@ -531,6 +531,10 @@ output:
     # load to current evaluation environment. use list parameter because the first parameter require literal instead of variable
     data(list = data_set_name, package = "ctmm", envir = environment())
     data_set <- get(data_set_name, envir = environment())
+    # temp workaround for turtle
+    if (data_set_name == "turtle") {
+      names(data_set) <- ctmmweb::report(ctmm:::pseudonymize(data_set))$identity
+    }
     if (input$take_sample) {
       data_set <- ctmmweb:::pick_tele_list(data_set, req(input$sample_size))
       # LOG sample data used
