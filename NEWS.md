@@ -2,25 +2,24 @@
 - Adding all `ctmm` internal datasets to app. 
 - Some of the datasets are anonymized, i.e. no referencee information available for location and time, only `x`, `y` and `t` which are relative values. A Pseudonymize process is added to simulate data with certain origin in location and time, so that the data can be analysized with app properly.
 
-
 ## version 0.2.0, 2018/09/07, Telemetry Errors
 - Dealing with bugs, conflicts caused by `devtools::install_github`, dependency packages, alternative installation methods.
 - Units in tables were moved to column header so the columns can be sorted properly.
 - Capture warning/error in importing data, notify user when needed.
 - Take a location subset by cropping.
 
-### Telemetry Errors
+#### Telemetry Errors
 - Report Error information
 - Calibrate data with calibration data
 - Outlier page will use Error information
 
-### Model Selection Page
+#### Model Selection Page
 - The design, workflow and reactive logic have been improved
 - [new features added](https://github.com/ctmm-initiative/ctmmweb/issues/54) on home range weights, multiple sampling schedules and pooling variograms.
 - Refit based on existing models, fine-tune model results as initial condition of next fit, showing multiple results in variograms.
 - Model result page improved and condensed.
 
-### Home Range/Occurrence plots
+#### Home Range/Occurrence plots
 - Added much more plot control to home range, occurrence and overlap plot in a consistent way.
 
 ## version 0.1.0, 2018/02/08, adjust package, Overlap
