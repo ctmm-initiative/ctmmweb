@@ -30,9 +30,15 @@ https://github.com/ctmm-initiative/ctmmweb
 2. Start R or RStudio, run these in console to install dependency packages. Sometimes you may need to restart R in the process.
 
     ```r
+    # install using devtools
+    if (!require("devtools")) install.packages("devtools")
+    devtools::install_github("ctmm-initiative/ctmmweb")
+    # sometimes you may want to use a certain version, for example the format of saved data may evolve with new versions
+    # devtools::install_github("ctmm-initiative/ctmmweb", ref = "commit or tag name")
+    
+    # Alternatively, if you met problem with devtools, sometimes it's easier to work with remotes, which have similar syntax and less dependency
     if (!require("remotes")) install.packages("remotes")
     remotes::install_github("ctmm-initiative/ctmmweb")
-    # sometimes you may want to use a certain version, for example the format of saved data may evolve with new versions
     # remotes::install_github("ctmm-initiative/ctmmweb", ref = "commit or tag name")
     ```
 
