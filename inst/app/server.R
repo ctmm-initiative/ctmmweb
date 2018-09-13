@@ -2417,6 +2417,15 @@ output:
   observeEvent(input$apply_hrange_weight, {
     values$hrange_weight_vec <- input$hrange_weight
   })
+  observeEvent(input$hrange_weight_all, {
+    if (input$hrange_weight_all) {
+      updateSelectInput(session, "hrange_weight",
+                      selected = select_models()$info_dt$display_name)
+    } else {
+      # NULL parameter will not change anything, need to be ""
+      updateSelectInput(session, "hrange_weight", selected = "")
+    }
+  })
   # we want to change home range plot title but need to keep hrange names consistent, overlap page rely on hrange names to match, color etc. to put title inside select_models_hranges will cause structure change and all usage change, so use a separate reactive instead.
   # get_hrange_weight_para() ----
   get_hrange_weight_para <- reactive({
