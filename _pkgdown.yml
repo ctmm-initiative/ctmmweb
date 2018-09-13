@@ -28,6 +28,7 @@ reference:
   contents:
   - '`summary_tried_models`'
   - '`flatten_models`'
+  - '`overlap_2d_to_1d`'
   - '`overlap_matrix_to_dt`'
   - '`plot_vario`'
   - '`plot_ud`'
@@ -43,7 +44,7 @@ reference:
 - title: "Parallel Computing"
   desc: ~
   contents:
-  - '`align_list`'
+  - '`align_2_list`'
   - '`par_lapply`'
   - '`par_fit_models`'
   - '`par_try_models`'
@@ -58,6 +59,7 @@ reference:
   - '`multi_title`'
   - '`zip_folder`'
   - '`get_names`'
+  - '`%>%`'
 
 navbar:
   title: ctmmweb

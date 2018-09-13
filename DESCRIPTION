@@ -1,10 +1,12 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.1.0.9000
+Version: 0.2.0
 Authors@R: person("Xianghui", "Dong", email = "xhdong@umd.edu",
                   role = c("aut", "cre"))
 Maintainer: Xianghui Dong <xhdong@umd.edu>
+URL: https://github.com/ctmm-initiative/ctmmweb
+BugReports: https://github.com/ctmm-initiative/ctmmweb/issues
 Description: Shiny app for ctmm. Many features are also exported as package 
     functions.
 License: GPL-3 + file LICENSE
