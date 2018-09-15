@@ -139,7 +139,7 @@ server <- function(input, output, session) {
     csv_name <- stringr::str_c(f_name, "_",
                                ctmmweb:::current_timestamp(),
                                ".csv")
-    fwrite(dt, file = file.path(LOG_folder, csv_name))
+    fwrite(dt, file = file.path(LOG_folder, csv_name), dateTimeAs = "write.csv")
     log_msg(msg, detail = csv_name)
     log_add_rmd(stringr::str_c("[", csv_name, "](", csv_name, ")"))
   }
@@ -766,7 +766,7 @@ output:
         },
     content = function(file) {
       req(values$move_bank_dt[, .N] > 0)
-      fwrite(values$move_bank_dt, file)
+      fwrite(values$move_bank_dt, file, dateTimeAs = "write.csv")
       # LOG save movebank data. we don't know what's the final file name. file is temp file path
       log_msg("Movebank data saved", mb_id())
     }
@@ -931,7 +931,8 @@ output:
       # LOG export current
       log_dt_md(select_data()$info, "Export current data")
       export_current_path <- file.path(session_tmpdir, "export.csv")
-      fwrite(select_data()$data_dt, file = export_current_path)
+      fwrite(select_data()$data_dt, file = export_current_path,
+             dateTimeAs = "write.csv")
       file.copy(export_current_path, file)
     }
   )
@@ -3003,7 +3004,8 @@ output:
         log_dt_md(values$data$merged$info,
                   "Current Telemetry Data")
         fwrite(values$data$merged$data_dt,
-               file = file.path(session_tmpdir, "combined_data_table.csv"))
+               file = file.path(session_tmpdir, "combined_data_table.csv"),
+               dateTimeAs = "write.csv")
         # save error msg if captured
         if (input$capture_error) {
           flush(values$error_file_con)
