@@ -2830,7 +2830,7 @@ output:
     unlink(file.path(LOG_folder, map_file_adjacent_folder_name), recursive = TRUE)
     # add link in rmd, difficult to embed map itself.
     log_add_rmd(stringr::str_c("\n[", map_type, "](", map_file_name, ")\n"))
-    # link can be opened in previewed report, also need to put in same folder of report html generated in `download progress` to make it available
+    # in preview mode, plots and maps are in separate files, available in html. in saved zip, these files are in another zip. plots are embeded but map cannot be embeded, need to copy them so report in saved zip can open the map.
     file.copy(map_path, file.path(session_tmpdir, map_file_name))
     # record the latest file path
     CURRENT_map_path[[map_type]] <<- map_path
