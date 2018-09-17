@@ -2820,13 +2820,18 @@ output:
   # save map to html, record html path in CURRENT_map_path. this is used in log save, and download map button.
   save_map <- function(leaf, map_type) {
     map_file_name <- stringr::str_c(map_type, "_", ctmmweb:::current_timestamp(), ".html")
+    map_file_adjacent_folder_name <- stringr::str_c(map_type, "_", ctmmweb:::current_timestamp(), "_files")
     # LOG saving map
     log_msg(stringr::str_c("Saving map: ", map_type))
     map_path <- file.path(LOG_folder, map_file_name)
-    # the library folder is still saved even with selfcontained = TRUE. This didn't happen in vignettes script. the source code said pandoc is needed for selfcontained option, but there is no error message.
+    # the library folder is still saved even with selfcontained = TRUE. This didn't happen in vignettes script. [pandoc is needed for selfcontained option, but there is no error message](https://github.com/ramnathv/htmlwidgets/blob/master/R/savewidget.R#L46)
     htmlwidgets::saveWidget(leaf, file = map_path, selfcontained = TRUE)
+    # remove the library folder as it is not needed, also too many files
+    unlink(file.path(LOG_folder, map_file_adjacent_folder_name), recursive = TRUE)
     # add link in rmd, difficult to embed map itself.
     log_add_rmd(stringr::str_c("\n[", map_type, "](", map_file_name, ")\n"))
+    # link can be opened in previewed report, also need to put in same folder of report html generated in `download progress` to make it available
+    file.copy(map_path, file.path(session_tmpdir, map_file_name))
     # record the latest file path
     CURRENT_map_path[[map_type]] <<- map_path
   }
@@ -3032,6 +3037,8 @@ output:
         saved_zip_path <- ctmmweb:::zip_relative_files(
           session_tmpdir, files_to_save,
           file.path(saved_zip_folder, "saved.zip"))
+        # after zip generated, remove generated files in session temp folder. Because we copied map files here, if we don't clean up, 2nd saved progress will have map files in first save zipped too. NO, same session should have these files kept, new save will update same name file, and map files need to be kept since they are all needed in same session report
+        # unlink(file.path(session_tmpdir, files_to_save))
         file.copy(saved_zip_path, file, overwrite = TRUE)
       }
     }

@@ -252,8 +252,6 @@ plot_ud(occur_list_sub2, level_vec = c(0.50, 0.95))
 We can then build interactive online maps of the data and fitted Home Range and Occurrence distributions. For example, one can display the location data on a map via:
 
 ```{r point map, eval=TRUE}
-# this is needed for using pipe operator
-library(leaflet)
 # loc_data_sub1 is used for visualization plot. all the model selections above are based on a different subset. We need to get corresponding loc_data subset for model selections
 loc_data_sub2 <- loc_data[identity %in% names(tele_list_sub2)]
 point_map(loc_data_sub2)
