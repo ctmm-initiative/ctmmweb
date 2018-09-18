@@ -36,23 +36,23 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
-    menuItem("Import Data", tabName = "import",
+    menuItem(ctmmweb:::PAGE_title$import, tabName = "import",
                              icon = icon("upload"), selected = TRUE),
-    menuItem("Visualization", tabName = "plots",
+    menuItem(ctmmweb:::PAGE_title$plots, tabName = "plots",
                              icon = icon("line-chart")),
-    menuItem("Filter Outliers", tabName = "filter",
+    menuItem(ctmmweb:::PAGE_title$filter, tabName = "filter",
                              icon = icon("filter")),
-    menuItem("Time Subsetting", tabName = "subset",
+    menuItem(ctmmweb:::PAGE_title$subset, tabName = "subset",
                              icon = icon("pie-chart")),
-    menuItem("Model Selection", tabName = "model",
+    menuItem(ctmmweb:::PAGE_title$model, tabName = "model",
                              icon = icon("hourglass-start")),
-    menuItem("Home Range", tabName = "homerange",
+    menuItem(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
                              icon = icon("map-o")),
-    menuItem("Overlap", tabName = "overlap",
+    menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
                              icon = icon("clone")),
-    menuItem("Occurrence", tabName = "occurrence",
+    menuItem(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
                              icon = icon("map-marker")),
-    menuItem("Map", tabName = "map", icon = icon("globe"))
+    menuItem(ctmmweb:::PAGE_title$map, tabName = "map", icon = icon("globe"))
     ,
     # menuItem("Work Report", tabName = "report",
     #                          icon = icon("file-text-o")),
@@ -574,7 +574,7 @@ tabPanel("Pool",
         )
 )
 # p5.b variograms ----
-ctmm_colors <- ctmmweb:::ctmm_colors
+ctmm_colors <- ctmmweb:::CTMM_colors
 variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      tabPanel(div(icon("battery-half"), "1. Empirical"), value = "1",
               fluidRow(

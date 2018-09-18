@@ -10,12 +10,12 @@
 }
 
 /* side bar numeric input, matching style to side bar. */
-#plot_res {
+#plot_dpi {
   background: #444;
   color: white;
   border-color: gray;
 }
-label[for="plot_res"] {
+label[for="plot_dpi"] {
   color: lightgray;
   font-weight: normal;
 }

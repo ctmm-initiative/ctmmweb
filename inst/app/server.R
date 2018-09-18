@@ -165,17 +165,6 @@ output:
   ## report page changes, need to be ready befoer log start
   # ANONYMIZED_data ----
   ANONYMIZED_data <- FALSE
-  # add subtitle in log for every page. need to sync with ui.R for this.
-  page_title <- list(import = "Import Data",
-                     plots = "Visualization",
-                     filter = "Filter Outliers",
-                     subset = "Time Subsetting",
-                     model = "Model Selection",
-                     homerange = "Home Range",
-                     overlap = "Overlap",
-                     occurrence = "Occurrence",
-                     map = "Map",
-                     report = "Work Report")
   log_page <- function(title, on = input_value("record_on")) {
     if (!on) return()
     log_msg_console(stringr::str_c("## ", title))
@@ -185,7 +174,7 @@ output:
   observeEvent(input$tabs, {
     req(values$data)
     # it will not record pages without data because req data.
-    log_page(page_title[[input$tabs]])
+    log_page(ctmmweb:::PAGE_title[[input$tabs]])
     # time subset page need single animal be selected
     if ((input$tabs == "subset") &&
         (length(input$individuals_rows_selected) != 1)) {
@@ -207,7 +196,7 @@ output:
   # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
   log_msg("App started", paste0("Installed On: ", PKG_INSTALLATION_TIME))
   # first page need to be added manually since no page switching event fired
-  log_page(page_title$import)
+  log_page(ctmmweb:::PAGE_title$import)
   # log app options ----
   # just log option changes, the value is taken directly when needed.
   observeEvent(input$record_on, {
@@ -1765,11 +1754,7 @@ output:
   callModule(click_help, "variograms", title = "Variograms",
              size = "l", file = "help/5_b_variograms.md")
   # various curve colors in variogram, tuned color is brighter variant
-  # ctmm_colors <- c("#803D38", "#FF7970", "#008026", "#00FF4D", "#619CFF")
-  # names(ctmm_colors) <- c("0_guess", "0_guess_tuned",
-  #                         "1_model", "1_model_tuned",
-  #                         "2_model")
-  ctmm_colors <- ctmmweb:::ctmm_colors
+  ctmm_colors <- ctmmweb:::CTMM_colors
   # values$selected_data_guess_list current guessed parameters for current data, the manual adjusted value from fine tune are also updated here. original value are saved inside select_data_vario for reference. guess list should always have one guess for one animal, so this is named/indexed by animal name
   values$selected_data_guess_list <- NULL
   # calculate group plot row count and total canvas height from group list length and UI. this is needed in vario plot, overlap home range plot. vario mode and model mode need different value because model mode can coexist (home range/occur rely on it)
