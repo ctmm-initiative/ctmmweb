@@ -39,8 +39,8 @@ server <- function(input, output, session) {
   # log/error options ----
   ## used lots of global variables or external variables not in function parameter(or even modified global variables), so not in package now. to move them into package need to add some parameters which become quite verbose.
   # log functions will use these options, so need to prepare them first
-  # test checkbox status passively, one time read when called. wrap it into a function because if we decided to switch between independent checkbox or checkboxgroup, the changes only happens here, not every calling place.
-  option_selected <- function(option) {
+  # test some input status passively, one time read when called. wrap it into a function because if we decided to switch between independent checkbox or checkboxgroup, the changes only happens here, not every calling place.
+  input_value <- function(option) {
     isolate(input[[option]])
   }
   # global LOG variables ----
@@ -57,7 +57,7 @@ server <- function(input, output, session) {
   session_tmpdir <- file.path(tempdir(), session$token)
   # log functions ----
   # add extra lines in markdown format without timestamp, this will not appear in console. vec can be a vector. all appends to global variable happen here, easier to manage.
-  log_add_rmd <- function(vec, on = option_selected("record_on")) {
+  log_add_rmd <- function(vec, on = input_value("record_on")) {
     if (!on) return()
     # used as function, will search variable in parent first, only go to global when not found. so need to make sure parent function don't have this
     LOG_rmd_vec <<- c(LOG_rmd_vec, vec)
@@ -86,7 +86,7 @@ server <- function(input, output, session) {
     return(time_stamp)
   }
   # setting default value to use app control, only need to override it in internal usage
-  log_msg <- function(msg, detail = "", on = option_selected("record_on")) {
+  log_msg <- function(msg, detail = "", on = input_value("record_on")) {
     if (!on) return()
     time_stamp <- log_msg_console(msg, detail)
     # need extra new line for markdown
@@ -101,30 +101,31 @@ server <- function(input, output, session) {
     log_add_rmd(stringr::str_c("![](", pic_name, ")"))
     return(file.path(LOG_folder, pic_name))
   }
-  log_save_ggplot <- function(g, f_name, on = option_selected("record_on")) {
+  log_save_ggplot <- function(g, f_name, on = input_value("record_on"),
+                              dpi = input_value("plot_dpi")) {
     if (!on) return(g)
     # need to save current device and restore it. otherwise plotting in R console will cause app draw plot to RStudio plot window. https://stackoverflow.com/questions/47699956/ggplot-in-shiny-app-go-to-rstudio-plot-window/.
     cur_dev <- dev.cur()
     print(system.time(ggplot2::ggsave(filename = log_prepare_plot(f_name),
-                                      plot = g)))
+                                      plot = g, dpi = dpi)))
     dev.set(cur_dev)
     return(g)
   }
   # only used for variogram, with specific format and parameters, some came from input. we don't need to return something in end of renderPlot for basic plot, since plot seemed to be side effect. (ggplot need the object to be overriden so interactive plot can have proper scale, see ?renderPlot). It also don't have the ggsave changing current device problem
   log_save_vario <- function(f_name, rows, cols,
-                             on = option_selected("record_on")) {
+                             on = input_value("record_on")) {
     if (!on) return()
     grDevices::dev.print(png, file = log_prepare_plot(f_name),
                          units = "in", res = 220,
                          width = cols * 4, height = rows * 3)
   }
   # pdf is better for home range, occurrence
-  log_save_UD <- function(f_name, on = option_selected("record_on")) {
+  log_save_UD <- function(f_name, on = input_value("record_on")) {
     if (!on) return()
     grDevices::dev.copy2pdf(file = log_prepare_plot(f_name, f_ext = ".pdf"))
   }
   # save dt into markdown table. note the msg could be in different format
-  log_dt_md <- function(dt, msg, on = option_selected("record_on")) {
+  log_dt_md <- function(dt, msg, on = input_value("record_on")) {
     if (!on) return()
     # need the extra \t because log_msg put \t before first line of detail
     time_stamp <- log_msg_console(msg,
@@ -134,7 +135,7 @@ server <- function(input, output, session) {
                   knitr::kable(dt, format = "markdown")))
   }
   # save dt in csv, need different msg format and a file name, so in independent function. f_name is used for part of csv file name, full name will be detail part of message
-  log_dt_csv <- function(dt, msg, f_name, on = option_selected("record_on")) {
+  log_dt_csv <- function(dt, msg, f_name, on = input_value("record_on")) {
     if (!on) return()
     csv_name <- stringr::str_c(f_name, "_",
                                ctmmweb:::current_timestamp(),
@@ -175,7 +176,7 @@ output:
                      occurrence = "Occurrence",
                      map = "Map",
                      report = "Work Report")
-  log_page <- function(title, on = option_selected("record_on")) {
+  log_page <- function(title, on = input_value("record_on")) {
     if (!on) return()
     log_msg_console(stringr::str_c("## ", title))
     log_add_rmd(stringr::str_c("\n## ", title, "\n"))
@@ -748,7 +749,7 @@ output:
       log_msg("Movebank data downloaded", mb_id())
       # some detail table may have invalid characters that crash kable. disable this now.
       # log_dt_md(values$study_detail, "Downloaded study details",
-      #           on = option_selected("record_on"))
+      #           on = input_value("record_on"))
     }
   })
   callModule(click_help, "download_movebank", title = "Download Movebank data",
@@ -2148,7 +2149,7 @@ output:
     withProgress(print(system.time(
       res <-
         par_try_tele_guess_mem(tele_guess_list,
-                               parallel = option_selected("parallel")))),
+                               parallel = input_value("parallel")))),
       message = "Trying different models to find the best ...")
     # always save names in list
     names(res) <- names(select_data()$tele_list)
@@ -2371,7 +2372,7 @@ output:
       withProgress(print(system.time(
         res <-
           par_try_tele_guess_mem(tele_guess_list,
-                                 parallel = option_selected("parallel")))),
+                                 parallel = input_value("parallel")))),
         message = "Refitting models ...")
       # always use unique names in list, note these are base model full names
       names(res) <- refit_dt[(to_refit), model_name]
@@ -2785,9 +2786,9 @@ output:
     withProgress(print(system.time(
       res <- par_occur_mem(select_models()$tele_list,
                            select_models()$model_list,
-                           parallel = option_selected("parallel")))),
+                           parallel = input_value("parallel")))),
                  message = "Calculating Occurrence ...")
-    # if (option_selected("log_error")) {
+    # if (input_value("log_error")) {
     #   output$occurrence_info <- renderPrint(str(res))
     # }
     # add name so plot can take figure title from it

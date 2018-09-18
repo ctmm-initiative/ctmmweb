@@ -8,6 +8,18 @@
   font-weight: 600;
   font-size: small;
 }
+
+/* side bar numeric input, matching style to side bar. */
+#plot_res {
+  background: #444;
+  color: white;
+  border-color: gray;
+}
+label[for="plot_res"] {
+  color: lightgray;
+  font-weight: normal;
+}
+
 /* adjust radio button vertical alignment. right now only adjust specific item in place */
 /*
 .shiny-options-group {

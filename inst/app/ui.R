@@ -57,6 +57,9 @@ sidebar <- dashboardSidebar(
     # menuItem("Work Report", tabName = "report",
     #                          icon = icon("file-text-o")),
     br(), br(),
+    fluidRow(column(8, numericInput("plot_dpi",
+                                    "Plot DPI",
+                                    value = 300, step = 50))),
     fluidRow(
       column(6, offset = 0,
                       downloadButton("save_data",

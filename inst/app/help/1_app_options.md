@@ -24,5 +24,6 @@
   - `report.html`: work report.
   - `plot.zip`: the plots saved as `png` or `pdf` files.
   - `error_log.txt` error messages if they are captured in the app instead of R console.
+- `Plot DPI` control the dpi of saved plot pictures. You can resize the app to change the plot size.
 - The zip can be imported later by `Restore Progess` button in `import` page. Thus you can restore previoius data and cache. Note the app data format may evolve and old saved data may not work with newer version app. You can always use the exactly same version app if needed.
 - If you made some changes to the original input data like removed outliers, added time subsets, you can save the changes through `Save Progress`. Later you can restore the csv data through `combined_data_table.csv`, the more complete data through `data.rds`, or whole data zip through `Restore Progess`.
