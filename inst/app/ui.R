@@ -610,7 +610,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                     checkboxInput("refit_tuned_only", label = "Fine-tuned Only")
               )),
         column(3, offset = 3, actionButton("remove_bad_models",
-                                           "Keep Best Only",
+                                           "Clean Up",
                                icon = icon("trash-o"),
                                style = ctmmweb:::STYLES$page_action)),
         column(12, DT::DTOutput("tried_models_summary")),
