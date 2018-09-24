@@ -354,3 +354,10 @@ get_ranges_quantile_dt <- function(animals_dt, level) {
   dt[, y_end := middle_y + y_max_diff_half]
   return(dt)
 }
+# build id_pal from info ----
+# this is needed in importing tele data, and restoring session data.
+build_id_pal <- function(info) {
+  leaflet::colorFactor(
+    scales::hue_pal()(nrow(info)), info$identity, ordered = TRUE
+  )
+}

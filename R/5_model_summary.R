@@ -401,3 +401,21 @@ overlap_2d_to_1d <- function(overlap_matrix_dt) {
                as.list(round_CIs(c(`CI low`, ML, `CI high`))),
              by = 1:nrow(overlap_dt)]
 }
+# home range level input ----
+# parse text input of comma separated values
+parse_comma_text_input <- function(comma_text, default_value) {
+  items <- stringr::str_trim(stringr::str_split(comma_text, ",")[[1]])
+  parsed_values <- as.numeric(items[items != ""])
+  # non valid input is checked, rejected, show message
+  if ((length(parsed_values) == 0) || (is.na(parsed_values))) {
+    shiny::showNotification("Only number or comma separated numbers are accepted",
+                            duration = 5, type = "error")
+    return(default_value)
+  } else {
+    return(parsed_values)
+  }
+}
+# for home range/occur level input, divid by 100, take default value when no valid input
+parse_levels.UD <- function(levels_text) {
+  parse_comma_text_input(levels_text, default_value = 95) / 100
+}
