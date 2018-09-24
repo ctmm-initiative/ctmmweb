@@ -51,7 +51,7 @@ update_model_no <- function(model_list_dt) {
 # convert ctmm.select/try_tele_guess result into data.table with model in list column.
 # par_try_tele_guess try multiple models on each animal with ctmm.select, generate a model list for each animal, saved in a list of list, unnamed item with sub item of models named by model type. previously we use animal name as item name since they are natural group condition. Now multiple copies of same animal data with different init conditions can be tried to refit, animal name as item name will have duplicate and indexing problem.
 # always use unique name for list items, so animal name in auto fit, model name in refit and provide animal names in a separate vector (with duplicates).
-# previously used identity as key, now we need to switch to model_no. a summary on each list item was used to generate dAICc information, res_list_index is important.
+# previously used identity as key, now we need to switch to model_no. a summary on each list item was used to generate \u0394AICc information, res_list_index is important.
 model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
   if (is.null(animal_names)) animal_names <- names(model_try_res)
   animal_names_dt <- data.table(res_list_index = seq_along(model_try_res),
@@ -95,16 +95,18 @@ compare_models <- function(model_list_dt) {
     names(model_list) <- seq_along(model_list)
     res <- summary(model_list, units = FALSE)
     # res is data.frame. the index need to be character, if using numbers will use row number which is not correct
-    res[as.character(seq_along(model_list)), "dAICc"]
+    res[as.character(seq_along(model_list)), "\u0394AICc"]
   }
   # AICc come from the summary of a group models, always by animal, even models may came from different fit passes
-  model_list_dt[, dAICc := get_aicc_vec(model), by = identity]
+  model_list_dt[, "\u0394AICc" := get_aicc_vec(model), by = identity]
   # sort it, so model_list_dt and summary are always sorted by same criteria
-  setorder(model_list_dt, identity, dAICc)
+  # setorder(model_list_dt, identity, "\u0394AICc")
+  # need to take column name in quote. backtick doesn't work with unicode, need double quote.
+  setorderv(model_list_dt, c("identity", "\u0394AICc"))
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt. the unformatted summary is only intermediate stage, not used in app.
-# it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and dAICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
-# expect dAICc column, always compare model before summary.
+# it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and \u0394AICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
+# expect \u0394AICc column, always compare model before summary.
 model_list_dt_compared_to_model_summary_dt <- function(model_list_dt) {
   # a list of converted summary on each model
   ctmm_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
@@ -114,13 +116,13 @@ model_list_dt_compared_to_model_summary_dt <- function(model_list_dt) {
     summary_dt[, model_no := model_list_dt[i, model_no]]
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
-  export_cols <- c(model_dt_id_cols, "dAICc")
+  export_cols <- c(model_dt_id_cols, "\u0394AICc")
   # merge by common columns, keep the order. the summary table only has model_no
   model_summary_dt <- merge(model_list_dt[, ..export_cols],
                             ctmm_summary_dt, by = "model_no",
                             sort = FALSE)
 }
-# home range don't have dAICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
+# home range don't have \u0394AICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
 hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
   # make copy first because we will remove column later
   # a list of converted summary on each model. now we have additional level by level, need to combine first
@@ -135,7 +137,7 @@ hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
     rbindlist(dt_list, fill = TRUE)
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
-  # there is no dAICc column from summary of list of home range.
+  # there is no \u0394AICc column from summary of list of home range.
   res_dt <- merge(model_list_dt[, ..model_dt_id_cols],
                   ctmm_summary_dt,
                   by = "model_no", sort = FALSE)
@@ -197,16 +199,16 @@ round_cols <- function(dt, col_name_vec, digits = 3) {
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
-  cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "dAICc")
+  cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "\u0394AICc")
   round_cols(dt, cols_roundup)
   # empty cells will have NA since they are numeric columns.
   # remove the duplicated values in CI rows to reduce cluter. - this is not needed with the 1 row design, but leave it in comment in case we want to switch back.
   # dt[stringr::str_detect(estimate, "CI"),
-  #        c("dAICc", "DOF mean", "DOF area") := NA_real_]
+  #        c("\u0394AICc", "DOF mean", "DOF area") := NA_real_]
   # need a list to hold function as element, c have same effect but list is more verbose
   name_unit_list <- list("area" = pick_unit_area,
-                         "tau position" = pick_unit_seconds,
-                         "tau velocity" = pick_unit_seconds,
+                         "\u03C4[position]" = pick_unit_seconds,
+                         "\u03C4[velocity]" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
   format_dt_unit(dt, name_unit_list)
