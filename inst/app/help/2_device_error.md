@@ -6,4 +6,4 @@
 ## Calibration
 - You can load calibration data as regular telemetry data and use app features to edit it, like time subsetting, outlier removal, then save the edited data set through `Export Current` in box 1 of *Visualization* page.
 - You can also load regular data first, then load calibration data for the device through `Load Calibration Data` button in box 5 `Error`. App will calculate `UERE` from the calibration data. `Apply to Current` will apply the calibration data to current regular data, i.e. *Calibrate* them.
-- You can also input `UERE` manually and apply to current if it's provided by manufacturer.
+- You can also input `UERE` manually and apply to current if it's provided by manufacturer. The `Apply` button will take the manual input value if it's not `0`. 

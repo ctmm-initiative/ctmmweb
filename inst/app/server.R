@@ -1091,7 +1091,6 @@ output:
     # we need to modify the values variable, not the select_data copy
     # each item get updated, but uere on list return NULL. is calibrated also didn't return true after update.
     # if input box has content, use input box. otherwise use loaded calibration data.
-    browser()
     if (input$uere_num_input == 0) {
       values$cali_uere <- ctmm::uere.fit(req(values$cali_tele_list))
     } else {
@@ -1100,7 +1099,8 @@ output:
       #   input$uere_text_input)))
       # values$cali_uere <- req(ctmmweb:::parse_num_text_input(
       #   input$uere_text_input))
-      values$cali_uere <- req(input$uere_num_input)
+      # somehow int 10 will not be applied by uere.
+      values$cali_uere <- as.numeric(input$uere_num_input)
     }
     # uere_by_input <- c(horizontal = req(ctmmweb:::parse_num_text_input(
     #   input$uere_text_input)))
