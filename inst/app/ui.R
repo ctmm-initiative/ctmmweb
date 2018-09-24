@@ -284,7 +284,8 @@ location_plot_box <- tabBox(title = "Animal Locations",
              column(9, h5("Load Calibration Data")),
              column(3, offset = 0, h5("Or input UERE")),
              column(9, fileInput("cali_file", label = NULL, width = "100%")),
-             column(3, offset = 0, textInput("uere_text_input", label = NULL))
+             column(3, offset = 0, numericInput("uere_num_input", label = NULL,
+                                                value = 0))
            ),
            fluidRow(
              column(9, verbatimTextOutput("uere_print", placeholder = TRUE)),
