@@ -2798,9 +2798,20 @@ output:
     log_save_UD("occurrence")
     # graphics::par(def.par)
   }, height = function() { select_models()$vario_layout$height })
-  # p9. map ----
+  # p9. speed ----
+  callModule(click_help, "speed", title = "Estimate Average Speed",
+             size = "l", file = "help/9_speed.md")
+  # TODO reactive expression, calculate speed according to available models
+  # take parameters
+  # show wait notification
+  # return a dt
+  # TODO display dt
+
+  # TODO draw plot from dt
+
+  # p10. map ----
   callModule(click_help, "map", title = "Map",
-             size = "l", file = "help/9_map.md")
+             size = "l", file = "help/10_map.md")
   MAP_NAME_BY_TAB <- list(Point = "point_map", Heatmap = "heat_map")
   CURRENT_map_path <- list(Point = NULL, Heatmap = NULL)
   # save map to html, record html path in CURRENT_map_path. this is used in log save, and download map button.

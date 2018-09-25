@@ -724,10 +724,19 @@ occurrence_plot_box <- box(title = "Occurrence Distribution",
                     column(2, offset = 1, br(), help_button("occurrence")),
                     column(12, plotOutput("occurrence_plot",
                             width = "99%", height = "98%"))))
-# p9. map ----
-map_control_box <- box(title = "Map Controls",
-                                       status = "primary",
-                           solidHeader = TRUE, width = 12,
+# p9. speed ----
+speed_box <- box(title = "Estimate Average Speed", status = "info",
+                 solidHeader = TRUE, width = 12,
+  fluidRow(column(3, offset = 0,
+                 numericInput("speed_level", "Confidence Level", 95,
+                              min = 1, max = 100, step = 1)),
+          column(5, offset = 1, br(),
+                 checkboxInput("speed_robust", "Use robust statistics")),
+          column(2, offset = 1, br(), help_button("speed")))
+                 )
+# p10. map ----
+map_control_box <- box(title = "Map Controls", status = "primary",
+                       solidHeader = TRUE, width = 12,
   fluidRow(column(2, offset = 0,
                   numericInput("map_height", "Map Height", 600,
                                min = 400, max = 2000, step = 100)),
@@ -785,8 +794,8 @@ body <- dashboardBody(
             fluidRow(overlap_summary_box, overlap_plot_box)),
     tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
-    # tabItem(tabName = "speed",
-    #         fluidRow(speed_box)),
+    tabItem(tabName = "speed",
+            fluidRow(speed_box)),
     tabItem(tabName = "map",
             fluidRow(map_control_box, map_box))
   )
