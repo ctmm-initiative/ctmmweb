@@ -4,42 +4,19 @@ help_button <- function(module_id) {
   actionButton(prefix("help"),
                "Help",
                icon = icon("question"),
-               style = ctmmweb:::STYLES$help_button
-  )
+               style = ctmmweb:::STYLES$help_button)
 }
 # header ----
-header <- dashboardHeader(title = "ctmmweb",
-                          dropdownMenuOutput("messageMenu")
-            # dropdownMenu(type = "messages",
-            #    # from for first line, message 2nd line smaller font
-            #    messageItem(
-            #      from = "Project in Github",
-            #      message = "Documentation, Source, Citation",
-            #      icon = icon("github"),
-            #      href = "https://github.com/ctmm-initiative/ctmmweb"),
-            #    messageItem(
-            #      from = "Installed On",
-            #      message = PKG_INSTALLATION_TIME,
-            #      icon = icon("calendar-o")),
-            #    messageItem(
-            #      from = "Issues",
-            #      message = "Report Issues",
-            #      icon = icon("exclamation-circle"),
-            #      href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
-            #    badgeStatus = NULL,
-            #    icon = icon("info-circle fa-lg"),
-            #    headerText = "App Information"
-            #    )
-            )
+header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
     menuItem(ctmmweb:::PAGE_title$import, tabName = "import",
-                             icon = icon("upload"), selected = TRUE),
+                             icon = icon("folder-open-o"), selected = TRUE),
     menuItem(ctmmweb:::PAGE_title$plots, tabName = "plots",
-                             icon = icon("line-chart")),
+                             icon = icon("area-chart")),
     menuItem(ctmmweb:::PAGE_title$filter, tabName = "filter",
                              icon = icon("filter")),
     menuItem(ctmmweb:::PAGE_title$subset, tabName = "subset",
@@ -51,15 +28,16 @@ sidebar <- dashboardSidebar(
     menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
                              icon = icon("clone")),
     menuItem(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
-                             icon = icon("map-marker")),
-    menuItem(ctmmweb:::PAGE_title$map, tabName = "map", icon = icon("globe"))
-    ,
-    # menuItem("Work Report", tabName = "report",
-    #                          icon = icon("file-text-o")),
+                             icon = icon("paw")),
+    menuItem(ctmmweb:::PAGE_title$speed, tabName = "speed",
+             icon = icon("exchange")),
+    menuItem(ctmmweb:::PAGE_title$map, tabName = "map", icon = icon("globe")),
     br(), br(),
-    fluidRow(column(8, numericInput("plot_dpi",
-                                    "Plot DPI",
-                                    value = 300, step = 50))),
+    fluidRow(
+      column(8, numericInput("plot_dpi",
+                             label = div(icon("photo"), HTML('&nbsp;'),
+                                         "Plot DPI"),
+                             value = 300, step = 50))),
     fluidRow(
       column(6, offset = 0,
                       downloadButton("save_data",
@@ -71,9 +49,6 @@ sidebar <- dashboardSidebar(
       column(6, offset = 0, uiOutput("error_popup"))
     )
   )
-  # ,
-  # uiOutput("outlier_msg", inline = TRUE)
-  # h4(" message about outlier")
 )
 # p1.a app options ----
 app_options_box <- box(title = "App Options",
@@ -103,12 +78,6 @@ upload_box <- box(title = "Local Data Import",
                   # height = ctmmweb:::STYLES$height_data_import_box,
                   status = "info", solidHeader = TRUE, width = 12,
   fluidRow(
-    # column(12, radioButtons('load_option', NULL,
-    #                               c("Use Bufflo Data in ctmm" = 'ctmm',
-    #                                 "Use Sample of Buffalo Data" = 'ctmm_sample',
-    #                                 "Upload File" = 'upload'),
-    #                               selected = "upload")
-    #               ),
     column(12, h4(icon("database"), "Dataset in ctmm package")),
     column(4, checkboxInput("take_sample",
                             div(icon("filter"),
@@ -138,21 +107,6 @@ upload_box <- box(title = "Local Data Import",
                            ))
            )
     )
-# movebank_login_box <- box(title = "Movebank Login",
-#                           status = "warning", solidHeader = TRUE, width = 6,
-#                           # height = ctmmweb:::STYLES$height_movebank_login_box,
-#                           fluidRow(
-#                             column(12, br(), br(), br(), br()),
-#                             column(12,
-#                                   textInput("user", "User Name"), br(), br(),
-#                                   passwordInput("pass", label = "Password")),
-#                             column(12, br()),
-#                             column(5, actionButton("login", "Login",
-#                                           icon = icon("sign-in"),
-#                                           style = ctmmweb:::STYLES$page_action)),
-#                             column(5, offset = 2,
-#                                   help_button("login"))
-#                             ))
 # p1.c movebank studies ----
 movebank_studies_box <- box(title = "Movebank Studies", collapsible = TRUE,
                             status = "warning", solidHeader = TRUE, width = 12,
@@ -294,13 +248,6 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                                 icon = icon("wrench"),
                                                 style = ctmmweb:::STYLES$page_action))
            )
-             # column(12, hr()),
-             # column(12, h4("Set UERE Manually")),
-             #
-             # column(4, offset = 3, actionButton("apply_uere_manu",
-             #                        "Apply To Current",
-             #                        icon = icon("wrench"),
-             #                        style = ctmmweb:::STYLES$page_action))
            )
   )
 histogram_facet_box <- box(title = "6. Sampling Time",
@@ -309,17 +256,6 @@ histogram_facet_box <- box(title = "6. Sampling Time",
                            plotOutput("histogram_facet",
                                       width = "99%", height = "100%"))
 # p3. outlier ----
-# telemetry_error_box <- box(title = "Telemetry Errors",
-#            status = "primary", solidHeader = TRUE, width = 12,
-#            fluidRow(
-#              column(5, offset = 1,
-#                     textInput("device_error",
-#                               "Standardized Device Error(meter)",
-#                               value = "10"),
-#                     h5("Example: GPS: 10, VHF: 100")),
-#              column(2, offset = 4, br(), help_button("telemetry_errors"))
-#            )
-# )
 outlier_filter_box <- tabBox(title = "Outlier Detection",
                        id = "outlier_filter_tabs", width = 12,
   # p3.a distance ----
@@ -686,11 +622,6 @@ range_plot_box <- box(title = "Home Range Estimation",
       column(3, offset = 1, checkboxInput("hrange_weight_all", "Enable All"))),
     fluidRow(
      column(10, selectInput("hrange_weight", label = NULL,
-                           # label = h4(icon("balance-scale"),
-                           #            shiny::a("Optimal Weighting",
-                           #              target = "_blank",
-                           #              href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
-                           #              style = "text-decoration: underline;")),
                            choices = NULL, multiple = TRUE)),
      column(2, actionButton("apply_hrange_weight", "Apply",
                             icon = icon("angle-double-down"),
@@ -763,38 +694,9 @@ overlap_plot_box <- tabBox(title = "Plot", id = "overlap_tabs", width = 12,
                                                 "Columns",
                                                 value = 2, min = 1, max = 6,
                                                 step = 1)),
-             # column(3, offset = 0, checkboxInput("overlap_hide_contours",
-             #                                     "Hide Contours",
-             #                                     value = FALSE)),
-             # column(3, offset = 0,
-             #        checkboxInput("overlap_hrange_envelopes",
-             #                      "Confidence envelopes",
-             #                      value = FALSE)),
-             # column(3, offset = 1, checkboxInput("overlap_location_point",
-             #                                     "Location points",
-             #                                     value = FALSE)),
              column(12, plotOutput("overlap_plot_hrange",
                         width = "99%", height = "100%")
                     )))
-          # ,
-          # tabPanel("Location",
-          #  fluidRow(
-          #    column(2, offset = 1, numericInput("overlap_loc_height",
-          #                                       "Canvas height",
-          #                                       value = 600,
-          #                                       min = 200, max = 1200,
-          #                                       step = 100)),
-          #    column(2, offset = 6, numericInput("overlap_loc_columns",
-          #                                       "Columns",
-          #                                       value = 1, min = 1, max = 6,
-          #                                       step = 1)),
-          #    column(12,
-          #           plotOutput("overlap_plot_location",
-          #              dblclick = "overlap_plot_location_dblclick",
-          #              brush = brushOpts(id = "overlap_plot_location_brush",
-          #                                resetOnNew = TRUE),
-          #              width = "99%", height = "100%")
-          #           )))
 )
 # p8. occurrence ----
 occurrence_plot_box <- box(title = "Occurrence Distribution",
@@ -819,9 +721,6 @@ occurrence_plot_box <- box(title = "Occurrence Distribution",
                            textInput("oc_contour_text",
                                      "Occurrence Distribution Contours in %",
                                      value = "95")),
-                    # column(3, offset = 0, br(), checkboxInput("oc_hide_contours",
-                    #                                           "Hide Contours",
-                    #                                           value = FALSE)),
                     column(2, offset = 1, br(), help_button("occurrence")),
                     column(12, plotOutput("occurrence_plot",
                             width = "99%", height = "98%"))))
@@ -851,34 +750,6 @@ map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
   tabPanel("Heatmap",
            fluidRow(column(12, uiOutput("heat_map_holder"))))
 )
-# p10. work report ---
-# report_box <- box(title = "Report", status = "info",
-#                           solidHeader = TRUE, width = 12,
-#   fluidRow(
-#     # column(3,
-#     #        # downloadButton("save_data",
-#     #        #                "Save Data",
-#     #        #                style = ctmmweb:::STYLES$download_button),
-#     #        br(), br(),
-#     #        # uiOutput("view_report")
-#     #        ),
-#     # column(4, offset = 1, checkboxInput("save_tele",
-#     #                                     "Save Telemetry Data")),
-#     column(4, offset = 5,
-#            downloadButton("download_report_zip",
-#                           "Download Report as zip",
-#                           style = ctmmweb:::STYLES$download_button),
-#            br(), br(),
-#            help_button("report"))
-#   ))
-# show debug information in app, because hosted app log often mess up
-# debug_box <- box(title = "Debug", status = "primary",
-#                                  solidHeader = TRUE, width = 12,
-#    fluidRow(
-#      column(12, verbatimTextOutput("session_info")),
-#      column(12, verbatimTextOutput("occurrence_info"))
-#    ))
-# error_log_box <- uiOutput("error_log_box")
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
@@ -914,11 +785,10 @@ body <- dashboardBody(
             fluidRow(overlap_summary_box, overlap_plot_box)),
     tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
+    # tabItem(tabName = "speed",
+    #         fluidRow(speed_box)),
     tabItem(tabName = "map",
             fluidRow(map_control_box, map_box))
-    # ,
-    # tabItem(tabName = "report",
-    #                         fluidRow(report_box))
   )
 )
 # assemble UI

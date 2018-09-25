@@ -92,6 +92,7 @@ PAGE_title <- list(import = "Import Data",
                    homerange = "Home Range",
                    overlap = "Overlap",
                    occurrence = "Occurrence",
+                   speed = "Speed",
                    map = "Map")
 # variogram curve colors ----
 ## need this in curve checkbox (in ui) and server code, put it into package so it can be shared.

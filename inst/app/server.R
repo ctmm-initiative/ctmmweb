@@ -1095,8 +1095,6 @@ output:
       values$cali_uere <- ctmm::uere.fit(req(values$cali_tele_list))
     } else {
       # uere is always a named vector. after parsing the name is lost, need to restore it, otherwise new uere was not named properly
-      # values$cali_uere <- c(horizontal = req(ctmmweb:::parse_num_text_input(
-      #   input$uere_text_input)))
       # values$cali_uere <- req(ctmmweb:::parse_num_text_input(
       #   input$uere_text_input))
       # somehow int 10 will not be applied by uere.
