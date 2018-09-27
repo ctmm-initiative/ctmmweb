@@ -1,1 +1,2 @@
 - This page will simulate multiple realizations of the animal's trajectory and estimate the average speed, which is proportional to distance traveled. See [`ctmm::speed`](https://ctmm-initiative.github.io/ctmm/reference/speed.html)
+- There is a speed column in model summary table of `Model` page. That is a Gaussian RMS speed and here is a non-parametric mean speed.

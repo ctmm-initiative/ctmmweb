@@ -2801,14 +2801,73 @@ output:
   # p9. speed ----
   callModule(click_help, "speed", title = "Estimate Average Speed",
              size = "l", file = "help/9_speed.md")
-  # TODO reactive expression, calculate speed according to available models
-  # take parameters
-  # show wait notification
-  # return a dt
-  # TODO display dt
-
-  # TODO draw plot from dt
-
+  # select_models_speed() ----
+  select_models_speed <- reactive({
+    # take parameters
+    # show wait notification
+    # return a dt
+  })
+  # TODO speed table ----
+  output$speed_table <- DT::renderDT({
+    dt <- copy(select_models_overlap())
+    # to color the v1 v2 columns, need a function that map from v1 v2 values (could be identity or full model name) to color, when using DT utility function this means a levels (all possible names) vector and color vector in same order.
+    display_color <- select_models()$display_color
+    # don't need the combination column. we can hide columns in DT but it's quite complex with 1 index trap
+    dt[, Combination := NULL]
+    # LOG overlap summary
+    log_dt_md(dt, "Overlap Summary")
+    # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
+    # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. see DT_row_update_problem.Rmd for minimal example, also see console output with shiny trace on commit 3.8 2pm.
+    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem. sometimes this worked? add clear table for additional protection
+    freezeReactiveValue(input, "overlap_summary_rows_selected")
+    # reset signal variable after DT rendering finish
+    # on.exit(overlap_table_ready <- TRUE)
+    # COPY start note code changed in color part --
+    DT::datatable(dt,
+                  # class = 'table-bordered',
+                  options = list(pageLength = 18,
+                                 lengthMenu = c(6, 12, 18, 36),
+                                 order = list(list(4, 'desc'))),
+                  rownames = TRUE) %>%
+      # override the low/high cols with background
+      DT::formatStyle(c("CI low", "CI high"),
+                      color = scales::hue_pal()(1)) %>%
+      DT::formatStyle("ML", color = "blue") %>%
+      # override the id col color
+      DT::formatStyle(c("v1", "v2"), target = 'cell',
+                      color = DT::styleEqual(names(display_color),
+                                             display_color)
+      )
+    # COPY end --
+  })
+  # TODO speed plot ----
+  output$speed_plot <- renderPlot({
+    overlap_dt <- select_models_overlap()
+    # need to wait until table is finished, use current page.
+    current_order <- overlap_dt[rev(req(input$overlap_summary_rows_current)),
+                                Combination]
+    # tried to move the dynamic column part to reactive expression, which would cause the table refresh twice in start (update after table is built), and row selection caused data change, table refresh and lost row selection.
+    # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
+    # COPY start --
+    overlap_dt[, selected := FALSE]
+    overlap_dt[input$overlap_summary_rows_selected, selected := TRUE]
+    g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination,
+                                                  color = selected)) +
+      # make plot sync with table sort and filtering
+      ggplot2::scale_y_discrete(limits = current_order) +
+      # na.rm in point, text, errorbar otherwise will warning in filtering
+      ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
+      {if (input$show_overlap_label) {
+        ggplot2::geom_text(ggplot2::aes(label = ML), hjust = 0, vjust = -0.5,
+                           show.legend = FALSE, na.rm = TRUE)}} +
+      ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
+                              size = 0.45, height = 0.35, na.rm = TRUE) +
+      ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
+    # COPY end --
+    # LOG save pic
+    log_save_ggplot(g, "overlap_plot_value_range")
+  }, height = function() { input$overlap_plot_height }, width = "auto"
+  )
   # p10. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/10_map.md")
@@ -2984,7 +3043,7 @@ output:
       file.copy(CURRENT_map_path[[input$map_tabs]], file)
     }
   )
-  # p10. report ----
+  # p11. report ----
   # save data ----
   output$save_data <- downloadHandler(
     filename = function() {

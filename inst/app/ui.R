@@ -732,7 +732,10 @@ speed_box <- box(title = "Estimate Average Speed", status = "info",
                               min = 1, max = 100, step = 1)),
           column(5, offset = 1, br(),
                  checkboxInput("speed_robust", "Use robust statistics")),
-          column(2, offset = 1, br(), help_button("speed")))
+          column(2, offset = 1, br(), help_button("speed"))),
+  fluidRow(column(12, DT::DTOutput("speed_table")),
+           column(12, plotOutput("speed_plot",
+                                 width = "99%", height = "100%")))
                  )
 # p10. map ----
 map_control_box <- box(title = "Map Controls", status = "primary",
