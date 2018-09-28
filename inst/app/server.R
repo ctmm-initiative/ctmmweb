@@ -2823,12 +2823,13 @@ output:
     withProgress(print(system.time(
       res <- par_speed_mem(para_list, parallel = input_value("parallel")))),
       message = "Simulating animal's trajectory and estimate the average speed ...")
-    # always save names in list
-    # names(res) <- names(select_data()$tele_list)
-    # return a dt
-    dt <- ctmmweb:::speed_res_to_dt(res)
+    res_dt <- ctmmweb:::speed_res_to_dt(res)
+    # add model info columns: model type, identity, model name, color
+    dt <- cbind()
+    browser()
     # LOG speed result
     log_dt_md(dt, "Estimated Speed")
+    # return a dt
     return(dt)
   })
   # TODO speed table ----
