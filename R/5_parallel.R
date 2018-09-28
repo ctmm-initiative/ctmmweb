@@ -118,7 +118,8 @@ par_lapply <- function(lst, fun,
   }
   return(res)
 }
-# app need this with more control since we may want adjusted guess list instead of automatic guess. don't want to add this in package help index, so do not use roxygen format.
+# all par_ functions have additional cores, parallel parameters that will be used in app
+# app need more control since we may want adjusted guess list instead of automatic guess. don't want to add this in package help index, so do not use roxygen format.
 # ctmm.fit: return single best model for each
 # ctmm.select, verbose = TRUE, all attempted models with model type as name, models for same animal as sub items of animal node
 # ctmm.select verbose = FALSE: same structure but no model type as name, with one extra layer compare to ctmm.fit. also the object content is different. there is no sense to use verbose = FALSE. though there may be a need for parallel ctmm.fit
@@ -246,6 +247,16 @@ par_occur <- function(tele_list, model_list,
     ctmm::occurrence(tele_model_list[[1]], tele_model_list[[2]])
   }
   par_lapply(tele_model_list, occur_calc, cores, parallel)
+}
+par_speed <- function(para_list,
+                      cores = NULL,
+                      parallel = TRUE) {
+  speed_calc <- function(para_list) {
+    ctmm::speed(para_list[[1]], para_list[[2]],
+                level = para_list[[3]], robust = para_list[[4]],
+                units = FALSE)
+  }
+  par_lapply(para_list, speed_calc, cores, parallel)
 }
 # sample telemetry data ----
 

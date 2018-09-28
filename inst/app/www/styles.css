@@ -36,6 +36,11 @@ label[for="plot_dpi"] {
   bottom: 50%;
   right: 30%;
 }
+/* withProgress notification */
+/*.shiny-progress-notification {
+  background: #f59d00;
+}
+*/
 
 .shiny-notification {
   opacity: 0.99;

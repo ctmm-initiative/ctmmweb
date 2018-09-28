@@ -724,17 +724,18 @@ occurrence_plot_box <- box(title = "Occurrence Distribution",
                     column(2, offset = 1, br(), help_button("occurrence")),
                     column(12, plotOutput("occurrence_plot",
                             width = "99%", height = "98%"))))
-# p9. speed ----
+# p9. estimate speed ----
+# to differentiate from speed outlier
 speed_box <- box(title = "Estimate Average Speed", status = "info",
                  solidHeader = TRUE, width = 12,
   fluidRow(column(3, offset = 0,
-                 numericInput("speed_level", "Confidence Level", 95,
+                 numericInput("estimate_speed_level", "Confidence Level", 95,
                               min = 1, max = 100, step = 1)),
           column(5, offset = 1, br(),
-                 checkboxInput("speed_robust", "Use robust statistics")),
-          column(2, offset = 1, br(), help_button("speed"))),
-  fluidRow(column(12, DT::DTOutput("speed_table")),
-           column(12, plotOutput("speed_plot",
+                 checkboxInput("estimate_speed_robust", "Use robust statistics")),
+          column(2, offset = 1, br(), help_button("estimate_speed"))),
+  fluidRow(column(12, DT::DTOutput("estimate_speed_table")),
+           column(12, plotOutput("estimate_speed_plot",
                                  width = "99%", height = "100%")))
                  )
 # p10. map ----

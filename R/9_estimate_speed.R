@@ -1,3 +1,4 @@
+# convert result list of speed calculation to dt
 speed_res_to_dt <- function(res) {
   res_cleaned <- lapply(res, function(x) {
     if (class(x) == "try-error") {
@@ -23,3 +24,4 @@ speed_res_to_dt <- function(res) {
   # keep the low high column for plot
   dt[, c("rn") := NULL]
 }
+
