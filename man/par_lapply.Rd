@@ -14,8 +14,8 @@ par_lapply(lst, fun, cores = NULL, parallel = TRUE,
 function is accepted, otherwise it's difficult to determine how to assign
 input parameters to each list item and worker. You need to convert multiple
 parameter function into a function take single list parameter, and assign
-parameters in that list accordingly. \code{\link[=align_2_list]{align_2_list()}} is a helper function to
-align two lists.}
+parameters in that list accordingly. \code{\link[=align_lists]{align_lists()}} is a helper function
+to align multiple lists.}
 
 \item{cores}{the core count to be used for cluster. Could be a positive
 integer or

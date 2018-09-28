@@ -1,4 +1,5 @@
 # see documentation and example in 05_1_model_variogram.Rmd / align list
+# this is slightly different from align_lists as the input is not each list, but a list of list. we have parameter in list already in this usage.
 align_curve_lists <- function(list_lst) {
   dimension <- length(list_lst)
   # no 1st sublist so need to separate processing

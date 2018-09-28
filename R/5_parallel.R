@@ -1,27 +1,31 @@
 # parallel ----
+# ... version is not what we need in curves. we have input in list already. this can be used for parallel usage if needed, not sure which of list()/NULL is needed
 
-#' Combine two lists into one list by aligning each item
+#' Combine multiple lists into one list by aligning each item
 #'
 #' The generic parallel function [par_lapply()] can only apply a function with
 #' single parameter to a list. Thus function with multiple parameters need to be
-#' wrapped into a function with single list which hold all the parameters.
+#' wrapped into a function with single parameter list.
 #'
-#' @param list_a list_a. `list_a` and `list_b` need to have same length.
-#' @param list_b list_b
+#' @param ...
 #'
-#' @return A list of same length of input list. Each item is a list of \itemize{
-#'   \item \code{a: list_a[[i]]} \item \code{b: list_b[[i]]} }
-#'
+#' @return A list of same length of each input list, and each input parameter should have same length. Each item in result is a list of each `i`th item in input lists.
 #' @export
+#' @examples
+#' align_lists(letters[1:3], 1:3, rep_len(FALSE, length.out = 3))
 #'
-align_2_list <- function(list_a, list_b) {
-  stopifnot(length(list_a) == length(list_b))
-  # use lapply instead of for only because we can get a list without initialization
-  lapply(seq_along(list_a), function(i) {
-    list(a = list_a[[i]], b = list_b[[i]])
+align_lists <- function(...) {
+  list_lst <- list(...)
+  len_vec <- sapply(list_lst, length)
+  stopifnot(length(unique(len_vec)) == 1)
+  # by length of sublist 1. with list(...) even NULL input have 1 item.
+  res <- lapply(seq_along(list_lst[[1]]), function(i) {
+    lapply(list_lst, getElement, i)  # function format of `[[`
   })
+  # if input is NULL, res will be list(), will error on [[i]] call, which is our most usage. change to NULL so [[i]] will get NULL
+  if (length(res) == 0) res <- NULL
+  return(res)
 }
-
 # used to write parallel as last parameter, then para_ll(ll, fun, parallel = TRUE) is interpreted as win_init = {parallel = TRUE}
 
 #' Parallel apply function to list in all platforms
@@ -38,8 +42,8 @@ align_2_list <- function(list_a, list_b) {
 #'   function is accepted, otherwise it's difficult to determine how to assign
 #'   input parameters to each list item and worker. You need to convert multiple
 #'   parameter function into a function take single list parameter, and assign
-#'   parameters in that list accordingly. [align_2_list()] is a helper function to
-#'   align two lists.
+#'   parameters in that list accordingly. [align_lists()] is a helper function
+#'   to align multiple lists.
 #' @param cores the core count to be used for cluster. Could be a positive
 #'  integer or
 #'   - Default `NULL` value will indicate to use a heuristic value based on detected cores, which is roughly `min(input_size, physical_cores_count * n)`,
@@ -129,14 +133,14 @@ par_try_tele_guess_multi <- function(tele_guess_list,
   try_models <- function(tele_guess) {
     res <- try({
       # log("a")
-      ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+      ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
                         control = list(method = "pNewton", cores = 1),
                         trace = TRUE, verbose = TRUE)
     })
     if (inherits(res, "try-error")) {
       message(res)
       cat(crayon::white$bgMagenta("ctmm.select() failed with pNewton, switching to Nelder-Mead\n"))
-      res <- ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+      res <- ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
                                trace = TRUE, verbose = TRUE)
     }
     return(res)
@@ -152,14 +156,14 @@ par_try_tele_guess_single <- function(tele_guess_list,
   cores <- if (parallel) -1 else 1
   res <- try({
     # log("a")
-    ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+    ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
                       control = list(method = "pNewton", cores = cores),
                       trace = TRUE, verbose = TRUE)
   })
   if (inherits(res, "try-error")) {
     message(res)
     cat(crayon::white$bgMagenta("ctmm.select() failed with pNewton, switching to Nelder-Mead\n"))
-    res <- ctmm::ctmm.select(tele_guess$a, CTMM = tele_guess$b,
+    res <- ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
                              control = list(cores = cores),
                              trace = TRUE, verbose = TRUE)
   }
@@ -189,7 +193,7 @@ par_try_tele_guess <- function(tele_guess_list,
 par_try_models <- function(tele_list,
                            cores = NULL,
                               parallel = TRUE) {
-  tele_guess_list <- align_2_list(tele_list,
+  tele_guess_list <- align_lists(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
@@ -210,13 +214,13 @@ par_try_models <- function(tele_list,
 par_fit_models <- function(tele_list,
                            cores = NULL,
                            parallel = TRUE) {
-  tele_guess_list <- align_2_list(tele_list,
+  tele_guess_list <- align_lists(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
   # fit single model, no plural
   fit_model <- function(tele_guess) {
-    ctmm::ctmm.fit(tele_guess$a, CTMM = tele_guess$b, trace = TRUE)
+    ctmm::ctmm.fit(tele_guess[[1]], CTMM = tele_guess[[2]], trace = TRUE)
   }
   print(system.time(model_fit_res <-
                       par_lapply(tele_guess_list, fit_model,
@@ -237,9 +241,9 @@ par_fit_models <- function(tele_list,
 par_occur <- function(tele_list, model_list,
                       cores = NULL,
                       parallel = TRUE) {
-  tele_model_list <- align_2_list(tele_list, model_list)
+  tele_model_list <- align_lists(tele_list, model_list)
   occur_calc <- function(tele_model_list) {
-    ctmm::occurrence(tele_model_list$a, tele_model_list$b)
+    ctmm::occurrence(tele_model_list[[1]], tele_model_list[[2]])
   }
   par_lapply(tele_model_list, occur_calc, cores, parallel)
 }

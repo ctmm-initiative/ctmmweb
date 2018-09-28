@@ -2127,7 +2127,7 @@ output:
     # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
     req(length(select_data()$tele_list) ==
           length(values$selected_data_guess_list))
-    tele_guess_list <- ctmmweb::align_2_list(select_data()$tele_list,
+    tele_guess_list <- ctmmweb::align_lists(select_data()$tele_list,
                                            values$selected_data_guess_list)
     # LOG try models
     log_msg("Trying different models...")
@@ -2350,7 +2350,7 @@ output:
     } else {
       tele_list <- select_models()$tele_list[refit_dt$to_refit]
       init_ctmm_list <- refit_dt[(to_refit), model_current]
-      tele_guess_list <- ctmmweb::align_2_list(tele_list,
+      tele_guess_list <- ctmmweb::align_lists(tele_list,
                                              init_ctmm_list)
       # LOG try models
       log_msg("Refitting models...")
@@ -2804,7 +2804,18 @@ output:
   # select_models_speed() ----
   select_models_speed <- reactive({
     # take parameters
-    # show wait notification
+    selected_models <- select_models()$model_list
+    selected_tele <- select_models()$tele_list
+    selected_model_list_dt <- select_models()$model_list_dt
+    # LOG estimating speed
+    log_msg("Estimating speed...")
+    withProgress(print(system.time(
+      res <-
+        par_try_tele_guess_mem(tele_guess_list,
+                               parallel = input_value("parallel")))),
+      message = "Simulating animal's trajectory and estimate the average speed ...")
+    # always save names in list
+    names(res) <- names(select_data()$tele_list)
     # return a dt
   })
   # TODO speed table ----
