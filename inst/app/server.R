@@ -2825,50 +2825,27 @@ output:
       message = "Simulating animal's trajectory and estimate the average speed ...")
     res_dt <- ctmmweb:::speed_res_to_dt(res)
     # add model info columns: model type, identity, model name, color
-    dt <- cbind()
-    browser()
-    # LOG speed result
-    log_dt_md(dt, "Estimated Speed")
+    dt <- cbind(
+      selected_model_list_dt[, .(model_no, identity, model_type,
+                                 model_name, display_name, model_color)],
+      res_dt)
     # return a dt
     return(dt)
   })
-  # TODO speed table ----
+  # speed table ----
   output$estimate_speed_table <- DT::renderDT({
-    dt <- copy(select_models_estimate_speed())
-    # to color the v1 v2 columns, need a function that map from v1 v2 values (could be identity or full model name) to color, when using DT utility function this means a levels (all possible names) vector and color vector in same order.
-    # display_color <- select_models()$display_color
-    # # don't need the combination column. we can hide columns in DT but it's quite complex with 1 index trap
-    # dt[, Combination := NULL]
-    # # LOG overlap summary
-    # log_dt_md(dt, "Overlap Summary")
-    # when data updated, prevent location plot to use previous row selection value on new data (because row selection update slowest after table and plot). this will ensure row selection only get flushed in the end.
-    # when not freezed, switch back and forth will cause plot update twice and save twice, first time old plot, then updated plot, or two same plot. see DT_row_update_problem.Rmd for minimal example, also see console output with shiny trace on commit 3.8 2pm.
-    # however, sometimes this freeze will cause the range plot pause after switching back. that doesn't happen with trace On. could be some update order problem. sometimes this worked? add clear table for additional protection
-    # freezeReactiveValue(input, "overlap_summary_rows_selected")
-    # reset signal variable after DT rendering finish
-    # on.exit(overlap_table_ready <- TRUE)
-    # COPY start note code changed in color part --
-    DT::datatable(dt,
-                  # class = 'table-bordered',
-                  options = list(pageLength = 18,
-                                 lengthMenu = c(6, 12, 18, 36)
-                                 # ,
-                                 # order = list(list(4, 'desc'))
-                                 ),
-                  rownames = TRUE)
-    # %>%
-    #   # override the low/high cols with background
-    #   DT::formatStyle(c("CI low", "CI high"),
-    #                   color = scales::hue_pal()(1)) %>%
-    #   DT::formatStyle("ML", color = "blue") %>%
-    #   # override the id col color
-    #   DT::formatStyle(c("v1", "v2"), target = 'cell',
-    #                   color = DT::styleEqual(names(display_color),
-    #                                          display_color)
-      # )
-    # COPY end --
+    # the speed column name could vary so use column index here
+    dt <- select_models_estimate_speed()[, c(1:3, 8, 10)]
+    # LOG speed result, log here because the table is better suited for log than dt
+    log_dt_md(dt, "Estimated Speed")
+    # formatting style is similar to home range table/model summary table
+    info_p <- values$data$merged$info
+    # still use the full model type table color mapping to make it consistent.
+    model_types <- stringr::str_sort(unique(dt$model_type))
+    render_model_summary_DT(dt, model_types, info_p, NULL)
   })
   # TODO speed plot ----
+  # just sort plot with table, plus selection highlight
   # output$estimate_speed_plot <- renderPlot({
   #   overlap_dt <- select_models_overlap()
   #   # need to wait until table is finished, use current page.
