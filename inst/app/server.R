@@ -2459,15 +2459,10 @@ output:
     dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
                                                                 get_hr_levels())
     # remove extra columns to save space
-    # dt[, model_no := NULL]
     dt[, model_name := NULL]
     setnames(dt, "model_no", "no")
     # LOG home range summary
     log_dt_md(dt, "Home Range Summary")
-    # if (input$hide_ci_hrange) {
-    #   dt <- dt[!stringr::str_detect(estimate, "CI")]
-    #   # dt[, estimate := NULL]
-    # }
     info_p <- values$data$merged$info
     # still use the full model type table color mapping to make it consistent.
     model_types <- stringr::str_sort(unique(
@@ -2835,44 +2830,45 @@ output:
   # speed table ----
   output$estimate_speed_table <- DT::renderDT({
     # the speed column name could vary so use column index here
-    dt <- select_models_estimate_speed()[, c(1:3, 8, 10)]
+    table_dt <- select_models_estimate_speed()[, c(1:3, 8, 10)]
     # LOG speed result, log here because the table is better suited for log than dt
-    log_dt_md(dt, "Estimated Speed")
+    log_dt_md(table_dt, "Estimated Speed")
     # formatting style is similar to home range table/model summary table
     info_p <- values$data$merged$info
     # still use the full model type table color mapping to make it consistent.
-    model_types <- stringr::str_sort(unique(dt$model_type))
-    render_model_summary_DT(dt, model_types, info_p, NULL)
+    model_types <- stringr::str_sort(
+      unique(summary_models()$summary_dt$model_type))
+    render_model_summary_DT(table_dt, model_types, info_p, NULL)
   })
   # TODO speed plot ----
   # just sort plot with table, plus selection highlight
-  # output$estimate_speed_plot <- renderPlot({
-  #   overlap_dt <- select_models_overlap()
-  #   # need to wait until table is finished, use current page.
-  #   current_order <- overlap_dt[rev(req(input$overlap_summary_rows_current)),
-  #                               Combination]
-  #   # tried to move the dynamic column part to reactive expression, which would cause the table refresh twice in start (update after table is built), and row selection caused data change, table refresh and lost row selection.
+  output$estimate_speed_plot <- renderPlot({
+    dt <- select_models_estimate_speed()
+    # need to wait until table is finished, use current page.
+    current_order <- dt[rev(req(input$estimate_speed_table_rows_current)), model_name]
   #   # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
-  #   # COPY start --
-  #   overlap_dt[, selected := FALSE]
-  #   overlap_dt[input$overlap_summary_rows_selected, selected := TRUE]
-  #   g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination,
-  #                                                 color = selected)) +
-  #     # make plot sync with table sort and filtering
-  #     ggplot2::scale_y_discrete(limits = current_order) +
-  #     # na.rm in point, text, errorbar otherwise will warning in filtering
-  #     ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
-  #     {if (input$show_overlap_label) {
-  #       ggplot2::geom_text(ggplot2::aes(label = ML), hjust = 0, vjust = -0.5,
-  #                          show.legend = FALSE, na.rm = TRUE)}} +
-  #     ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
-  #                             size = 0.45, height = 0.35, na.rm = TRUE) +
-  #     ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
-  #   # COPY end --
-  #   # LOG save pic
-  #   log_save_ggplot(g, "overlap_plot_value_range")
-  # }, height = function() { input$overlap_plot_height }, width = "auto"
-  # )
+    col_name <- names(dt)[8]  # rely on column position here, otherwise need to be string pattern, both not ideal
+    # add backtick to quote, thus after unquote it will be valid name
+    col_name <- paste0("`", col_name, "`")
+    dt[, selected := FALSE]
+    dt[input$estimate_speed_table_rows_selected, selected := TRUE]
+    g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = col_name, y = "model_name",
+                                                 color = "selected")) +
+      # make plot sync with table sort and filtering
+      ggplot2::scale_y_discrete(limits = current_order) +
+      # na.rm in point, text, errorbar otherwise will warning in filtering
+      ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
+      {if (input$show_estimate_speed_plot_label) {
+        ggplot2::geom_text(ggplot2::aes_string(label = col_name),
+                           hjust = 0, vjust = -0.5, na.rm = TRUE)}} +
+      ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high,
+                                           color = model_color),
+                              size = 0.45, height = 0.35, na.rm = TRUE) +
+      ggplot2::guides(color = FALSE) + ctmmweb:::BIGGER_THEME
+    # LOG save pic
+    log_save_ggplot(g, "estimate_speed_value_range")
+  }, height = function() { input$estimate_speed_plot_height }, width = "auto"
+  )
   # p10. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/10_map.md")
