@@ -2852,19 +2852,21 @@ output:
     col_name <- paste0("`", col_name, "`")
     dt[, selected := FALSE]
     dt[input$estimate_speed_table_rows_selected, selected := TRUE]
-    g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = col_name, y = "model_name",
-                                                 color = "selected")) +
+    browser()
+    g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = col_name,
+                                                 y = "model_name")) +
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
       # na.rm in point, text, errorbar otherwise will warning in filtering
-      ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
       {if (input$show_estimate_speed_plot_label) {
         ggplot2::geom_text(ggplot2::aes_string(label = col_name),
                            hjust = 0, vjust = -0.5, na.rm = TRUE)}} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high,
                                            color = model_color),
                               size = 0.45, height = 0.35, na.rm = TRUE) +
-      ggplot2::guides(color = FALSE) + ctmmweb:::BIGGER_THEME
+      ggplot2::geom_point(ggplot2::aes(color = selected), size = 2, na.rm = TRUE) +
+      # ggplot2::guides(color = FALSE) +
+      ctmmweb:::BIGGER_THEME
     # LOG save pic
     log_save_ggplot(g, "estimate_speed_value_range")
   }, height = function() { input$estimate_speed_plot_height }, width = "auto"
@@ -3060,8 +3062,10 @@ output:
         log_msg("Saving Data")
         # pack and save cache
         cache_zip_path <- ctmmweb::zip_folder(cache_path, "cache.zip")
-        saved_rds_path <- file.path(session_tmpdir, "data.rds")
-        saveRDS(values$data, file = saved_rds_path)
+        saveRDS(values$data,
+                file = file.path(session_tmpdir, "data.rds"))
+        saveRDS(values$input_tele_list,
+                file = file.path(session_tmpdir, "input_telemetry.rds"))
         # LOG save current telemetry data as csv so it can be imported easier. Only do this in generated report, not in the process to avoid too frequent saves.
         log_dt_md(values$data$merged$info,
                   "Current Telemetry Data")
@@ -3113,9 +3117,10 @@ output:
     reset_cache(cache_path)
     # using hard coded file name, need to search all usage when changed. cache.zip have cache folder inside it, so need to extract one level up
     utils::unzip(file.path(session_tmpdir, "cache.zip"), exdir = session_tmpdir)
-    loaded_data <- readRDS(file.path(session_tmpdir, "data.rds"))
     # restore variables, also need to update id_pal, which are outside of data thus not restored, but it need to be built.
-    values$data <- loaded_data
+    values$input_tele_list <- readRDS(file.path(
+      session_tmpdir, "input_telemetry.rds"))
+    values$data <- readRDS(file.path(session_tmpdir, "data.rds"))
     values$id_pal <- ctmmweb:::build_id_pal(values$data$merged$info)
     shinydashboard::updateTabItems(session, "tabs", "plots")
   })

@@ -13,7 +13,8 @@
 
 ### Save Progress
 - `Save Progress` button in side bar will save these data as a zip:
-  - `combined_data_table.csv`: the current combined telemetry `data.table`. It can be imported into app later as csv.
+  - `input_telemery.rds`: the telemetry objects of input data
+  - `combined_data_table.csv`: the current data subset in csv format
   - `data.rds`: a list that can be imported into R later with `readRDS`
     - `tele_list`: the telemetry object list with modifications made in app, for example some outliers can be removed, new time subset may be added.
     - `merged`: list of 
