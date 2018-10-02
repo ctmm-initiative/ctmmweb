@@ -2852,20 +2852,19 @@ output:
     col_name <- paste0("`", col_name, "`")
     dt[, selected := FALSE]
     dt[input$estimate_speed_table_rows_selected, selected := TRUE]
-    browser()
     g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = col_name,
-                                                 y = "model_name")) +
+                                                 y = "model_name",
+                                                 color = "selected")) +
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
       # na.rm in point, text, errorbar otherwise will warning in filtering
       {if (input$show_estimate_speed_plot_label) {
         ggplot2::geom_text(ggplot2::aes_string(label = col_name),
                            hjust = 0, vjust = -0.5, na.rm = TRUE)}} +
-      ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high,
-                                           color = model_color),
+      ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high),
                               size = 0.45, height = 0.35, na.rm = TRUE) +
-      ggplot2::geom_point(ggplot2::aes(color = selected), size = 2, na.rm = TRUE) +
-      # ggplot2::guides(color = FALSE) +
+      ggplot2::geom_point(color = "blue", size = 2, na.rm = TRUE) +
+      ggplot2::guides(color = FALSE) +
       ctmmweb:::BIGGER_THEME
     # LOG save pic
     log_save_ggplot(g, "estimate_speed_value_range")
