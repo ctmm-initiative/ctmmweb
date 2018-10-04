@@ -2221,13 +2221,6 @@ output:
                       color = DT::styleEqual(info_p$identity,
                                              scales::hue_pal()(nrow(info_p)))
       )
-    # %>%
-    #   # override the low/high cols with background
-    #   DT::formatStyle('estimate', target = 'row',
-    #                   backgroundColor = DT::styleEqual(
-    #                     c("CI low", "ML" , "CI high"),
-    #                     c("#FFFFFF", "#F7F7F7", "#F2F2F2"))
-    #   )
   }
   output$tried_models_summary <- DT::renderDT({
     # should not need to use req on reactive expression if that expression have req inside.
@@ -2264,13 +2257,6 @@ output:
   #   cat(input$tried_models_summary_rows_selected, "\n")
   # })
   select_models <- reactive({
-    # change signal variable so that overlap table rows should not be used now. this is similar to the clear row selection action in try models
-    # overlap_table_ready <- FALSE
-    # DT::selectRows(proxy_overlap_dt, list())
-    # req(!is.null(values$selected_data_model_try_res))
-    # req(length(input$tried_models_summary_rows_selected) > 0)
-    # input$tried_models_summary_cell_clicked
-    # cat(input$tried_models_summary_rows_selected, "\n")
     # sort the rows selected so same individual models are together
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
@@ -2840,13 +2826,13 @@ output:
       unique(summary_models()$summary_dt$model_type))
     render_model_summary_DT(table_dt, model_types, info_p, NULL)
   })
-  # TODO speed plot ----
+  # speed plot ----
   # just sort plot with table, plus selection highlight
   output$estimate_speed_plot <- renderPlot({
     dt <- select_models_estimate_speed()
     # need to wait until table is finished, use current page.
     current_order <- dt[rev(req(input$estimate_speed_table_rows_current)), model_name]
-  #   # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
+    # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
     col_name <- names(dt)[8]  # rely on column position here, otherwise need to be string pattern, both not ideal
     # add backtick to quote, thus after unquote it will be valid name
     col_name <- paste0("`", col_name, "`")
