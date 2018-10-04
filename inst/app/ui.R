@@ -726,26 +726,44 @@ occurrence_plot_box <- box(title = "Occurrence Distribution",
                             width = "99%", height = "98%"))))
 # p9. estimate speed ----
 # to differentiate from speed outlier
-speed_box <- box(title = "Estimate Average Speed", status = "info",
-                 solidHeader = TRUE, width = 12,
-  fluidRow(column(3, offset = 0,
-                 numericInput("estimate_speed_level", "Confidence Level", 95,
-                              min = 1, max = 100, step = 1)),
-          column(5, offset = 1, br(),
-                 checkboxInput("estimate_speed_robust", "Use robust statistics")),
-          column(2, offset = 1, br(), help_button("estimate_speed"))),
-  fluidRow(column(12, DT::DTOutput("estimate_speed_table")),
-           column(3, offset = 0, numericInput("estimate_speed_plot_height",
-                                              "Canvas Height",
-                                              value = 400,
-                                              min = 200, max = 1200,
-                                              step = 100)),
-           column(3, offset = 1, br(),
-                  checkboxInput("show_estimate_speed_plot_label",
-                                "Label Values", value = TRUE)),
-           column(12, plotOutput("estimate_speed_plot",
-                                 width = "99%", height = "100%")))
-                 )
+speed_control_box <- box(title = "Estimate Speed", status = "info",
+                                        solidHeader = TRUE, width = 12,
+   fluidRow(column(3, offset = 0,
+                   numericInput("estimate_speed_level", "Confidence Level", 95,
+                                min = 1, max = 100, step = 1)),
+            column(4, offset = 0,
+                   # if using group input, one value change trigger the whole input value, thus label change trigger speed calculations. use align_up to reduce gap between them.
+                   checkboxInput("estimate_speed_robust",
+                                 div(icon("anchor"),
+                                     HTML('&nbsp;'),
+                                     "Use robust statistics")),
+                   div(style = ctmmweb:::STYLES$align_up_group,
+                       checkboxInput("show_estimate_speed_plot_label",
+                                     div(icon("font"),
+                                         HTML('&nbsp;'),
+                                         "Label Values"))
+                       )
+                   ),
+            column(3, offset = 0, numericInput("estimate_speed_plot_height",
+                                               "Canvas Height",
+                                               value = 400,
+                                               min = 200, max = 1200,
+                                               step = 100)),
+            column(2, offset = 0, br(), help_button("estimate_speed")))
+)
+speed_box <- tabBox(title = NULL,
+                    id = "estimate_speed_tabs", width = 12,
+  # p9.a speed ----
+  tabPanel("Average Speed",
+    fluidRow(column(12, DT::DTOutput("estimate_speed_table")),
+             column(12, plotOutput("estimate_speed_plot",
+                                 width = "99%", height = "100%")))),
+  # p9.b distance ----
+  tabPanel("Distance Traveled",
+   fluidRow(column(12, DT::DTOutput("estimate_distance_table")),
+            column(12, plotOutput("estimate_distance_plot",
+                                  width = "99%", height = "100%"))))
+  )
 # p10. map ----
 map_control_box <- box(title = "Map Controls", status = "primary",
                        solidHeader = TRUE, width = 12,
@@ -807,7 +825,7 @@ body <- dashboardBody(
     tabItem(tabName = "occurrence",
             fluidRow(occurrence_plot_box)),
     tabItem(tabName = "speed",
-            fluidRow(speed_box)),
+            fluidRow(speed_control_box, speed_box)),
     tabItem(tabName = "map",
             fluidRow(map_control_box, map_box))
   )
