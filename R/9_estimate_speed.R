@@ -51,3 +51,7 @@ speed_res_to_dt <- function(res, durations) {
      by = 1:nrow(dt)]
   format_dt_cols(dt, "distance_traveled", distance_unit_picked)
 }
+# find col name by pattern, add backtick to quote for future unquote. this works for ggplot aes_string, but dt don't need backtick
+get_ticked_col_name <- function(names, pattern) {
+  paste0("`", stringr::str_subset(names, pattern), "`")
+}

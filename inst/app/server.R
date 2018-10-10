@@ -2804,7 +2804,13 @@ output:
     withProgress(print(system.time(
       res <- par_speed_mem(para_list, parallel = input_value("parallel")))),
       message = "Simulating animal's trajectory and estimate the average speed ...")
-    res_dt <- ctmmweb:::speed_res_to_dt(res)
+    # also calculation duration, distance traveled
+    durations_dt <-
+      select_models()$data_dt[, .(duration = max(t, na.rm = TRUE) -
+                                    min(t,na.rm = TRUE)),
+                             by = identity]
+    durations <- durations_dt[names(selected_tele), duration, on = .(identity)]
+    res_dt <- ctmmweb:::speed_res_to_dt(res, durations)
     # add model info columns: model type, identity, model name, color
     dt <- cbind(
       selected_model_list_dt[, .(model_no, identity, model_type,
@@ -2813,18 +2819,44 @@ output:
     # return a dt
     return(dt)
   })
-  # speed table ----
-  output$estimate_speed_table <- DT::renderDT({
-    # the speed column name could vary so use column index here
-    table_dt <- select_models_estimate_speed()[, c(1:3, 8, 10)]
-    # LOG speed result, log here because the table is better suited for log than dt
-    log_dt_md(table_dt, "Estimated Speed")
+  # common rendering code
+  render_speed_distance_DT <- function(table_dt) {
     # formatting style is similar to home range table/model summary table
     info_p <- values$data$merged$info
     # still use the full model type table color mapping to make it consistent.
     model_types <- stringr::str_sort(
       unique(summary_models()$summary_dt$model_type))
     render_model_summary_DT(table_dt, model_types, info_p, NULL)
+  }
+  # speed table ----
+  output$estimate_speed_table <- DT::renderDT({
+    # the speed column name could vary so use column index here
+    # model_no, identity, model_type, speed, speed CI
+    # table_dt <- select_models_estimate_speed()[, c(1:3, 8, 10)]
+    dt <- select_models_estimate_speed()
+    speed_col_name <- stringr::str_subset(names(dt), "speed \\(")
+    speed_CI_col_name <- stringr::str_subset(names(dt), "speed CI \\(")
+    table_dt <- dt[, c("model_no", "identity", "model_type",
+                       speed_col_name, speed_CI_col_name), with = FALSE]
+    # LOG speed result, log here because the table is better suited for log than dt
+    log_dt_md(table_dt, "Estimated Speed")
+    render_speed_distance_DT(table_dt)
+  })
+  # distance table ----
+  output$estimate_distance_table <- DT::renderDT({
+    # the speed column name could vary so use column index here
+    # model_no, identity, model_type, speed, speed CI
+    # table_dt <- select_models_estimate_speed()[, c(1:3, 8, 10)]
+    dt <- select_models_estimate_speed()
+    duration_col_name <- stringr::str_subset(names(dt), "duration \\(")
+    distance_col_name <- stringr::str_subset(names(dt), "distance_traveled \\(")
+    distance_CI_col_name <- stringr::str_subset(names(dt),
+                                                "distance_traveled CI \\(")
+    table_dt <- dt[, c("model_no", "identity", "model_type", duration_col_name,
+                       distance_col_name, distance_CI_col_name), with = FALSE]
+    # LOG speed result, log here because the table is better suited for log than dt
+    log_dt_md(table_dt, "Estimated Distance Traveled")
+    render_speed_distance_DT(table_dt)
   })
   # speed plot ----
   # just sort plot with table, plus selection highlight
@@ -2833,19 +2865,19 @@ output:
     # need to wait until table is finished, use current page.
     current_order <- dt[rev(req(input$estimate_speed_table_rows_current)), model_name]
     # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
-    col_name <- names(dt)[8]  # rely on column position here, otherwise need to be string pattern, both not ideal
-    # add backtick to quote, thus after unquote it will be valid name
-    col_name <- paste0("`", col_name, "`")
+    # rely on column position here, otherwise need to be string pattern, both not ideal. add backtick to quote, thus after unquote it will be valid name
+    speed_col_name_ticked <- ctmmweb:::get_ticked_col_name(names(dt),
+                                                           "speed \\(")
     dt[, selected := FALSE]
     dt[input$estimate_speed_table_rows_selected, selected := TRUE]
-    g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = col_name,
+    g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = speed_col_name_ticked,
                                                  y = "model_name",
                                                  color = "selected")) +
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
       # na.rm in point, text, errorbar otherwise will warning in filtering
       {if (input$show_estimate_speed_plot_label) {
-        ggplot2::geom_text(ggplot2::aes_string(label = col_name),
+        ggplot2::geom_text(ggplot2::aes_string(label = speed_col_name_ticked),
                            hjust = 0, vjust = -0.5, na.rm = TRUE)}} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high),
                               size = 0.45, height = 0.35, na.rm = TRUE) +
@@ -2856,6 +2888,8 @@ output:
     log_save_ggplot(g, "estimate_speed_value_range")
   }, height = function() { input$estimate_speed_plot_height }, width = "auto"
   )
+  # distance plot ----
+
   # p10. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/10_map.md")
