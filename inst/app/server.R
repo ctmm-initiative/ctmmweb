@@ -2709,42 +2709,6 @@ output:
     log_save_UD("Overlap of Home Range")
   }, height = function() {choose_overlap_pairs()$overlap_hrange_layout$height},
      width = "auto")
-  # tried with plot/DT priority to make it update after DT. didn't work, maybe it's only render order, but data change already, still will render with updated data.
-  # outputOptions(output, "overlap_plot_hrange", priority = 1)
-  # # ovrelap locations (disabled) ----
-  # # plot using row selection value of table, when data updated, both table and plot start to update but plot can use exsiting old row selection value which is either wrong or doesn't exist in new table. freeze row selection value in table code to make sure the access here is only thawed after all other reactive finish
-  # overlap_plot_location_range <- add_zoom("overlap_plot_location")
-  # output$overlap_plot_location <- renderPlot({
-  #   animals_dt <- req(select_models()$data_dt)
-  #   # show overview when no rows selected
-  #   if (length(input$overlap_summary_rows_selected) == 0) {
-  #     # no global data overlay in background
-  #     g <- ctmmweb::plot_loc(animals_dt, loc_data = NULL, input$point_size_1) +
-  #       ggplot2::coord_fixed(xlim = overlap_plot_location_range$x,
-  #                            ylim = overlap_plot_location_range$y)
-  #   } else {# show grouped plot of pairs when rows selected
-  #     # because data.table modify by reference, the plot code actually added selected column already, but we use the selection number directly and not relying on this.
-  #     selected_pairs_current_order <- select_models_overlap()$dt[
-  #       select_rows_in_current_order(), .(v1, v2)]
-  #     # usling lapply like a loop, so we don't need to initialize the list
-  #     g_list <- lapply(1:nrow(selected_pairs_current_order), function(i) {
-  #       # warning of drawing plot on empty data, not error
-  #       suppressWarnings(
-  #         ctmmweb::plot_loc(select_models()$data_dt[
-  #           identity %in% selected_pairs_current_order[i]])
-  #       )
-  #     })
-  #     g <- gridExtra::grid.arrange(grobs = g_list,
-  #                                  ncol = input$overlap_loc_columns)
-  #   }
-  #   # LOG save plot
-  #   log_save_ggplot(g, "overlap_plot_location")
-  # },
-  # # changing canvas and column sometimes doesn't cause update, switching tabs will update. try this parameter, seemed better.
-  # execOnResize = TRUE,
-  # height = function() { input$overlap_loc_height }, width = "auto")
-  # # tried to use priority to make sure location plot update after table update, didn't work, probably because the problem is row selection reset happened slower
-  # # outputOptions(output, "overlap_plot_location", priority = 1)
   # p8. occurrence ----
   callModule(click_help, "occurrence", title = "Occurrence Distribution",
              size = "l", file = "help/8_occurrence.md")
@@ -2757,9 +2721,6 @@ output:
                            select_models()$model_list,
                            parallel = input_value("parallel")))),
                  message = "Calculating Occurrence ...")
-    # if (input_value("log_error")) {
-    #   output$occurrence_info <- renderPrint(str(res))
-    # }
     # add name so plot can take figure title from it
     # # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
     names(res) <- select_models()$info_dt$display_name
@@ -2913,15 +2874,7 @@ output:
     # record the latest file path
     CURRENT_map_path[[map_type]] <<- map_path
   }
-  # shared basemap
-  # tiles_info <- list(here = c("HERE.terrainDay", "HERE.satelliteDay",
-  #                             "HERE.hybridDay"),
-  #                    open = c("OpenTopoMap",
-  #                             "Esri.WorldTopoMap", "Esri.WorldImagery"),
-  #                    here_app_id = 'ehftALetcOLjvopsXsZP',
-  #                    here_app_code = 'a5oE5ewb0eH9ojahDBLUzQ'
-  # )
-  # used for both point and heat map
+  # shared basemap used for both point and heat map
   basemap <- ctmmweb::base_map()
   # use dynamic UI so we can adjust map height
   output$point_map_holder <- renderUI(
@@ -2988,10 +2941,6 @@ output:
     ))
     return(leaf)
   })
-  # output$cluster_map_holder <- renderUI(
-  #   leaflet::leafletOutput("cluster_map",
-  #                 height = input$map_height)
-  # )
   # need a history list of tabs, from tab switching and page switching
   # values$map_tab_history <- NULL
   # first map page view ----
@@ -3012,26 +2961,8 @@ output:
     }
   })
   # map tab switching ----
-  # for debug: print current values when clicked on map
-  # observeEvent(input$heat_map_click, {
-  #   cat("heatmap\n")
-  #   print(input$heat_map_zoom)
-  #   print(unlist(input$heat_map_bounds))
-  # })
-  # observeEvent(input$point_map_click, {
-  #   cat("points\n")
-  #   print(input$point_map_zoom)
-  #   print(unlist(input$point_map_bounds))
-  # })
   # ~set new tab map bounds/zoom to value of previous tab~ just apply heatmap bounds to point if enabled
   observeEvent(input$map_tabs, {
-    # values$map_tab_history$previous <- values$map_tab_history$current
-    # values$map_tab_history$current <- input$map_tabs
-    # # print(values$map_tab_history)
-    # cat(input$map_tabs, "\n")
-    # the map bounds may not be updated yet in map initialization. only access the previous map bounds after switching, that should be up to date.
-    # cat("heatmap: ", unlist(input$heat_map_bounds), "\n")
-    # cat("pointmap: ", unlist(input$point_map_bounds), "\n")
     if (input$apply_heat_to_point && (input$map_tabs == "Point")) {
       leaflet::leafletProxy("point_map", session) %>%
         ctmmweb:::apply_bounds(input$heat_map_bounds)
