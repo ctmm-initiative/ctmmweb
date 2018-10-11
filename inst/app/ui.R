@@ -738,13 +738,13 @@ speed_control_box <- box(title = "Estimate Speed", status = "info",
                                      HTML('&nbsp;'),
                                      "Use robust statistics")),
                    div(style = ctmmweb:::STYLES$align_up_group,
-                       checkboxInput("show_estimate_speed_plot_label",
+                       checkboxInput("show_estimate_plot_label",
                                      div(icon("font"),
                                          HTML('&nbsp;'),
-                                         "Label Values"))
+                                         "Label Values"), value = TRUE)
                        )
                    ),
-            column(3, offset = 0, numericInput("estimate_speed_plot_height",
+            column(3, offset = 0, numericInput("estimate_plot_height",
                                                "Canvas Height",
                                                value = 400,
                                                min = 200, max = 1200,

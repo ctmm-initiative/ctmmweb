@@ -2837,20 +2837,45 @@ output:
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
       # na.rm in point, text, errorbar otherwise will warning in filtering
-      {if (input$show_estimate_speed_plot_label) {
+      {if (input$show_estimate_plot_label) {
         ggplot2::geom_text(ggplot2::aes_string(label = speed_col_name_ticked),
                            hjust = 0, vjust = -0.5, na.rm = TRUE)}} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high),
-                              size = 0.45, height = 0.35, na.rm = TRUE) +
+                              size = 0.45, height = 0.35, na.rm = TRUE,
+                              show.legend = FALSE) +
       ggplot2::geom_point(color = "blue", size = 2, na.rm = TRUE) +
-      ggplot2::guides(color = FALSE) +
+      # ggplot2::guides(color = FALSE) +
+      ggplot2::scale_colour_manual(values = c("cornflowerblue", "hotpink")) +
       ctmmweb:::BIGGER_THEME
     # LOG save pic
     log_save_ggplot(g, "estimate_speed_value_range")
-  }, height = function() { input$estimate_speed_plot_height }, width = "auto"
+  }, height = function() { input$estimate_plot_height }, width = "auto"
   )
   # distance plot ----
-
+  output$estimate_distance_plot <- renderPlot({
+    dt <- select_models_estimate_speed()
+    dt[, label := paste0(model_no, ".", identity)]
+    dt <- dt[req(input$estimate_distance_table_rows_current)]
+    duration_col_name_ticked <- ctmmweb:::get_ticked_col_name(names(dt), "duration \\(")
+    distance_col_name_ticked <- ctmmweb:::get_ticked_col_name(names(dt),
+                                                    "distance_traveled \\(")
+    dt[, selected := FALSE]
+    dt[input$estimate_distance_table_rows_selected, selected := TRUE]
+    g <- ggplot2::ggplot(dt, ggplot2::aes_string(x = duration_col_name_ticked,
+                                                 y = distance_col_name_ticked,
+                                                 color = "selected")) +
+      # na.rm in point, text, errorbar otherwise will warning in filtering
+      {if (input$show_estimate_plot_label) {
+        ggplot2::geom_text(ggplot2::aes(label = label),
+                           vjust = -0.5, na.rm = TRUE)}} +
+      ggplot2::geom_point(color = "blue", size = 2, na.rm = TRUE) +
+      # ggplot2::guides(color = FALSE) +
+      ggplot2::scale_colour_manual(values = c("cornflowerblue", "hotpink")) +
+      ctmmweb:::BIGGER_THEME
+    # LOG save pic
+    log_save_ggplot(g, "estimate_duration_distance")
+  }, height = function() { input$estimate_plot_height }, width = "auto"
+  )
   # p10. map ----
   callModule(click_help, "map", title = "Map",
              size = "l", file = "help/10_map.md")
