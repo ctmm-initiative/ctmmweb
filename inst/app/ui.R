@@ -235,13 +235,15 @@ location_plot_box <- tabBox(title = "Animal Locations",
              column(4, br(), help_button("device_error")),
              column(12, plotOutput("error_plot"))),
            fluidRow(
-             column(9, h5("Load Calibration Data")),
-             column(3, offset = 0, h5("Or input UERE")),
+             column(12, hr(), h4("Calibrate Current Data Set")),
+             column(9, h5("A. Load Calibration Data")),
+             column(3, offset = 0, h5("B. Or input UERE")),
              column(9, fileInput("cali_file", label = NULL, width = "100%")),
              column(3, offset = 0, numericInput("uere_num_input", label = NULL,
                                                 value = 0))
            ),
            fluidRow(
+             column(9, h5("Calibration Data Information")),
              column(9, verbatimTextOutput("uere_print", placeholder = TRUE)),
              column(3, offset = 0, actionButton("apply_uere",
                                                 "Apply To Current",
