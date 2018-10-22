@@ -18,9 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-This document demonstrates the usage of the web app in the analysis of animal tracking data. The web app works as a frontend of ctmm package, provides a streamlined analysis workflow in web interface.
+This document demonstrates the usage of the web app.
 
-There are some conventions and features applied through out the app. 
+### Common features across pages
   - The green help button in each page/box provides help, notes and references. The yellow action button make changes to data.
   - In many tables, row selection can trigger changes in linked view. In the data summary table 1 in `Visualization` page, selected rows (if no rows are selected, all rows in current page) determine the `current subset`, which is the focused data through the app. Note if you are selecting multiple rows, each click may trigger a change, because the app have no way to know if that click is the final selection or just part of a multi selection.
   - You can click table header to sort, input keyword to search and filter, and linked view often can be updated too.
@@ -30,8 +30,11 @@ There are some conventions and features applied through out the app.
   
 ## Pages  
 
+Each page represent a stage in the workflow.
   
 ### Import Data
+
+
 
 ### Visualization
 
@@ -48,4 +51,8 @@ There are some conventions and features applied through out the app.
 
 
 ### Occurrence
-  "Speed", "Map"
+
+### Speed
+
+### Map
+
