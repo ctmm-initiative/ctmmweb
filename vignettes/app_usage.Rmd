@@ -18,27 +18,45 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-This document demonstrates the usage of the web app.
+This document demonstrates the usage of the web app. 
 
 ### Common features across pages
-  - The green help button in each page/box provides help, notes and references. The yellow action button make changes to data.
-  - In many tables, row selection can trigger changes in linked view. In the data summary table 1 in `Visualization` page, selected rows (if no rows are selected, all rows in current page) determine the `current subset`, which is the focused data through the app. Note if you are selecting multiple rows, each click may trigger a change, because the app have no way to know if that click is the final selection or just part of a multi selection.
-  - You can click table header to sort, input keyword to search and filter, and linked view often can be updated too.
-  - The app try to maintain a consistent color theme from beginning to end. Each animal will have a distinct and consistent color in most tables and plots. The model summary table rows are colored by model type, and the home range polygons are colored by each different model.
+  - The green help button in each page/box provides help, notes and references. This document will only provide a high level overview for the big picture, leave the details in the help buttons.
+  - For tables
+    - You can click table header to sort, input keyword to search and filter, and linked view often can be updated too.
+    - Row selection often can trigger changes in linked view. In the data summary table 1 in `Visualization` page, selected rows (if no rows are selected, all rows in current page) determine the `current subset`, which is the focused data through the app. Note if you are selecting multiple rows, each click may trigger a change, because the app have no way to know if that click is the final selection or just part of a multi selection.
   - Most scatter plots can be zoomed in by drawing a box in plot, then double click to zoom to that box. Double click in the plot will quit the zoom.
-  - The app will record every meaningful data changes in the console, and the report can be saved, so that the whole analysis can be reproduced easily.
+  - The app try to maintain a consistent color theme from beginning to end, in tables and plots. Each animal will have a distinct and consistent color. The model summary table rows are colored by model type, and the home range polygons are colored by each different model.
   
-## Pages  
+## App structure  
+*whole app with arrows to each section* top right, side bar, app options
+- The app will record every meaningful data changes in a log, and later compile to a work report when requested. The log entries and warning/error messages will show up in the R console if available. If you are running the app from a hosted server, clicking `Download Report` button will download the report. `Save Progress` button in side bar will save the report, plots, tables and data into a zip, so that the whole analysis can be reproduced easily.
 
+*console message*
 Each page represent a stage in the workflow.
   
 ### Import Data
 
+Data can be loaded to app through
+1. ctmm package internal datasets, with option to take a small sample for exploring app purpose (the model fitting will be much quicker)
+2. upload Movebank Format file
+3. upload previous saved progress zip
+4. download from Movebank and import to app directly
+5. start app with `ctmmweb::app(data)` using data parameter in R console
 
+*page with arrows*
 
 ### Visualization
 
+- selected rows or current page determine the `current subset`.
+*2 screen shot*
+*also update screen shot used in help page*
+
+  Note the color theme is consistent across tables and plots.
+  
 ### Filter Outliers
+
+
 
 ### Time Subsetting
 
