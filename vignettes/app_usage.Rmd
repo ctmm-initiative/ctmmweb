@@ -49,16 +49,32 @@ Data can be loaded to app through
 ### Visualization
 
 - selected rows or current page determine the `current subset`.
-*2 screen shot*
+*2 screen shot*, mark tab 5, each tab with a note?
 *also update screen shot used in help page*
 
   Note the color theme is consistent across tables and plots.
   
+  
 ### Filter Outliers
 
+We can inspect data outliers and filter the unreasonable values. The two tabs work with same principle but with different metrics.
+- `distance to center`: for every individual, median center of locations for each obvious sampling period are calculated (if there are big gaps in the sampling time, each segment will be calculated separately) and marked in the scatter plot. 
+- `estimated speed`: every point is assigned an estimated speed value.
 
+*screen shot* to include most steps below
+
+- The histogram group values into buckets with different color. 
+- The scatter plot shows the locations with the bucket color theme. 
+- Drag a range on the histogram plot will highlight selected points in scatter plot, also the points are listed in a table below. 
+- Select the points in table (and it will be highlighted in scatter plot) to remove from the dataset.
+  - In speed tab, you can further inspect the movement with the option `draw path around` and `label row number`, which will show the point before and after the selected points in time, connect them with arrows.
+- Removed points will be listed in a table, and you can undo the removal to restore to orignal data.
 
 ### Time Subsetting
+
+With single individual selected, 
+
+
 
 ### Model Selection
 
