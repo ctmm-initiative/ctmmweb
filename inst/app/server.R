@@ -2840,9 +2840,11 @@ output:
       {if (input$show_estimate_plot_label) {
         ggplot2::geom_text(ggplot2::aes_string(label = speed_col_name_ticked),
                            hjust = 0, vjust = -0.5, na.rm = TRUE)}} +
-      ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high),
-                              size = 0.45, height = 0.35, na.rm = TRUE,
-                              show.legend = FALSE) +
+      {if (input$show_estimate_ci) {
+        ggplot2::geom_errorbarh(ggplot2::aes(xmin = low, xmax = high),
+                                size = 0.45, height = 0.35, na.rm = TRUE,
+                                show.legend = FALSE)
+      }} +
       ggplot2::geom_point(color = "blue", size = 2, na.rm = TRUE) +
       # ggplot2::guides(color = FALSE) +
       ggplot2::scale_colour_manual(values = c("cornflowerblue", "hotpink")) +
@@ -2866,8 +2868,17 @@ output:
                                                  color = "selected")) +
       # na.rm in point, text, errorbar otherwise will warning in filtering
       {if (input$show_estimate_plot_label) {
-        ggplot2::geom_text(ggplot2::aes(label = label),
-                           vjust = -0.5, na.rm = TRUE)}} +
+        # ggplot2::geom_text(ggplot2::aes(label = label),
+        #                    vjust = -0.5, na.rm = TRUE, show.legend = FALSE)
+        ggrepel::geom_text_repel(ggplot2::aes(label = label), hjust = 0,
+                                 na.rm = TRUE, show.legend = FALSE)
+        }} +
+      {if (input$show_estimate_ci) {
+        ggplot2::geom_errorbar(
+          ggplot2::aes(ymin = distance_traveled_low,
+                       ymax = distance_traveled_high),
+          size = 0.45, width = 0.35)
+      }} +
       ggplot2::geom_point(color = "blue", size = 2, na.rm = TRUE) +
       # ggplot2::guides(color = FALSE) +
       ggplot2::scale_colour_manual(values = c("cornflowerblue", "hotpink")) +
