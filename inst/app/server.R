@@ -2161,7 +2161,7 @@ output:
     # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values -- now become single row table
     summary_dt <- ctmmweb:::model_list_dt_compared_to_summary_dt(
       req(values$model_list_dt))
-    summary(values$model_list_dt[4, model][[1]]) # not unit problem
+    # summary(values$model_list_dt[4, model][[1]]) # not unit problem
     # hide ci now hide ci columns, not rows
     if (input$hide_ci_model) {
       # summary_dt <- summary_dt[!stringr::str_detect(estimate, "CI")]
@@ -3052,6 +3052,9 @@ output:
                 file = file.path(session_tmpdir, "data.rds"))
         saveRDS(values$input_tele_list,
                 file = file.path(session_tmpdir, "input_telemetry.rds"))
+        # model fit result. try_models fit first round, refit fit another round, full data in model_list_dt and list columns. have to save this table.
+        saveRDS(values$model_list_dt,
+                file = file.path(session_tmpdir, "model_list_dt.rds"))
         # LOG save current telemetry data as csv so it can be imported easier. Only do this in generated report, not in the process to avoid too frequent saves.
         log_dt_md(values$data$merged$info,
                   "Current Telemetry Data")

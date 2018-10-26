@@ -46,6 +46,11 @@ Data can be loaded to app through
 
 *page with arrows*
 
+#### restore progress
+
+example of restoring data and use data in R analysis, esp with model fit result.
+
+
 ### Visualization
 
 - selected rows or current page determine the `current subset`.

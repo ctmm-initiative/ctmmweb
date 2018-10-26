@@ -21,7 +21,8 @@
       - `data`: the combined `data.table` of all animals 
       - `info`: the summary table
     - `all_removed_outliers`: all rows that were removed as outliers.
-  - `cache.zip`: cached calculation results. Exactly same calculation can be finished instantly
+  - `cache.zip`: cached calculation results. Exactly same calculation can be finished instantly.
+  - `model_list_dt.rds`: a `data.table` of all fitted models with related information, and the ctmm model object can be accessed from `model_list_dt$model`, which is a list column.
   - `report.html`: work report.
   - `plot.zip`: the plots saved as `png` or `pdf` files.
   - `error_log.txt` error messages if they are captured in the app instead of R console.
