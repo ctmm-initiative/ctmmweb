@@ -2,9 +2,12 @@ Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
 Version: 0.2.0
-Authors@R: person("Xianghui", "Dong", email = "xhdong@umd.edu",
-                  role = c("aut", "cre"))
-Maintainer: Xianghui Dong <xhdong@umd.edu>
+Authors@R: as.person(c(
+    "Xianghui Dong <xhdong@umd.edu> [aut, cre]", 
+    "C.H. Fleming [ctb]",
+    "M.J. Noonan [ctb]",
+    "J.M. Calabrese [ctb]"
+  ))
 URL: https://github.com/ctmm-initiative/ctmmweb
 BugReports: https://github.com/ctmm-initiative/ctmmweb/issues
 Description: Shiny app for ctmm. Many features are also exported as package 

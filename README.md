@@ -7,7 +7,7 @@ It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/
 Suggested citation for the app/package:
 
 ```
-Dong, X., C.H. Fleming, and J.M. Calabrese. 2018. ctmmweb: A Shiny web app for the ctmm movement analysis package.
+X. Dong, C.H. Fleming, M.J. Noonan, and J.M. Calabrese. 2018. ctmmweb: A Shiny web app for the ctmm movement analysis package.
 https://github.com/ctmm-initiative/ctmmweb
 ```
 

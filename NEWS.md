@@ -1,6 +1,10 @@
 ## version 0.2.0.9000, current alpha version
 - Adding all `ctmm` internal datasets to app. 
 - Some of the datasets are anonymized, i.e. no referencee information available for location and time, only `x`, `y` and `t` which are relative values. A Pseudonymize process is added to simulate data with certain origin in location and time, so that the data can be analysized with app properly.
+- `Speed/Distance` page is added, which will estimate animals' speed and distance traveled.
+- Using unicode symbols in model summary, following changes in `ctmm`
+- The resolution of saved plot in `Save Progress` can be customized in sidebar.
+- Fitted model `ctmm` objects will be included in `Save Progress` zip, so user can load them to a R session and continue the analysis.
 
 ## version 0.2.0, 2018/09/07, Telemetry Errors
 - Dealing with bugs, conflicts caused by `devtools::install_github`, dependency packages, alternative installation methods.
