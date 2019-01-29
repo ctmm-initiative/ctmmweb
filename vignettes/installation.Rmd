@@ -40,21 +40,4 @@ Some packages need to be built from source, and you need to install RTools in wi
         sudo apt-get update && sudo apt-get install libgdal-dev libproj-dev
   
 ## Known limitations
-- The app is started with system browser, while usually Shiny app is launched with RStudio builtin browser. The builtin browser has these known limitations:
-    - `Windows`: log scale slider not shown properly; download dialog don't prompt proper file name by default.
-    - `Mac`: download file will open a blank page, and the dowload function was executed twice so there will be two entries in report.
-    - `Linux`: download dialog do not respond.
-    Firefox is also known to have some limitations.
-- There is a [known bug](https://github.com/Rdatatable/data.table/issues/2137) caused by `data.table`, `openMP` and `mcapply` in R 3.4. So it's possible to see this error when fitting models in parallel under Mac/Linux:
-
-    ```r
-    Assertion failure at kmp_runtime.cpp(6480): __kmp_thread_pool == __null.
-    OMP: Error #13: Assertion failure at kmp_runtime.cpp(6480).
-    ```
-
-  The error is pretty random and hard to reproduce, but usually you can restart R session and it should dissappear.
-  
-  It's also possible to meet mysterious bugs with parallel operations in a long session. Restart R usually can solve the problem. 
-  
-  You can also disable the parallel mode in first box of `Import` page.
-- The bug above seemed to be solved with R 3.5.
+- The app is started with default browser. Chrome is recommended as some other browsers have known limitations.

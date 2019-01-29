@@ -1,29 +1,11 @@
 ## Introduction
 
-This is a web app package for analyzing animal tracking data as a continuous-time stochastic processes.
+This is a web app for analyzing animal tracking data, built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). It's also an R package so you can use some features in your code directly.
 
-It's a shiny app built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). This is also a R package so you can reuse some functionalities in your own R analysis. 
+## Install and Run app locally
 
-Suggested citation for the app/package:
+1. Install [the latest R](https://cloud.r-project.org/). 
 
-```
-X. Dong, C.H. Fleming, M.J. Noonan, and J.M. Calabrese. 2018. ctmmweb: A Shiny web app for the ctmm movement analysis package.
-https://github.com/ctmm-initiative/ctmmweb
-```
-
-- Check [the videos](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html) for feature demonstrations. 
-- The `help` buttons in each page also have detailed documentations for the specific feature.
-- [The package reference website](https://ctmm-initiative.github.io/ctmmwebdoc/) provided some tips on installation and documentations for package functions.
-- [Release History](https://ctmm-initiative.github.io/ctmmwebdoc/news/index.html)
-
-## Running the app
-
-### Bundled with package
-
-1. Install [the latest R](https://www.r-project.org/). 
-
-    Note R 3.4 bring some big changes, so it's better to upgrade all the existing packages if you have earlier version installed.
-    ggplot2 3.0 also have some breaking changes and more warnings, please upgrade ggplot2 to 3.0 as the app can only be compatible with the latest stable release.
     
     [RStudio](https://www.rstudio.com/products/rstudio/download/) is not required but recommended.
 
@@ -35,35 +17,25 @@ https://github.com/ctmm-initiative/ctmmweb
     devtools::install_github("ctmm-initiative/ctmmweb")
     # sometimes you may want to use a certain version, for example the format of saved data may evolve with new versions
     # devtools::install_github("ctmm-initiative/ctmmweb", ref = "commit or tag name")
-    
-    # Alternatively, if you met problem with devtools, sometimes it's easier to work with remotes, which have similar syntax and less dependency
-    if (!require("remotes")) install.packages("remotes")
-    remotes::install_github("ctmm-initiative/ctmmweb")
-    # remotes::install_github("ctmm-initiative/ctmmweb", ref = "commit or tag name")
     ```
 
-3. Run the app in one of following methods:
+3. Run the app with `ctmmweb::app()` in R console.
 
-    ```r
-    library(ctmmweb)
-    # run app
-    app()
-    # run app with path to movebank format csv file
-    app("path_to_movebank_format_csv")
-    # run app with existing telemetry object or list in R environment
-    library(ctmm)
-    data(buffalo)
-    app(buffalo)
-    ```
-  
-    This will launch the app locally with system default browser. Chrome is recommended for compatibility reasons. You can copy the url into Chrome if it was not launched by Chrome. After the browser windows was closed, you may need to stop the R session in R console manually (`Esc` or `Ctrl+C`) to quit the app.
-  
   More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html) 
 
-### Hosted app
-Just open [the hosted app](https://ctmm.shinyapps.io/ctmmweb/) ([short url: http://tiny.cc/ctmmweb](http://tiny.cc/ctmmweb)) with browser (Chrome recommended). 
+## Run app in our website
 
-This is more intended for demonstration purposes because
+Just open [https://tiny.cc/ctmmweb](https://tiny.cc/ctmmweb) (Chrome recommended). This will have more resource limitations compare to run app locally.
 
-- R is single threaded, so any computation heavy operations like loading large datasets, fitting models could block other users in same thread. We do have mutiple workers avaialble in the host but the resources are still limited.
-- The active hours per month is limited. 
+## References
+
+- Check [the videos](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html) for feature demonstrations. 
+- The `help` buttons in each page also have detailed documentations for the specific feature.
+- [The package reference website](https://ctmm-initiative.github.io/ctmmwebdoc/) provided some tips on installation and documentations for package functions.
+- [Release History](https://ctmm-initiative.github.io/ctmmwebdoc/news/index.html)
+- Suggested citation for the app/package:
+
+```
+X. Dong, C.H. Fleming, M.J. Noonan, and J.M. Calabrese. 2018. ctmmweb: A Shiny web app for the ctmm movement analysis package.
+https://github.com/ctmm-initiative/ctmmweb
+```
