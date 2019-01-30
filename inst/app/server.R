@@ -423,15 +423,12 @@ output:
     update_augmented_data(tele_list)
   }
   # clear every item in augmented data(everything other than input. include other global values outside data, like id_pal etc). we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
-  # cannot just NULL the whole values. have to update nodes manually. https://stackoverflow.com/questions/26803536/shiny-how-to-update-a-reactivevalues-object
-  # how to initialize a tree?
-  # TODO movebank related data are cleared when importing movebank data which also reset input. need to put all movebank entries in a subtree and exclude here
   # TODO delete individual is still manually update for now, but that's tricky
   reset_augmented <- function(values) {
     value_list <- reactiveValuesToList(values)
     # we only need the first level items, clearing them is enough. setting a list to NULL, assigning its subitem later is OK.
     lapply(names(value_list), function(x) {
-      if (!(x %in% c("input_tele_list", "mb"))) values[[x]] <- NULL
+      if (x != "input_tele_list") values[[x]] <- NULL
       })
   }
   # update augmented data with tele_list (or merged dt/info if available). this is to keep augmented data consistent with same source. leave input_tele unchanged so everything can be reset back to input. augmentation on input data, like time/loc subsetting (add subset to data set), outlier removal, calibration. later just call this with input_tele to reset. for import just init input_tele then start
@@ -563,30 +560,24 @@ output:
   callModule(click_help, "login", title = "Movebank Login", size = "l",
              file = "help/1_movebank_login.md")
   # 1.3 movebank studies ----
-  # put all movebank reactive values in one subtree, exclude them from reset when importing data into app, which will reset everything except original input
   # 1.3, 1.4, 1.5 are linked. Each content for rendering should be reactive but passive updated by observeEvent. Each action should check whether all other content need to be updated. with reactive we only need to update the variable, not really update rendering manually.
-  # all studies boxy
+  # all studies box
   # $all_studies_stat ----
-  # tried to make a subtree here, however after mb initialized, any new sub item added later is updating the existing reactive values. we have to create all slots at once together. this made the reactive relation too complex, selecting a study trigger the whole changes, not working.
-  values$mb <- list(all_studies_stat = NULL,
-                    studies = NULL, study_detail = NULL,
-                    study_data_response = NULL, study_preview = NULL,
-                    move_bank_dt = NULL)
-  # values$mb$all_studies_stat <- NULL
-  output$all_studies_stat <- renderText(req(values$mb$all_studies_stat))
-  # values$mb$studies hold complete data, only render part of it according to reactive input
+  values$all_studies_stat <- NULL
+  output$all_studies_stat <- renderText(req(values$all_studies_stat))
+  # values$studies hold complete data, only render part of it according to reactive input
   # $studies ----
-  # values$mb$studies <- NULL
+  values$studies <- NULL
   # only show selected cols because we don't want to show owner col. want to keep it insivibly so we can switch it on and off.
   output$studies <- DT::renderDT(
     DT::datatable({
-      req(values$mb$studies)
+      req(values$studies)
       selected_studies_cols <- c("id", "name"
                                  # "objective"
                                  # "deployments",
                                  # "events", "individuals"
                                  )
-      values$mb$studies[owner == input$data_manager, selected_studies_cols,
+      values$studies[owner == input$data_manager, selected_studies_cols,
                      with = FALSE]
       },
       rownames = FALSE,
@@ -595,29 +586,29 @@ output:
   ))
   # selected data box
   # $study_detail ----
-  # values$mb$study_detail <- NULL
+  values$study_detail <- NULL
   output$study_detail <- DT::renderDT(
-    DT::datatable(req(values$mb$study_detail),
+    DT::datatable(req(values$study_detail),
               rownames = FALSE,
               options = list(pageLength = 5),
               selection = 'none'))
   # data preview box
   # $study_data_response ----
-  # values$mb$study_data_response <- NULL
-  output$study_data_response <- renderText(req(values$mb$study_data_response))
+  values$study_data_response <- NULL
+  output$study_data_response <- renderText(req(values$study_data_response))
   # $study_preview ----
-  # values$mb$study_preview <- NULL
+  values$study_preview <- NULL
   output$study_preview <- DT::renderDT(
-    DT::datatable(req(values$mb$study_preview),
+    DT::datatable(req(values$study_preview),
                   options = list(scrollX = TRUE, dom = "t"))
     )
   # $move_bank_dt ----
-  # values$mb$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
+  values$move_bank_dt <- NULL  # the downloaded whole data table, not rendered anywhere
   # the whole data preview box should be cleared with all actions other than download, otherwise it could be confusing when there is a previous download and user made other actions
   clear_mb_download <- function(res_msg = NULL){
-    values$mb$study_data_response <- res_msg
-    values$mb$study_preview <- NULL
-    values$mb$move_bank_dt <- NULL
+    values$study_data_response <- res_msg
+    values$study_preview <- NULL
+    values$move_bank_dt <- NULL
   }
   # login, download studies ----
   observeEvent(input$login, {
@@ -631,9 +622,9 @@ output:
     if (res$status != "Success") {
       # `request` in helper will generate error notification and console msg
       # every action should compare to this list, verify what changes should be done to each value
-      values$mb$all_studies_stat <- ""
-      values$mb$studies <- NULL
-      values$mb$study_detail <- NULL
+      values$all_studies_stat <- ""
+      values$studies <- NULL
+      values$study_detail <- NULL
       clear_mb_download()
       # LOG movebank login
       log_msg("Movebank login failed")
@@ -654,11 +645,11 @@ output:
       new_names <- sub(".*_", "", studies_cols)
       setnames(valid_studies, studies_cols, new_names)
       setkey(valid_studies, name)
-      values$mb$studies <- valid_studies
-      values$mb$all_studies_stat <- paste0("Total Studies ", all_studies[, .N],
-          "; You can see data of ", values$mb$studies[, .N],
-          ";\nYou are data manager of ", values$mb$studies[(owner), .N])
-      values$mb$study_detail <- NULL
+      values$studies <- valid_studies
+      values$all_studies_stat <- paste0("Total Studies ", all_studies[, .N],
+          "; You can see data of ", values$studies[, .N],
+          ";\nYou are data manager of ", values$studies[(owner), .N])
+      values$study_detail <- NULL
       clear_mb_download()
       # LOG movebank login
       log_msg("Logged in Movebank as", input$user)
@@ -666,19 +657,18 @@ output:
   })
   # 1.4 selected details ----
   # save file name need study name, so need to duplicate code here.
-  # $mb_id ----
   mb_id <- reactive({
     req(input$studies_rows_selected)
-    values$mb$studies[owner == input$data_manager][input$studies_rows_selected, id]
+    values$studies[owner == input$data_manager][input$studies_rows_selected, id]
   })
   # deselect row should clear detail table, so added ignoreNULL
   observeEvent(input$studies_rows_selected, ignoreNULL = FALSE, {
     if (length(input$studies_rows_selected) == 0) {
-      values$mb$study_detail <- NULL
+      values$study_detail <- NULL
       clear_mb_download()
     } else {
       # note the data manager part, make sure the table is same with view in studies table. also need to use same expression in download part.
-      # mb_id <- values$mb$studies[owner == input$data_manager][input$studies_rows_selected, id]
+      # mb_id <- values$studies[owner == input$data_manager][input$studies_rows_selected, id]
       # link to movebank
       output$open_study <- renderUI({
         req(input$studies_rows_selected)
@@ -705,7 +695,7 @@ output:
         detail_rows <- suppressWarnings(melt(detail_dt, id.vars = "id",
                                              na.rm = TRUE))
         detail_rows[, id := NULL]
-        values$mb$study_detail <- detail_rows
+        values$study_detail <- detail_rows
         # any selection in studies table should clear downloaded data table
         clear_mb_download()
       }
@@ -715,7 +705,7 @@ output:
   observeEvent(input$download_movebank, {
     req(input$studies_rows_selected)
     # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.
-    # mb_id <- values$mb$studies[owner == input$data_manager][
+    # mb_id <- values$studies[owner == input$data_manager][
     #   input$studies_rows_selected, id]
     note_data_download <- showNotification(
       shiny::span(icon("spinner fa-spin"), "Downloading data..."),
@@ -749,17 +739,17 @@ output:
       row_count <- formatC(move_bank_dt[, .N], format = "d", big.mark = ",")
       # individual_count <- length(unique(move_bank_dt[, individual_id]))
       individual_count <- nrow(unique(move_bank_dt, by = "individual_id"))
-      values$mb$study_data_response <- paste0(
+      values$study_data_response <- paste0(
           "Data downloaded with ", row_count, " rows, ",
           individual_count, " individuals.\n",
           "Preview sample rows and columns below")
       # we don't what columns are available so cannot subset or select here
-      values$mb$study_preview <- movebank_dt_preview
-      values$mb$move_bank_dt <- move_bank_dt
+      values$study_preview <- movebank_dt_preview
+      values$move_bank_dt <- move_bank_dt
       # LOG download movebank data
       log_msg("Movebank data downloaded", mb_id())
       # some detail table may have invalid characters that crash kable. disable this now.
-      # log_dt_md(values$mb$study_detail, "Downloaded study details",
+      # log_dt_md(values$study_detail, "Downloaded study details",
       #           on = input_value("record_on"))
     }
   })
@@ -768,26 +758,25 @@ output:
   # 1.5 save, import data ----
   output$save_movebank <- downloadHandler(
     filename = function() {
-        # mb_id <- values$mb$studies[input$studies_rows_selected, id]
+        # mb_id <- values$studies[input$studies_rows_selected, id]
         # avoid special characters that invalid for file name
         study_name <- gsub('[^\\w]', ' ',
-                           values$mb$studies[owner == input$data_manager][
+                           values$studies[owner == input$data_manager][
                              input$studies_rows_selected, name],
                            perl = TRUE)
         paste0("Movebank ", mb_id(), " - ", study_name, ".csv")
         },
     content = function(file) {
-      req(values$mb$move_bank_dt[, .N] > 0)
-      fwrite(values$mb$move_bank_dt, file, dateTimeAs = "write.csv")
+      req(values$move_bank_dt[, .N] > 0)
+      fwrite(values$move_bank_dt, file, dateTimeAs = "write.csv")
       # LOG save movebank data. we don't know what's the final file name. file is temp file path
       log_msg("Movebank data saved", mb_id())
     }
   )
   observeEvent(input$import_movebank, {
-    req(values$mb$move_bank_dt[, .N] > 0)
+    req(values$move_bank_dt[, .N] > 0)
     # data frame need to go through telemetry import process
-    browser()
-    import_tele_to_app(values$mb$move_bank_dt)
+    import_tele_to_app(values$move_bank_dt)
     # LOG import movebank data
     log_msg("Movebank data imported", mb_id())
     shinydashboard::updateTabItems(session, "tabs", "plots")
