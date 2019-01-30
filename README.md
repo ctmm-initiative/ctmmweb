@@ -2,7 +2,7 @@
 
 This is a web app for analyzing animal tracking data, built upon [ctmm R package](https://github.com/ctmm-initiative/ctmm). It's also an R package so you can use some features in your code directly.
 
-## Install and run app locally
+## Install app
 
 1. Install [the latest R](https://cloud.r-project.org/). [RStudio](https://www.rstudio.com/products/rstudio/download/) is recomended for R development, but not required for just using the app.
 
@@ -17,7 +17,7 @@ This is a web app for analyzing animal tracking data, built upon [ctmm R package
     
   More details about installation and compatibility problems can be [found here.](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html) 
 
-## Run app in our website
+## Run app from our website
 
 Just open [https://tiny.cc/ctmmweb](https://tiny.cc/ctmmweb) (Chrome recommended). This will have more resource limitations compare to run app locally.
 
