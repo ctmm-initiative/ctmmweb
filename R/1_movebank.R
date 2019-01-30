@@ -33,5 +33,5 @@ get_study_detail <- function(mb_id, user, pass) {
   request(paste0("study&study_id=", mb_id), user, pass)
 }
 get_study_data <- function(mb_id, user, pass){
-  request(paste0("event&study_id=", mb_id), user, pass)
+  request(paste0("event&study_id=", mb_id, "&attributes=all"), user, pass)
 }
