@@ -5,8 +5,8 @@
 \title{Plot a group of home ranges or occurrences}
 \usage{
 plot_ud(UD_list, level_vec = 0.95, color_vec = "blue",
-  option = c("contour", "interval", "location"), columns = 2, cex = 0.65,
-  tele_list = NULL)
+  option = c("contour", "interval", "location"), columns = 2,
+  cex = 0.65, tele_list = NULL)
 }
 \arguments{
 \item{UD_list}{\code{ctmm} \code{UD} object list, which can be home range from

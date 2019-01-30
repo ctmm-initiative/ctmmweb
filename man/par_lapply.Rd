@@ -5,7 +5,8 @@
 \title{Parallel apply function to list in all platforms}
 \usage{
 par_lapply(lst, fun, cores = NULL, parallel = TRUE,
-  win_init = expression({     requireNamespace("ctmm", quietly = TRUE) }))
+  win_init = expression({     requireNamespace("ctmm", quietly = TRUE)
+  }))
 }
 \arguments{
 \item{lst}{Input list.}

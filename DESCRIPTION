@@ -15,9 +15,11 @@ Description: Shiny app for ctmm. Many features are also exported as package
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1.9000
+RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
 Imports: shiny (>= 1.1.0),
+    shinydashboard,
+    DT,
     crayon,
     rmarkdown,
     knitr,
@@ -44,7 +46,5 @@ Imports: shiny (>= 1.1.0),
     zip,
     bit64
 Remotes: ctmm-initiative/ctmm
-Suggests: knitr,
-    rmarkdown,
-    shiny
+Suggests: knitr
 VignetteBuilder: knitr
