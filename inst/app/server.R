@@ -423,12 +423,18 @@ output:
     update_augmented_data(tele_list)
   }
   # clear every item in augmented data(everything other than input. include other global values outside data, like id_pal etc). we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
+  # [tricky to reset whole values](https://stackoverflow.com/questions/26803536/shiny-how-to-update-a-reactivevalues-object)
   # TODO delete individual is still manually update for now, but that's tricky
   reset_augmented <- function(values) {
     value_list <- reactiveValuesToList(values)
     # we only need the first level items, clearing them is enough. setting a list to NULL, assigning its subitem later is OK.
+    # some items are excluded from reset. we are manual excluding and reset all by default, this should be better than excluding manually. all movebank items listed in bookmarks. all reactive values should be in bookmark as they are global variables.
+    excluded_items <- c("input_tele_list",
+                        "all_studies_stat", "studies", "study_detail",
+                        "study_data_response", "study_preview",
+                        "move_bank_dt")
     lapply(names(value_list), function(x) {
-      if (x != "input_tele_list") values[[x]] <- NULL
+      if (!(x %in% excluded_items)) values[[x]] <- NULL
       })
   }
   # update augmented data with tele_list (or merged dt/info if available). this is to keep augmented data consistent with same source. leave input_tele unchanged so everything can be reset back to input. augmentation on input data, like time/loc subsetting (add subset to data set), outlier removal, calibration. later just call this with input_tele to reset. for import just init input_tele then start
