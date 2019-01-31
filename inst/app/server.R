@@ -2630,7 +2630,9 @@ output:
   output$overlap_plot_value_range <- renderPlot({
     overlap_dt <- select_models_overlap()
     # need to wait until table is finished, use current page.
-    current_order <- overlap_dt[rev(req(input$overlap_summary_rows_current)),
+    # sometimes there was error here but no problem in app, maybe when req halted execution, it was not suitable inside data.table call
+    req(input$overlap_summary_rows_current)
+    current_order <- overlap_dt[rev(input$overlap_summary_rows_current),
                                 Combination]
     # tried to move the dynamic column part to reactive expression, which would cause the table refresh twice in start (update after table is built), and row selection caused data change, table refresh and lost row selection.
     # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
@@ -2832,7 +2834,10 @@ output:
   output$estimate_speed_plot <- renderPlot({
     dt <- select_models_estimate_speed()
     # need to wait until table is finished, use current page.
-    current_order <- dt[rev(req(input$estimate_speed_table_rows_current)), model_name]
+    # sometimes there was error here but no problem in app, maybe when req halted execution, it was not suitable inside data.table call
+    req(input$estimate_speed_table_rows_current)
+    current_order <- dt[rev(input$estimate_speed_table_rows_current),
+                        model_name]
     # want to show all values if just selected rows, but update with filter. rows_all update with filter, plot use limits to filter them. selected rows only update a column and change color. this is different from the other 2 tab.
     # rely on column position here, otherwise need to be string pattern, both not ideal. add backtick to quote, thus after unquote it will be valid name
     speed_col_name_ticked <- ctmmweb:::get_ticked_col_name(names(dt),
