@@ -35,3 +35,8 @@ get_study_detail <- function(mb_id, user, pass) {
 get_study_data <- function(mb_id, user, pass){
   request(paste0("event&study_id=", mb_id, "&attributes=all"), user, pass)
 }
+# check return type of movebank data download by counting , in first line. no data for download: 0; license agreement: 1; normal data: >1
+header_comma_count <- function(chars) {
+  line1 <- str_split(chars, "\\n")[[1]][[1]]
+  str_count(line1, ",")
+}

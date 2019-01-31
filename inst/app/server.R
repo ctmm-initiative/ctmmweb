@@ -720,15 +720,8 @@ output:
     res <- ctmmweb:::get_study_data(mb_id(), input$user, input$pass)
     removeNotification(note_data_download)
     # need to check response content to determine result type. the status is always success
-    # read first rows to determine if download is successful. fread will guess sep so still can read html for certain degree, specify `,` will prevent this
-    # 2 possible result not valid csv: license agreement which will be read as a csv but wrong columns. using header now and check rows for this case, example tsinghua water, previously only check if result is data.table, but newer version still get an empty data.table for non csv. still have warning, tried warning handler but cause more problem in next case. leave it as is now.
-    # or one line "<p>No data are available for download.</p>". fread and read.csv will take one line string as file name thus cannot find the input file, generate some warnings. fread also take system cmd so treat this as potential security problem. To use string as input need at least one "\n". Adding "\n" will solve this error but get valid dt with 0 row, also we cannot use the nrows parameters. We don't need to print error to console which can be confusing to user, and we can always check the msg in debugging for specific case. try(silent = true) didn't silent, see data.table news 1.11.6 item 5 (also in error msg). to turn off message need to change user's global option of fread, which is not good. using tryCatch which should have better message control. using tryCatch, the object will have multiple classes.
-    movebank_dt_preview <- tryCatch(fread(res$res_cont, sep = ",", nrows = 5,
-                                     header = TRUE),
-                                    error = function(e) e)
-    # the fread in ctmm can use == directly because it was reading in df only, only one class attributes. Here we need to use %in% instead
-    if ("error" %in% class(movebank_dt_preview) ||
-        nrow(movebank_dt_preview) == 0) {
+    comma_count <- ctmmweb:::header_comma_count(res$res_cont)
+    if (comma_count < 2) {
       showNotification(
         h4("No data available or you need to agree to license term first. See details in Selected Study Data box."),
         type = "warning", duration = 5)
@@ -744,14 +737,13 @@ output:
       move_bank_dt <- try(fread(res$res_cont, sep = ","))
       removeNotification(note_parse)
       row_count <- formatC(move_bank_dt[, .N], format = "d", big.mark = ",")
-      # individual_count <- length(unique(move_bank_dt[, individual_id]))
       individual_count <- nrow(unique(move_bank_dt, by = "individual_id"))
       values$study_data_response <- paste0(
           "Data downloaded with ", row_count, " rows, ",
           individual_count, " individuals.\n",
-          "Preview sample rows and columns below")
-      # we don't what columns are available so cannot subset or select here
-      values$study_preview <- movebank_dt_preview
+          "Preview below")
+      # don't know what columns are available so cannot subset or select here
+      values$study_preview <- move_bank_dt[1:5]
       values$move_bank_dt <- move_bank_dt
       # LOG download movebank data
       log_msg("Movebank data downloaded", mb_id())
