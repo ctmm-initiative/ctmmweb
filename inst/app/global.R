@@ -6,6 +6,7 @@ library(shiny)
 library(shinydashboard)
 library(ctmm)
 library(data.table)
+library(magrittr)
 # package installation time in current time zone. This is used in ui (app info dialog) and server (start info). previously in here to save 2 calls, which cost 500 ms. but this often lead to error when app is stopped in debugging, which caused many re-launch, way more than the 500 ms saved. instead, write message menu in server side dynamically once.
 # PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 # switch to turn on debug button
