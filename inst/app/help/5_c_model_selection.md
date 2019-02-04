@@ -4,12 +4,11 @@
 
 ### Model Summary Table and Variograms
 - After model fitting finished, a summary table of attempted models is shown. Confidence intervals are shown as value pairs. Note models can be less accurate when small sampled data is used.
-- Animal name is colored by same color theme in visualization page. Other columns are colored by model type, so same model type will have same color. You can use the search box to filter the table. 
-- Selected models in the table will have their variograms shown below. The app always select the best model (calculated from dAICc) for each animal by default. The latter stages in app are also based on selected models, like `Home Range`, `Overlap` and `Occurrence`.
+- **Selected models in table will be basis of all latter analyses**. By default the best models (according to [AICc](https://ctmm-initiative.github.io/ctmm/reference/ctmm.fit.html)) are selected.
 - `Refit` button will take selected models as initial condition to fit again. Select a model from the dropdown list to fine-tune it will update the model result, and `Refit` will use updated result if available.
 - `Initial Parameter` came from the initial condition for model fitting, which could be the (fine-tuned) guesstimate value from last tab, or (fine-tuned) model result of this tab before refit.
 - `Remove Suboptimals` can remove all the less optimal models for each model type and animal.
-
+- Animal name is colored by same color theme in visualization page. Other columns are colored by model type, so same model type will have same color. You can use the search box to filter the table. 
 
 ### Reference
 - For more information see [vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way), [`ctmm.select`](https://ctmm-initiative.github.io/ctmm/reference/ctmm.fit.html)

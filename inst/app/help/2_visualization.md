@@ -1,5 +1,5 @@
 ### Current subset of individuals
-All plots and actions are based on **current subset of individuals**, which are 
+**All plots and actions are based on `current subset of individuals`**, which are 
 - if no rows selected in table, current page
 - with rows selected, the individuals that are selected. You can click to select/deselect (with shift to select/deselect a range), or use `Select All` and `Clear Selection` buttons, which apply to all pages.
 
