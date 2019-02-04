@@ -2677,10 +2677,13 @@ output:
     }
     chosen_hranges_list <- lapply(1:nrow(chosen_rows), function(i) {
       # req: temporary hack to prevent empty data selected, when new smaller data used with old big row numbers, certain row vector become NA,NA. there still could be wrong data selected (not intended mismatch), but at least no error in console. There is no better solution now since with freeze sometimes the plot doesn't update after rows update finished.
-      select_models_hranges()[req(unlist(chosen_rows[i]))]
+      # using req inside data.table may have error msg. req first before use
+      req(unlist(chosen_rows[i]))
+      select_models_hranges()[unlist(chosen_rows[i])]
     })
     chosen_tele_list_list <- lapply(1:nrow(chosen_rows), function(i) {
-      select_models()$tele_list[req(unlist(chosen_rows[i]))]
+      req(unlist(chosen_rows[i]))
+      select_models()$tele_list[unlist(chosen_rows[i])]
     })
     # home range plot need a color vector in same order of each pair, actually a function that map display name to color.
     if ("two_colors" %in% input$overlap_hrange_option) {
@@ -2870,7 +2873,8 @@ output:
   output$estimate_distance_plot <- renderPlot({
     dt <- select_models_estimate_speed()
     dt[, label := paste0(model_no, ".", identity)]
-    dt <- dt[req(input$estimate_distance_table_rows_current)]
+    req(input$estimate_distance_table_rows_current)
+    dt <- dt[input$estimate_distance_table_rows_current]
     duration_col_name_ticked <- ctmmweb:::get_ticked_col_name(names(dt), "duration \\(")
     distance_col_name_ticked <- ctmmweb:::get_ticked_col_name(names(dt),
                                                     "distance_traveled \\(")
