@@ -37,6 +37,6 @@ get_study_data <- function(mb_id, user, pass){
 }
 # check return type of movebank data download by counting , in first line. no data for download: 0; license agreement: 1; normal data: >1
 header_comma_count <- function(chars) {
-  line1 <- str_split(chars, "\\n")[[1]][[1]]
-  str_count(line1, ",")
+  line1 <- stringr::str_split(chars, "\\n")[[1]][[1]]
+  stringr::str_count(line1, ",")
 }
