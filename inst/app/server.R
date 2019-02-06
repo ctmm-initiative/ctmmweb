@@ -848,7 +848,8 @@ output:
       # }
       all_dt <- values$data$merged$data_dt[ !(identity %in% chosen_ids)]
       all_dt[, id := factor(identity)]
-      all_dt[, row_no := .I]
+      # no need for this, maintain row_no if possible?
+      # all_dt[, row_no := .I]
       remaining_id_indice <- !(values$data$merged$info$identity %in% chosen_ids)
       all_info <- values$data$merged$info[remaining_id_indice]
       all_tele_list <- values$data$tele_list[remaining_id_indice]
@@ -990,7 +991,9 @@ output:
     all_dt <- rbindlist(list(values$data$merged$data_dt, new_dt))
     # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same. these maintenances are needed for any individual changes in dt.
     all_dt[, id := factor(identity)]
+    # need to assign row_no for new dataset
     all_dt[, row_no := .I]
+    setkey(all_dt, row_no)
     update_augmented_data(all_tele_list,
                           list(data_dt = all_dt, info = all_info))
     # LOG subset added
@@ -1716,36 +1719,6 @@ output:
     new_tele <- new_tele[new_dt$row_name,]
     # new_tele@info$identity <- new_id
     add_new_data_set(new_id, new_tele, new_dt)
-    # update other columns
-    # do we really need this? there will be duplicate row_name, but it should be specific to tele obj, i.e. always indexing in the matching tele obj, thus no duplication.
-    # new_dt[, row_name := paste0(row_name, new_suffix)]
-    # # update the row name in tele data frame by new row_name column
-    # row.names(new_tele) <- new_dt$row_name
-    # # update data
-    # all_dt <- values$data$merged$data_dt
-    # all_dt <- rbindlist(list(all_dt, new_dt))
-    # # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same
-    # all_dt[, id := factor(identity)]
-    # all_dt[, row_no := .I]
-    # values$data$merged$data_dt <- all_dt
-    # # need to wrap single obj otherwise it was flattened by c
-    # values$data$tele_list <- c(values$data$tele_list,
-    #                            ctmmweb:::wrap_single_telemetry(new_tele))
-    # # also update input tele from original input + new tele
-    # values$input_tele_list <- c(values$input_tele_list,
-    #                                  ctmmweb:::wrap_single_telemetry(new_tele))
-    # # sort info list so the info table will have right order. we can also sort the info table, but we used the row index of table for selecting indidivuals(sometimes I used identity, sometimes maybe use id), it's better to keep the view sync with the data
-    # # sorted_names <- sort(names(values$data$tele_list))
-    # values$data$tele_list <- ctmmweb:::sort_tele_list(values$data$tele_list)
-    # values$input_tele_list <- ctmmweb:::sort_tele_list(values$input_tele_list)
-    # values$data$merged$info <- ctmmweb:::info_tele_list(values$data$tele_list)
-    # values$time_ranges <- NULL
-    # verify_global_data()
-    # # LOG subset added
-    # log_msg("New Time Range Subset Added", new_id)
-    # shinydashboard::updateTabItems(session, "tabs", "plots")
-    # msg <- paste0(new_id, " added to data")
-    # showNotification(msg, duration = 2, type = "message")
   })
   output$time_ranges <- DT::renderDT({
     # it could be NULL from clear, or empty data.table from delete

@@ -210,7 +210,7 @@ assign_speed_pmin <- function(animals_dt, tele_list, device_error) {
 }
 # using ctmm util functions
 assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
-  setkey(animals_dt, row_no)
+  # setkey(animals_dt, row_no)
   # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal. will use time_res by itself so no need for dt, also method default to max so no need for that. return a list, we need v.t since it match original row count. v.dt is for in-between.
   # animals_dt[, speed := ctmm:::assign_speeds(.SD,
   #                                            dt = ctmm:::time_res(.SD),
@@ -242,7 +242,7 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
 #' @export
 #'
 assign_speed <- function(animals_dt, tele_list, device_error = 10) {
-  setkey(animals_dt, row_no)
+  # setkey(animals_dt, row_no)
   # note every parameter changes need to be present in every data call, several places
   # my speed calculation need distance columns
   stopifnot(c("error", "distance_center") %in% names(animals_dt))
@@ -264,6 +264,8 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
 }
 # merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
+# always use row_no for dt identifying records, use (identity, row_name) for tele_list (always need to use identity get item first). need to locate a record in tele_list from a row in dt(many operations only work with ctmm functions on telemetry, so need to convert and calc on that part), so need to maintain row_name same in dt and tele_list. never change them after initialization, also setkey on row_no, also need to make sure no dupe row_name within same individual(otherwise cause problem in dt).
+# do need to reassign row_no when new subset added.
 tele_list_to_dt <- function(tele_obj_list) {
   tele_list <- wrap_single_telemetry(tele_obj_list)
   animal_count <- length(tele_list)
@@ -271,17 +273,15 @@ tele_list_to_dt <- function(tele_obj_list) {
   for (i in 1:animal_count) {
     animal_data_list[[i]] <- data.table(data.frame(tele_list[[i]]))
     animal_data_list[[i]][, identity := tele_list[[i]]@info$identity]
-    animal_data_list[[i]][, row_name := paste0(identity, "-",
-                                               row.names(tele_list[[i]]))
-                            ]
+    animal_data_list[[i]][, row_name := row.names(tele_list[[i]])]
   }
   # some animals could have different extra columns. need fill to maintain the data frame, but the telelist should be clean objs.
   animals_data_dt <- rbindlist(animal_data_list, fill = TRUE)
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
   # row_no is the 1..n number in dt, used for easy locating, sorting. row_name is the original row name in data frame, after sorting by animal name, row_name usually doesn't start from 1. however this is in the ideal case when all individual were processed together. with wolf data each individual has its own row number, so row name get duplicated from 1 of next animal. the original message cannot print one row properly in a message.
-  # adding identity to row_name to avoid this. use row_name instead of row_no in app to identify record is better, because row_no can depend on sorting(we may update it or create it somewhere, not always fixed in beginning), but row_name is relate to each individual so easier to identify.
   animals_data_dt[, row_no := .I]
+  setkey(animals_data_dt, row_no)
   any_dup <- anyDuplicated(animals_data_dt, by = "row_name")
   if (any_dup != 0) {
     message("duplicated row name found:\n")
