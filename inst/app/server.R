@@ -1324,7 +1324,7 @@ output:
     values$data$all_removed_outliers <- rbindlist(list(
       values$data$all_removed_outliers, points_to_remove), fill = TRUE)
     animals_dt <- values$data$merged$data_dt[
-      !(row_name %in% values$data$all_removed_outliers[, row_name])]
+      !(row_no %in% values$data$all_removed_outliers[, row_no])]
     # update tele obj. more general apporach is update them according to data frame changes.
     changed <- unique(points_to_remove$identity)
     tele_list <- values$data$tele_list
@@ -1347,8 +1347,6 @@ output:
   # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
     req(length(input$points_in_distance_range_rows_selected) > 0)
-    # row_names_to_remove <- select_distance_range()$animal_selected_data[
-    #   input$points_in_distance_range_rows_selected, row_name]
     points_to_remove <- select_distance_range()$animal_selected_data[
       input$points_in_distance_range_rows_selected]
     points_to_remove_formated <-
@@ -1502,8 +1500,6 @@ output:
                                                 deferUntilFlush = FALSE)
   observeEvent(input$remove_speed_selected, {
     req(length(input$points_in_speed_range_rows_selected) > 0)
-    # row_names_to_remove <- select_speed_range()$animal_selected_data[
-    #   input$points_in_speed_range_rows_selected, row_name]
     points_to_remove <- select_speed_range()$animal_selected_data[
       input$points_in_speed_range_rows_selected]
     points_to_remove_formated <-
@@ -1716,6 +1712,7 @@ output:
     new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     # subset tele by row_name before it changes
     # new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
+    # time subsetting always happen on single individual so it's OK to use row_name itself
     new_tele <- new_tele[new_dt$row_name,]
     # new_tele@info$identity <- new_id
     add_new_data_set(new_id, new_tele, new_dt)

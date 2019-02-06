@@ -265,6 +265,7 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
 # merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
 # always use row_no for dt identifying records, use (identity, row_name) for tele_list (always need to use identity get item first). need to locate a record in tele_list from a row in dt(many operations only work with ctmm functions on telemetry, so need to convert and calc on that part), so need to maintain row_name same in dt and tele_list. never change them after initialization, also setkey on row_no, also need to make sure no dupe row_name within same individual(otherwise cause problem in dt).
+# if multiple files are uploaded and holding same individual in different files with duplicated row_name, this could cause problem. there could also be problem with as_telemetry in this case. wait until reported by user.
 # do need to reassign row_no when new subset added.
 tele_list_to_dt <- function(tele_obj_list) {
   tele_list <- wrap_single_telemetry(tele_obj_list)
@@ -279,16 +280,13 @@ tele_list_to_dt <- function(tele_obj_list) {
   animals_data_dt <- rbindlist(animal_data_list, fill = TRUE)
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
-  # row_no is the 1..n number in dt, used for easy locating, sorting. row_name is the original row name in data frame, after sorting by animal name, row_name usually doesn't start from 1. however this is in the ideal case when all individual were processed together. with wolf data each individual has its own row number, so row name get duplicated from 1 of next animal. the original message cannot print one row properly in a message.
   animals_data_dt[, row_no := .I]
   setkey(animals_data_dt, row_no)
-  any_dup <- anyDuplicated(animals_data_dt, by = "row_name")
+  any_dup <- anyDuplicated(animals_data_dt, by = c("identity", "row_name"))
   if (any_dup != 0) {
-    message("duplicated row name found:\n")
+    message("duplicated row name found within same individual:\n")
     print(animals_data_dt[any_dup, .(identity, row_name)])
   }
-  # animals_data_dt <- assign_distance(animals_data_dt)
-  # animals_data_dt <- assign_speed(animals_data_dt)
   return(animals_data_dt)
 }
 #' Collect location and info `data.table` from telemetry object/list
