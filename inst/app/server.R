@@ -7,6 +7,7 @@ VERIFY_DATA_SYNC <- FALSE
 PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 
 server <- function(input, output, session) {
+  # message menu ----
   # rendering message menu dynamically to avoid call pkg_installation_time twice
   output$messageMenu <- renderMenu({
     dropdownMenu(type = "messages",
@@ -29,6 +30,14 @@ server <- function(input, output, session) {
                  icon = icon("info-circle fa-lg"),
                  headerText = "App Information"
     )
+  })
+  # update app ----
+  observeEvent(input$update_app, {
+    # shiny should have later installed
+    later::later(~install.packages("ctmmweb", repos = c(getOption("repos"),
+                                                         "https://ctmm-initiative.github.io/ctmm_repo/")))
+    # later(~devtools::install_github("ctmm-initiative/ctmmweb"))
+    stopApp()
   })
   # values that hold them all ----
   # ideally should put everything more organized. could print str() after all possible action tried, in workreport action. then organize like this:

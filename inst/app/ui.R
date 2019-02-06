@@ -71,7 +71,9 @@ app_options_box <- box(title = "App Options",
                                 "Parallel Mode"),
                             value = TRUE)),
     column(3, uiOutput("view_report")),
-    column(3, offset = 6, help_button("app_options"))
+    column(4, offset = 1, actionButton("update_app", "Update App",
+                                       width = "100%")),
+    column(3, offset = 1, help_button("app_options"))
                                       ))
 # p1.b upload ----
 upload_box <- box(title = "Local Data Import",
