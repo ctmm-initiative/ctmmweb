@@ -271,17 +271,21 @@ tele_list_to_dt <- function(tele_obj_list) {
   for (i in 1:animal_count) {
     animal_data_list[[i]] <- data.table(data.frame(tele_list[[i]]))
     animal_data_list[[i]][, identity := tele_list[[i]]@info$identity]
-    animal_data_list[[i]][, row_name := row.names(tele_list[[i]])]
+    animal_data_list[[i]][, row_name := paste0(identity, "-",
+                                               row.names(tele_list[[i]]))
+                            ]
   }
   # some animals could have different extra columns. need fill to maintain the data frame, but the telelist should be clean objs.
   animals_data_dt <- rbindlist(animal_data_list, fill = TRUE)
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
-  # row_no is the 1..n number in dt, used for easy locating, sorting. row_name is the original row name in data frame, after sorting by animal name, row_name usually doesn't start from 1.
+  # row_no is the 1..n number in dt, used for easy locating, sorting. row_name is the original row name in data frame, after sorting by animal name, row_name usually doesn't start from 1. however this is in the ideal case when all individual were processed together. with wolf data each individual has its own row number, so row name get duplicated from 1 of next animal. the original message cannot print one row properly in a message.
+  # adding identity to row_name to avoid this. use row_name instead of row_no in app to identify record is better, because row_no can depend on sorting(we may update it or create it somewhere, not always fixed in beginning), but row_name is relate to each individual so easier to identify.
   animals_data_dt[, row_no := .I]
   any_dup <- anyDuplicated(animals_data_dt, by = "row_name")
   if (any_dup != 0) {
-    message("duplicated row name found:\n", animals_data_dt[any_dup])
+    message("duplicated row name found:\n")
+    print(animals_data_dt[any_dup, .(identity, row_name)])
   }
   # animals_data_dt <- assign_distance(animals_data_dt)
   # animals_data_dt <- assign_speed(animals_data_dt)
