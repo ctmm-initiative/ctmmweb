@@ -1,7 +1,7 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.2.0
+Version: 0.2.3
 Authors@R: as.person(c(
     "Xianghui Dong <xhdong@umd.edu> [aut, cre]", 
     "C.H. Fleming [ctb]",
@@ -10,8 +10,9 @@ Authors@R: as.person(c(
   ))
 URL: https://github.com/ctmm-initiative/ctmmweb
 BugReports: https://github.com/ctmm-initiative/ctmmweb/issues
-Description: Shiny app for ctmm. Many features are also exported as package 
-    functions.
+Description: A web app for analyzing animal tracking data, built upon ctmm 
+    package. Many features are exposed as package functions to be used in 
+    command line.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
