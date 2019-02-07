@@ -12,11 +12,11 @@
 - Rewrite installaion instructions to make it more clear.
 - This is a official release with more tests done against `ctmm` 0.5.3 CRAN release. Release version can be installed from our own repo using like this:
 
-```r
-install.packages("ctmmweb", 
-                 repos = c(getOption("repos"),
-                           "https://ctmm-initiative.github.io/ctmm_repo/"))
-```
+    ```r
+    install.packages("ctmmweb", 
+                     repos = c(getOption("repos"),
+                               "https://ctmm-initiative.github.io/ctmm_repo/"))
+    ```
 
 ## version 0.2.0, 2018/09/07, Telemetry Errors
 - Dealing with bugs, conflicts caused by `devtools::install_github`, dependency packages, alternative installation methods.

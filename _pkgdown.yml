@@ -15,7 +15,7 @@ reference:
   desc: Input ctmm telemetry data need to be converted to `data.table` for app uses
   contents:
   - '`report`'
-  - '`combine`'
+  - '`collect`'
 - title: "Plot Location and Time"
   desc: ~
   contents:
@@ -23,7 +23,7 @@ reference:
   - '`plot_loc`'
   - '`plot_loc_facet`'
   - '`plot_time`'
-- title: "Variograms, Home Range Estimation, Occurrence"
+- title: "Variograms, Models, Home Range Estimation, Occurrence"
   desc: ~
   contents:
   - '`summary_tried_models`'
@@ -44,7 +44,7 @@ reference:
 - title: "Parallel Computing"
   desc: ~
   contents:
-  - '`align_2_list`'
+  - '`align_lists`'
   - '`par_lapply`'
   - '`par_fit_models`'
   - '`par_try_models`'
