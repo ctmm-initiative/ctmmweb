@@ -13,9 +13,9 @@ vignette: >
 
 1. Install R
 
-    Download [R installer](https://cloud.r-project.org/bin/windows/base/old/3.5.2/R-3.5.2-win.exe) and install R.
+    Download R installer([win](https://cloud.r-project.org/bin/windows/base/old/3.5.2/R-3.5.2-win.exe), [mac](https://cloud.r-project.org/bin/macosx/R-3.5.2.pkg), [Linux](https://cloud.r-project.org/bin/linux/)) and install R.
 
-    *[RStudio](https://download1.rstudio.org/RStudio-1.1.463.exe) is recommended but not a must.*
+    *[RStudio](https://www.rstudio.com/products/rstudio/download/#download) is recommended but not a must.*
 
 2. Start R
 
