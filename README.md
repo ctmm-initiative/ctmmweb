@@ -20,7 +20,7 @@ Just open [https://tiny.cc/ctmmweb](https://tiny.cc/ctmmweb) (Chrome recommended
 
 ## References
 
-- Check the [videos](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html), Release [History](https://ctmm-initiative.github.io/ctmmwebdoc/news/index.html), package reference [website](https://ctmm-initiative.github.io/ctmmwebdoc/)
+- Check the [videos](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html), release [History](https://ctmm-initiative.github.io/ctmmwebdoc/news/index.html), package reference [website](https://ctmm-initiative.github.io/ctmmwebdoc/)
 - Suggested citation for the app/package:
 
 ```
