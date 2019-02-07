@@ -4,7 +4,7 @@ This is a web app for analyzing animal tracking data, built upon [ctmm R package
 
 ## Install and run app
 
-Just run this in R console:
+Just run this in R console(see [More detailed instructions](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html)):
 
 ```r
 install.packages("ctmmweb", 
@@ -13,8 +13,6 @@ install.packages("ctmmweb",
 
 ctmmweb::app()  
 ```
-
-See more details about installation [here](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html).
 
 ## Run app from our website
 
