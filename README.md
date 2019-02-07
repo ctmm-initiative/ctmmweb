@@ -29,6 +29,7 @@ Just open [https://tiny.cc/ctmmweb](https://tiny.cc/ctmmweb) (Chrome recommended
 - Suggested citation for the app/package:
 
 ```
-X. Dong, C.H. Fleming, M.J. Noonan, and J.M. Calabrese. 2018. ctmmweb: A Shiny web app for the ctmm movement analysis package.
+X. Dong, C.H. Fleming, M.J. Noonan, and J.M. Calabrese. 2018. 
+ctmmweb: A Shiny web app for the ctmm movement analysis package.
 https://github.com/ctmm-initiative/ctmmweb
 ```
