@@ -9,7 +9,8 @@
     - All attributes of data can be downloaded now, previously only several columns can be get from API. Thanks Movebank for implementing this suggestion!
     - Some attributes are obsoleted and no longer used, like number of deployments.
     - Better error handling when there is no data available or need license terms. Users will no longer see irrelevant warning messages.
-- This is a official release with more tests down against `ctmm` 0.5.3 CRAN release. Release version can be installed from our own repo using like this:
+- Rewrite installaion instructions to make it more clear.
+- This is a official release with more tests done against `ctmm` 0.5.3 CRAN release. Release version can be installed from our own repo using like this:
 
 ```r
 install.packages("ctmmweb", 

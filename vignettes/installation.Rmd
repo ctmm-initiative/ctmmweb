@@ -9,22 +9,44 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
+## Installation
 
-## Package installation
+1. Install R
 
-If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem. 
+    Download [R installer](https://cloud.r-project.org/bin/windows/base/old/3.5.2/R-3.5.2-win.exe) and install R.
 
-If some dependency packages were installed before by `devtools::install_github`, `devtools` will always install the github source version even `ctmmweb` only need the CRAN binary version. Sometimes the source version need compilation which is time consuming or even can cause installation failures. Try to remove these package first so that only CRAN version will be installed.
+    *[RStudio](https://download1.rstudio.org/RStudio-1.1.463.exe) is recommended but not a must.*
 
-### Windows
+2. Start R
 
-Some packages need to be built from source, and you need to install RTools in windows. Just follow the instructions when prompted.
+    Start `R console` from start menu (or RStudio if installed). All code below will run inside it.
+
+3. Install app
+
+    ```r
+    install.packages("ctmmweb", 
+                     repos = c(getOption("repos"),
+                               "https://ctmm-initiative.github.io/ctmm_repo/"))
+    
+    ```
+
+    For latest beta version:
+
+    ```r
+    if (!require("devtools")) install.packages("devtools")
+    devtools::install_github("ctmm-initiative/ctmmweb")
+    ```
+
+4. Run app
+
+    ```r
+    ctmmweb::app()
+    ```
+
+## FAQ
+
+- If you met errors in install/upgrade lots of packages, restart R session and install again often can solve the problem. 
+- The app is started with default browser. Chrome is recommended as some other browsers have known limitations.
 
 ### Linux
 - Following instructions [here for installing R](https://cloud.r-project.org/bin/linux/ubuntu/) (assuming Ubuntu or Linux Mint). Make sure to install `r-base-dev` too.
@@ -39,5 +61,3 @@ Some packages need to be built from source, and you need to install RTools in wi
   
         sudo apt-get update && sudo apt-get install libgdal-dev libproj-dev
   
-## Known limitations
-- The app is started with default browser. Chrome is recommended as some other browsers have known limitations.
