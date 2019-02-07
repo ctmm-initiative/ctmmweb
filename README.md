@@ -14,7 +14,7 @@ install.packages("ctmmweb",
 ctmmweb::app()  
 ```
 
-See more details about installation here.
+See more details about installation [here](https://ctmm-initiative.github.io/ctmmwebdoc/articles/installation.html).
 
 ## Run app from our website
 
