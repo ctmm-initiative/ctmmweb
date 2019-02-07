@@ -833,8 +833,8 @@ output:
     req(input$individuals_rows_current)
     id_vec <- values$data$merged$info[, identity]
     if (length(input$individuals_rows_selected) > 0) {
-      chosen_row_nos <- input$individuals_rows_selected
-      chosen_ids <- id_vec[chosen_row_nos]
+      chosen_row_numbers <- input$individuals_rows_selected
+      chosen_ids <- id_vec[chosen_row_numbers]
       # if all are deleted, will have error in plots. this is different from the req check, just diable this behavior
       if (identical(chosen_ids, id_vec)) {
         showNotification("Cannot proceed because all data will be deleted",
@@ -848,8 +848,7 @@ output:
       # }
       all_dt <- values$data$merged$data_dt[ !(identity %in% chosen_ids)]
       all_dt[, id := factor(identity)]
-      # no need for this, maintain row_no if possible?
-      # all_dt[, row_no := .I]
+      # maintain row_no
       remaining_id_indice <- !(values$data$merged$info$identity %in% chosen_ids)
       all_info <- values$data$merged$info[remaining_id_indice]
       all_tele_list <- values$data$tele_list[remaining_id_indice]
@@ -882,14 +881,14 @@ output:
     req(input$individuals_rows_current)
     id_vec <- values$data$merged$info[, identity]
     # table can be sorted, but always return row number in column 1
-    # select two rows, update input data with 2 rows, the rows_selected updated, but rows_current is still 6, so chosen_row_nos have 6 applied to 2 rows. freeze rows_current in data summary table, for freeze it's all about right timing. update_input updated everything, data summary table and select_data both began to update but DT table is always slower to finish, so freeze the value there, prevent select_data to run first.
+    # select two rows, update input data with 2 rows, the rows_selected updated, but rows_current is still 6, so chosen_row_numbers have 6 applied to 2 rows. freeze rows_current in data summary table, for freeze it's all about right timing. update_input updated everything, data summary table and select_data both began to update but DT table is always slower to finish, so freeze the value there, prevent select_data to run first.
     if (length(input$individuals_rows_selected) == 0) {
-      # select all in current page when there is no selection
-      chosen_row_nos <- input$individuals_rows_current
+      # select all in current page when there is no selection. use row_number for table row selection, separate from row_no inside data dt
+      chosen_row_numbers <- input$individuals_rows_current
     } else {
-      chosen_row_nos <- input$individuals_rows_selected
+      chosen_row_numbers <- input$individuals_rows_selected
     }
-    chosen_ids <- id_vec[chosen_row_nos]
+    chosen_ids <- id_vec[chosen_row_numbers]
     # %in% didn't keep order. since our table update in sort change the data and redraw anyway, let's keep the order. the other similar usage is in removing outliers. should not have problem with new orders.
     # animals_dt <- values$data$merged$data_dt[identity %in% chosen_ids]
     # the subset id factor should keep the whole id vector in levels, which is needed for color mapping
@@ -919,7 +918,7 @@ output:
     updateTabsetPanel(session, "vario_tabs", selected = "1")
     return(list(data_dt = animals_dt,
                 info = info,
-                chosen_row_nos = chosen_row_nos,
+                chosen_row_numbers = chosen_row_numbers,
                 chosen_ids = chosen_ids,
                 tele_list = values$data$tele_list[chosen_ids]
                 ))
@@ -973,14 +972,14 @@ output:
     log_save_ggplot(g, "plot_2_overview")
   }, height = function() { input$canvas_height }, width = "auto"
   )
-  # for cropped location subset, crop from tele obj, thus generate dt from it
+  # for cropped location subset, crop from tele obj, thus generate dt from it. take tele obj or dt, assign new id (both tele and dt need it). new_id may change depend on case, and to increase postfix number so it's parameter
   # for time subset, generate new_dt, then subset tele obj. both only apply to single animal, thus function take tele_obj instead of tele_list
-  # we can just importing everything again after tele change, but this will save a lot of computations (need more maintenance though)
+  # we can just importing everything again after tele change, but this will save a lot of computations (need more maintenance though).
   add_new_data_set <- function(new_id, new_tele, new_dt = NULL) {
     new_tele@info$identity <- new_id
     # need item name, and in list for most operations. and c work with list and list, not list with item.
     new_tele_list <- ctmmweb:::wrap_single_telemetry(new_tele)
-    # add to input tele_list, import new tele and add to dt. no need to import whole dataset, but do need to sort and update info
+    # add to input tele_list, import new tele and add to dt. no need to import whole dataset, but do need to sort and update info. note the new subset usually have row_name duplicate with existing data for different id
     all_tele_list <- ctmmweb:::sort_tele_list(
       c(values$data$tele_list, new_tele_list)
     )
@@ -989,10 +988,11 @@ output:
     # only convert new data for dt
     if (is.null(new_dt)) { new_dt <- ctmmweb:::tele_list_to_dt(new_tele_list) }
     all_dt <- rbindlist(list(values$data$merged$data_dt, new_dt))
-    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?), this can keep row_no mostly same. these maintenances are needed for any individual changes in dt.
+    # ggplot sort id by name, to keep it consistent we also sort the info table. for data.table there is no need to change order (?). these maintenances are needed for any individual changes in dt.
     all_dt[, id := factor(identity)]
-    # need to assign row_no for new dataset
-    all_dt[, row_no := .I]
+    # need to assign row_no for new dataset(previously it was taken from existing data set and reusing them), but maintain old ones
+    all_dt[identity == new_id, row_no :=
+             all_dt[identity == new_id, which = TRUE]]
     setkey(all_dt, row_no)
     update_augmented_data(all_tele_list,
                           list(data_dt = all_dt, info = all_info))
@@ -1196,12 +1196,7 @@ output:
     dt <- animal_selected_data[, .(id, row_no,
        timestamp = ctmmweb:::format_datetime(timestamp),
        distance_center = distance_center,
-       # distance_center = format(distance_center / unit_distance$scale,
-       #                          digits = 3),
-       # distance_unit = unit_distance$name,
-       # speed = format(speed / unit_speed$scale, digits = 3),
        assigned_speed = assigned_speed
-       # speed_unit = unit_speed$name
        )]
     name_unit_list <- list("distance_center" = ctmmweb:::pick_unit_distance,
                            "assigned_speed" = ctmmweb:::pick_unit_speed)
@@ -1302,8 +1297,6 @@ output:
   output$points_in_distance_range <- DT::renderDT({
     # only render table when there is a selection. otherwise it will be all data
     req(input$distance_his_brush)
-    # cols <- c("row_no", "timestamp", "id", "distance_center")
-    # datatable(select_distance_range()$animal_selected_data[, cols, with = FALSE],
     DT::datatable(select_distance_range()$animal_selected_formatted,
               options = list(pageLength = 6,
                              lengthMenu = c(6, 10, 20),
@@ -1333,9 +1326,6 @@ output:
     })
     tele_list <- tele_list[lapply(tele_list, nrow) != 0]
     info <- ctmmweb:::info_tele_list(tele_list)
-    # distance/speed calculation need to be updated. row_no not updated.
-    # animals_dt <- ctmmweb::calculate_distance(animals_dt)
-    # animals_dt <- ctmmweb::calculate_speed(animals_dt)
     values$data$tele_list <- tele_list
     values$data$merged <- NULL
     values$data$merged <- list(data_dt = animals_dt, info = info)
@@ -1468,18 +1458,6 @@ output:
     # LOG save pic
     log_save_ggplot(g, "plot_speed_outlier_plot")
   })
-  # outputOptions(output, "speed_outlier_plot", priority = 1)
-  # points without valid speed values
-  # output$points_speed_non_valid <- DT::renderDT({
-  #   # only render table when there is a selection. otherwise it will be all data.
-  #   animals_dt <- req(values$data$merged$data_dt)
-  #   cols <- c("row_no", "timestamp", "id", "speed")
-  #   datatable(animals_dt[is.na(speed), cols, with = FALSE],
-  #             options = list(pageLength = 6,
-  #                            lengthMenu = c(6, 10, 20),
-  #                            searching = FALSE),
-  #             rownames = FALSE)
-  # })
   # points in selected speed range
   output$points_in_speed_range <- DT::renderDT({
     # only render table when there is a selection. otherwise it will be all data.

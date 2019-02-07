@@ -210,7 +210,6 @@ assign_speed_pmin <- function(animals_dt, tele_list, device_error) {
 }
 # using ctmm util functions
 assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
-  # setkey(animals_dt, row_no)
   # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal. will use time_res by itself so no need for dt, also method default to max so no need for that. return a list, we need v.t since it match original row count. v.dt is for in-between.
   # animals_dt[, speed := ctmm:::assign_speeds(.SD,
   #                                            dt = ctmm:::time_res(.SD),
@@ -242,7 +241,6 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
 #' @export
 #'
 assign_speed <- function(animals_dt, tele_list, device_error = 10) {
-  # setkey(animals_dt, row_no)
   # note every parameter changes need to be present in every data call, several places
   # my speed calculation need distance columns
   stopifnot(c("error", "distance_center") %in% names(animals_dt))
@@ -280,6 +278,7 @@ tele_list_to_dt <- function(tele_obj_list) {
   animals_data_dt <- rbindlist(animal_data_list, fill = TRUE)
   # ggplot color need a factor column. if do factor in place, legend will have factor in name
   animals_data_dt[, id := factor(identity)]
+  # should only initialize once and do not change them.
   animals_data_dt[, row_no := .I]
   setkey(animals_data_dt, row_no)
   any_dup <- anyDuplicated(animals_data_dt, by = c("identity", "row_name"))
