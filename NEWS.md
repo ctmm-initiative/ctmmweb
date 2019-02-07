@@ -9,10 +9,13 @@
     - All attributes of data can be downloaded now, previously only several columns can be get from API. Thanks Movebank for implementing this suggestion!
     - Some attributes are obsoleted and no longer used, like number of deployments.
     - Better error handling when there is no data available or need license terms. Users will no longer see irrelevant warning messages.
-- This is a maintaince release, with more tests against `ctmm` 0.5.3 CRAN release. The last digit of version number will be same with last digit of the matching `ctmm` version number.
 - This is a official release with more tests down against `ctmm` 0.5.3 CRAN release. Release version can be installed from our own repo using like this:
 
-
+```r
+install.packages("ctmmweb", 
+                 repos = c(getOption("repos"),
+                           "https://ctmm-initiative.github.io/ctmm_repo/"))
+```
 
 ## version 0.2.0, 2018/09/07, Telemetry Errors
 - Dealing with bugs, conflicts caused by `devtools::install_github`, dependency packages, alternative installation methods.
