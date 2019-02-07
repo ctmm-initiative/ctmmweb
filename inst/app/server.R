@@ -1312,22 +1312,22 @@ output:
               rownames = FALSE)
   })
   # remove distance outliers ----
-  # use side effect, update values$data, not chose animal. assuming row_name is always unique. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns in all_removed_points, but build dt by subset with row_name only, so no extra column transferred.
+  # use side effect, update values$data, not chose animal. points_to_remove is the subset of dt, there could be mismatch of columns in different dt. if all_removed_outliers came from whole data, there is no outlier columns, which are needed in removed outlier table. if carry the extra columns, need extra process in subset and merge back. now carry extra columns in all_removed_points, but build dt by subset with row_name only, so no extra column transferred.
   remove_outliers <- function(points_to_remove) {
     # update the all outlier table, always start from original - all outliers.
-    # removed_points <- values$data$merged$data_dt[
-    #   row_name %in% row_names_to_remove]
     # distance and speed color_break will add each own factor column, so two tab have different columns. we only need the extra columns minus these factor column in summary table
     # with coati data, the speed column is in earlier position, so do not make subsets now
     # points_to_remove <- points_to_remove[, timestamp:speed]
     # color factor columns added by distance or speed. the dt came from page data which has the factor columns even our factor function didn't modify input parameter. use fill here, alternatively we can remove color columns
     values$data$all_removed_outliers <- rbindlist(list(
       values$data$all_removed_outliers, points_to_remove), fill = TRUE)
+    # need to make sure row_no doesn't change
     animals_dt <- values$data$merged$data_dt[
       !(row_no %in% values$data$all_removed_outliers[, row_no])]
     # update tele obj. more general apporach is update them according to data frame changes.
     changed <- unique(points_to_remove$identity)
     tele_list <- values$data$tele_list
+    # only use row_name within single individual
     tele_list[changed] <- lapply(tele_list[changed], function(x) {
       x[!(row.names(x) %in% points_to_remove[, row_name]),]
     })
@@ -1343,8 +1343,6 @@ output:
   }
   proxy_points_in_distance_range <- DT::dataTableProxy(
     "points_in_distance_range", deferUntilFlush = FALSE)
-  # actually just put row_name vec into reactive value. current_animal will update. note the reset can only reset all, not previous state, let current take from input again. let reset change a reactive value switch too, not updating current directly.
-  # need to use row_name because once data updated, row_no may change.
   observeEvent(input$remove_distance_selected, {
     req(length(input$points_in_distance_range_rows_selected) > 0)
     points_to_remove <- select_distance_range()$animal_selected_data[
@@ -1711,7 +1709,6 @@ output:
     new_dt[, identity := new_id]
     new_tele <- animal_binned$tele  # single tele obj from color_bin_animal
     # subset tele by row_name before it changes
-    # new_tele <- new_tele[(row.names(new_tele) %in% new_dt[, row_name]),]
     # time subsetting always happen on single individual so it's OK to use row_name itself
     new_tele <- new_tele[new_dt$row_name,]
     # new_tele@info$identity <- new_id
