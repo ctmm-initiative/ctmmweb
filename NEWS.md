@@ -1,16 +1,16 @@
-## version 0.2.3, 2019/02/07, Misc Updates
+## version 0.2.4, 2019/02/07, Misc Updates
 - Adding all `ctmm` internal datasets to app. 
 - Some of the datasets are anonymized, i.e. no referencee information available for location and time, only `x`, `y` and `t` which are relative values. A Pseudonymize process is added to simulate data with certain origin in location and time, so that the data can be analysized with app properly.
 - `Speed/Distance` page is added, which will estimate animals' speed and distance traveled.
 - Using unicode symbols in model summary, following changes in `ctmm`
 - The resolution of saved plot in `Save Progress` can be customized in sidebar.
 - Fitted model `ctmm` objects will be included in `Save Progress` zip, so user can load them to a R session and continue the analysis.
-- Update on Movebank part:
+- Update on Movebank section:
     - All attributes of data can be downloaded now, previously only several columns can be get from API. Thanks Movebank for implementing this suggestion!
     - Some attributes are obsoleted and no longer used, like number of deployments.
     - Better error handling when there is no data available or need license terms. Users will no longer see irrelevant warning messages.
 - Rewrite installaion instructions to make it more clear.
-- This is a official release with more tests done against `ctmm` 0.5.3 CRAN release. Release version can be installed from our own repo using like this:
+- This is a official release with more tests done against `ctmm` 0.5.4 CRAN release. Release version can be installed from our own repo using like this:
 
     ```r
     install.packages("ctmmweb", 
