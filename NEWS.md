@@ -1,4 +1,4 @@
-## version 0.2.4, 2019/02/07, Misc Updates
+## version 0.2.5, 2019/02/09, Misc Updates
 - Adding all `ctmm` internal datasets to app. 
 - Some of the datasets are anonymized, i.e. no referencee information available for location and time, only `x`, `y` and `t` which are relative values. A Pseudonymize process is added to simulate data with certain origin in location and time, so that the data can be analysized with app properly.
 - `Speed/Distance` page is added, which will estimate animals' speed and distance traveled.
