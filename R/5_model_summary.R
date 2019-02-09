@@ -146,26 +146,26 @@ hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
               c(names(res_dt)[1:(ncol(res_dt) - 2)], "quantile", "area"))
 }
 # given 3 values of CI, round them properly, keep 2 significant digit on difference
-round_CIs <- function(vec, digits = 2) {
-  # if NA in input, need remove. if all NA, there will be warnings.
-  # remove negative sign
-  minimal_diff <- min(abs(diff(vec)), na.rm = TRUE)
-  if (minimal_diff > 1) {
-    # don't need to worry digits.
-    round(vec, 2)
-  } else {
-    formated_diff <- format(minimal_diff, digits = 1, scientific = FALSE)
-    # if exactly 0, will not match 0.xx pattern
-    if (formated_diff == "0") return(vec)
-    # get 0.000, -2 to get the count of 0 after decimal point
-    zeros <- nchar(stringr::str_extract(formated_diff, "0\\.0*")) - 2
-    # need 2 more digits after zeros
-    round(vec, zeros + digits)
-  }
-}
+# round_CIs <- function(vec, digits = 2) {
+#   # if NA in input, need remove. if all NA, there will be warnings.
+#   # remove negative sign
+#   minimal_diff <- min(abs(diff(vec)), na.rm = TRUE)
+#   if (minimal_diff > 1) {
+#     # don't need to worry digits.
+#     round(vec, 2)
+#   } else {
+#     formated_diff <- format(minimal_diff, digits = 1, scientific = FALSE)
+#     # if exactly 0, will not match 0.xx pattern
+#     if (formated_diff == "0") return(vec)
+#     # get 0.000, -2 to get the count of 0 after decimal point
+#     zeros <- nchar(stringr::str_extract(formated_diff, "0\\.0*")) - 2
+#     # need 2 more digits after zeros
+#     round(vec, zeros + digits)
+#   }
+# }
 # given a col name -> unit formation function map, format a dt to scale the value, add unit label to col name. For model summary table, CI rows need to be round properly by each model. There are other tables that don't have CI rows and no model_no column. we have two usage for regular tables: data summary, outlier summary, and two usage of model tables here, make the other usage default as they are spreaded.
 # the round CI values by model feature may not be expected, turned off now. if need to turn it on, need to assign it in calling functions. The function is also used in info table formatting, note round_by_CI will not work with that usage because no model column
-format_dt_unit <- function(dt, name_unit_list, round_by_CI = FALSE) {
+format_dt_unit <- function(dt, name_unit_list) {
   # the col name list have error, which may not exist in some cases
   valid_col_names <- intersect(names(dt), names(name_unit_list))
   lapply(valid_col_names, function(col_name) {
@@ -174,15 +174,7 @@ format_dt_unit <- function(dt, name_unit_list, round_by_CI = FALSE) {
     # cannot use col_name variable in round_CI call, so use a temp col instead
     # calculate first, round according to need later
     dt[, temp := dt[[col_name]] / best_unit$scale]
-    if (round_by_CI) {
-      # could be warnings for NA input
-      suppressWarnings(
-        # note the individual rows rounded at individual points, but data frame print in R used highest precision. checking subset of dt showing proper digits. DT in app is showing them properly
-        dt[, (col_name) := round_CIs(temp), by = model_no]
-      )
-    } else {
-      dt[, (col_name) := round(temp, 2)]
-    }
+    dt[, (col_name) := round(temp, 2)]
     dt[, temp := NULL]
     # \n will cause the table in work report render messed up in html. sometimes DT render colunmn name with \n as same line anyway.
     setnames(dt, col_name, paste0(col_name, " (", best_unit$name, ")"))
@@ -397,9 +389,11 @@ overlap_2d_to_1d <- function(overlap_matrix_dt) {
   overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
   # COPY end --
   # the right side need to be a list to be assigned to multiple columns. need as.list to convert a vector into separate list items.
-  overlap_dt[, c("CI low", "ML", "CI high") :=
-               as.list(round_CIs(c(`CI low`, ML, `CI high`))),
-             by = 1:nrow(overlap_dt)]
+  round_cols(overlap_dt, c("CI low", "ML", "CI high"))
+  return(overlap_dt)
+  # overlap_dt[, c("CI low", "ML", "CI high") :=
+  #              as.list(round_CIs(c(`CI low`, ML, `CI high`))),
+  #            by = 1:nrow(overlap_dt)]
 }
 # home range level input ----
 # parse text input of comma separated values
