@@ -169,6 +169,7 @@ format_dt_unit <- function(dt, name_unit_list) {
   # the col name list have error, which may not exist in some cases
   valid_col_names <- intersect(names(dt), names(name_unit_list))
   lapply(valid_col_names, function(col_name) {
+    # get col specific function to apply to col
     best_unit <- name_unit_list[[col_name]](dt[[col_name]])
     # creating new cols, delete old later is easier to check result. though that will cause col order changes, since new cols added in end, old cols removed. updating existing col instead
     # cannot use col_name variable in round_CI call, so use a temp col instead
@@ -187,6 +188,8 @@ round_cols <- function(dt, col_name_vec, digits = 3) {
     dt[, (col_name) := round(dt[[col_name]], digits)]
   })
 }
+
+
 # the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again

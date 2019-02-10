@@ -14,17 +14,25 @@ unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
 # almost all format is applied to a vector so they will have same unit
 # given a vector of values in SI unit (also work with single value), pick the best unit, return unit name and scale. SI / scale get the new value. note the offical name of dimension: length for distance
 # we almost always want concise except seconds was changed to sec, which are not what I wanted. use fixed concise setting for now
-pick_unit <- function(vec, dimension){
+# pick the right represental value to pick unit. There could be large difference in ML/low/high value, previous code took median may get 0 and use smallest unit, then high value become too big in small unit(issue 78). Now using this code to pick represental value specifically for CI cols. Because of our function structure, this need to be put in pick_unit
+pick_unit <- function(vec, dimension, CI = FALSE){
+  # for CI values, choose reprental value in different way
+  if (CI) {
+    # TODO we need to get ML/high value separately. so feed two vec? difficult to put CI col and non CI col in same structure, where to put the difference?
+    # is_not_zero <- (ML > .Machine$double.eps)
+    # if(any(NONZERO)) { TEST <- ML[NONZERO] }
+    # else { TEST <- high }
+  }
   switch(dimension,
          # didn't use median because it could be near zero with positive and negative values
          length = ctmm:::unit(max(abs(vec), na.rm = TRUE)/2,
                               dimension = "length", concise = TRUE),
-         time = ctmm:::unit(median(vec, na.rm = TRUE), dimension = "time",
-                             concise = FALSE),
-         speed = ctmm:::unit(median(vec, na.rm = TRUE), dimension = "speed",
-                             concise = TRUE),
-         area = ctmm:::unit(median(vec, na.rm = TRUE), dimension = "area",
-                            concise = TRUE)
+         time =   ctmm:::unit(stats::median(vec, na.rm = TRUE),
+                              dimension = "time", concise = FALSE),
+         speed =  ctmm:::unit(stats::median(vec, na.rm = TRUE),
+                              dimension = "speed", concise = TRUE),
+         area =   ctmm:::unit(stats::median(vec, na.rm = TRUE),
+                              dimension = "area", concise = TRUE)
          )
 }
 # given a vector of values (or single value) and dimension, return a formatting function. many plot or render code need a function
