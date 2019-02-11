@@ -188,8 +188,6 @@ round_cols <- function(dt, col_name_vec, digits = 3) {
     dt[, (col_name) := round(dt[[col_name]], digits)]
   })
 }
-
-
 # the model summary table need to be formatted for units
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again

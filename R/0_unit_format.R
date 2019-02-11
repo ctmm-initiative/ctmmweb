@@ -14,15 +14,12 @@ unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
 # almost all format is applied to a vector so they will have same unit
 # given a vector of values in SI unit (also work with single value), pick the best unit, return unit name and scale. SI / scale get the new value. note the offical name of dimension: length for distance
 # we almost always want concise except seconds was changed to sec, which are not what I wanted. use fixed concise setting for now
-# pick the right represental value to pick unit. There could be large difference in ML/low/high value, previous code took median may get 0 and use smallest unit, then high value become too big in small unit(issue 78). Now using this code to pick represental value specifically for CI cols. Because of our function structure, this need to be put in pick_unit
-pick_unit <- function(vec, dimension, CI = FALSE){
-  # for CI values, choose reprental value in different way
-  if (CI) {
-    # TODO we need to get ML/high value separately. so feed two vec? difficult to put CI col and non CI col in same structure, where to put the difference?
-    # is_not_zero <- (ML > .Machine$double.eps)
-    # if(any(NONZERO)) { TEST <- ML[NONZERO] }
-    # else { TEST <- high }
-  }
+# pick the right represental value to pick unit. There could be large difference in ML/low/high value, previous code took median may get 0 and use smallest unit, then high value become too big in small unit(issue 78). Now using this code to pick represental value specifically for CI cols. Because of our function structure, this need to be put in pick_unit.
+# 0 bring no information in unit detection as 0 can be in any unit, and lots of 0 skew the median value, if median became 0, units in ctmm will think it as a small value and choose smallest unit. Just exclude 0 in vec before median should be better.
+pick_unit <- function(vec, dimension){
+  # exclude 0 from vec. not just strictly 0, also very small values. It isn't really better to use 1e-10 ms compare to 1e-13 s.
+  not_too_small <- (vec > 1e-9)
+  vec <- vec[not_too_small]
   switch(dimension,
          # didn't use median because it could be near zero with positive and negative values
          length = ctmm:::unit(max(abs(vec), na.rm = TRUE)/2,
