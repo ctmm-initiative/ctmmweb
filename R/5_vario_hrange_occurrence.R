@@ -11,11 +11,17 @@ align_curve_lists <- function(list_lst) {
 }
 # kmeans detection ----
 detect_clusters <- function(diff_t, k){
+  # need at least 3 points for 2 clusters
+  if (length(diff_t) < 3) {
+    shiny::showNotification("Data points too few for kmeans",
+                            duration = 7, type = "error")
+    return(NA_real_)
+  }
   cl <- try(stats::kmeans(diff_t, k))
   if (class(cl) == "try-error") {
     shiny::showNotification("Error in kmeans, check error messages",
                             duration = 5, type = "error")
-    return(NULL)
+    return(NA_real_)
   }
   dtv <- sapply(1:k, function(i) {
     round(median(diff_t[which(cl$cluster == i)]), 2)

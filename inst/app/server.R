@@ -1805,6 +1805,7 @@ output:
       dt[, inc_t_filtered_converted := round(
         inc_t_filtered / unit_picked$scale, 2)]
       # wanted to use id as we want to keep the color mapping in subset, but factor cannot get join work.
+      # for small data set per individual, the points count could be too small for kmeans. minimal is 3 for filtered inc_t
       res <- lapply(1:nrow(kmeans_dt), function(i) {
         ctmmweb:::detect_clusters(
           na.omit(dt[identity == kmeans_dt[i, identity],
@@ -1829,16 +1830,20 @@ output:
     dt <- req(detect_schedules())$dt
     clusters_dt <- detect_schedules()$clusters_dt
     # need to use fully qualified format after copied code from rmd, test with clean session, otherwise ggplot2 is loaded.
+    # note every step remove NA. the count can have 0.5 marks when total is low(pretty breaks default to 5 when total is 2, which created small marks)
+    int_breaks <- function(x, n = 5) pretty(x, n)[pretty(x, n) %% 1 == 0]
     ggplot2::ggplot(dt, ggplot2::aes(x = inc_t_filtered_converted, fill = id)) +
       ggplot2::geom_histogram(bins = input$kmeans_bins, na.rm = TRUE, show.legend = FALSE) +
       ggplot2::geom_point(data = clusters_dt, ggplot2::aes(x = V1, y = 0),
                           na.rm = TRUE, color = "blue", shape = 2,
                           show.legend = FALSE) +
-      ggrepel::geom_text_repel(data = na.omit(clusters_dt),
-                               ggplot2::aes(x = V1, y = 0, label = V1)) +
+      ggrepel::geom_text_repel(data = clusters_dt,
+                               ggplot2::aes(x = V1, y = 0, label = V1),
+                               na.rm = TRUE) +
       ggplot2::xlab(paste0("Filtered Sampling Schedules(",
                            detect_schedules()$unit_picked$name, ")")) +
       ggplot2::facet_grid(id ~ .) +
+      ggplot2::scale_y_continuous(breaks= int_breaks) +
       ctmmweb:::factor_fill(dt$id) +
       ctmmweb:::BIGGER_THEME
   })
