@@ -2384,9 +2384,15 @@ output:
     # LOG home range calculation
     log_msg("Calculating Home Range ...")
     withProgress(print(system.time(
-      res <- akde_mem(tele_list, CTMM = select_models()$model_list,
-                      weights = get_hrange_weight_para()$weights))),
-      message = "Calculating Home Range ...")
+      # res <- akde_mem(tele_list, CTMM = select_models()$model_list,
+      #                 weights = get_hrange_weight_para()$weights)
+      res <- ctmmweb:::fall_back(
+        akde_mem, list(tele_list, CTMM = select_models()$model_list,
+                       weights = get_hrange_weight_para()$weights),
+        akde_mem, list(tele_list, CTMM = select_models()$model_list,
+                       weights = get_hrange_weight_para()$weights, res = 1),
+        "akde error, changing res to 1 to try again")
+      )), message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
     # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
     names(res) <- select_models()$info_dt$display_name

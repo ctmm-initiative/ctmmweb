@@ -260,6 +260,17 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
   # animals_dt <- assign_speed_ctmm(animals_dt)
   return(animals_dt)
 }
+# general fall back function. wait data for speed error then replace with this too. right now just for akde memory error
+fall_back <- function(f1, f1_args, f2, f2_args, msg) {
+  res <- tryCatch(do.call(f1, f1_args),
+                  error = function(e) "error")
+  if (identical(res, "error")) {
+    # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
+    cat(crayon::yellow$bgCyan(msg))
+    res <- do.call(f2, f2_args)
+  }
+  return(res)
+}
 # merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
 # always use row_no for dt identifying records, use (identity, row_name) for tele_list (always need to use identity get item first). need to locate a record in tele_list from a row in dt(many operations only work with ctmm functions on telemetry, so need to convert and calc on that part), so need to maintain row_name same in dt and tele_list. never change them after initialization, also setkey on row_no, also need to make sure no dupe row_name within same individual(otherwise cause problem in dt). maintain row_no, so only add new in new subset added, keep original same.
