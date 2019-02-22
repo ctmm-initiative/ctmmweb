@@ -28,3 +28,12 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
               non_empty_breaks = non_empty_breaks,
               vec_formatter = vec_formatter))
 }
+# add back before export and saving to be movebank compatible
+add_outliers_back <- function(dt, ids, outliers) {
+  cols <- names(dt)  # cannot use names call with .. directly
+  removed_outliers <- outliers[identity %in% ids, ..cols]
+  removed_outliers[, manually_marked_outlier := TRUE]
+  new_dt <- rbindlist(list(dt, removed_outliers), fill = TRUE)
+  # need to sort otherwise outliers will be at bottom
+  setkey(new_dt, row_no)
+}

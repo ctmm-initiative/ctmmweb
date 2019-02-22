@@ -932,7 +932,11 @@ output:
       # LOG export current
       log_dt_md(select_data()$info, "Export current data")
       export_current_path <- file.path(session_tmpdir, "export.csv")
-      fwrite(select_data()$data_dt, file = export_current_path,
+      # add outliers back with extra marked outlier column for movebank compability. values$data$all_removed_outliers have many extra columns for outlier calculation, need to pick columns(we have input_tele_list but not input dt). need to filter by selected identity.
+      dt <- ctmmweb:::add_outliers_back(select_data()$data_dt,
+                              select_data()$chosen_ids,
+                              values$data$all_removed_outliers)
+      fwrite(dt, file = export_current_path,
              dateTimeAs = "write.csv")
       file.copy(export_current_path, file)
     }
@@ -3029,9 +3033,11 @@ output:
         saveRDS(values$model_list_dt,
                 file = file.path(session_tmpdir, "model_list_dt.rds"))
         # LOG save current telemetry data as csv so it can be imported easier. Only do this in generated report, not in the process to avoid too frequent saves.
-        log_dt_md(values$data$merged$info,
-                  "Current Telemetry Data")
-        fwrite(values$data$merged$data_dt,
+        log_dt_md(values$data$merged$info, "All Telemetry Data")
+        dt <- ctmmweb:::add_outliers_back(values$data$merged$data_dt,
+                                          values$data$merged$info$identity,
+                                          values$data$all_removed_outliers)
+        fwrite(dt,
                file = file.path(session_tmpdir, "combined_data_table.csv"),
                dateTimeAs = "write.csv")
         # save error msg if captured

@@ -217,6 +217,7 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   #            by = identity]
   # when using by = identity, each .SD don't have identity column, it's outside.
   # follow usage in ctmm::outlie, error is calculated in distance function
+  # row_name is characters, and we are using data.frame row.names to index them.
   animals_dt[, assigned_speed := ctmm:::assign_speeds(
                           tele_list[[identity]][row_name,],
                           UERE = error)$v.t,
