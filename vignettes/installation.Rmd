@@ -11,6 +11,8 @@ vignette: >
 
 ## Installation
 
+*We have a [windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.5/ctmmwebsetup.exe) which will do everything below.*
+
 1. Install R
 
     Download R installer([win](https://cloud.r-project.org/bin/windows/base/old/3.5.2/R-3.5.2-win.exe), [mac](https://cloud.r-project.org/bin/macosx/R-3.5.2.pkg), [Linux](https://cloud.r-project.org/bin/linux/)) and install R.
@@ -25,7 +27,7 @@ vignette: >
 
     ```r
     install.packages("ctmmweb", 
-                     repos = c(getOption("repos"),
+                     repos = c("https://cloud.r-project.org/",
                                "https://ctmm-initiative.github.io/ctmm_repo/"))
     
     ```

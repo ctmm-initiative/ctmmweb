@@ -14,9 +14,10 @@
 
     ```r
     install.packages("ctmmweb", 
-                     repos = c(getOption("repos"),
+                     repos = c("https://cloud.r-project.org/",
                                "https://ctmm-initiative.github.io/ctmm_repo/"))
     ```
+- We also created a windows installer to automate the installation steps.
 
 ## version 0.2.0, 2018/09/07, Telemetry Errors
 - Dealing with bugs, conflicts caused by `devtools::install_github`, dependency packages, alternative installation methods.
