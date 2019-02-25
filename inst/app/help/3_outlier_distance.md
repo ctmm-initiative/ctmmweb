@@ -13,5 +13,7 @@
     - Click to select rows in this table will further highlight selected points with a square.
     - `Remove Selected` button will remove selected points from data, and list them in the table of `Removed Outliers`. The histogram and scatter plot will also update.
     - You can continue to inspect and remove outliers. The points already removed can also be reset and back to original state.
-    - You can move back to **Visualization** page and the plots will also update. There will be a line in the table `1.Individuals` to remind some outliers have been removed. You can always check outlier page for the list of removed points.
-    - The overall design of this page is quite similar to `Time subsetting`.
+- You can move back to **Visualization** page and the plots will also update. There will be a line in the table `1.Individuals` to remind some outliers have been removed. 
+- `Export Current` in table 1 will export the current subset as csv file, and mark the outliers with a column `manually_marked_outlier`, which can be imported to Movebank website and be recognized. Importing the csv back into app will have the outliers discarded.
+- `Save Progess` will save outliers with this column in csv output, which is similar to `Export Current`. Restore progress from the whole zip will restore the outlier status because more complete states have been saved.
+- The overall design of this page is quite similar to `Time subsetting`.

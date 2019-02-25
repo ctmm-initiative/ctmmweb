@@ -32,9 +32,10 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 add_outliers_back <- function(dt, ids, outliers) {
   cols <- names(dt)  # cannot use names call with .. directly
   removed_outliers <- outliers[identity %in% ids, ..cols]
-  removed_outliers[, manually.marked.outlier := TRUE]
+  removed_outliers[, manually_marked_outlier := TRUE]
   new_dt <- rbindlist(list(dt, removed_outliers), fill = TRUE)
-  new_dt[is.na(manually.marked.outlier), manually.marked.outlier := FALSE]
+  # cannot be NA, which will cause problem in as.telemetry import
+  new_dt[is.na(manually_marked_outlier), manually_marked_outlier := FALSE]
   # need to sort otherwise outliers will be at bottom
   setkey(new_dt, row_no)
 }

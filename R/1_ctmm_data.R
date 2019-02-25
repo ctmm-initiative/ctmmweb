@@ -17,9 +17,9 @@ update_tele_list_ids <- function(tele_list, new_name_vec){
   return(tele_list)
 }
 # import multiple files, also work with single file
-import_tele_files <- function(files) {
+import_tele_files <- function(files, remove_marked_outliers = TRUE) {
   tele_list_list <- lapply(files, function(x) {
-    wrap_single_telemetry(as.telemetry(x))
+    wrap_single_telemetry(as.telemetry(x, mark.rm = remove_marked_outliers))
   })
   tele_list <- unlist(tele_list_list, recursive = FALSE)
   animal_names <- names(tele_list)

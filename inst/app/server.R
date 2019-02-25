@@ -378,7 +378,7 @@ output:
         # ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(as_telemetry_input)),
         if (is.data.frame(as_telemetry_input)) {
           ctmmweb:::wrap_single_telemetry(
-            ctmm::as.telemetry(as_telemetry_input))
+            ctmm::as.telemetry(as_telemetry_input, mark.rm = TRUE))
         } else {
           ctmmweb:::import_tele_files(as_telemetry_input)
           },
