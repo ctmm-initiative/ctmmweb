@@ -961,8 +961,7 @@ output:
     ranges
   }
   location_plot_gg_range <- add_zoom("location_plot_gg")
-  # trying cache on plot. according to test, data.table reference can be hashed properly
-  output$location_plot_gg <- renderCachedPlot({
+  output$location_plot_gg <- renderPlot({
     animals_dt <- req(select_data()$data_dt)
     # use dt parameter to determine whether to overlay
     if (input$overlay_all) {
@@ -975,12 +974,7 @@ output:
                            ylim = location_plot_gg_range$y)
     # LOG save pic
     log_save_ggplot(g, "plot_2_overview")
-  },
-  cacheKeyExpr = {list(req(select_data()$data_dt), input$overlay_all,
-                       input$point_size_1)},
-  sizePolicy = sizeGrowthRatio(width =
-                                 300, height = 300, growthRate = 1.2)
-  # height = function() { input$canvas_height }, width = "auto"
+  }, height = function() { input$canvas_height }, width = "auto"
   )
   # for cropped location subset, crop from tele obj, thus generate dt from it. take tele obj or dt, assign new id (both tele and dt need it). new_id may change depend on case, and to increase postfix number so it's parameter
   # for time subset, generate new_dt, then subset tele obj. both only apply to single animal, thus function take tele_obj instead of tele_list
