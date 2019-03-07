@@ -30,6 +30,10 @@ color_break <- function(bin_count, animals_dt, col_name, unit_formatter) {
 }
 # add back before export and saving to be movebank compatible
 add_outliers_back <- function(dt, ids, outliers) {
+  # if outliers is empty
+  if (is.null(outliers)) {
+    return(dt)
+  }
   cols <- names(dt)  # cannot use names call with .. directly
   removed_outliers <- outliers[identity %in% ids, ..cols]
   removed_outliers[, manually_marked_outlier := TRUE]
