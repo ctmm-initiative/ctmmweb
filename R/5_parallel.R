@@ -132,18 +132,27 @@ par_try_tele_guess_multi <- function(tele_guess_list,
   # cannot use select_models name since that was a reactive expression to select model results by rows. use internal function for better locality, less name conflict. fit is also not optimal since it hint ctmm.fit
   # use try to refer the ctmm.select, use select to refer the manual select rows in model summary table.
   try_models <- function(tele_guess) {
-    res <- try({
-      # log("a")
-      ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
-                        control = list(method = "pNewton", cores = 1),
-                        trace = TRUE, verbose = TRUE)
-    })
-    if (inherits(res, "try-error")) {
-      message(res)
-      cat(crayon::white$bgMagenta("ctmm.select() failed with pNewton, switching to Nelder-Mead\n"))
-      res <- ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
-                               trace = TRUE, verbose = TRUE)
-    }
+    # res <- try({
+    #   # log("a")
+    #   ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
+    #                     control = list(method = "pNewton", cores = 1),
+    #                     trace = TRUE, verbose = TRUE)
+    # })
+    # if (inherits(res, "try-error")) {
+    #   message(res)
+    #   cat(crayon::white$bgMagenta("ctmm.select() failed with pNewton, switching to Nelder-Mead\n"))
+    #   res <- ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
+    #                            trace = TRUE, verbose = TRUE)
+    # }
+    res <- fall_back(ctmm::ctmm.select,
+                     list(tele_guess[[1]], CTMM = tele_guess[[2]],
+                          control = list(method = "pNewton", cores = 1),
+                          trace = TRUE, verbose = TRUE),
+                     ctmm::ctmm.select,
+                     list(tele_guess[[1]], CTMM = tele_guess[[2]],
+                          trace = TRUE, verbose = TRUE),
+                     "ctmm.select() failed with pNewton, switching to Nelder-Mead")
+
     return(res)
   }
   par_lapply(tele_guess_list, try_models, cores, parallel)

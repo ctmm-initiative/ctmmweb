@@ -224,6 +224,16 @@ assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
              by = identity]
   return(animals_dt)
 }
+# general fall back function. wait data for speed error then replace with this too. right now just for akde memory error. this only handle one level fall back. for 2 levels fall back, right now just add it manually. currently the 2nd fall back in trymodels actually just print msg, didn't calculate it again so not really fallback again. note arg must be list even for single arg.
+fall_back <- function(f1, f1_args_list, f2, f2_args_list, msg) {
+  res <- try(do.call(f1, f1_args_list))
+  if (inherits(res, "try-error")) {
+    # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
+    cat(crayon::white$bgMagenta(msg), "\n")
+    res <- do.call(f2, f2_args_list)
+  }
+  return(res)
+}
 #' Calculate speed for each animal location
 #'
 #' It's difficult to get a simple speed definition yet robust to all kinds of
@@ -245,36 +255,31 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
   # note every parameter changes need to be present in every data call, several places
   # my speed calculation need distance columns
   stopifnot(c("error", "distance_center") %in% names(animals_dt))
-  test_calc <- function(data, tele_list, device_error, fun, fun_bak) {
+  # test_calc <- function(data, tele_list, device_error, fun, fun_bak) {
     # tryCatch method
     # res <- tryCatch(fun(data, tele_list, device_error),
     #                 error = function(e) "error")
     # if (identical(res, "error")) {
     # try method
-    res <- try(fun(data, tele_list, device_error))
-    if (inherits(res, "try-error")) {
-      res <- fun_bak(data, tele_list, device_error)
-      # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
-      cat(crayon::white$bgRed("Had error with first speed definition, use alternative instead\n"))
-    }
-    return(res)
-  }
+  #   res <- try(fun(data, tele_list, device_error))
+  #   if (inherits(res, "try-error")) {
+  #     res <- fun_bak(data, tele_list, device_error)
+  #     # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
+  #     cat(crayon::white$bgRed("Had error with first speed definition, use alternative instead\n"))
+  #   }
+  #   return(res)
+  # }
   # we didn't use the third fallback, pmin should be robust enough.
-  animals_dt <- test_calc(animals_dt, tele_list, device_error,
-                          assign_speed_ctmm, assign_speed_pmin)
-  # animals_dt <- assign_speed_ctmm(animals_dt)
+  # animals_dt <- test_calc(animals_dt, tele_list, device_error,
+  #                         assign_speed_ctmm, assign_speed_pmin)
+  animals_dt <- fall_back(assign_speed_ctmm,
+                          list(animals_dt, tele_list, device_error),
+                          assign_speed_pmin,
+                          list(animals_dt, tele_list, device_error),
+                          "Had error with first speed definition, use alternative instead")
   return(animals_dt)
 }
-# general fall back function. wait data for speed error then replace with this too. right now just for akde memory error. this only handle one level fall back. for 2 levels fall back, right now just add it manually. currently the 2nd fall back in trymodels actually just print msg, didn't calculate it again so not really fallback again. note arg must be list even for single arg.
-fall_back <- function(f1, f1_args_list, f2, f2_args_list, msg) {
-  res <- try(do.call(f1, f1_args_list))
-  if (inherits(res, "try-error")) {
-    # the right hand of $ is style name parameter instead of pkg function, no need to add pkg prefix
-    cat(crayon::white$bgMagenta(msg), "\n")
-    res <- do.call(f2, f2_args_list)
-  }
-  return(res)
-}
+
 # merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
 # always use row_no for dt identifying records, use (identity, row_name) for tele_list (always need to use identity get item first). need to locate a record in tele_list from a row in dt(many operations only work with ctmm functions on telemetry, so need to convert and calc on that part), so need to maintain row_name same in dt and tele_list. never change them after initialization, also setkey on row_no, also need to make sure no dupe row_name within same individual(otherwise cause problem in dt). maintain row_no, so only add new in new subset added, keep original same.
