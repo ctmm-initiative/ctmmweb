@@ -2101,8 +2101,14 @@ output:
         par_try_tele_guess_mem(tele_guess_list,
                                parallel = input_value("parallel")))),
       message = "Trying different models to find the best ...")
-    # if returned error, stop next step. req will check error object and NULL result.
-    req(res)
+    # if error occurred, stop next step. it could one error object or a list with some nodes as error object.
+    # tried to detect if in shiny app, checking session object existence. which didn't work when called inside a package function. so only print console msg in pkg function, and give notification here
+    met_error <- any(ctmmweb:::has_error(res))
+    if (met_error) {
+      shiny::showNotification("Error in model selection, check error messages",
+                              duration = 4, type = "error")
+    }
+    req(!met_error)
     # always save names in list
     names(res) <- names(select_data()$tele_list)
     # initialize model_list_dt in auto fit

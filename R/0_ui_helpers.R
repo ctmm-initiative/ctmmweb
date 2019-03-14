@@ -55,7 +55,7 @@ JS.onload <- function(slider_id_vec, sci = FALSE) {
                 paste0(lapply(slider_id_vec, slider_call), collapse = "\n"),
                 "}, 5)})"
                 ))
-                }
+}
 # UI style constants ----
 # some are used in server call, so both ui and server need them
 # box, plotOutput, renderPlot, no need to set all three if need adjustment.
