@@ -144,7 +144,7 @@ par_try_tele_guess_multi <- function(tele_guess_list,
     #   res <- ctmm::ctmm.select(tele_guess[[1]], CTMM = tele_guess[[2]],
     #                            trace = TRUE, verbose = TRUE)
     # }
-    res <- fall_back(ctmm::ctmm.select,
+    fall_back(ctmm::ctmm.select,
                      list(tele_guess[[1]], CTMM = tele_guess[[2]],
                           control = list(method = "pNewton", cores = 1),
                           trace = TRUE, verbose = TRUE),
@@ -152,10 +152,17 @@ par_try_tele_guess_multi <- function(tele_guess_list,
                      list(tele_guess[[1]], CTMM = tele_guess[[2]],
                           trace = TRUE, verbose = TRUE),
                      "ctmm.select() failed with pNewton, switching to Nelder-Mead")
-
-    return(res)
   }
-  par_lapply(tele_guess_list, try_models, cores, parallel)
+  res <- try(par_lapply(tele_guess_list, try_models, cores, parallel))
+  # serial model all res become error with one individual error
+  if (inherits(res, "try-error")) {
+    cat(crayon::bgYellow$red(res))
+    shiny::showNotification("Error in model fitting, check error messages",
+                            duration = 4, type = "error")
+    res <- NULL
+  }
+
+  return(res)
 }
 # process single animal in multiple cores
 par_try_tele_guess_single <- function(tele_guess_list,
@@ -201,8 +208,7 @@ par_try_tele_guess <- function(tele_guess_list,
 #'   the attempted models as sub items with model type as name.
 #' @export
 par_try_models <- function(tele_list,
-                           cores = NULL,
-                              parallel = TRUE) {
+                           cores = NULL, parallel = TRUE) {
   tele_guess_list <- align_lists(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
@@ -211,7 +217,9 @@ par_try_models <- function(tele_list,
                       par_try_tele_guess(tele_guess_list,
                                          cores,
                                          parallel)))
-  names(model_try_res) <- names(tele_list)
+  if (!is.null(model_try_res)) {
+    names(model_try_res) <- names(tele_list)
+  }
   return(model_try_res)
 }
 

@@ -2101,6 +2101,8 @@ output:
         par_try_tele_guess_mem(tele_guess_list,
                                parallel = input_value("parallel")))),
       message = "Trying different models to find the best ...")
+    # if returned error, stop next step. req will check error object and NULL result.
+    req(res)
     # always save names in list
     names(res) <- names(select_data()$tele_list)
     # initialize model_list_dt in auto fit
