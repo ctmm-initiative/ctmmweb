@@ -156,7 +156,7 @@ par_try_tele_guess <- function(tele_guess_list,
   if (length(tele_guess_list) == 1) {
     tele_guess <- tele_guess_list[[1]]
     internal_cores <- if (parallel) -1 else 1
-    cores_reported <- if (parallel) "all" else 1
+    cores_reported <- if (parallel) "all but one" else 1
     cat(crayon::white$bgBlack("trying models on single animal with",
                               cores_reported, "cores\n"))
     res <- try(try_models(tele_guess_list[[1]]))
