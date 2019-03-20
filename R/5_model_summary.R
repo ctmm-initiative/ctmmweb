@@ -183,9 +183,12 @@ format_dt_unit <- function(dt, name_unit_list) {
   return(dt)
   # dt[, (valid_col_names) := NULL]
 }
-round_cols <- function(dt, col_name_vec, digits = 2) {
-  lapply(col_name_vec, function(col_name) {
-    dt[, (col_name) := round(dt[[col_name]], digits)]
+# just take all columns, will check if numerical before round up
+round_cols <- function(dt, digits = 2) {
+  lapply(names(dt), function(col_name) {
+    if (class(dt[[col_name]]) == "numeric") {
+      dt[, (col_name) := round(dt[[col_name]], digits)]
+    }
   })
 }
 # the model summary table need to be formatted for units
@@ -194,10 +197,10 @@ format_model_summary_dt <- function(model_summary_dt) {
   dt <- copy(model_summary_dt)
   # should round all numeric values. there are new columns after ctmm update.
   # cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "\u0394AICc")
-  cols_roundup <- names(dt)[5:ncol(dt)]
+  # cols_roundup <- names(dt)[5:ncol(dt)]
   # except estimate level column which is not numerical
-  cols_roundup <- cols_roundup[!cols_roundup == "estimate"]
-  round_cols(dt, cols_roundup)
+  # cols_roundup <- cols_roundup[!cols_roundup == "estimate"]
+  round_cols(dt)
   # empty cells will have NA since they are numeric columns.
   # remove the duplicated values in CI rows to reduce cluter. - this is not needed with the 1 row design, but leave it in comment in case we want to switch back.
   # dt[stringr::str_detect(estimate, "CI"),
@@ -395,7 +398,7 @@ overlap_2d_to_1d <- function(overlap_matrix_dt) {
   overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
   # COPY end --
   # the right side need to be a list to be assigned to multiple columns. need as.list to convert a vector into separate list items.
-  round_cols(overlap_dt, c("CI low", "ML", "CI high"))
+  round_cols(overlap_dt)
   return(overlap_dt)
   # overlap_dt[, c("CI low", "ML", "CI high") :=
   #              as.list(round_CIs(c(`CI low`, ML, `CI high`))),
