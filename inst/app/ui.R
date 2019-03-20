@@ -539,7 +539,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
      ),
      tabPanel(div(icon("hourglass-start"), icon("battery-full"), "2. Modeled"),
       fluidRow(
-        # model summary/selection table --
+        # p5.b.1 model summary ----
         # refit tool row
         column(3, offset = 0, actionButton("refit", "Refit",
                                            icon = icon("undo"),
@@ -565,7 +565,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                                            icon = icon("square-o"),
                                            style = ctmmweb:::STYLES$page_action)),
         # column(12, hr()),
-        # model variograms --
+        # p5.b.2 model variograms ----
         column(12, hr()),
         column(4, div(style = ctmmweb:::STYLES$align_up_group,
                       checkboxGroupInput("model_curve_selector",

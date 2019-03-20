@@ -183,7 +183,7 @@ format_dt_unit <- function(dt, name_unit_list) {
   return(dt)
   # dt[, (valid_col_names) := NULL]
 }
-round_cols <- function(dt, col_name_vec, digits = 3) {
+round_cols <- function(dt, col_name_vec, digits = 2) {
   lapply(col_name_vec, function(col_name) {
     dt[, (col_name) := round(dt[[col_name]], digits)]
   })
@@ -192,13 +192,18 @@ round_cols <- function(dt, col_name_vec, digits = 3) {
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
-  cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "\u0394AICc")
+  # should round all numeric values. there are new columns after ctmm update.
+  # cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "\u0394AICc")
+  cols_roundup <- names(dt)[5:ncol(dt)]
+  # except estimate level column which is not numerical
+  cols_roundup <- cols_roundup[!cols_roundup == "estimate"]
   round_cols(dt, cols_roundup)
   # empty cells will have NA since they are numeric columns.
   # remove the duplicated values in CI rows to reduce cluter. - this is not needed with the 1 row design, but leave it in comment in case we want to switch back.
   # dt[stringr::str_detect(estimate, "CI"),
   #        c("\u0394AICc", "DOF mean", "DOF area") := NA_real_]
   # need a list to hold function as element, c have same effect but list is more verbose
+  # CI columns will be combined and created later
   name_unit_list <- list("area" = pick_unit_area,
                          "\u03C4[position]" = pick_unit_seconds,
                          "\u03C4[velocity]" = pick_unit_seconds,
