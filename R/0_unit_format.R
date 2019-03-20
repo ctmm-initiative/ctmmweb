@@ -18,18 +18,22 @@ unit_format_round <- function(unit = "m", scale = 1, sep = " ", ...){
 # 0 bring no information in unit detection as 0 can be in any unit, and lots of 0 skew the median value, if median became 0, units in ctmm will think it as a small value and choose smallest unit. Just exclude 0 in vec before median should be better.
 pick_unit <- function(vec, dimension){
   # exclude 0 from vec. not just strictly 0, also very small values. It isn't really better to use 1e-10 ms compare to 1e-13 s.
+  # length can be negative with x in other side. take abs value for all. otherwise it can mess up the not_too_small comparison, the median calculation.
+  vec <- abs(vec)
   not_too_small <- (vec > 1e-9)
+  # sometimes there is no value left, and na.rm removed NA, so max working on empty. let's remove na first, if nothing left, use default standard unit, which can be done by assign 1 as test value
   vec <- vec[not_too_small]
+  vec <- vec[!is.na(vec)]
+  if (length(vec) == 0) {
+    test_value <- 1
+  } else {
+      test_value <- stats::median(vec)
+    }
   switch(dimension,
-         # didn't use median because it could be near zero with positive and negative values
-         length = ctmm:::unit(max(abs(vec), na.rm = TRUE)/2,
-                              dimension = "length", concise = TRUE),
-         time =   ctmm:::unit(stats::median(vec, na.rm = TRUE),
-                              dimension = "time", concise = FALSE),
-         speed =  ctmm:::unit(stats::median(vec, na.rm = TRUE),
-                              dimension = "speed", concise = TRUE),
-         area =   ctmm:::unit(stats::median(vec, na.rm = TRUE),
-                              dimension = "area", concise = TRUE)
+         length = ctmm:::unit(test_value, dimension = "length", concise = TRUE),
+         time =   ctmm:::unit(test_value, dimension = "time", concise = FALSE),
+         speed =  ctmm:::unit(test_value, dimension = "speed", concise = TRUE),
+         area =   ctmm:::unit(test_value, dimension = "area", concise = TRUE)
          )
 }
 # given a vector of values (or single value) and dimension, return a formatting function. many plot or render code need a function
