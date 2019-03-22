@@ -15,6 +15,9 @@ assert_tele_list <- function(tele) {
 #' consistent we always work with a list of telemetry objects. Use this function
 #' over [ctmm::as.telemetry()] to make sure result is a proper list.
 #'
+#' If the input is already a list, the list will be returned as is. It's safe to
+#' wrap the function on [ctmm::as.telemetry()] all the time.
+#'
 #' @param tele result from [ctmm::as.telemetry()]
 #'
 #' @return a list of telemetry objects, each named by animal name

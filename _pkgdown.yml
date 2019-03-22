@@ -14,6 +14,7 @@ reference:
 - title: "Basic Data Structure for app"
   desc: Input ctmm telemetry data need to be converted to `data.table` for app uses
   contents:
+  - '`as_tele_list`'
   - '`report`'
   - '`collect`'
 - title: "Plot Location and Time"

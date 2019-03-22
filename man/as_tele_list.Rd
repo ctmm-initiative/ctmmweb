@@ -18,3 +18,7 @@ instead of a list when there is only one animal in data. To make code
 consistent we always work with a list of telemetry objects. Use this function
 over \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to make sure result is a proper list.
 }
+\details{
+If the input is already a list, the list will be returned as is. It's safe to
+wrap the function on \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} all the time.
+}
