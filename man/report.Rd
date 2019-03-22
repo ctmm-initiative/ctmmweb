@@ -2,16 +2,23 @@
 % Please edit documentation in R/1_ctmm_data.R
 \name{report}
 \alias{report}
-\title{Report data summary on telemetry object/list}
+\title{Report data summary on telemetry list}
 \usage{
-report(tele_obj_list)
+report(tele_list)
 }
 \arguments{
-\item{tele_obj_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object or list}
+\item{tele_list}{telemetry list.}
 }
 \value{
 A summary \code{data.table}
 }
 \description{
-Report data summary on telemetry object/list
+Note \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} returns a telemetry object with single animal in
+data, a list of telemetry objects with multiple animals in data. To make code
+consistent we always work with a list of telemetry objects.
+}
+\details{
+Function will report error if single telemetry object is provided, thus the
+problem can be found and fixed immediately. Wrap \code{\link[=as_tele_list]{as_tele_list()}} over
+\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} will make sure it's a proper list.
 }

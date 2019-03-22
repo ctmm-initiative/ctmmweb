@@ -7,13 +7,14 @@
 as_tele_list(tele)
 }
 \arguments{
-\item{tele}{result from ctmm::as.telemetry, either a single telemetry
-object(when data only have one individual), or a list of telemetry
-objects(with multiple individuals)}
+\item{tele}{result from \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}}}
 }
 \value{
 a list of telemetry objects, each named by animal name
 }
 \description{
-Coerce telemetry object to list
+\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} will return will return single telemetry object
+instead of a list when there is only one animal in data. To make code
+consistent we always work with a list of telemetry objects. Use this function
+over \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to make sure result is a proper list.
 }

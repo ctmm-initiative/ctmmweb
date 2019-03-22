@@ -23,12 +23,18 @@ knitr::opts_chunk$set(
 
 This document demonstrates the usage of package functions in the analysis of animal tracking data. As a complete analysis consists of a series of sequential steps, it is more informative to show how the package's functions fit into this workflow than giving separate code examples in function help files.
 
-First we load the libraries and prepare the data. Note that a subsample was taken so that the model fitting process can finish in seconds instead of minutes.
+First we load the libraries and prepare the data. 
+
+Note When importing your own data, `ctmm::as.telemetry` will return single telemetry object with single animal, and a list of telemetry objects with multiple animals. To make code consistent we always work with a list of telemetry objects. You can use ctmmweb::as_tele_list to make sure it's a proper list.
 
 ```{r libraries and data}
 library(ctmm)
 library(ctmmweb)
 data(buffalo)
+
+# for importing data, use ctmmweb::as_tele_list to make sure it's a proper list.
+# data <- as_tele_list(as_telemetry(data_file))
+
 # take a 100 point sample from each animal to speed up model fitting etc
 data_sample <- pick(buffalo, 100)
 ```
@@ -48,7 +54,7 @@ To plot the locations of multiple animals simultaneously with `ggplot2`, we need
 `data.table` has much better performance than `data.frame` though uses a different syntax. You can still use `data.frame` syntax on `data.table` if you are not familiar with it.
 
 ```{r basic data structure}
-# basic data structure
+# Error will occur if single telemetry object was provided. See ?as_tele_list and ?report for details.
 collected_data <- collect(buffalo)
 # a list of locations data.table/data.frame and information table
 loc_data <- collected_data$data
