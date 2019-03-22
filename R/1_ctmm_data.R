@@ -2,9 +2,12 @@
 
 #' Coerce telemetry object to list
 #'
-#' @param tele result from ctmm::as.telemetry, either a single telemetry
-#'   object(when data only have one individual), or a list of telemetry
-#'   objects(with multiple individuals)
+#' [ctmm::as.telemetry()] will return will return single telemetry object
+#' instead of a list when there is only one animal in data. To make code
+#' consistent we always work with a list of telemetry objects. Use this function
+#' over [ctmm::as.telemetry()] to make sure result is a proper list.
+#'
+#' @param tele result from [ctmm::as.telemetry()]
 #'
 #' @return a list of telemetry objects, each named by animal name
 #' @export
@@ -99,15 +102,23 @@ info_tele <- function(object) {
 sort_tele_list <- function(tele_list) {
   tele_list[stringr::str_sort(names(tele_list))]
 }
-#' Report data summary on telemetry object/list
+#' Report data summary on telemetry list
 #'
-#' @param tele_obj_list [ctmm::as.telemetry()] telemetry object or list
+#' Note [ctmm::as.telemetry()] returns a telemetry object with single animal in
+#' data, a list of telemetry objects with multiple animals in data. To make code
+#' consistent we always work with a list of telemetry objects.
+#'
+#' Function will report error if single telemetry object is provided, thus the
+#' problem can be found and fixed immediately. Wrap [as_tele_list()] over
+#' [ctmm::as.telemetry()] will make sure it's a proper list.
+#' @param tele_list telemetry list.
 #'
 #' @return A summary `data.table`
 #' @export
 #'
-report <- info_tele_list <- function(tele_obj_list){
-  tele_list <- as_tele_list(tele_obj_list)
+report <- info_tele_list <- function(tele_list){
+  # previously this work on either obj or list. but this may hide the problem to user. only work on list and give error here is better
+  stopifnot(class(tele_list) == "list")
   info_list <- lapply(tele_list, info_tele)
   dt <- rbindlist(info_list)
   name_unit_list <- list("interval" = pick_unit_seconds,
@@ -275,14 +286,14 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
                           "Had error with first speed definition, use alternative instead")
   return(animals_dt)
 }
-
-# merge tele obj/list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
+# we should coerice tele obj to list from very beginning once, and only work with list later. converting it in middle can hide the problem when some code works but some stil have problems.
+# merge tele list into data.table with identity column, easier for ggplot and summary. go through every obj to get data frame and metadata, then combine the data frame into data, metadata into info.
 # assuming row order by timestamp and identity in same order with tele obj.
 # always use row_no for dt identifying records, use (identity, row_name) for tele_list (always need to use identity get item first). need to locate a record in tele_list from a row in dt(many operations only work with ctmm functions on telemetry, so need to convert and calc on that part), so need to maintain row_name same in dt and tele_list. never change them after initialization, also setkey on row_no, also need to make sure no dupe row_name within same individual(otherwise cause problem in dt). maintain row_no, so only add new in new subset added, keep original same.
 # if multiple files are uploaded and holding same individual in different files with duplicated row_name, this could cause problem. there could also be problem with as_telemetry in this case. wait until reported by user.
 # do need to reassign row_no when new subset added.
-tele_list_to_dt <- function(tele_obj_list) {
-  tele_list <- as_tele_list(tele_obj_list)
+tele_list_to_dt <- function(tele_list) {
+  # tele_list <- as_tele_list(tele_obj_list)
   animal_count <- length(tele_list)
   animal_data_list <- vector(mode = "list", length = animal_count)
   for (i in 1:animal_count) {
@@ -304,7 +315,7 @@ tele_list_to_dt <- function(tele_obj_list) {
   }
   return(animals_data_dt)
 }
-#' Collect location and info `data.table` from telemetry object/list
+#' Collect location and info `data.table` from telemetry list
 #'
 #' A [ctmm::as.telemetry()] telemetry list hold mutiple animal data in separate
 #' list items, each item have the animal location data in a data frame, and
@@ -313,17 +324,18 @@ tele_list_to_dt <- function(tele_obj_list) {
 #' together with `ggplot2` we need to collect all location data as a single
 #' `data.frame` with an animal id column.
 #'
-#' This function convert any input telemetry object/List into a list of 1.
-#' `data.table` of location data, and 2. animal information `data.table`.
-#' `data.table` is chosen over `data.frame` for much better performance. This
-#' data structure is also used in a lot of places in app, which works on any
-#' selected subset of full data in almost all steps.
+#' This function convert any input telemetry List into a list of 1. `data.table`
+#' of location data, and 2. animal information `data.table`. `data.table` is
+#' chosen over `data.frame` for much better performance. This data structure is
+#' also used in a lot of places in app, which works on any selected subset of
+#' full data in almost all steps.
 #'
-#' @param tele_obj_list [ctmm::as.telemetry()] telemetry object/list
+#' @param tele_list [ctmm::as.telemetry()] telemetry list. Note
+#'   [ctmm::as.telemetry()] could return single telemetry object with single
+#'   animal in data. Use [as_tele_list()] to coerce it to proper list.
 #'
-#' @return list of
-#' - `data_dt`: all animals collected in one data.table
-#' - `info`: animal information table
+#' @return list of - `data_dt`: all animals collected in one data.table -
+#'   `info`: animal information table
 #' @export
 collect <- combine_tele_list <- function(tele_obj_list) {
   return(list(data_dt = tele_list_to_dt(tele_obj_list),
