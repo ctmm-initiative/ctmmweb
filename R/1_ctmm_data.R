@@ -1,5 +1,13 @@
 # ctmm data processing ----
 
+# check tele obj or list, give proper message
+assert_tele_list <- function(tele) {
+  if (class(tele) != "list") {
+    stop(crayon::bgRed$white(
+      "Telemetry list is expected, see ?as_tele_list for details\n"))
+  }
+}
+
 #' Coerce telemetry object to list
 #'
 #' [ctmm::as.telemetry()] will return will return single telemetry object
@@ -104,21 +112,16 @@ sort_tele_list <- function(tele_list) {
 }
 #' Report data summary on telemetry list
 #'
-#' Note [ctmm::as.telemetry()] returns a telemetry object with single animal in
-#' data, a list of telemetry objects with multiple animals in data. To make code
-#' consistent we always work with a list of telemetry objects.
-#'
-#' Function will report error if single telemetry object is provided, thus the
-#' problem can be found and fixed immediately. Wrap [as_tele_list()] over
-#' [ctmm::as.telemetry()] will make sure it's a proper list.
-#' @param tele_list telemetry list.
+#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use [as_tele_list()]
+#'   over [ctmm::as.telemetry()] to ensure a proper list.
 #'
 #' @return A summary `data.table`
 #' @export
 #'
 report <- info_tele_list <- function(tele_list){
   # previously this work on either obj or list. but this may hide the problem to user. only work on list and give error here is better
-  stopifnot(class(tele_list) == "list")
+  # stopifnot(class(tele_list) == "list")
+  assert_tele_list(tele_list)
   info_list <- lapply(tele_list, info_tele)
   dt <- rbindlist(info_list)
   name_unit_list <- list("interval" = pick_unit_seconds,
@@ -293,7 +296,7 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
 # if multiple files are uploaded and holding same individual in different files with duplicated row_name, this could cause problem. there could also be problem with as_telemetry in this case. wait until reported by user.
 # do need to reassign row_no when new subset added.
 tele_list_to_dt <- function(tele_list) {
-  # tele_list <- as_tele_list(tele_obj_list)
+  assert_tele_list(tele_list)
   animal_count <- length(tele_list)
   animal_data_list <- vector(mode = "list", length = animal_count)
   for (i in 1:animal_count) {
@@ -330,9 +333,8 @@ tele_list_to_dt <- function(tele_list) {
 #' also used in a lot of places in app, which works on any selected subset of
 #' full data in almost all steps.
 #'
-#' @param tele_list [ctmm::as.telemetry()] telemetry list. Note
-#'   [ctmm::as.telemetry()] could return single telemetry object with single
-#'   animal in data. Use [as_tele_list()] to coerce it to proper list.
+#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use [as_tele_list()]
+#'   over [ctmm::as.telemetry()] to ensure a proper list.
 #'
 #' @return list of - `data_dt`: all animals collected in one data.table -
 #'   `info`: animal information table

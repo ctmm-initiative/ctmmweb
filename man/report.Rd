@@ -7,18 +7,12 @@
 report(tele_list)
 }
 \arguments{
-\item{tele_list}{telemetry list.}
+\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. Use \code{\link[=as_tele_list]{as_tele_list()}}
+over \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to ensure a proper list.}
 }
 \value{
 A summary \code{data.table}
 }
 \description{
-Note \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} returns a telemetry object with single animal in
-data, a list of telemetry objects with multiple animals in data. To make code
-consistent we always work with a list of telemetry objects.
-}
-\details{
-Function will report error if single telemetry object is provided, thus the
-problem can be found and fixed immediately. Wrap \code{\link[=as_tele_list]{as_tele_list()}} over
-\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} will make sure it's a proper list.
+Report data summary on telemetry list
 }
