@@ -55,7 +55,7 @@ check_update <- function(installed_pkg_time) {
       content[[1]][["commit"]][["author"]][["date"]])
     # reverse condition for test
     if (installed_pkg_time < latest_commit_time) {
-      shiny::showNotification("New release found, please update the app",
+      shiny::showNotification("New release found, please update the app. Windows user can run the Update app link from start menu.",
                               duration = 9, type = "warning")
       return(TRUE)
     }
