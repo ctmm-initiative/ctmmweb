@@ -26,3 +26,40 @@ app <- function(shiny_app_data = NULL) {
   shiny_app <- shiny::shinyApp(ui = ui, server = server)
   shiny::runApp(shiny_app, launch.browser = TRUE, display.mode = "normal")
 }
+# check new release version of package
+check_update <- function(installed_pkg_time) {
+  installed_pkg_date <- lubridate::date(installed_pkg_time)
+  # https://developer.github.com/v3/repos/commits/#get-a-single-commit
+  base_url <- "https://api.github.com/repos/ctmm-initiative/ctmm_repo/commits"
+  # for test, use an older since_date otherwise no result found
+  # url <- paste0(base_url, "?since=" , "2019-01-01")
+  url <- paste0(base_url, "?since=" , installed_pkg_date)
+  # 600 ms, max 3.3 s.
+  res <- try(httr::GET(url, httr::timeout(3)))
+  if (inherits(res, "try-error")) {
+    # cat("Update check failed\n")
+    shiny::showNotification("Update check failed, check network connection",
+                            duration = 6, type = "error")
+    return(FALSE)
+  }
+  status <- httr::http_status(res)$category
+  if (status != "Success") {
+    shiny::showNotification(paste0("Update check failed:\n",
+                                   httr::http_status(res)$message),
+                            duration = 6, type = "error")
+    return(FALSE)
+  }
+  content <- httr::content(res)
+  if (length(content) != 0) {
+    latest_commit_time <- lubridate::ymd_hms(
+      content[[1]][["commit"]][["author"]][["date"]])
+    # reverse condition for test
+    if (installed_pkg_time < latest_commit_time) {
+      shiny::showNotification("New release found, please update the app",
+                              duration = 9, type = "warning")
+      return(TRUE)
+    }
+  }
+  # all other cases return FALSE, like the empty list
+  return(FALSE)
+}
