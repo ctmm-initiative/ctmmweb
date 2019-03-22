@@ -392,8 +392,7 @@ output:
       withCallingHandlers(
         # previously as.telemetry can work on single file or data.frame, but now we need special treatment for importing multiple files, so it need to be separated.
         if (is.data.frame(as_telemetry_input)) {
-          ctmmweb::as_tele_list(
-            ctmm::as.telemetry(as_telemetry_input, mark.rm = TRUE))
+          ctmm::as.telemetry(as_telemetry_input, mark.rm = TRUE, drop = FALSE)
         } else {
           ctmmweb:::import_tele_files(as_telemetry_input)
           },
@@ -508,7 +507,8 @@ output:
         # tele obj/list already, update directly
         # LOG data loaded from app()
         log_msg("Loading telemetry data directly to app")
-        isolate(update_input_data(app_input_data))
+        # coerce to list first
+        isolate(update_input_data(ctmmweb::as_tele_list(app_input_data)))
       } else {
         # when the input need to be imported
         # LOG import telemetry data, it could be an object so cannot put in log_msg 2nd parameter. cannot know original parameter string once transferred as app() parameter.

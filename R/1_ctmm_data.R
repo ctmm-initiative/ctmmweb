@@ -4,25 +4,23 @@
 assert_tele_list <- function(tele) {
   if (class(tele) != "list") {
     stop(crayon::bgRed$white(
-      "Telemetry list is expected, see ?as_tele_list for details\n"))
+      "Telemetry list is expected, use `drop = FALSE` in `as.telemetry` or `as_tele_lisst`. see ?as_tele_list for details\n"))
   }
 }
+# in most case using `drop = FALSE` is enough, but we still need this in app for wrapping single object sometimes. It's exported so that user can find information in its help
 
 #' Coerce telemetry object to list
 #'
-#' [ctmm::as.telemetry()] will return will return single telemetry object
-#' instead of a list when there is only one animal in data. To make code
-#' consistent we always work with a list of telemetry objects. Use this function
-#' over [ctmm::as.telemetry()] to make sure result is a proper list.
-#'
-#' If the input is already a list, the list will be returned as is. It's safe to
-#' wrap the function on [ctmm::as.telemetry()] all the time.
+#' [ctmm::as.telemetry()] will return single telemetry object instead of a list
+#' when there is only one animal in data. To make code consistent we always work
+#' with a list of telemetry objects. Either use `drop = FALSE` in
+#' [ctmm::as.telemetry()] or apply this function over [ctmm::as.telemetry()]
+#' result to ensure a proper list.
 #'
 #' @param tele result from [ctmm::as.telemetry()]
 #'
 #' @return a list of telemetry objects, each named by animal name
 #' @export
-#'
 as_tele_list <- function(tele){
   if (class(tele) != "list") {
     # use same name so we can return same name if no change made
@@ -44,7 +42,7 @@ update_tele_list_ids <- function(tele_list, new_name_vec){
 # import multiple files, also work with single file
 import_tele_files <- function(files, remove_marked_outliers = TRUE) {
   tele_list_list <- lapply(files, function(x) {
-    as_tele_list(as.telemetry(x, mark.rm = remove_marked_outliers))
+    as.telemetry(x, mark.rm = remove_marked_outliers, drop = FALSE)
   })
   tele_list <- unlist(tele_list_list, recursive = FALSE)
   animal_names <- names(tele_list)
@@ -115,8 +113,8 @@ sort_tele_list <- function(tele_list) {
 }
 #' Report data summary on telemetry list
 #'
-#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use [as_tele_list()]
-#'   over [ctmm::as.telemetry()] to ensure a proper list.
+#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use `drop = FALSE`
+#'   in [ctmm::as.telemetry()] to ensure a proper list.
 #'
 #' @return A summary `data.table`
 #' @export
@@ -336,8 +334,8 @@ tele_list_to_dt <- function(tele_list) {
 #' also used in a lot of places in app, which works on any selected subset of
 #' full data in almost all steps.
 #'
-#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use [as_tele_list()]
-#'   over [ctmm::as.telemetry()] to ensure a proper list.
+#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use `drop = FALSE` in
+#'   [ctmm::as.telemetry()] to ensure a proper list.
 #'
 #' @return list of - `data_dt`: all animals collected in one data.table -
 #'   `info`: animal information table
