@@ -1,12 +1,23 @@
 # ctmm data processing ----
-# make single obj into a list of one item, named by animal id. This make behavior of importing file with single animal and multiple animal consistent. Also needed in other cases.
-wrap_single_telemetry <- function(tele_obj){
-  if (class(tele_obj) != "list") {
+
+#' Coerce telemetry object to list
+#'
+#' @param tele result from ctmm::as.telemetry, either a single telemetry
+#'   object(when data only have one individual), or a list of telemetry
+#'   objects(with multiple individuals)
+#'
+#' @return a list of telemetry objects, each named by animal name
+#' @export
+#'
+as_tele_list <- function(tele){
+  if (class(tele) != "list") {
     # use same name so we can return same name if no change made
-    tele_obj <- list(tele_obj)
-    names(tele_obj) <- attr(tele_obj[[1]],"info")$identity
+    tele_list <- list(tele)
+    names(tele_list) <- attr(tele_list[[1]],"info")$identity
+    return(tele_list)
+  } else {
+    return(tele)
   }
-  return(tele_obj)
 }
 # update a list of telemetry obj identity slot with new names, also update item name with new names
 update_tele_list_ids <- function(tele_list, new_name_vec){
@@ -19,7 +30,7 @@ update_tele_list_ids <- function(tele_list, new_name_vec){
 # import multiple files, also work with single file
 import_tele_files <- function(files, remove_marked_outliers = TRUE) {
   tele_list_list <- lapply(files, function(x) {
-    wrap_single_telemetry(as.telemetry(x, mark.rm = remove_marked_outliers))
+    as_tele_list(as.telemetry(x, mark.rm = remove_marked_outliers))
   })
   tele_list <- unlist(tele_list_list, recursive = FALSE)
   animal_names <- names(tele_list)
@@ -96,7 +107,7 @@ sort_tele_list <- function(tele_list) {
 #' @export
 #'
 report <- info_tele_list <- function(tele_obj_list){
-  tele_list <- wrap_single_telemetry(tele_obj_list)
+  tele_list <- as_tele_list(tele_obj_list)
   info_list <- lapply(tele_list, info_tele)
   dt <- rbindlist(info_list)
   name_unit_list <- list("interval" = pick_unit_seconds,
@@ -271,7 +282,7 @@ assign_speed <- function(animals_dt, tele_list, device_error = 10) {
 # if multiple files are uploaded and holding same individual in different files with duplicated row_name, this could cause problem. there could also be problem with as_telemetry in this case. wait until reported by user.
 # do need to reassign row_no when new subset added.
 tele_list_to_dt <- function(tele_obj_list) {
-  tele_list <- wrap_single_telemetry(tele_obj_list)
+  tele_list <- as_tele_list(tele_obj_list)
   animal_count <- length(tele_list)
   animal_data_list <- vector(mode = "list", length = animal_count)
   for (i in 1:animal_count) {

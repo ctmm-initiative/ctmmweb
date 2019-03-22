@@ -375,9 +375,8 @@ output:
     tele_list <- tryCatch(
       withCallingHandlers(
         # previously as.telemetry can work on single file or data.frame, but now we need special treatment for importing multiple files, so it need to be separated.
-        # ctmmweb:::wrap_single_telemetry(ctmm::as.telemetry(as_telemetry_input)),
         if (is.data.frame(as_telemetry_input)) {
-          ctmmweb:::wrap_single_telemetry(
+          ctmmweb::as_tele_list(
             ctmm::as.telemetry(as_telemetry_input, mark.rm = TRUE))
         } else {
           ctmmweb:::import_tele_files(as_telemetry_input)
@@ -982,7 +981,7 @@ output:
   add_new_data_set <- function(new_id, new_tele, new_dt = NULL) {
     new_tele@info$identity <- new_id
     # need item name, and in list for most operations. and c work with list and list, not list with item.
-    new_tele_list <- ctmmweb:::wrap_single_telemetry(new_tele)
+    new_tele_list <- ctmmweb::as_tele_list(new_tele)
     # add to input tele_list, import new tele and add to dt. no need to import whole dataset, but do need to sort and update info. note the new subset usually have row_name duplicate with existing data for different id
     all_tele_list <- ctmmweb:::sort_tele_list(
       c(values$data$tele_list, new_tele_list)
