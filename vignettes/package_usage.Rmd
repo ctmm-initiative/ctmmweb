@@ -25,15 +25,15 @@ This document demonstrates the usage of package functions in the analysis of ani
 
 First we load the libraries and prepare the data. 
 
-Note When importing your own data, `ctmm::as.telemetry` will return single telemetry object with single animal, and a list of telemetry objects with multiple animals. To make code consistent we always work with a list of telemetry objects. You can use ctmmweb::as_tele_list to make sure it's a proper list.
+Note When importing your own data, `ctmm::as.telemetry` by default will return single telemetry object with single animal, and a list of telemetry objects with multiple animals. To make code consistent we always work with a list of telemetry objects. You can use `drop = FALSE` parameter to make sure it's a proper list.
 
 ```{r libraries and data}
 library(ctmm)
 library(ctmmweb)
 data(buffalo)
 
-# for importing data, use ctmmweb::as_tele_list to make sure it's a proper list.
-# data <- as_tele_list(as_telemetry(data_file))
+# for importing data, use drop = FALSE to make sure it's a proper list.
+# data <- as_telemetry(data_file, drop = FALSE)
 
 # take a 100 point sample from each animal to speed up model fitting etc
 data_sample <- pick(buffalo, 100)

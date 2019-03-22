@@ -15,10 +15,7 @@ a list of telemetry objects, each named by animal name
 \description{
 \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} will return will return single telemetry object
 instead of a list when there is only one animal in data. To make code
-consistent we always work with a list of telemetry objects. Use this function
-over \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to make sure result is a proper list.
-}
-\details{
-If the input is already a list, the list will be returned as is. It's safe to
-wrap the function on \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} all the time.
+consistent we always work with a list of telemetry objects. Either use
+\code{drop = FALSE} in \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} or apply this function over
+\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} result to ensure a proper list.
 }

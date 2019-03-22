@@ -7,8 +7,8 @@
 collect(tele_obj_list)
 }
 \arguments{
-\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. Use \code{\link[=as_tele_list]{as_tele_list()}}
-over \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to ensure a proper list.}
+\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. Use \code{drop = FALSE} in
+\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to ensure a proper list.}
 }
 \value{
 list of - \code{data_dt}: all animals collected in one data.table -
