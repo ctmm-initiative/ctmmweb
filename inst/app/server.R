@@ -2387,8 +2387,9 @@ output:
   # get_hrange_weight_para() ----
   get_hrange_weight_para <- reactive({
     tele_list <- select_models()$tele_list
-    # must use display name since it's possible to have same animal different models
-    display_names <- select_models()$info_dt$display_name
+    # must use display name since it's possible to have same animal different models. need to separate from animal name as map page need to have different layer name for points and home ranges
+    display_names <- paste0(select_models()$info_dt$display_name,
+                            " - Home Range")
     # need default value to be FALSE instead of NULL
     weights_list <- as.list(rep(FALSE, length(tele_list)))
     names(weights_list) <- display_names
@@ -2396,11 +2397,16 @@ output:
     title_list <- as.list(display_names)
     names(title_list) <- display_names
     if (!is.null(values$hrange_weight_vec)) {
-      for (x in values$hrange_weight_vec) {
+      # the list came from display name, but title and weight have homerange suffix already. need to match them internally. this need to be consistent with line above
+      matched_names <- paste0(values$hrange_weight_vec,
+                              " - Home Range")
+      for (x in matched_names) {
         weights_list[[x]] <- TRUE
         title_list[[x]] <- paste0(x, "\n (Optimal Weighting)")
       }
     }
+    # map cannot take named vector properly (think it's JSON). just plain vector, since we cannot use the name index anyway(name have suffix)
+    names(title_list) <- NULL
     return(list(weights = unlist(weights_list),
                 title_vec = unlist(title_list)))
   })
@@ -2422,7 +2428,11 @@ output:
       )), message = "Calculating Home Range ...")
     # add name so plot can take figure title from it
     # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
-    names(res) <- select_models()$info_dt$display_name
+    # names(res) <- select_models()$info_dt$display_name
+    # cannot set here as any change will cause change in reactive?
+    # cannot garrantee this is ready before home range calculation. so need to set outside
+    # names(res) <- get_hrange_weight_para()$title_vec
+    # since name is not ready, any call need to set name properly first
     return(res)
   })
   # home range levels ----
@@ -2936,16 +2946,20 @@ output:
       selected_model_names <- select_models()$info_dt$model_name
       # though the layer name can be different. they are all just vectors in certain order, the home range/model_name/mapped color/display name all in same order.
       # use display name as layer name, but need to add post fix in simple format, when identity is not duplicated and used as display name directly
-      if (anyDuplicated(select_models()$info_dt, by = "identity") == 0) {
-       hrange_layer_names <- stringr::str_c(select_models()$info_dt$identity,
-                                            " - Home Range")
-      } else {
-        hrange_layer_names <- selected_model_names
-      }
+      # if (anyDuplicated(select_models()$info_dt, by = "identity") == 0) {
+      #  hrange_layer_names <- stringr::str_c(select_models()$info_dt$identity,
+      #                                       " - Home Range")
+      # } else {
+      #   hrange_layer_names <- selected_model_names
+      # }
+      # add home range function need names from home range list. need to assign it first
+      hrange_list <- select_models_hranges()
+      names(hrange_list) <- get_hrange_weight_para()$title_vec
+      # hrange_layer_names <- get_hrange_weight_para()$title_vec
       leaf <- leaf %>%
-        ctmmweb:::add_home_range_list(select_models_hranges(), get_hr_levels(),
+        ctmmweb:::add_home_range_list(hrange_list, get_hr_levels(),
                             hr_pal(selected_model_names)) %>%
-        ctmmweb::add_control(c(info$identity, hrange_layer_names))
+        ctmmweb::add_control(c(info$identity, names(hrange_list)))
     } else {
       leaf <- leaf %>%
         ctmmweb::add_control(info$identity)
