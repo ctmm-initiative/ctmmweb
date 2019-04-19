@@ -30,22 +30,27 @@ server <- function(input, output, session) {
                  headerText = "App Information"
     )
   })
+  # one time check if app is running in hosted mode. this is needed in LOG feature and self update check
+  APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # pkg update check ----
+  # this will not work in hosted server because pkg installation folder have permission limit. we don't need to check in hosted server too so just disable for server.
   # to test need to change several places: days passed condition 30 -> 0, check_update since_date to older date, pkg_date and commit date compare condition. test with internet off server times, first should time out, later should not check.
   # check last check date to determine whether to check. only count last check action, no matter if it's success. if user don't have internet, counting success will check again and again.
-  last_check_data_path <- system.file("extdata", "last_check_time.rds", package = "ctmmweb")
-  last_check_time <- readRDS(last_check_data_path)
-  # data("last_check_time", package = "ctmmweb")
-  days_passed <- (lubridate::now() - last_check_time) / lubridate::ddays(1)
-  # check update
-  if (days_passed > 60) {
-    installed_pkg_time <- file.mtime(system.file("app", package = "ctmmweb"))
-    ctmmweb:::check_update(installed_pkg_time)
+  if (APP_local) {
+    last_check_data_path <- system.file("extdata", "last_check_time.rds", package = "ctmmweb")
+    last_check_time <- readRDS(last_check_data_path)
+    # data("last_check_time", package = "ctmmweb")
+    days_passed <- (lubridate::now() - last_check_time) / lubridate::ddays(1)
+    # check update.
+    if (days_passed > 60) {
+      installed_pkg_time <- file.mtime(system.file("app", package = "ctmmweb"))
+      ctmmweb:::check_update(installed_pkg_time)
+    }
+    # take current date, record as pkg data
+    last_check_time <- lubridate::now()
+    # save(last_check_time, file = last_check_data_path)
+    saveRDS(last_check_time, file = last_check_data_path)
   }
-  # take current date, record as pkg data
-  last_check_time <- lubridate::now()
-  # save(last_check_time, file = last_check_data_path)
-  saveRDS(last_check_time, file = last_check_data_path)
   # values that hold them all ----
   # ideally should put everything more organized. could print str() after all possible action tried, in workreport action. then organize like this:
   # input_tele_list
@@ -60,8 +65,6 @@ server <- function(input, output, session) {
     isolate(input[[option]])
   }
   # global LOG variables ----
-  # one time check if app is running in hosted mode
-  APP_local <- (isolate(session$clientData$url_hostname) == "127.0.0.1")
   # to copy from 07_report_save_load.Rmd --
   LOG_console <- TRUE
   LOG_color_mappings <- list(time_stamp = crayon::cyan,
