@@ -11,7 +11,7 @@ vignette: >
 
 ## Installation
 
-*We have a [windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.5/ctmmwebsetup.exe) which will do everything below.*
+*We have a [windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.6b/ctmmwebsetup_beta.exe) which will do everything below.* 
 
 1. Install R
 

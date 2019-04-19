@@ -14,7 +14,7 @@ install.packages("ctmmweb",
 ctmmweb::app()  
 ```
 
-- We also built [a windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.5/ctmmwebsetup.exe), which will download R installer if needed, install R and package, create shortcut for the app.
+- We also built [a windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.6b/ctmmwebsetup_beta.exe), which will download R installer if needed, install R and package, create shortcut for the app.
 
 
 ## Run app from our website
