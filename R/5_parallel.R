@@ -139,6 +139,7 @@ has_error <- function(result) {
 par_try_tele_guess <- function(tele_guess_list,
                                      cores = NULL,
                                      parallel = TRUE) {
+  # tele_guess_list is list by animals. each item have two sub items of tele, CTMM.
   try_models <- function(tele_guess) {
     # only difference is pNewton method. internal_cores is outside value(not defined right now, but has value when try_models was called), referenced invisibly because the par_lapply need single parameter function
     fall_back(ctmm::ctmm.select,
@@ -159,7 +160,8 @@ par_try_tele_guess <- function(tele_guess_list,
     cores_reported <- if (parallel) "all but one" else 1
     cat(crayon::white$bgBlack("trying models on single animal with",
                               cores_reported, "cores\n"))
-    res <- try(try_models(tele_guess_list[[1]]))
+    # the result is a list of models, named by model type. need to wrap into a list of animals. this internal function doesn't provide animal name as it may not have information. par_try_models as external functions will assign names, the app calling code also assign names.
+    res <- list(try(try_models(tele_guess_list[[1]])))
   } else {
     internal_cores <- 1
     res <- try(par_lapply(tele_guess_list, try_models, cores, parallel))
