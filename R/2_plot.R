@@ -14,7 +14,7 @@ BIGGER_THEME <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                                legend.key.height = grid::unit(8, "mm"),
                                legend.text = ggplot2::element_text(size = 15),
                                legend.title = ggplot2::element_blank(),
-                               axis.title = ggplot2::element_text(size = 22),
+                               axis.title = ggplot2::element_text(size = 18),
                                axis.text = ggplot2::element_text(size = 15))
 #' @rdname ggplot_customization
 BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(

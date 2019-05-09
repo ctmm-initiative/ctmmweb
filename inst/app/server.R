@@ -2639,14 +2639,20 @@ output:
                                                   color = selected)) +
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
-      # na.rm in point, text, errorbar otherwise will warning in filtering
-      ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
       {if (input$show_overlap_label) {
         ggplot2::geom_text(ggplot2::aes(label = ML), hjust = 0, vjust = -0.5,
-                           show.legend = FALSE, na.rm = TRUE)}} +
+                           size = 4.5,
+                           show.legend = FALSE, na.rm = TRUE) }} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
-                              size = 0.45, height = 0.35, na.rm = TRUE) +
-      ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
+                              size = 0.9, height = 0.35, na.rm = TRUE) +
+      # na.rm in point, text, errorbar otherwise will warning in filtering
+      # draw point after error bar, otherwise error bar will block part of point
+      ggplot2::geom_point(size = 3, na.rm = TRUE, color = "blue") +
+      ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME +
+      {if (length(input$overlap_summary_rows_selected) > 0) {
+        ggplot2::scale_color_discrete(labels = c("Not Selected", "Selected"))
+        } else { ggplot2::theme(legend.position = "none") }
+      }
     # COPY end --
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_value_range")
