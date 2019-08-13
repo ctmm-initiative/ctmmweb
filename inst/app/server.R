@@ -2121,18 +2121,36 @@ output:
       message = "Trying different models to find the best ...")
     # if error occurred, stop next step. it could one error object or a list with some nodes as error object.
     # tried to detect if in shiny app, checking session object existence. which didn't work when called inside a package function. so only print console msg in pkg function, and give notification here
-    met_error <- any(ctmmweb:::has_error(res))
-    if (met_error) {
-      shiny::showNotification("Error in model selection, check error messages",
-                              duration = 4, type = "error")
-    }
-    req(!met_error)
+    # error "S3 method ‘summary.character’ not found" on issue 96, 97. I used to check result list error class, but later when comparing model running summary on each item, some still failed (likely some item is just error or string). Could be some error not in proper error type, just returned NULL etc. Safe way is to ensure the result will pass summary and compare without problem.
+    # met_error <- any(ctmmweb:::has_error(res))
+    # if (met_error) {
+    #   shiny::showNotification("Error in model selection, check error messages",
+    #                           duration = 4, type = "error")
+    # }
+    # req(!met_error)
     # always save names in list
     names(res) <- names(select_data()$tele_list)
-    # initialize model_list_dt in auto fit
-    model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
-    # always add dAICc columns after conversion, after merge list_dt
-    ctmmweb:::compare_models(model_list_dt)
+    # try cannot really trap error sometimes?
+    res[[3]] <- "test"
+    tryCatch({
+      # initialize model_list_dt in auto fit
+      model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
+      # always add dAICc columns after conversion, after merge list_dt
+      ctmmweb:::compare_models(model_list_dt)
+    }, error = function(e) {
+      cat(crayon::bgRed$white("Error in model selection, check error message. Try turning off parallel or fine tune varigram then try again. If still having problem, save progress and report issue in github\n"))
+      print(e)
+      # shiny notification will not work here
+      # shiny::showNotification("Error in model selection, check error messages",
+      #                         duration = 4, type = "error")
+      req(FALSE)
+    })
+    # met_error <- inherits(test, "try-error")
+    # if (met_error) {
+    #   shiny::showNotification("Error in model selection, check error messages",
+    #                           duration = 4, type = "error")
+    # }
+    # req(!met_error)
     # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
     model_list_dt[, init_ctmm_name := "guess"]
     model_list_dt[, init_ctmm := list(list(
