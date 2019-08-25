@@ -835,7 +835,7 @@ output:
                                            targets = "_all")),
                     scrollX = TRUE,
                     pageLength = individuals_PAGE_LENGTH,
-                    lengthMenu = c(2, 4, 6, 8, 10, 20)),
+                    lengthMenu = c(6, 10, 20, 100, 500)),
                   rownames = FALSE) %>%
       DT::formatStyle('identity', target = 'row',
                       color = DT::styleEqual(info_p$identity,
