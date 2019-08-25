@@ -2131,7 +2131,7 @@ output:
     # always save names in list
     names(res) <- names(select_data()$tele_list)
     # try cannot really trap error sometimes?
-    res[[3]] <- "test"
+    # res[[3]] <- "test" # to generate error manually
     tryCatch({
       # initialize model_list_dt in auto fit
       model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
