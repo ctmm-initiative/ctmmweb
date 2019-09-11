@@ -2494,11 +2494,13 @@ output:
     log_save_UD("home_range")
     # always use model mode vario layout, different from vario plot which have 3 modes.
   }, height = function() { select_models()$vario_layout$height })
-  # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier.
+  # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier. they need to add log so difficult to extract to outside functions.
   # export raster ----
   # file_extension doesn't include . so we can use it also in folder name.
   # this need to be a function so that we can use different file extension with raster, and the switch call is much simpler. to combine into shapefile function need a lot parameters. could refactor if have more usage.
-  export_rasterfiles <- function(file, file_extension) {
+  # using current selected models implicitly, since this is embeded function anyway
+  # there should be no difference for home range and occurence here.
+  export_rasterfiles <- function(ud_list, file, prefix, file_extension) {
     save_rasterfiles <- function(hrange_list) {
       write_f <- function(folder_path) {
         # hrange_list came from select_models(), so the order should be synced
@@ -2513,16 +2515,17 @@ output:
       }
       return(write_f)
     }
-    ctmmweb:::build_zip(file, save_rasterfiles(select_models_hranges()),
-                        session_tmpdir, paste0("Home_Range_",
+    ctmmweb:::build_zip(file, save_rasterfiles(ud_list),
+                        session_tmpdir, paste0(prefix,
                                                file_extension, "_"))
     # LOG build raster
     log_msg(paste0(file_extension, " files built and downloaded"))
   }
   # export shapefiles ----
-  export_shapefiles <- function(file) {
+  export_shapefiles <- function(ud_list, file, ud_levels, prefix) {
     # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
     # functional::Curry is misnomer, and it's extra dependency. this function take some data parameters, return a function that only need target path part. that function was called by the write file function in downloadhandler, when part of the target path was provided.
+    # same with occurrence, just occurence use single 0.95 instead of 3 values.
     save_shapefiles <- function(hrange_list, ud_levels) {
       write_f <- function(folder_path) {
         # hrange_list came from select_models(), so the order should be synced
@@ -2534,9 +2537,8 @@ output:
       }
       return(write_f)
     }
-    ctmmweb:::build_zip(file, save_shapefiles(select_models_hranges(),
-                                              get_hr_levels()),
-                        session_tmpdir, "Home_Range_shapefile_")
+    ctmmweb:::build_zip(file, save_shapefiles(ud_list, ud_levels),
+                        session_tmpdir, prefix)
     # LOG build shapefiles
     log_msg("Shapefiles built and downloaded")
   }
@@ -2584,9 +2586,13 @@ output:
     },
     content = function(file) {
       switch(input$homerange_export_format,
-             shapefile = export_shapefiles(file),
-             grd = export_rasterfiles(file, "grd"),
-             tif = export_rasterfiles(file, "tif"))
+             shapefile = export_shapefiles(select_models_hranges(), file,
+                                           get_hr_levels(),
+                                           "Home_Range_shapefile_"),
+             grd = export_rasterfiles(select_models_hranges(), file,
+                                      "Home_Range_", "grd"),
+             tif = export_rasterfiles(select_models_hranges(), file,
+                                      "Home_Range_", "tif"))
     }
   )
   # p7. overlap ----
