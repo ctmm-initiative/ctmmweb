@@ -2544,6 +2544,7 @@ output:
   }
   # export dialog ----
   observeEvent(input$export_homerange_dialog, {
+    req(select_models_hranges())
     showModal(modalDialog(title = "Export All Home Ranges to Zip",
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
@@ -2593,6 +2594,60 @@ output:
                                       "Home_Range_", "grd"),
              tif = export_rasterfiles(select_models_hranges(), file,
                                       "Home_Range_", "tif"))
+    }
+  )
+  # save dialog appear twice, use module or just copy paste? for now just copy paste. there are multiple scattered places that need to be parameterized, so abstract can add quite some extra stuff.
+  # export occurrence ----
+  observeEvent(input$export_occurrence_dialog, {
+    req(select_models_occurrences())
+    showModal(modalDialog(title = "Export All Occurrences to Zip",
+                          fluidRow(
+                            column(12, radioButtons("occur_export_format", "Format",
+                                                    choiceNames = list(
+                                                      div("Esri shapefile", pre("polygons of the low, ML, and high home-range area estimates.")),
+                                                      # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
+                                                      div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
+                                                      # "Native raster package format .grd: pixel values corresponding to the density function.",
+                                                      div("GeoTiff .tif", pre("pixel values corresponding to the density function."))
+                                                      # "GeoTiff .tif: pixel values corresponding to the density function."
+                                                    ),
+                                                    # make sure file type name is consistent with extension. we used file type in zip file name, and extension in folder inside zip.
+                                                    choiceValues = list("shapefile", "grd", "tif"),
+                                                    width = "100%"
+                            )
+                            ),
+                            column(12, h4("See more details about file format in ",
+                                          tags$a(href = "https://ctmm-initiative.github.io/ctmm/reference/export.html", "ctmm::export"), ", ",
+                                          tags$a(href = "https://www.rdocumentation.org/packages/raster/versions/2.6-7/topics/writeRaster", "raster::writeRaster")
+                            ))
+                          ),
+                          size = "m",
+                          footer = fluidRow(
+                            column(3, offset = 0,
+                                   modalButton("Cancel", icon = icon("ban"))),
+                            column(3, offset = 6,
+                                   downloadButton("download_occur",
+                                                  "Save",
+                                                  icon = icon("save"),
+                                                  style = ctmmweb:::STYLES$download_button))
+                          )
+    ))
+  })
+  output$download_occur <- downloadHandler(
+    filename = function() {
+      # up to min so it should be consistent with the folder name inside zip
+      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+      paste0("Occurrence_", input$occur_export_format, "_", current_time, ".zip")
+    },
+    content = function(file) {
+      switch(input$occur_export_format,
+             shapefile = export_shapefiles(select_models_occurrences(), file,
+                                           0.95,
+                                           "Occurrence_shapefile_"),
+             grd = export_rasterfiles(select_models_occurrences(), file,
+                                      "Occurrence_", "grd"),
+             tif = export_rasterfiles(select_models_occurrences(), file,
+                                      "Occurrence_", "tif"))
     }
   )
   # p7. overlap ----
@@ -2753,6 +2808,7 @@ output:
              size = "l", file = "help/8_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
+    req(select_models())
     # LOG Occurrence calculation
     log_msg("Calculating Occurrence ...")
     withProgress(print(system.time(
