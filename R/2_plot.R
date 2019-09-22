@@ -1,5 +1,6 @@
 # ggplot ----
 # customize theme ----
+# BIGGER_THEME is used in main plots, where the legend is for id, title can be removed. outlier and time subsetting plot need legend, which didn't use this.
 
 #' Override some ggplot2 default theme settings
 #'
@@ -11,9 +12,10 @@
 #' @rdname ggplot_customization
 BIGGER_THEME <- ggplot2::theme(legend.key.size = grid::unit(8, "mm"),
                                legend.key.height = grid::unit(8, "mm"),
-                               legend.text = ggplot2::element_text(size = 12),
-                               axis.title = ggplot2::element_text(size = 14),
-                               axis.text = ggplot2::element_text(size = 12))
+                               legend.text = ggplot2::element_text(size = 15),
+                               legend.title = ggplot2::element_blank(),
+                               axis.title = ggplot2::element_text(size = 18),
+                               axis.text = ggplot2::element_text(size = 15))
 #' @rdname ggplot_customization
 BIGGER_KEY <- ggplot2::guides(colour = ggplot2::guide_legend(
   override.aes = list(size = 4)))

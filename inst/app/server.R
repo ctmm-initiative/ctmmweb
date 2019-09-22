@@ -835,7 +835,7 @@ output:
                                            targets = "_all")),
                     scrollX = TRUE,
                     pageLength = individuals_PAGE_LENGTH,
-                    lengthMenu = c(2, 4, 6, 8, 10, 20)),
+                    lengthMenu = c(6, 10, 20, 100, 500)),
                   rownames = FALSE) %>%
       DT::formatStyle('identity', target = 'row',
                       color = DT::styleEqual(info_p$identity,
@@ -2121,18 +2121,36 @@ output:
       message = "Trying different models to find the best ...")
     # if error occurred, stop next step. it could one error object or a list with some nodes as error object.
     # tried to detect if in shiny app, checking session object existence. which didn't work when called inside a package function. so only print console msg in pkg function, and give notification here
-    met_error <- any(ctmmweb:::has_error(res))
-    if (met_error) {
-      shiny::showNotification("Error in model selection, check error messages",
-                              duration = 4, type = "error")
-    }
-    req(!met_error)
+    # error "S3 method ‘summary.character’ not found" on issue 96, 97. I used to check result list error class, but later when comparing model running summary on each item, some still failed (likely some item is just error or string). Could be some error not in proper error type, just returned NULL etc. Safe way is to ensure the result will pass summary and compare without problem.
+    # met_error <- any(ctmmweb:::has_error(res))
+    # if (met_error) {
+    #   shiny::showNotification("Error in model selection, check error messages",
+    #                           duration = 4, type = "error")
+    # }
+    # req(!met_error)
     # always save names in list
     names(res) <- names(select_data()$tele_list)
-    # initialize model_list_dt in auto fit
-    model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
-    # always add dAICc columns after conversion, after merge list_dt
-    ctmmweb:::compare_models(model_list_dt)
+    # try cannot really trap error sometimes?
+    # res[[3]] <- "test" # to generate error manually
+    tryCatch({
+      # initialize model_list_dt in auto fit
+      model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
+      # always add dAICc columns after conversion, after merge list_dt
+      ctmmweb:::compare_models(model_list_dt)
+    }, error = function(e) {
+      cat(crayon::bgRed$white("Error in model selection, check error message. Try turning off parallel or fine tune varigram then try again. If still having problem, save progress and report issue in github\n"))
+      print(e)
+      # shiny notification will not work here
+      # shiny::showNotification("Error in model selection, check error messages",
+      #                         duration = 4, type = "error")
+      req(FALSE)
+    })
+    # met_error <- inherits(test, "try-error")
+    # if (met_error) {
+    #   shiny::showNotification("Error in model selection, check error messages",
+    #                           duration = 4, type = "error")
+    # }
+    # req(!met_error)
     # no need to mark tuned-guess. it's obvious in tab 1, and we can get all current guess directly
     model_list_dt[, init_ctmm_name := "guess"]
     model_list_dt[, init_ctmm := list(list(
@@ -2476,11 +2494,13 @@ output:
     log_save_UD("home_range")
     # always use model mode vario layout, different from vario plot which have 3 modes.
   }, height = function() { select_models()$vario_layout$height })
-  # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier.
+  # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier. they need to add log so difficult to extract to outside functions.
   # export raster ----
   # file_extension doesn't include . so we can use it also in folder name.
   # this need to be a function so that we can use different file extension with raster, and the switch call is much simpler. to combine into shapefile function need a lot parameters. could refactor if have more usage.
-  export_rasterfiles <- function(file, file_extension) {
+  # using current selected models implicitly, since this is embeded function anyway
+  # there should be no difference for home range and occurence here.
+  export_rasterfiles <- function(ud_list, file, prefix, file_extension) {
     save_rasterfiles <- function(hrange_list) {
       write_f <- function(folder_path) {
         # hrange_list came from select_models(), so the order should be synced
@@ -2495,16 +2515,17 @@ output:
       }
       return(write_f)
     }
-    ctmmweb:::build_zip(file, save_rasterfiles(select_models_hranges()),
-                        session_tmpdir, paste0("Home_Range_",
+    ctmmweb:::build_zip(file, save_rasterfiles(ud_list),
+                        session_tmpdir, paste0(prefix,
                                                file_extension, "_"))
     # LOG build raster
     log_msg(paste0(file_extension, " files built and downloaded"))
   }
   # export shapefiles ----
-  export_shapefiles <- function(file) {
+  export_shapefiles <- function(ud_list, file, ud_levels, prefix) {
     # closure: create a function that take reactive parameters, return a function waiting for folder path. use it as parameter for build zip function, which provide folder path as parameter
     # functional::Curry is misnomer, and it's extra dependency. this function take some data parameters, return a function that only need target path part. that function was called by the write file function in downloadhandler, when part of the target path was provided.
+    # same with occurrence, just occurence use single 0.95 instead of 3 values.
     save_shapefiles <- function(hrange_list, ud_levels) {
       write_f <- function(folder_path) {
         # hrange_list came from select_models(), so the order should be synced
@@ -2516,14 +2537,14 @@ output:
       }
       return(write_f)
     }
-    ctmmweb:::build_zip(file, save_shapefiles(select_models_hranges(),
-                                              get_hr_levels()),
-                        session_tmpdir, "Home_Range_shapefile_")
+    ctmmweb:::build_zip(file, save_shapefiles(ud_list, ud_levels),
+                        session_tmpdir, prefix)
     # LOG build shapefiles
     log_msg("Shapefiles built and downloaded")
   }
   # export dialog ----
   observeEvent(input$export_homerange_dialog, {
+    req(select_models_hranges())
     showModal(modalDialog(title = "Export All Home Ranges to Zip",
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
@@ -2566,9 +2587,67 @@ output:
     },
     content = function(file) {
       switch(input$homerange_export_format,
-             shapefile = export_shapefiles(file),
-             grd = export_rasterfiles(file, "grd"),
-             tif = export_rasterfiles(file, "tif"))
+             shapefile = export_shapefiles(select_models_hranges(), file,
+                                           get_hr_levels(),
+                                           "Home_Range_shapefile_"),
+             grd = export_rasterfiles(select_models_hranges(), file,
+                                      "Home_Range_", "grd"),
+             tif = export_rasterfiles(select_models_hranges(), file,
+                                      "Home_Range_", "tif"))
+    }
+  )
+  # save dialog appear twice, use module or just copy paste? for now just copy paste. there are multiple scattered places that need to be parameterized, so abstract can add quite some extra stuff.
+  # export occurrence ----
+  observeEvent(input$export_occurrence_dialog, {
+    req(select_models_occurrences())
+    showModal(modalDialog(title = "Export All Occurrences to Zip",
+                          fluidRow(
+                            column(12, radioButtons("occur_export_format", "Format",
+                                                    choiceNames = list(
+                                                      div("Esri shapefile", pre("polygons of the low, ML, and high home-range area estimates.")),
+                                                      # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
+                                                      div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
+                                                      # "Native raster package format .grd: pixel values corresponding to the density function.",
+                                                      div("GeoTiff .tif", pre("pixel values corresponding to the density function."))
+                                                      # "GeoTiff .tif: pixel values corresponding to the density function."
+                                                    ),
+                                                    # make sure file type name is consistent with extension. we used file type in zip file name, and extension in folder inside zip.
+                                                    choiceValues = list("shapefile", "grd", "tif"),
+                                                    width = "100%"
+                            )
+                            ),
+                            column(12, h4("See more details about file format in ",
+                                          tags$a(href = "https://ctmm-initiative.github.io/ctmm/reference/export.html", "ctmm::export"), ", ",
+                                          tags$a(href = "https://www.rdocumentation.org/packages/raster/versions/2.6-7/topics/writeRaster", "raster::writeRaster")
+                            ))
+                          ),
+                          size = "m",
+                          footer = fluidRow(
+                            column(3, offset = 0,
+                                   modalButton("Cancel", icon = icon("ban"))),
+                            column(3, offset = 6,
+                                   downloadButton("download_occur",
+                                                  "Save",
+                                                  icon = icon("save"),
+                                                  style = ctmmweb:::STYLES$download_button))
+                          )
+    ))
+  })
+  output$download_occur <- downloadHandler(
+    filename = function() {
+      # up to min so it should be consistent with the folder name inside zip
+      current_time <- format(Sys.time(), "%Y-%m-%d_%H-%M")
+      paste0("Occurrence_", input$occur_export_format, "_", current_time, ".zip")
+    },
+    content = function(file) {
+      switch(input$occur_export_format,
+             shapefile = export_shapefiles(select_models_occurrences(), file,
+                                           0.95,
+                                           "Occurrence_shapefile_"),
+             grd = export_rasterfiles(select_models_occurrences(), file,
+                                      "Occurrence_", "grd"),
+             tif = export_rasterfiles(select_models_occurrences(), file,
+                                      "Occurrence_", "tif"))
     }
   )
   # p7. overlap ----
@@ -2639,14 +2718,20 @@ output:
                                                   color = selected)) +
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
-      # na.rm in point, text, errorbar otherwise will warning in filtering
-      ggplot2::geom_point(size = 2, na.rm = TRUE, color = "blue") +
       {if (input$show_overlap_label) {
         ggplot2::geom_text(ggplot2::aes(label = ML), hjust = 0, vjust = -0.5,
-                           show.legend = FALSE, na.rm = TRUE)}} +
+                           size = 4.5,
+                           show.legend = FALSE, na.rm = TRUE) }} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
-                              size = 0.45, height = 0.35, na.rm = TRUE) +
-      ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME
+                              size = 0.9, height = 0.35, na.rm = TRUE) +
+      # na.rm in point, text, errorbar otherwise will warning in filtering
+      # draw point after error bar, otherwise error bar will block part of point
+      ggplot2::geom_point(size = 3, na.rm = TRUE, color = "blue") +
+      ggplot2::xlab("Overlap") + ctmmweb:::BIGGER_THEME +
+      {if (length(input$overlap_summary_rows_selected) > 0) {
+        ggplot2::scale_color_discrete(labels = c("Not Selected", "Selected"))
+        } else { ggplot2::theme(legend.position = "none") }
+      }
     # COPY end --
     # LOG save pic
     log_save_ggplot(g, "overlap_plot_value_range")
@@ -2723,6 +2808,7 @@ output:
              size = "l", file = "help/8_occurrence.md")
   # select_models_occurrences() ----
   select_models_occurrences <- reactive({
+    req(select_models())
     # LOG Occurrence calculation
     log_msg("Calculating Occurrence ...")
     withProgress(print(system.time(
