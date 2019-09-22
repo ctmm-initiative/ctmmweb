@@ -244,7 +244,8 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
     move_last_col_after_ref(dt, col_name)
     return(dt)  # the else branch of if clause will be NULL if use if clause as last expression.
   })
-  res <- dt[estimate == "ML"]
+  # CRAN version ctmm 0.5.6 using ML, later development version using est
+  res <- dt[estimate %in% c("ML", "est")]
   res[, estimate := NULL]
 }
 # combined steps to make usage easier, otherwise the function name could be confusing, use summary_dt to represent formated modle_summary, the final shape. didn't use this pattern for home range.
