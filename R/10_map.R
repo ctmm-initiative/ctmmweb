@@ -104,11 +104,11 @@ add_home_range <- function(leaf, hrange, hr_levels, hr_color, hr_name){
   hrange_spdf <- sp::spTransform(
     ctmm::SpatialPolygonsDataFrame.UD(hrange, level.UD = hr_levels),
     sp::CRS("+proj=longlat +datum=WGS84"))
-  ML_indice <- seq(2, length(hrange_spdf), by = 3)
-  hrange_spdf_ML <- hrange_spdf[ML_indice, ]
-  hrange_spdf_other <- hrange_spdf[-ML_indice, ]
+  est_indice <- seq(2, length(hrange_spdf), by = 3)
+  hrange_spdf_est <- hrange_spdf[est_indice, ]
+  hrange_spdf_other <- hrange_spdf[-est_indice, ]
   leaf %>%
-    leaflet::addPolygons(data = hrange_spdf_ML, weight = 2.2, opacity = 0.7,
+    leaflet::addPolygons(data = hrange_spdf_est, weight = 2.2, opacity = 0.7,
                          fillOpacity = 0.05, color = hr_color, group = hr_name) %>%
     leaflet::addPolygons(data = hrange_spdf_other, weight = 1.2, opacity = 0.4,
                          fillOpacity = 0.05, color = hr_color, group = hr_name)

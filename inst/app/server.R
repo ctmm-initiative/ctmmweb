@@ -2549,7 +2549,7 @@ output:
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
                     choiceNames = list(
-    div("Esri shapefile", pre("polygons of the low, ML, and high home-range area estimates.")),
+    div("Esri shapefile", pre("polygons of the low, est, and high home-range area estimates.")),
     # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
     div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
     # "Native raster package format .grd: pixel values corresponding to the density function.",
@@ -2604,7 +2604,7 @@ output:
                           fluidRow(
                             column(12, radioButtons("occur_export_format", "Format",
                                                     choiceNames = list(
-                                                      div("Esri shapefile", pre("polygons of the low, ML, and high home-range area estimates.")),
+                                                      div("Esri shapefile", pre("polygons of the low, est, and high home-range area estimates.")),
                                                       # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
                                                       div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
                                                       # "Native raster package format .grd: pixel values corresponding to the density function.",
@@ -2691,7 +2691,8 @@ output:
       # override the low/high cols with background
       DT::formatStyle(c("CI low", "CI high"),
                       color = scales::hue_pal()(1)) %>%
-      DT::formatStyle("ML", color = "blue") %>%
+      # overlap is calculated and we are always naming it as est
+      DT::formatStyle("est", color = "blue") %>%
       # override the id col color
       DT::formatStyle(c("v1", "v2"), target = 'cell',
                       color = DT::styleEqual(names(display_color),
@@ -2714,12 +2715,13 @@ output:
     # COPY start --
     overlap_dt[, selected := FALSE]
     overlap_dt[input$overlap_summary_rows_selected, selected := TRUE]
-    g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = ML, y = Combination,
+    # two possible tag names
+    g <- ggplot2::ggplot(overlap_dt, ggplot2::aes(x = est, y = Combination,
                                                   color = selected)) +
       # make plot sync with table sort and filtering
       ggplot2::scale_y_discrete(limits = current_order) +
       {if (input$show_overlap_label) {
-        ggplot2::geom_text(ggplot2::aes(label = ML), hjust = 0, vjust = -0.5,
+        ggplot2::geom_text(ggplot2::aes(label = est), hjust = 0, vjust = -0.5,
                            size = 4.5,
                            show.legend = FALSE, na.rm = TRUE) }} +
       ggplot2::geom_errorbarh(ggplot2::aes(xmax = `CI high`, xmin = `CI low`),
@@ -2747,7 +2749,7 @@ output:
     # when nothing selected. don't use length == 0 because this is more specific
     if (is.null(input$overlap_summary_rows_selected)) {
       chosen_rows <- select_models_overlap()[
-        req(input$overlap_summary_rows_current)][ML != 0, .(v1, v2)]
+        req(input$overlap_summary_rows_current)][est != 0, .(v1, v2)]
     } else {
       # req both value to prevent the status when table is not ready
       selected_rows_in_current_order <-

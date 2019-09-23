@@ -14,13 +14,17 @@ format_dt_cols <- function(dt, col_name_vec, unit_picked,
 speed_res_to_dt <- function(res, durations) {
   res_cleaned <- lapply(res, function(x) {
     if (class(x) == "try-error") {
-      data.frame(rn = "error", low = Inf, ML = Inf, high = Inf)
+      data.frame(rn = "error", low = Inf, est = Inf, high = Inf)
     } else {
       data.table(x, keep.rownames = TRUE)
     }
   })
   dt <- rbindlist(res_cleaned)
-  setnames(dt, "ML", "speed")
+  if ("est" %in% names(dt)) {
+    setnames(dt, "est", "speed")
+  } else {
+    setnames(dt, "ML", "speed")
+  }
   dt[, duration := durations]
   dt[, distance_traveled := speed * duration]
   dt[, distance_traveled_low := low * duration]

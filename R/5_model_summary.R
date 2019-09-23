@@ -365,7 +365,8 @@ overlap_matrix_to_dt <- function(mat_3d, clear_half = TRUE) {
   # need the data.table of full data, for overview table. 3 versions in columns can only work by tags which is not reliable. add another column of low/ML/high and save 3 version in rows, just like the model summary table
   overlap_matrix_dt <- rbindlist(list(
     matrix_to_dt(mat_3d[ , , 1], "CI low", clear_half),
-    matrix_to_dt(mat_3d[ , , 2], "ML", clear_half),
+    # we are assigning this by location, so it can be changed
+    matrix_to_dt(mat_3d[ , , 2], "est", clear_half),
     matrix_to_dt(mat_3d[ , , 3], "CI high", clear_half)))
   setorder(overlap_matrix_dt, "rn")
   setnames(overlap_matrix_dt, "rn", "home_range")
@@ -395,7 +396,7 @@ overlap_2d_to_1d <- function(overlap_matrix_dt) {
   # ggplot need the low/ML/high value in columns, now it's not totaly tidy
   overlap_dt <- dcast(overlap_rows_dt_unique, ... ~ estimate,
                       value.var = "overlap")
-  setcolorder(overlap_dt, c("v1", "v2", "CI low", "ML", "CI high"))
+  setcolorder(overlap_dt, c("v1", "v2", "CI low", "est", "CI high"))
   overlap_dt[, Combination := paste(v1, v2, sep = " / ")]
   # COPY end --
   # the right side need to be a list to be assigned to multiple columns. need as.list to convert a vector into separate list items.
