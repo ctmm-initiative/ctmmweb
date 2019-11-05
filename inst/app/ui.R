@@ -586,10 +586,25 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
       )
      ))
 # p6. home range ----
-range_plot_box <- box(title = "Home Range Estimation",
-                                      status = "info",
+# it's worth putting home range option and estimate action into separate boxes, one is must, one is optional
+range_action_box <- box(title = "Home Range Estimation",
+                        status = "info",
+                        solidHeader = TRUE, width = 12,
+                        fluidRow(
+                          column(8, radioButtons("hrange_grid_option", "Estimate Home Range",
+                                                 choices = c("In Same Grid (to compare overlap)" = "same_grid",
+                                                             "Separately (save memory for spread out individuals)" = "separate"),
+                                                 inline = FALSE)),
+                          column(2, offset = 2, help_button("home_range")),
+                          column(2, offset = 2, br(), actionButton("calc_hrange", "Estimate",
+                                                                   icon = icon("bolt"),
+                                                                   style = ctmmweb:::STYLES$page_action))
+                          # column(12, hr())
+                        ))
+range_option_box <- box(title = "Home Range Options", status = "primary",
                  solidHeader = TRUE, width = 12,
    fluidRow(
+     # column(12, h4("Options")),
      # we could put this into a function, but occurrence only use 2 of 3, and every one have different default values.
      column(4, checkboxGroupInput("hrange_option", label = NULL,
                   choiceNames = list(div(icon("circle-o"),
@@ -628,6 +643,7 @@ range_plot_box <- box(title = "Home Range Estimation",
      column(2, actionButton("apply_hrange_weight", "Apply",
                             icon = icon("angle-double-down"),
                             style = ctmmweb:::STYLES$page_action))),
+
    fluidRow(
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
@@ -636,7 +652,7 @@ range_summary_box <- box(title = "Home Range Summary",
                                          status = "primary",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
-                        column(2, offset = 10, help_button("home_range")),
+                        # column(2, offset = 10, help_button("home_range")),
                         column(12, DT::DTOutput("range_summary"))
                         )
 )
@@ -849,7 +865,7 @@ body <- dashboardBody(
                      # , model_selection_box
                      )),
     tabItem(tabName = "homerange",
-            fluidRow(range_plot_box, range_summary_box)),
+            fluidRow(range_action_box, range_option_box, range_summary_box)),
     tabItem(tabName = "overlap",
             fluidRow(overlap_summary_box, overlap_plot_box)),
     tabItem(tabName = "occurrence",
