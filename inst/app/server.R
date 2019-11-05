@@ -2431,38 +2431,70 @@ output:
     return(list(weights = unlist(weights_list),
                 title_vec = unlist(title_list)))
   })
-  # select_models_hranges() ----
-  select_models_hranges <- reactive({
+  # selected_models_hranges ----
+  # turn reactive expression into value, triggered by action
+  values$selected_models_hranges <- NULL
+  observeEvent(input$calc_hrange, {
     req(select_models())
     tele_list <- select_models()$tele_list
-    # LOG home range calculation
-    log_msg("Calculating Home Range ...")
-    withProgress(print(system.time(
-      # res <- akde_mem(tele_list, CTMM = select_models()$model_list,
-      #                 weights = get_hrange_weight_para()$weights)
-      res <- ctmmweb:::fall_back(
-        akde_mem, list(tele_list, CTMM = select_models()$model_list,
-                       weights = get_hrange_weight_para()$weights),
-        akde_mem, list(tele_list, CTMM = select_models()$model_list,
-                       weights = get_hrange_weight_para()$weights, res = 1),
-        "akde error, changing res to 1 to try again")
-      )), message = "Calculating Home Range ...")
-    # add name so plot can take figure title from it
-    # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
-    # names(res) <- select_models()$info_dt$display_name
-    # cannot set here as any change will cause change in reactive?
-    # cannot garrantee this is ready before home range calculation. so need to set outside
-    # names(res) <- get_hrange_weight_para()$title_vec
-    # since name is not ready, any call need to set name properly first
-    return(res)
+    if (input$hrange_grid_option == "same_grid") {
+      # LOG home range calculation
+      log_msg("Calculating Home Range in Same Grid ...")
+      withProgress(print(system.time(
+        values$selected_models_hranges <- ctmmweb:::fall_back(
+          akde_mem, list(tele_list, CTMM = select_models()$model_list,
+                         weights = get_hrange_weight_para()$weights),
+          akde_mem, list(tele_list, CTMM = select_models()$model_list,
+                         weights = get_hrange_weight_para()$weights, res = 1),
+          "akde error, changing res to 1 to try again")
+      )), message = "Calculating Home Range in Same Grid ...")
+    } else if (input$hrange_grid_option == "separate") {
+      # TODO not changed yet. need to calculate separately, need to do parallel and memorized
+      # LOG home range calculation
+      log_msg("Calculating Home Range Separately ...")
+      withProgress(print(system.time(
+        values$selected_models_hranges <- ctmmweb:::fall_back(
+          akde_mem, list(tele_list, CTMM = select_models()$model_list,
+                         weights = get_hrange_weight_para()$weights),
+          akde_mem, list(tele_list, CTMM = select_models()$model_list,
+                         weights = get_hrange_weight_para()$weights, res = 1),
+          "akde error, changing res to 1 to try again")
+      )), message = "Calculating Home Range Separately ...")
+    }
   })
+  # select_models_hranges() --
+  # select_models_hranges <- reactive({
+  #   req(select_models())
+  #   tele_list <- select_models()$tele_list
+  #   # LOG home range calculation
+  #   log_msg("Calculating Home Range ...")
+  #   withProgress(print(system.time(
+  #     # res <- akde_mem(tele_list, CTMM = select_models()$model_list,
+  #     #                 weights = get_hrange_weight_para()$weights)
+  #     res <- ctmmweb:::fall_back(
+  #       akde_mem, list(tele_list, CTMM = select_models()$model_list,
+  #                      weights = get_hrange_weight_para()$weights),
+  #       akde_mem, list(tele_list, CTMM = select_models()$model_list,
+  #                      weights = get_hrange_weight_para()$weights, res = 1),
+  #       "akde error, changing res to 1 to try again")
+  #     )), message = "Calculating Home Range ...")
+  #   # add name so plot can take figure title from it
+  #   # used to be model name, changed to display name. both the plot title and overlap result matrix names come from this.
+  #   # names(res) <- select_models()$info_dt$display_name
+  #   # cannot set here as any change will cause change in reactive?
+  #   # cannot garrantee this is ready before home range calculation. so need to set outside
+  #   # names(res) <- get_hrange_weight_para()$title_vec
+  #   # since name is not ready, any call need to set name properly first
+  #   return(res)
+  # })
   # home range levels ----
   # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update. don't really need a function but it was referenced 3 times so this is easier to use. compare to occur which only was used once so no need for function
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range summary ----
   output$range_summary <- DT::renderDT({
+    req(values$selected_models_hranges)
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
-                                           select_models_hranges())
+                                           values$selected_models_hranges)
 
     dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
                                                                 get_hr_levels())
@@ -2479,7 +2511,7 @@ output:
   })
   # home range plot ----
   output$range_plot <- renderPlot({
-    hranges <- select_models_hranges()
+    hranges <- req(values$selected_models_hranges)
     # change title in place to show weight parameter
     names(hranges) <- get_hrange_weight_para()$title_vec
     ctmmweb::plot_ud(hranges,
@@ -2544,7 +2576,7 @@ output:
   }
   # export dialog ----
   observeEvent(input$export_homerange_dialog, {
-    req(select_models_hranges())
+    req(values$selected_models_hranges)
     showModal(modalDialog(title = "Export All Home Ranges to Zip",
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
@@ -2587,12 +2619,12 @@ output:
     },
     content = function(file) {
       switch(input$homerange_export_format,
-             shapefile = export_shapefiles(select_models_hranges(), file,
+             shapefile = export_shapefiles(values$selected_models_hranges, file,
                                            get_hr_levels(),
                                            "Home_Range_shapefile_"),
-             grd = export_rasterfiles(select_models_hranges(), file,
+             grd = export_rasterfiles(values$selected_models_hranges, file,
                                       "Home_Range_", "grd"),
-             tif = export_rasterfiles(select_models_hranges(), file,
+             tif = export_rasterfiles(values$selected_models_hranges, file,
                                       "Home_Range_", "tif"))
     }
   )
@@ -2655,8 +2687,11 @@ output:
              size = "l", file = "help/7_overlap.md")
   # select_models_overlap() ----
   select_models_overlap <- reactive({
+    # the whole page need to be disabled when home range is not in same grid
+    req(input$hrange_grid_option == "same_grid")
+    req(values$selected_models_hranges)
     # home range overlap
-    overlap_hrange <- ctmm::overlap(select_models_hranges())
+    overlap_hrange <- ctmm::overlap(values$selected_models_hranges)
     # data.table of overlap matrix. round 4 digits because value is 0 ~ 1
     overlap_hrange %>%
       ctmmweb::overlap_matrix_to_dt() %>%
@@ -2762,7 +2797,7 @@ output:
       # req: temporary hack to prevent empty data selected, when new smaller data used with old big row numbers, certain row vector become NA,NA. there still could be wrong data selected (not intended mismatch), but at least no error in console. There is no better solution now since with freeze sometimes the plot doesn't update after rows update finished.
       # using req inside data.table may have error msg. req first before use
       req(unlist(chosen_rows[i]))
-      select_models_hranges()[unlist(chosen_rows[i])]
+      values$selected_models_hranges[unlist(chosen_rows[i])]
     })
     chosen_tele_list_list <- lapply(1:nrow(chosen_rows), function(i) {
       req(unlist(chosen_rows[i]))
@@ -3028,7 +3063,7 @@ output:
                    ctmmweb:::add_points(dt, info$identity, values$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
-    if (ctmmweb:::reactive_validated(select_models_hranges())) {
+    if (ctmmweb:::reactive_validated(values$selected_models_hranges) & req(values$selected_models_hranges)) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
       # hr_pal <- model_pal(summary_models()$model_info_dt, id_pal)
       # the pallete function always came from full data
@@ -3044,7 +3079,7 @@ output:
       #   hrange_layer_names <- selected_model_names
       # }
       # add home range function need names from home range list. need to assign it first
-      hrange_list <- select_models_hranges()
+      hrange_list <- values$selected_models_hranges
       names(hrange_list) <- get_hrange_weight_para()$title_vec
       # hrange_layer_names <- get_hrange_weight_para()$title_vec
       leaf <- leaf %>%
