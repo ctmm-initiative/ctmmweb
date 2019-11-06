@@ -597,7 +597,7 @@ range_action_box <- box(title = "Home Range Estimation",
                                                  inline = FALSE)),
                           column(2, offset = 2, help_button("home_range")),
                           column(2, offset = 2, br(), actionButton("calc_hrange", "Estimate",
-                                                                   icon = icon("bolt"),
+                                                                   icon = icon("map-o"),
                                                                    style = ctmmweb:::STYLES$page_action))
                           # column(12, hr())
                         ))
