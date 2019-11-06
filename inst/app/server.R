@@ -2432,7 +2432,7 @@ output:
                 title_vec = unlist(title_list)))
   })
   # selected_models_hranges ----
-  # turn reactive expression into value, triggered by action
+  # turn reactive expression into value, triggered by action. All the latter reference need to use req
   values$selected_models_hranges <- NULL
   observeEvent(input$calc_hrange, {
     req(select_models())
@@ -2619,12 +2619,12 @@ output:
     },
     content = function(file) {
       switch(input$homerange_export_format,
-             shapefile = export_shapefiles(values$selected_models_hranges, file,
+             shapefile = export_shapefiles(req(values$selected_models_hranges), file,
                                            get_hr_levels(),
                                            "Home_Range_shapefile_"),
-             grd = export_rasterfiles(values$selected_models_hranges, file,
+             grd = export_rasterfiles(req(values$selected_models_hranges), file,
                                       "Home_Range_", "grd"),
-             tif = export_rasterfiles(values$selected_models_hranges, file,
+             tif = export_rasterfiles(req(values$selected_models_hranges), file,
                                       "Home_Range_", "tif"))
     }
   )
@@ -2779,6 +2779,7 @@ output:
   choose_overlap_pairs <- reactive({
     # rows_current inside ifelse, may not trigger changes. put one outside. esp test with more rows in 2nd try, more pages lead to slower DT and more prone to update problem.
     req(input$overlap_summary_rows_current)
+    req(values$selected_models_hranges)
     # chose all pairs in current page with overlap > 0 if no rows selected. otherwise selected rows with same order. the value ggplot use `selected` column in dt
     # go through rows_current to match order and filter, also in current page in both case, since order and filter can apply both when rows are selected or not
     # when nothing selected. don't use length == 0 because this is more specific
@@ -3063,7 +3064,8 @@ output:
                    ctmmweb:::add_points(dt, info$identity, values$id_pal),
                  message = "Building maps...")
     # there could be mismatch between individuals and available home ranges. it's difficult to test reactive value exist(which is an error when not validated), so we test select_models instead. brewer pallete have upper/lower limit on color number, use hue_pal with different parameters.
-    if (ctmmweb:::reactive_validated(values$selected_models_hranges) & req(values$selected_models_hranges)) {
+    # now with reactive express changed to reactive value, we can test null. req will block whole express which is not what we want.
+    if (ctmmweb:::reactive_validated(values$selected_models_hranges) && (!is.null(values$selected_models_hranges))) {
       # color pallete need to be on full model name list, but we don't want to change the model summary table since it doesn't need to be displayed in app.
       # hr_pal <- model_pal(summary_models()$model_info_dt, id_pal)
       # the pallete function always came from full data
