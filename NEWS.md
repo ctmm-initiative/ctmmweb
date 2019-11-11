@@ -2,6 +2,7 @@
 - Home range estimation now has the option to select either calculate in same grid or individually, because sometimes the spread out individuals can cause out of memory error. The selection must happen before estimation so the page will need user to manual trigger the calculation.
 - Updated model summary code to follow changes in `ctmm` side on `ML`/`est` changes. Older version will break with the more recent `ctmm` version.
 - Occurrence can be exported too, like home ranges.
+- New windows installer will always install github master version by default. Thus the installer don't need to be updated in future.
 
 ## version 0.2.5, 2019/02/10, Misc Updates
 - Adding all `ctmm` internal datasets to app. 
