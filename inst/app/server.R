@@ -2321,9 +2321,10 @@ output:
     log_dt_md(selected_info_dt[, .(model_no, identity, model_type)], "Selected Models")
     # update home range weight selector choices
     updateSelectInput(session, "hrange_weight",
-                      choices = selected_info_dt$display_name)
-    # this value is not updated yet when selectinput itself changed
-    values$hrange_weight_vec <- NULL
+                      choices = selected_info_dt$display_name,
+                      selected = NULL)
+    # # this value is not updated yet when selectinput itself changed
+    # values$hrange_weight_vec <- NULL
     # must make sure all items in same order, all order came from same source, all merge kept the order.
     return(list(info_dt = selected_info_dt,
                 display_color = display_color,
@@ -2394,12 +2395,12 @@ output:
   callModule(click_help, "home_range", title = "Home Range",
              size = "l", file = "help/6_home_range.md")
   # optimal weighting ----
-  values$hrange_weight_vec <- NULL
-  # always apply the current selection of selectinput. the extra layer is to use the button to trigger change instead of every input change
+  # values$hrange_weight_vec <- NULL
+  # always apply the current selection of selectinput. ~the extra layer is to use the button to trigger change instead of every input change cause home range recalculate~ now with manual trigger, this is not needed.
   # with some value selected, change model selection to include multiple models same animal, come back, the old value is still there and doesn't match anything. the value need be cleared when select model updated, or the selectinput updated.
-  observeEvent(input$apply_hrange_weight, {
-    values$hrange_weight_vec <- input$hrange_weight
-  })
+  # observeEvent(input$apply_hrange_weight, {
+  #   values$hrange_weight_vec <- input$hrange_weight
+  # })
   observeEvent(input$hrange_weight_all, {
     if (input$hrange_weight_all) {
       updateSelectInput(session, "hrange_weight",
@@ -2422,9 +2423,9 @@ output:
     # only plot title is changed. home range summary table didn't change title even the model do changed.
     title_list <- as.list(display_names)
     names(title_list) <- display_names
-    if (!is.null(values$hrange_weight_vec)) {
+    if (!is.null(input$hrange_weight)) {
       # the list came from display name, but title and weight have homerange suffix already. need to match them internally. this need to be consistent with line above
-      matched_names <- paste0(values$hrange_weight_vec,
+      matched_names <- paste0(input$hrange_weight,
                               " - Home Range")
       for (x in matched_names) {
         weights_list[[x]] <- TRUE

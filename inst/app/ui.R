@@ -595,12 +595,23 @@ range_action_box <- box(title = "Home Range Estimation",
                                                  choices = c("In Same Grid (to compare overlap)" = "same_grid",
                                                              "Separately (save memory for spread out individuals)" = "separate"),
                                                  inline = FALSE)),
-                          column(2, offset = 2, help_button("home_range")),
-                          column(2, offset = 2, br(), actionButton("calc_hrange", "Estimate",
+                          column(2, offset = 2, help_button("home_range"))),
+                        fluidRow(
+                          column(4, h5(icon("balance-scale"),
+                                       shiny::a("Optimal Weighting",
+                                                target = "_blank",
+                                                href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
+                                                style = "text-decoration: underline;font-weight: 600;"))),
+                          column(2, offset = 2, checkboxInput("hrange_weight_all", "Enable All"))),
+                        fluidRow(
+                          column(8, selectInput("hrange_weight", label = NULL,
+                                                choices = NULL, multiple = TRUE)),
+
+                          column(2, offset = 2, actionButton("calc_hrange", "Estimate",
                                                                    icon = icon("map-o"),
                                                                    style = ctmmweb:::STYLES$page_action))
-                          # column(12, hr())
-                        ))
+                        )
+                        )
 range_option_box <- box(title = "Home Range Options", status = "primary",
                  solidHeader = TRUE, width = 12,
    fluidRow(
@@ -630,19 +641,12 @@ range_option_box <- box(title = "Home Range Options", status = "primary",
             actionButton("export_homerange_dialog", "Export",
                             icon = icon("save"),
                             style = ctmmweb:::STYLES$page_action))),
-    fluidRow(
-      column(4, h4(icon("balance-scale"),
-                                      shiny::a("Optimal Weighting",
-                                        target = "_blank",
-                                        href = "https://ctmm-initiative.github.io/ctmm/articles/akde.html",
-                                        style = "text-decoration: underline;"))),
-      column(3, offset = 1, checkboxInput("hrange_weight_all", "Enable All"))),
-    fluidRow(
-     column(10, selectInput("hrange_weight", label = NULL,
-                           choices = NULL, multiple = TRUE)),
-     column(2, actionButton("apply_hrange_weight", "Apply",
-                            icon = icon("angle-double-down"),
-                            style = ctmmweb:::STYLES$page_action))),
+
+    # fluidRow(
+    #
+    #  column(2, actionButton("apply_hrange_weight", "Apply",
+    #                         icon = icon("angle-double-down"),
+    #                         style = ctmmweb:::STYLES$page_action))),
 
    fluidRow(
      column(12, plotOutput("range_plot",
