@@ -1,7 +1,7 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.2.5
+Version: 0.2.6b
 Authors@R: as.person(c(
     "Xianghui Dong <xhdong@umd.edu> [aut, cre]", 
     "C.H. Fleming [ctb]",
