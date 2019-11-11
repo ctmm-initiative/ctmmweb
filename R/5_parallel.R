@@ -226,6 +226,19 @@ par_fit_models <- function(tele_list,
   return(model_fit_res)
 }
 
+# Parallel calculate home range separately
+# given a tele list and model list, weight list, call akde on each one
+par_hrange_each <- function(tele_list, model_list, weight_list,
+                                  cores = NULL,
+                                  parallel = TRUE) {
+  tele_model_weight_list <- align_lists(tele_list, model_list, weight_list)
+  hrange_calc <- function(tele_model_weight_list) {
+    ctmm::akde(tele_model_weight_list[[1]], tele_model_weight_list[[2]],
+               weights = tele_model_weight_list[[3]])
+  }
+  par_lapply(tele_model_weight_list, hrange_calc, cores, parallel)
+}
+
 #' Parallel calculate occurrence from telemetry and model list
 #'
 #' @param tele_list [ctmm::as.telemetry()] telemetry list
@@ -243,6 +256,7 @@ par_occur <- function(tele_list, model_list,
   }
   par_lapply(tele_model_list, occur_calc, cores, parallel)
 }
+# calculate speed in parallel
 par_speed <- function(para_list,
                       cores = NULL,
                       parallel = TRUE) {

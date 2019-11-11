@@ -341,6 +341,9 @@ output:
   akde_mem <- memoise::memoise(
     ctmm::akde,
     cache = memoise::cache_filesystem(cache_path))
+  par_hrange_each_mem <- memoise::memoise(
+    ctmmweb:::par_hrange_each,
+    cache = memoise::cache_filesystem(cache_path))
   par_occur_mem <- memoise::memoise(
     ctmmweb::par_occur,
     cache = memoise::cache_filesystem(cache_path))
@@ -2451,16 +2454,13 @@ output:
           "akde error, changing res to 1 to try again")
       )), message = "Calculating Home Range in Same Grid ...")
     } else if (input$hrange_grid_option == "separate") {
-      # TODO not changed yet. need to calculate separately, need to do parallel and memorized
       # LOG home range calculation
       log_msg("Calculating Home Range Separately ...")
       withProgress(print(system.time(
-        values$selected_models_hranges <- ctmmweb:::fall_back(
-          akde_mem, list(tele_list, CTMM = select_models()$model_list,
-                         weights = get_hrange_weight_para()$weights),
-          akde_mem, list(tele_list, CTMM = select_models()$model_list,
-                         weights = get_hrange_weight_para()$weights, res = 1),
-          "akde error, changing res to 1 to try again")
+        values$selected_models_hranges <-
+          par_hrange_each_mem(tele_list, select_models()$model_list,
+                              get_hrange_weight_para()$weights,
+                              parallel = input_value("parallel"))
       )), message = "Calculating Home Range Separately ...")
     }
   })
