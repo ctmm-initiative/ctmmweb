@@ -1,3 +1,8 @@
+## version 0.2.6, 2019/11/11, Misc Updates
+- Home range estimation now has the option to select either calculate in same grid or individually, because sometimes the spread out individuals can cause out of memory error. The selection must happen before estimation so the page will need user to manual trigger the calculation.
+- Updated model summary code to follow changes in `ctmm` side on `ML`/`est` changes. Older version will break with the more recent `ctmm` version.
+- Occurrence can be exported too, like home ranges.
+
 ## version 0.2.5, 2019/02/10, Misc Updates
 - Adding all `ctmm` internal datasets to app. 
 - Some of the datasets are anonymized, i.e. no referencee information available for location and time, only `x`, `y` and `t` which are relative values. A Pseudonymize process is added to simulate data with certain origin in location and time, so that the data can be analysized with app properly.
