@@ -2263,6 +2263,8 @@ output:
   #   cat(input$tried_models_summary_rows_selected, "\n")
   # })
   select_models <- reactive({
+    # with every model selection update, clear the home range values
+    values$selected_models_hranges <- NULL
     # sort the rows selected so same individual models are together
     rows_selected_sorted <- sort(req(input$tried_models_summary_rows_selected))
     # previous model selection value may still exist
