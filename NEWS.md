@@ -3,6 +3,7 @@
 - Updated model summary code to follow changes in `ctmm` side on `ML`/`est` changes. Older version will break with the more recent `ctmm` version.
 - Occurrence can be exported too, like home ranges.
 - New windows installer will always install github master version by default. Thus the installer don't need to be updated in future.
+- Added a batch script example to calculate home range in package vigenette.
 
 ## version 0.2.5, 2019/02/10, Misc Updates
 - Adding all `ctmm` internal datasets to app. 
