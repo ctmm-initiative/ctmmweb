@@ -13,9 +13,9 @@ as_tele_list(tele)
 a list of telemetry objects, each named by animal name
 }
 \description{
-\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} will return will return single telemetry object
-instead of a list when there is only one animal in data. To make code
-consistent we always work with a list of telemetry objects. Either use
-\code{drop = FALSE} in \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} or apply this function over
-\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} result to ensure a proper list.
+\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} will return single telemetry object instead of a list
+when there is only one animal in data. To make code consistent we always work
+with a list of telemetry objects. Either use \code{drop = FALSE} in
+\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} or apply this function over \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}}
+result to ensure a proper list.
 }

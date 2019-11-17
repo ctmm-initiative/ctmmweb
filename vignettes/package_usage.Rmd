@@ -242,6 +242,38 @@ plot_ud(hrange_list_sub2, tele_list = tele_list_sub2)
 plot_ud(hrange_list_sub2, level_vec = c(0.50, 0.95), tele_list = tele_list_sub2)
 ```
 
+### Batch script for home range
+
+Home range is one of the most used feature in ctmm/ctmmweb. Sometimes you have lots of individuals and don't need to fine tune each model, then you can calculate home range in batch mode. ctmmweb package provided many functions to make this process as easy as possible. Check the function documents for more details.
+
+```{r, eval=FALSE}
+library(ctmm)
+library(ctmmweb)
+library(data.table)
+
+# this read from a .rds from saved progress file. You can also import your data directly with as.telemetry
+tele_list <- readRDS("/Users/xhdong/Downloads/Saved_2019-11-15_11-37-41_models/input_telemetry.rds")
+# one line to try models. The result is a nested list of CTMM models
+model_try_res <- par_try_models(tele_list)
+save.image("test.RData")
+# summary models to find the best
+model_summary <- summary_tried_models(model_try_res)
+# select the best model name for each individual, which is the first one with 0 AICc
+best_model_names <- model_summary[, .(best_model_name = model_name[1]), 
+                                  by = "identity"]$best_model_name
+# get a flat list of model object
+model_list <- flatten_models(model_try_res)
+# get the best model objects
+best_models <- model_list[best_model_names]
+# calculate home range in same grid, with optimal weighting on
+hrange_list_same_grid <- akde(tele_list, best_models, 
+                              weights = TRUE)
+# calculate home range separately, with optimal weighting on
+hrange_list <- par_hrange_each(tele_list, best_models,
+                               rep.int(list(TRUE), length(tele_list)))
+```
+
+
 ## Occurrence
 
 Occurrence distribution can be calculated from the telemetry data and the fitted models in parallel.

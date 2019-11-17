@@ -226,8 +226,18 @@ par_fit_models <- function(tele_list,
   return(model_fit_res)
 }
 
-# Parallel calculate home range separately
-# given a tele list and model list, weight list, call akde on each one
+#' Parallel calculate home range separately
+#'
+#' Sometimes you may want to calculate home range individually, because
+#' calculate them in same grid could take significant memory when individuals
+#' are spread out.
+#'
+#' @param weight_list List of True/False in same order of tele_list. Used for
+#'   optimal weighting parameter in [ctmm::akde()].
+#' @inheritParams par_occur
+#'
+#' @return List of home ranges
+#' @export
 par_hrange_each <- function(tele_list, model_list, weight_list,
                                   cores = NULL,
                                   parallel = TRUE) {
