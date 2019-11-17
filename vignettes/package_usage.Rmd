@@ -246,7 +246,9 @@ plot_ud(hrange_list_sub2, level_vec = c(0.50, 0.95), tele_list = tele_list_sub2)
 
 Home range is one of the most used feature in ctmm/ctmmweb. Sometimes you have lots of individuals and don't need to fine tune each model, then you can calculate home range in batch mode. ctmmweb package provided many functions to make this process as easy as possible. Check the function documents for more details.
 
-```{r, eval=FALSE}
+The script can also be used to create a reproducible example if you met any error in modeling/home range parts.
+
+```{r batch script, eval=FALSE}
 library(ctmm)
 library(ctmmweb)
 library(data.table)
@@ -317,21 +319,3 @@ point_range_map(loc_data_sub2, hrange_list_sub2, 0.95,
 ```
 
 
-## Appendix
-
-### Create reproducible example for bug report
-
-- Sometimes you may met error with certain data, especially in model selection. To report the bug and help track down the problem, it'll be much more helpful to create a reproducible example. You can use package functions to reproduce the steps in the webapp.
-
-  Below is some simple code to import data and try model selection on it.
-```{r code example to reproduce problems}
-library(ctmm)
-library(ctmmweb)
-
-# single animal data will be imported as telemetry object by default, use `drop` parameter to keep result as a list
-tele <- as.telemetry("d:/Work/R/ctmm-shiny/data/Exported_2019-09-21_22-22-11.csv", drop = FALSE)
-model_try_res <- par_try_models(tele)
-model_summary <- summary_tried_models(model_try_res)
-```
-  
-  

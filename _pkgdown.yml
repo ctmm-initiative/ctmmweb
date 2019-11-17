@@ -7,6 +7,10 @@ template:
     bootswatch: flatly
 
 reference:
+- title: "Package Intro"
+  desc: ~
+  contents:
+  - '`ctmmweb`'
 - title: "Start the app"
   desc: ~
   contents:
@@ -49,6 +53,7 @@ reference:
   - '`par_lapply`'
   - '`par_fit_models`'
   - '`par_try_models`'
+  - '`par_hrange_each`'
   - '`par_occur`'
 - title: "Misc Utilitiy Functions"
   desc: ~
