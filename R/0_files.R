@@ -5,6 +5,24 @@ current_timestamp <- function() {
   #        tz = "UTC")
   format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 }
+# write content in utf-8, open connection with native encoding to avoid extra translation.
+# https://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
+write_utf8 <- function(chara_vec, f) {
+  # step 1: ensure our text is utf8 encoded
+  chara_vec_utf8 <- enc2utf8(chara_vec)
+
+  # step 2: create a connection with 'native' encoding
+  # this signals to R that translation before writing
+  # to the connection should be skipped
+  con <- file(f, open = "w+", encoding = "native.enc")
+
+  # step 3: write to the connection with 'useBytes = TRUE',
+  # telling R to skip translation to the native encoding
+  writeLines(chara_vec_utf8, con = con, useBytes = TRUE)
+
+  # close our connection
+  close(con)
+}
 # will not have warning if folder already exist; can create a path chain directly
 create_folder <- function(folder_path) {
   if (!dir.exists(folder_path)) {

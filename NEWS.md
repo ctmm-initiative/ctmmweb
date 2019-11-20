@@ -4,6 +4,7 @@
 - Occurrence can be exported too, like home ranges.
 - New windows installer will always install github master version by default. Thus the installer don't need to be updated in future.
 - Added a batch script example to calculate home range in package vigenette.
+- The unicode symbol in model summary table broke the generated report html. Force using utf-8 encoding now to avoid the problem.
 
 ## version 0.2.5, 2019/02/10, Misc Updates
 - Adding all `ctmm` internal datasets to app. 

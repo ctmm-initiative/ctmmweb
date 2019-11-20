@@ -3266,7 +3266,8 @@ output:
     log_msg("Work Report Generated")
     # write markdown file
     markdown_path <- file.path(LOG_folder, "report.rmd")
-    writeLines(LOG_rmd_vec, con = markdown_path)
+    ctmmweb:::write_utf8(LOG_rmd_vec, f = markdown_path)
+    # writeLines(LOG_rmd_vec, con = markdown_path)
     # render markdown to html
     html_path <- file.path(LOG_folder, "report.html")
     rmarkdown::render(markdown_path, output_file = html_path, quiet = TRUE)
