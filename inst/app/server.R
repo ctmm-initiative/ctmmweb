@@ -2580,7 +2580,7 @@ output:
   # export dialog ----
   observeEvent(input$export_homerange_dialog, {
     req(values$selected_models_hranges)
-    showModal(modalDialog(title = "Export All Home Ranges to Zip",
+    showModal(modalDialog(title = "Export All Home Ranges to Zip", easyClose = TRUE,
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
                     choiceNames = list(
@@ -2635,7 +2635,7 @@ output:
   # export occurrence ----
   observeEvent(input$export_occurrence_dialog, {
     req(select_models_occurrences())
-    showModal(modalDialog(title = "Export All Occurrences to Zip",
+    showModal(modalDialog(title = "Export All Occurrences to Zip", easyClose = TRUE,
                           fluidRow(
                             column(12, radioButtons("occur_export_format", "Format",
                                                     choiceNames = list(
