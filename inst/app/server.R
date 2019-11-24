@@ -342,7 +342,7 @@ output:
     ctmm::akde,
     cache = memoise::cache_filesystem(cache_path))
   par_hrange_each_mem <- memoise::memoise(
-    ctmmweb:::par_hrange_each,
+    ctmmweb::par_hrange_each,
     cache = memoise::cache_filesystem(cache_path))
   par_occur_mem <- memoise::memoise(
     ctmmweb::par_occur,
