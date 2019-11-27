@@ -1,3 +1,4 @@
+- Occurrence are calculated for the selected models in model selection table. You can change the selection in that page if you want to change the targets.
 - Check [ctmm::plot.telemetry](https://ctmm-initiative.github.io/ctmm/reference/plot.telemetry.html) for details:
   - `Contour`: `level.UD`. You can input a series of comma separated values like `20, 50, 95` in contours input, note they are percentage values so the real value will be `0.20, 0.50, 0.95`. 
   - `Confidence Envelopes` : `level`.

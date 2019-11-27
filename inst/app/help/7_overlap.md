@@ -1,5 +1,5 @@
 ### Overlap of Home Ranges
-- Home range [Overlap](https://ctmm-initiative.github.io/ctmm/reference/overlap.html) are calculated based on selected models in `Model Selection` page.
+- Home range [Overlap](https://ctmm-initiative.github.io/ctmm/reference/overlap.html) are calculated based on selected models in `Model Selection` page. You can change the selection in that page if you want to change the overlap targets.
 - When multiple models for same individual are selected and compared, `animal name - model type` will be used as identifier. Otherwise just `animal name` is used.
 - By default all meaningful combinations (v1 v2 are always sorted in alphabeta order, since the order doesn't matter) are calculated and sorted by the highest value.
 
