@@ -53,8 +53,10 @@ zip_folder <- function(folder_path, zip_name) {
   # relative_paths <- file.path(basename(folder_path),
   #                             relative_paths_under_folder)
   zip_path <- file.path(dirname(folder_path), zip_name)
-  zip::zip(zip_path, basename(folder_path),
-           compression_level = 5, recurse = TRUE)
+  suppressMessages(
+    zip::zip(zip_path, basename(folder_path),
+             compression_level = 5, recurse = TRUE)
+  )
   setwd(previous_wd)
   return(zip_path)
 }
@@ -65,8 +67,10 @@ zip_relative_files <- function(base_folder, relative_paths, zip_relative_path) {
   # one level up folder, so we can use relative path in zip
   setwd(base_folder)
   zip_path <- file.path(base_folder, zip_relative_path)
-  zip::zip(zip_path, relative_paths,
-           compression_level = 5)
+  suppressMessages(
+    zip::zip(zip_path, relative_paths,
+             compression_level = 5)
+  )
   setwd(previous_wd)
   return(zip_path)
 }
