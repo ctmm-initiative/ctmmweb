@@ -14,7 +14,7 @@ LazyData: true
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
 Imports: shiny (>= 1.1.0), shinydashboard, DT, crayon, rmarkdown, knitr, data.table (>=
-          1.11.4), ctmm, magrittr, parallel, memoise, ggplot2 (>= 3.0.0), ggrepel, scales,
+          1.11.4), ctmm, magrittr, purrr, parallel, memoise, ggplot2 (>= 3.0.0), ggrepel, scales,
           grid, gridExtra, lubridate, leaflet, sp, rgdal, leaflet.extras, htmlwidgets,
           rgeos, httr, stringr, XML, xml2, zip, bit64
 Remotes: ctmm-initiative/ctmm

@@ -11,8 +11,15 @@ get_build_info <- function(pkg = "ctmmweb") {
   version <- desc_dt[1, Version]
   build_info <- desc_dt[1, LastCommit]
   # pattern is for 20xx-xx-xx
-  build_date <- str_extract(build_info, "20\\d\\d-\\d\\d-\\d\\d")
-  return(list(version = version, build_date = build_date, build_info = build_info))
+  build_date <- stringr::str_extract(build_info, "20\\d\\d-\\d\\d-\\d\\d")
+  return(list(version = version, build_date = build_date,
+              commit_message = build_info))
+}
+# given a build info list, print it nicely
+print_build_info <- function(build_info) {
+  purrr::map(names(build_info), ~ {
+    stringr::str_c("\n\t- ", ., ": ", build_info[[.]])
+  }) %>% stringr::str_c(collapse = "")
 }
 # write content in utf-8, open connection with native encoding to avoid extra translation.
 # https://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/

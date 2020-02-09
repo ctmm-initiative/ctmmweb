@@ -6,7 +6,7 @@ options(shiny.maxRequestSize = 2000*1024^2)
 VERIFY_DATA_SYNC <- FALSE
 # PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 # full build message is not suitable for app display? in length and escaped content?
-# PKG_BUILD_INFO <- ctmmweb:::get_build_info()
+PKG_BUILD_INFO <- ctmmweb:::get_build_info()
 
 server <- function(input, output, session) {
   # rendering message menu dynamically to avoid call PKG_BUILD_INFO twice
@@ -20,8 +20,8 @@ server <- function(input, output, session) {
                    href = "https://github.com/ctmm-initiative/ctmmweb"),
                  messageItem(
                    from = "Package Build Date",
-                   # message = PKG_BUILD_INFO$build_date,
-                   message = "test",
+                   message = PKG_BUILD_INFO$build_date,
+                   # message = "test",
                    icon = icon("calendar-o")),
                  messageItem(
                    from = "Issues",
@@ -216,7 +216,8 @@ output:
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
   # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
-  log_msg("App started", paste0("Package Build Info: ", PKG_BUILD_INFO))
+  log_msg("App started", paste0("Package Build Info: ",
+                                ctmmweb:::print_build_info(PKG_BUILD_INFO)))
   # first page need to be added manually since no page switching event fired
   log_page(ctmmweb:::PAGE_title$import)
   # log app options ----
@@ -312,12 +313,14 @@ output:
     showModal(modalDialog(title = "Error Messages",
                 fluidRow(
                   column(12, pre(includeText(req(values$error_file)))),
-                  column(12, h4("App Installed On")),
+                  column(12, h4("App Build Info")),
                   column(12, verbatimTextOutput("app_info")),
                   column(12, h4("Session information")),
                   column(12, verbatimTextOutput("session_info"))),
                 size = "l", easyClose = TRUE, fade = FALSE))
-    output$app_info <- renderPrint(cat(PKG_BUILD_INFO, "\n"))
+    output$app_info <- renderPrint(cat(
+      paste0("Package Build Info: ",
+             ctmmweb:::print_build_info(PKG_BUILD_INFO))))
     output$session_info <- renderPrint(sessionInfo())
   })
   # just log option changes, the value is taken directly when needed.
