@@ -10,8 +10,8 @@
     - You can draw a rectangle with mouse button pressed, then double click inside the rectangle to **zoom in**. Double click in plot reset the zoom in.
 - When you use mouse to select a range in histogram, the points in selected range will be highlighted in the scatter plot with bigger size (which can be adjusted), and the other points become gray background.
     - All points in selected range are listed in the table below, which can be sorted.
-    - Click to select rows in this table will further highlight selected points with a square.
-    - `Remove Selected` button will remove selected points from data, and list them in the table of `Removed Outliers`. The histogram and scatter plot will also update.
+    - Click to select rows in this table will further highlight selected points with a square. You can select multiple rows with Shift + Click on first and last row.
+    - `Remove Selected` button will remove selected points from data, and list them in the table of `Removed Outliers`. You should select all the points to be removed then remove them together instead of removing points one by one, as once points were removed, the histogram and scatter plot will also update. 
     - You can continue to inspect and remove outliers. The points already removed can also be reset and back to original state.
 - You can move back to **Visualization** page and the plots will also update. There will be a line in the table `1.Individuals` to remind some outliers have been removed. 
 - `Export Current` in table 1 will export the current subset as csv file, and mark the outliers with a column `manually_marked_outlier`, which can be imported to Movebank website and be recognized. Importing the csv back into app will have the outliers discarded.
