@@ -4,10 +4,12 @@ options(shiny.maxRequestSize = 2000*1024^2)
 # options(shiny.trace = FALSE)
 # enable more debugging and messages
 VERIFY_DATA_SYNC <- FALSE
-PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
+# PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
+# full build message is not suitable for app display? in length and escaped content?
+# PKG_BUILD_INFO <- ctmmweb:::get_build_info()
 
 server <- function(input, output, session) {
-  # rendering message menu dynamically to avoid call pkg_installation_time twice
+  # rendering message menu dynamically to avoid call PKG_BUILD_INFO twice
   output$messageMenu <- renderMenu({
     dropdownMenu(type = "messages",
                  # from for first line, message 2nd line smaller font
@@ -17,8 +19,9 @@ server <- function(input, output, session) {
                    icon = icon("github"),
                    href = "https://github.com/ctmm-initiative/ctmmweb"),
                  messageItem(
-                   from = "Installed On",
-                   message = PKG_INSTALLATION_TIME,
+                   from = "Package Build Date",
+                   # message = PKG_BUILD_INFO$build_date,
+                   message = "test",
                    icon = icon("calendar-o")),
                  messageItem(
                    from = "Issues",
@@ -213,7 +216,7 @@ output:
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
   # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
-  log_msg("App started", paste0("Installed On: ", PKG_INSTALLATION_TIME))
+  log_msg("App started", paste0("Package Build Info: ", PKG_BUILD_INFO))
   # first page need to be added manually since no page switching event fired
   log_page(ctmmweb:::PAGE_title$import)
   # log app options ----
@@ -292,7 +295,7 @@ output:
     }
     # in app() mode it will be inside app() env so have warning
     suppressWarnings(
-      rm(PKG_INSTALLATION_TIME, envir = globalenv())
+      rm(PKG_BUILD_INFO, envir = globalenv())
     )
   })
   # the button itself need to depend on option, cannot be inside the if call which doesn't remove in else branch
@@ -314,7 +317,7 @@ output:
                   column(12, h4("Session information")),
                   column(12, verbatimTextOutput("session_info"))),
                 size = "l", easyClose = TRUE, fade = FALSE))
-    output$app_info <- renderPrint(cat(PKG_INSTALLATION_TIME, "\n"))
+    output$app_info <- renderPrint(cat(PKG_BUILD_INFO, "\n"))
     output$session_info <- renderPrint(sessionInfo())
   })
   # just log option changes, the value is taken directly when needed.

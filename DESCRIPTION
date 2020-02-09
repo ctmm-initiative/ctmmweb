@@ -1,52 +1,23 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.2.6.9000
-Authors@R: as.person(c(
-    "Xianghui Dong <xhdong@umd.edu> [aut, cre]", 
-    "C.H. Fleming [ctb]",
-    "M.J. Noonan [ctb]",
-    "J.M. Calabrese [ctb]"
-  ))
+Version: 0.2.6.9001
+Authors@R: as.person(c( "Xianghui Dong <xhdong@umd.edu> [aut, cre]", "C.H. Fleming [ctb]",
+          "M.J. Noonan [ctb]", "J.M. Calabrese [ctb]" ))
 URL: https://github.com/ctmm-initiative/ctmmweb
 BugReports: https://github.com/ctmm-initiative/ctmmweb/issues
-Description: A web app for analyzing animal tracking data, built upon ctmm 
-    package. Many features are exposed as package functions to be used in 
-    command line.
+Description: A web app for analyzing animal tracking data, built upon ctmm package. Many
+          features are exposed as package functions to be used in command line.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
-Imports: shiny (>= 1.1.0),
-    shinydashboard,
-    DT,
-    crayon,
-    rmarkdown,
-    knitr,
-    data.table (>= 1.11.4),
-    ctmm,
-    magrittr,
-    parallel,
-    memoise,
-    ggplot2 (>= 3.0.0),
-    ggrepel,
-    scales,
-    grid,
-    gridExtra,
-    lubridate,
-    leaflet,
-    sp,
-    rgdal,
-    leaflet.extras,
-    htmlwidgets,
-    rgeos,
-    httr,
-    stringr,
-    XML,
-    xml2,
-    zip,
-    bit64
+Imports: shiny (>= 1.1.0), shinydashboard, DT, crayon, rmarkdown, knitr, data.table (>=
+          1.11.4), ctmm, magrittr, parallel, memoise, ggplot2 (>= 3.0.0), ggrepel, scales,
+          grid, gridExtra, lubridate, leaflet, sp, rgdal, leaflet.extras, htmlwidgets,
+          rgeos, httr, stringr, XML, xml2, zip, bit64
 Remotes: ctmm-initiative/ctmm
 Suggests: knitr
 VignetteBuilder: knitr
+LastCommit: [62fd3f8] 2020-01-12: suppress the warning of deprecated zip::zip

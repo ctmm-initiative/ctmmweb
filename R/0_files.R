@@ -5,6 +5,15 @@ current_timestamp <- function() {
   #        tz = "UTC")
   format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
 }
+get_build_info <- function(pkg = "ctmmweb") {
+  desc_file <- system.file("DESCRIPTION", package = pkg)
+  desc_dt <- data.table(read.dcf(desc_file, all = TRUE))
+  version <- desc_dt[1, Version]
+  build_info <- desc_dt[1, LastCommit]
+  # pattern is for 20xx-xx-xx
+  build_date <- str_extract(build_info, "20\\d\\d-\\d\\d-\\d\\d")
+  return(list(version = version, build_date = build_date, build_info = build_info))
+}
 # write content in utf-8, open connection with native encoding to avoid extra translation.
 # https://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
 write_utf8 <- function(chara_vec, f) {
