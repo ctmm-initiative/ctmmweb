@@ -18,7 +18,6 @@ Imports: shiny (>= 1.1.0), shinydashboard, DT, crayon, rmarkdown, knitr, data.ta
            gridExtra, lubridate, leaflet, sp, rgdal, leaflet.extras, htmlwidgets, rgeos, httr,
            stringr, XML, xml2, zip, bit64
 Remotes: ctmm-initiative/ctmm
-Suggests: knitr
 VignetteBuilder: knitr
 LastCommit: [fdead9c] 2020-02-09: adding package build info from git message, use this in app info
            and log
