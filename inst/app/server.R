@@ -3223,7 +3223,8 @@ output:
         # this may not print as error is redirected. flush may cause problem. My manipulation on error connection is too dangerous. with error capture on, save progress flush connection, so error msg will not pop up again. enable/disable error capture recreate new file so it will enable again but no old messages. The feature is not really must have, as local have it in console, hosted has it in pop up, just ask user to manual copy this part is easier.
         # if (input$capture_error) {
         #   cat(values$error_file_con, "\n")
-        #   flush(values$error_file_con)
+        #   # flush caused error in hosted mode. without this, the button worked, but actual file not saved in either local or hosted mode. so disable this feature for now.
+        #   # flush(values$error_file_con)
         #   cat(file.path(session_tmpdir,
         #                 "error_log.txt"), "\n")
         #   copy_res <- file.copy(values$error_file, file.path(session_tmpdir,
