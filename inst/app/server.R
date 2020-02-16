@@ -9,6 +9,10 @@ VERIFY_DATA_SYNC <- FALSE
 PKG_BUILD_INFO <- ctmmweb:::get_build_info()
 
 server <- function(input, output, session) {
+  # browser button for debugging
+  observeEvent(input$browser,{
+    browser()
+  })
   # rendering message menu dynamically to avoid call PKG_BUILD_INFO twice
   output$messageMenu <- renderMenu({
     dropdownMenu(type = "messages",

@@ -46,7 +46,12 @@ sidebar <- dashboardSidebar(
   "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
       )),
     fluidRow(
-      column(6, offset = 0, uiOutput("error_popup"))
+      column(6, offset = 0, uiOutput("error_popup")),
+    ),
+    fluidRow(
+      # browser button for debugging. disable this in released version.
+      column(6, offset = 0, actionButton("browser", "browser"),
+             tags$script("$('#browser').hide();"))
     )
   )
 )
