@@ -3199,6 +3199,7 @@ output:
         showNotification("No data to save", duration = 7,
                          type = "error")
       } else {
+        # in hosted mode this met problem once. It's hard to debug, so we add more check point messages to help pin down the problem
         # LOG save data
         log_msg("Saving Data")
         # pack and save cache
@@ -3218,18 +3219,25 @@ output:
         fwrite(dt,
                file = file.path(session_tmpdir, "combined_data_table.csv"),
                dateTimeAs = "write.csv")
-        # save error msg if captured
-        if (input$capture_error) {
-          flush(values$error_file_con)
-          file.copy(values$error_file, file.path(session_tmpdir,
-                                                 "error_log.txt"))
-        }
+        # save error msg if captured. with this option off, the button worked in hosted mode, so this caused problem.
+        # this may not print as error is redirected. flush may cause problem. My manipulation on error connection is too dangerous. with error capture on, save progress flush connection, so error msg will not pop up again. enable/disable error capture recreate new file so it will enable again but no old messages. The feature is not really must have, as local have it in console, hosted has it in pop up, just ask user to manual copy this part is easier.
+        # if (input$capture_error) {
+        #   cat(values$error_file_con, "\n")
+        #   flush(values$error_file_con)
+        #   cat(file.path(session_tmpdir,
+        #                 "error_log.txt"), "\n")
+        #   copy_res <- file.copy(values$error_file, file.path(session_tmpdir,
+        #                                          "error_log.txt"))
+        #   cat(copy_res, "\n")
+        # }
         # also save report for reference
         generate_report(preview = FALSE)
+        log_msg("Work Report generated")
         # move to same directory for easier packing.
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # the whole LOG folder with plot png/pdf in separate files. zip folder put zip to one level up the target folder, which is session_tmpdir. because the generated report was moved (not copied) to upper level, only other files are put in this zip.
         ctmmweb::zip_folder(LOG_folder, "plot.zip")
+        log_msg("Plots saved")
         # pack to saved.zip, this is a temp name anyway.
         # files to be saved: "cache.zip", "data.rds", "report.html", "combined_data_table.csv", "plot.zip". error_log.txt could present or not depend on option, so didn't use a fixed name list(also difficult to maintain).
         # will get folders in non-recursive mode, have to exclude them
@@ -3247,6 +3255,7 @@ output:
         # after zip generated, remove generated files in session temp folder. Because we copied map files here, if we don't clean up, 2nd saved progress will have map files in first save zipped too. NO, same session should have these files kept, new save will update same name file, and map files need to be kept since they are all needed in same session report
         # unlink(file.path(session_tmpdir, files_to_save))
         file.copy(saved_zip_path, file, overwrite = TRUE)
+        log_msg("Data zip generated")
       }
     }
   )
