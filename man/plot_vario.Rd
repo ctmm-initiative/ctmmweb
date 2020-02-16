@@ -4,9 +4,16 @@
 \alias{plot_vario}
 \title{Plot a group of empirical or modeled variograms.}
 \usage{
-plot_vario(vario_list, model_list = NULL, title_vec = NULL,
-  fraction = 0.5, relative_zoom = TRUE, cex = 0.65,
-  model_color = "blue", columns = 2)
+plot_vario(
+  vario_list,
+  model_list = NULL,
+  title_vec = NULL,
+  fraction = 0.5,
+  relative_zoom = TRUE,
+  cex = 0.65,
+  model_color = "blue",
+  columns = 2
+)
 }
 \arguments{
 \item{vario_list}{list of \code{\link[ctmm:variogram]{ctmm::variogram()}}. The names of list may be

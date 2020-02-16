@@ -26,7 +26,7 @@ JS code in string to register the JS logify functions
 Make Shiny \code{sliderInput} support
 \href{https://stackoverflow.com/a/39028280/3718827}{logarithmic scale}.
 \code{JS.logify} create a Javascript function in string, and \code{JS.onload} register
-the functions to \code{sliderInput}. Search the usage in \code{/inst/app/ui.R} for
+the functions to \code{sliderInput}. Search the usage in \verb{/inst/app/ui.R} for
 examples.
 }
 \section{Functions}{

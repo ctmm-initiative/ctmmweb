@@ -3,7 +3,6 @@
 \docType{package}
 \name{ctmmweb}
 \alias{ctmmweb}
-\alias{ctmmweb-package}
 \title{ctmmweb: A web app package for \code{ctmm}}
 \description{
 A shiny web app built upon \href{https://github.com/ctmm-initiative/ctmm}{ctmm}.

@@ -4,8 +4,13 @@
 \alias{par_hrange_each}
 \title{Parallel calculate home range separately}
 \usage{
-par_hrange_each(tele_list, model_list, weight_list, cores = NULL,
-  parallel = TRUE)
+par_hrange_each(
+  tele_list,
+  model_list,
+  weight_list,
+  cores = NULL,
+  parallel = TRUE
+)
 }
 \arguments{
 \item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
@@ -21,7 +26,7 @@ integer or
 \item Default \code{NULL} value will indicate to use a heuristic value based on detected cores, which is roughly \code{min(input_size, physical_cores_count * n)},
 \code{n} being 2 for windows, 4 for Mac/Linux. See \code{\link[parallel:detectCores]{parallel::detectCores()}} for
 more information on physical/logical cores in different platforms.
-\item A negative value like \code{-2} will use \code{all available cores - 2}, so that 2
+\item A negative value like \code{-2} will use \verb{all available cores - 2}, so that 2
 cores are reserved for user's other tasks.
 }}
 

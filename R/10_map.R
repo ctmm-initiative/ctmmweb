@@ -173,8 +173,6 @@ range_map <- function(hrange_list, hr_levels, hr_color_vec) {
     add_control(names(hrange_list))
 }
 #' @describeIn point_map Build map of home ranges and animal locations
-#' @inheritParams point_map
-#' @inheritParams range_map
 #'
 #' @export
 point_range_map <- function(loc_data_subset, hrange_list,
@@ -198,7 +196,6 @@ add_heat <- function(leaf, loc_data, tiles_info = TILES_INFO) {
       options = leaflet::layersControlOptions(collapsed = FALSE))
 }
 #' @describeIn point_map Build heat map of animal locations
-#' @inheritParams point_map
 #'
 #' @export
 heat_map <- function(loc_data_subset) {

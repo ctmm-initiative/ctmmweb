@@ -315,7 +315,6 @@ multi_color_title <- function(color_vec, text_vec, sep = ", ")  {
 # print each color in separate line. this probably will not work for n > 2 because not enough margin.
 
 #' @describeIn multi_title Place each text segment in a new line.
-#' @inheritParams multi_color_title
 #'
 #' @export
 multi_color_multi_line_title <- function(color_vec, text_vec, sep = "\n\n") {
