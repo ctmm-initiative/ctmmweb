@@ -2923,6 +2923,15 @@ output:
       selected_model_list_dt[, .(model_no, identity, model_type,
                                  model_name, display_name, model_color)],
       res_dt)
+    # give warning for models with DOF speed = 0
+    zero_dof_speed_model_nos <- summary_models()$summary_dt[
+      (model_no %in% selected_model_list_dt$model_no) & (`DOF speed` == 0), model_no]
+    if (length(zero_dof_speed_model_nos) > 0) {
+      showNotification(stringr::str_c("For Model No: ",
+                                      stringr::str_c(zero_dof_speed_model_nos, collapse = ", "),
+                                      ", sampling is too coarse to estimate speed or distance travelled (see help page for more information)"),
+                       duration = 5, type = "warning")
+    }
     # return a dt
     return(dt)
   })

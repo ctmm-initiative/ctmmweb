@@ -50,8 +50,8 @@ sidebar <- dashboardSidebar(
     ),
     fluidRow(
       # browser button for debugging. disable this in released version.
-      # column(6, offset = 0, actionButton("browser", "browser"),
-      #        tags$script("$('#browser').hide();"))
+      column(6, offset = 0, actionButton("browser", "browser"),
+             tags$script("$('#browser').hide();"))
     )
   )
 )
