@@ -3222,18 +3222,23 @@ output:
         # save error msg if captured. with this option off, the button worked in hosted mode, so this caused problem.
         # this may not print as error is redirected. flush may cause problem. My manipulation on error connection is too dangerous. with error capture on, save progress flush connection, so error msg will not pop up again. enable/disable error capture recreate new file so it will enable again but no old messages. The feature is not really must have, as local have it in console, hosted has it in pop up, just ask user to manual copy this part is easier.
         # if (input$capture_error) {
-        #   cat(values$error_file_con, "\n")
+        #   # cat(values$error_file_con, "\n")
+        #   # wanted to switch off and on to copy the content cleanly
+        #   # somehow the error file is NULl even it has been established before. it's hard to diagnostic, since it can pop up already, let's just leave this as is.
+        #   clean_up_error_capture(values$error_file_con)
+        #   ERROR_CAPTURED <<- FALSE
         #   # flush caused error in hosted mode. without this, the button worked, but actual file not saved in either local or hosted mode. so disable this feature for now.
         #   # flush(values$error_file_con)
-        #   cat(file.path(session_tmpdir,
-        #                 "error_log.txt"), "\n")
+        #   # cat(file.path(session_tmpdir,
+        #   #               "error_log.txt"), "\n")
         #   copy_res <- file.copy(values$error_file, file.path(session_tmpdir,
         #                                          "error_log.txt"))
         #   cat(copy_res, "\n")
+        #   setup_error_capture()
         # }
         # also save report for reference
         generate_report(preview = FALSE)
-        log_msg("Work Report generated")
+        # log_msg("Work Report generated")
         # move to same directory for easier packing.
         file.rename(values$html_path, file.path(session_tmpdir, "report.html"))
         # the whole LOG folder with plot png/pdf in separate files. zip folder put zip to one level up the target folder, which is session_tmpdir. because the generated report was moved (not copied) to upper level, only other files are put in this zip.
