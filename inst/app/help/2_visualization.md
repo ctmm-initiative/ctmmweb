@@ -11,6 +11,7 @@
 ### Individuals table
 - The color of rows match the colors in other plots. You can *customize rows per page*, *sort the rows by column*, or *use the search box to filter by name*.
 - Current subset can be exported as csv file with `Export Current` button.
+- The interval/duration are formated with human readable time units, see [this](https://ctmm-initiative.github.io/ctmm/reference/unit.html) for details.
 
 ### Plots
 Select more individuals can show them all at once, select less individuals can show more details. `Canvas Size` can be used to adjust the figure sizes for all plots in Animal Locations box.

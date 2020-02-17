@@ -49,7 +49,7 @@ sidebar <- dashboardSidebar(
       column(6, offset = 0, uiOutput("error_popup")),
     ),
     fluidRow(
-      # browser button for debugging. disable this in released version.
+      # browser button for debugging. disable this in released version. or not?
       column(6, offset = 0, actionButton("browser", "browser"),
              tags$script("$('#browser').hide();"))
     )
