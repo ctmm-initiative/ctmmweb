@@ -14,13 +14,17 @@ server <- function(input, output, session) {
     browser()
   })
   # rendering message menu dynamically to avoid call PKG_BUILD_INFO twice
+  # force use github icon in v4.7
+  icon_g <- icon("github")
+  icon_g[["attribs"]][["class"]] <- "fa fa-github"
   output$messageMenu <- renderMenu({
     dropdownMenu(type = "messages",
                  # from for first line, message 2nd line smaller font
                  messageItem(
                    from = "Project in Github",
                    message = "Documentation, Source, Citation",
-                   icon = icon("github"),
+                   # github icon have compatibility problem https://github.com/rstudio/shiny/issues/2260, shiny dashboard fixed 5.0 problem with sidebar switch but not this one. shiny support font 5.0 but this is dashboard problem. We can just change the icon to v4 by changing class from fab to fa.
+                   icon = icon_g,
                    href = "https://github.com/ctmm-initiative/ctmmweb"),
                  messageItem(
                    from = "Package Build Date",
