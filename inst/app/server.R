@@ -284,11 +284,11 @@ output:
   observeEvent(input$capture_error, {
     if (input$capture_error) {
       setup_error_capture()
-      log_msg("Error messages captured in App")
+      log_msg("Diagnostic info collected in App")
     } else {
       clean_up_error_capture(values$error_file_con)
       ERROR_CAPTURED <<- FALSE
-      log_msg("Error messages directed to R Console")
+      log_msg("Diagnostic info printing to R Console")
     }
   }
   # , ignoreInit = TRUE
@@ -309,14 +309,14 @@ output:
   # add side bar button
   output$error_popup <- renderUI(
     if (input$capture_error) {
-      actionButton("show_error", "Error Message",
-                   icon = icon("exclamation-triangle"),
+      actionButton("show_error", "Diagnostic Info",
+                   icon = icon("stethoscope"),
                    style = "color: #ffec3b;background-color: #232d33;border: transparent;margin-left: 4%;")
     }
   )
   # show error msg ----
   observeEvent(input$show_error, {
-    showModal(modalDialog(title = "Error Messages",
+    showModal(modalDialog(title = "Diagnostic Info",
                 fluidRow(
                   column(12, pre(includeText(req(values$error_file)))),
                   column(12, h4("App Build Info")),
