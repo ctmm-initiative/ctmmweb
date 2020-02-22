@@ -9,29 +9,43 @@ help_button <- function(module_id) {
 # header ----
 header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
+sub_item_style <- "padding-left: 30px;padding-top: 1px;padding-bottom:8px"
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
     menuItem(ctmmweb:::PAGE_title$import, tabName = "import",
+             badgeLabel = "Core",
                              icon = icon("folder-open-o"), selected = TRUE),
     menuItem(ctmmweb:::PAGE_title$plots, tabName = "plots",
+             badgeLabel = "Core",
                              icon = icon("area-chart")),
-    menuItem(ctmmweb:::PAGE_title$filter, tabName = "filter",
-                             icon = icon("filter")),
-    menuItem(ctmmweb:::PAGE_title$subset, tabName = "subset",
+    # we cannot add style directly to menuItem, need to assign to a container. then we cannot change color this way, may have to specify in css.
+    div(menuItem(ctmmweb:::PAGE_title$filter, tabName = "filter",
+             # badgeLabel = "Optional", badgeColor = "light-blue",
+             icon = icon("filter")),
+        style = sub_item_style),
+    div(menuItem(ctmmweb:::PAGE_title$subset, tabName = "subset",
                              icon = icon("pie-chart")),
+        style = sub_item_style),
     menuItem(ctmmweb:::PAGE_title$model, tabName = "model",
+             badgeLabel = "Core",
                              icon = icon("hourglass-start")),
-    menuItem(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
-                             icon = icon("map-o")),
-    menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
-                             icon = icon("clone")),
-    menuItem(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
+    div(menuItem(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
                              icon = icon("paw")),
-    menuItem(ctmmweb:::PAGE_title$speed, tabName = "speed",
+        style = sub_item_style),
+    div(menuItem(ctmmweb:::PAGE_title$speed, tabName = "speed",
              icon = icon("exchange")),
-    menuItem(ctmmweb:::PAGE_title$map, tabName = "map", icon = icon("globe")),
+        style = sub_item_style),
+    menuItem(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
+             badgeLabel = "Core",
+                             icon = icon("map-o")),
+    div(menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
+                             icon = icon("clone")),
+        style = sub_item_style),
+    menuItem(ctmmweb:::PAGE_title$map, tabName = "map",
+             badgeLabel = "Core",
+             icon = icon("globe")),
     br(), br(),
     fluidRow(
       column(8, numericInput("plot_dpi",
