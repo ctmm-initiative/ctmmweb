@@ -259,7 +259,8 @@ output:
       values$error_file_con <- file(values$error_file, open = "a")
       sink(values$error_file_con, type = "message")
       ERROR_CAPTURED <<- TRUE
-      log_msg("Error messages captured in App")
+      # we may want to setup later without msg, put msg in formal call
+      # log_msg("Error messages captured in App")
     }
   }
   # the error setup need to run in the beginning. If put inside event observer totally, when app(data) was used, the data start to import immediately when this part not run yet.
@@ -275,14 +276,15 @@ output:
     if (!is.null(error_con)) {
       # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
       sink(type = "message")
-      flush(error_con)
-      close(error_con)
+      try(flush(error_con))
+      try(close(error_con))
     }
   }
   # checking on/off option should either prepare the error file or clean it up
   observeEvent(input$capture_error, {
     if (input$capture_error) {
       setup_error_capture()
+      log_msg("Error messages captured in App")
     } else {
       clean_up_error_capture(values$error_file_con)
       ERROR_CAPTURED <<- FALSE
@@ -3271,6 +3273,13 @@ output:
         # unlink(file.path(session_tmpdir, files_to_save))
         file.copy(saved_zip_path, file, overwrite = TRUE)
         log_msg("Data zip generated")
+        # after saving progress, error log doesn't pop up, need to turn it off and on again
+        clean_up_error_capture(values$error_file_con)
+        if (ERROR_CAPTURED) {
+          # the switch means already capturing, setup only start when not already capturing, we need it since we clean up already
+          ERROR_CAPTURED <<- FALSE
+          setup_error_capture()
+        }
       }
     }
   )
