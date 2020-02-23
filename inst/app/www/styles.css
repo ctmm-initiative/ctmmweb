@@ -1,3 +1,7 @@
+.main-item {
+  font-weight: 600;
+}
+
 /* Make sure the filename doesn't extend past the bounds of the container */
 .shiny-input-container input[type=file] {
   /*overflow: hidden;*/
