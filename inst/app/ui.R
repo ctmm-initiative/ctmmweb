@@ -9,51 +9,43 @@ help_button <- function(module_id) {
 # header ----
 header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
-# setting style directly main overwrite default style. maybe add class and customize in styles.css. adding class overwrite too. maybe just write all in css by specifying id.
-main_item_style <- ""
-# sub_item_style <- "padding-left: 30px;padding-top: 1px;padding-bottom:8px"
-sub_item_style <- ""
+sub_item_style <- "padding-left: 30px;padding-top: 1px;padding-bottom:8px"
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
-    div(menuItem(ctmmweb:::PAGE_title$import, tabName = "import",
-             # badgeLabel = "Core",
+    menuItem(ctmmweb:::PAGE_title$import, tabName = "import",
+             badgeLabel = "Core",
                              icon = icon("folder-open-o"), selected = TRUE),
-        class = "main-item"),
-    div(menuItem(ctmmweb:::PAGE_title$plots, tabName = "plots",
-             # badgeLabel = "Core",
+    menuItem(ctmmweb:::PAGE_title$plots, tabName = "plots",
+             badgeLabel = "Core",
                              icon = icon("area-chart")),
-        class = "main-item"),
     # we cannot add style directly to menuItem, need to assign to a container. then we cannot change color this way, may have to specify in css.
     div(menuItem(ctmmweb:::PAGE_title$filter, tabName = "filter",
              # badgeLabel = "Optional", badgeColor = "light-blue",
              icon = icon("filter")),
-        class = "optional-item"),
+        style = sub_item_style),
     div(menuItem(ctmmweb:::PAGE_title$subset, tabName = "subset",
                              icon = icon("pie-chart")),
-        class = "optional-item"),
-    div(menuItem(ctmmweb:::PAGE_title$model, tabName = "model",
-             # badgeLabel = "Core",
+        style = sub_item_style),
+    menuItem(ctmmweb:::PAGE_title$model, tabName = "model",
+             badgeLabel = "Core",
                              icon = icon("hourglass-start")),
-        class = "main-item"),
-    div(menuItem(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
-             # badgeLabel = "Core",
-                             icon = icon("map-o")),
-        class = "main-item"),
-    div(menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
-                             icon = icon("clone")),
-        class = "optional-item"),
     div(menuItem(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
                              icon = icon("paw")),
-        class = "optional-item"),
+        style = sub_item_style),
     div(menuItem(ctmmweb:::PAGE_title$speed, tabName = "speed",
              icon = icon("exchange")),
-        class = "optional-item"),
-    div(menuItem(ctmmweb:::PAGE_title$map, tabName = "map",
-             # badgeLabel = "Core",
+        style = sub_item_style),
+    menuItem(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
+             badgeLabel = "Core",
+                             icon = icon("map-o")),
+    div(menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
+                             icon = icon("clone")),
+        style = sub_item_style),
+    menuItem(ctmmweb:::PAGE_title$map, tabName = "map",
+             badgeLabel = "Core",
              icon = icon("globe")),
-        class = "main-item"),
     br(), br(),
     fluidRow(
       column(8, numericInput("plot_dpi",
