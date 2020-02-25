@@ -9,29 +9,57 @@ help_button <- function(module_id) {
 # header ----
 header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
+icon_with_style <- function(icon_name, style) {
+  icon_tag <- icon(icon_name)
+  icon_tag[["attribs"]]$style <- style
+  return(icon_tag)
+}
+# icon_with_style("filter", "color:green")
+main_icon <- function(icon_name) {
+  icon_with_style(icon_name, "color:#92f596")
+}
+sub_icon <- function(icon_name) {
+  icon_with_style(icon_name, "color:#59a4de")
+}
+main_menu <- function(...) {
+  item <- menuItem(...)
+  item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- "font-weight:700"
+  return(item)
+}
+sub_menu <- function(...) {
+  item <- menuItem(...)
+  item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- "font-style: italic;"
+  return(item)
+}
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
-    menuItem(ctmmweb:::PAGE_title$import, tabName = "import",
-                             icon = icon("folder-open-o"), selected = TRUE),
-    menuItem(ctmmweb:::PAGE_title$plots, tabName = "plots",
-                             icon = icon("area-chart")),
-    menuItem(ctmmweb:::PAGE_title$filter, tabName = "filter",
-                             icon = icon("filter")),
-    menuItem(ctmmweb:::PAGE_title$subset, tabName = "subset",
-                             icon = icon("pie-chart")),
-    menuItem(ctmmweb:::PAGE_title$model, tabName = "model",
-                             icon = icon("hourglass-start")),
-    menuItem(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
-                             icon = icon("map-o")),
-    menuItem(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
-                             icon = icon("clone")),
-    menuItem(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
-                             icon = icon("paw")),
-    menuItem(ctmmweb:::PAGE_title$speed, tabName = "speed",
-             icon = icon("exchange")),
-    menuItem(ctmmweb:::PAGE_title$map, tabName = "map", icon = icon("globe")),
+    main_menu(ctmmweb:::PAGE_title$import, tabName = "import",
+             icon = main_icon("folder-open-o"), selected = TRUE),
+    main_menu(ctmmweb:::PAGE_title$plots, tabName = "plots",
+             icon = main_icon("area-chart")),
+    # sub
+    sub_menu(ctmmweb:::PAGE_title$filter, tabName = "filter",
+             icon = sub_icon("filter")),
+    # sub
+    sub_menu(ctmmweb:::PAGE_title$subset, tabName = "subset",
+             icon = sub_icon("pie-chart")),
+    main_menu(ctmmweb:::PAGE_title$model, tabName = "model",
+             icon = main_icon("hourglass-start")),
+    main_menu(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
+             icon = main_icon("map-o")),
+    # sub
+    sub_menu(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
+             icon = sub_icon("clone")),
+    # sub
+    sub_menu(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
+             icon = sub_icon("paw")),
+    # sub
+    sub_menu(ctmmweb:::PAGE_title$speed, tabName = "speed",
+             icon = sub_icon("exchange")),
+    main_menu(ctmmweb:::PAGE_title$map, tabName = "map",
+             icon = main_icon("globe")),
     br(), br(),
     fluidRow(
       column(8, numericInput("plot_dpi",
