@@ -628,7 +628,10 @@ range_action_box <- box(title = "Home Range Estimation",
                                                  choices = c("In Same Grid (to compare overlap)" = "same_grid",
                                                              "Separately (save memory for spread out individuals)" = "separate"),
                                                  inline = FALSE)),
-                          column(2, offset = 2, help_button("home_range"))),
+                          column(2, offset = 2, actionButton("calc_hrange", "Estimate",
+                                                             icon = icon("map-o"),
+                                                             style = ctmmweb:::STYLES$page_action))
+                          ),
                         fluidRow(
                           column(4, h5(icon("balance-scale"),
                                        shiny::a("Optimal Weighting",
@@ -639,10 +642,7 @@ range_action_box <- box(title = "Home Range Estimation",
                         fluidRow(
                           column(8, selectInput("hrange_weight", label = NULL,
                                                 choices = NULL, multiple = TRUE)),
-
-                          column(2, offset = 2, actionButton("calc_hrange", "Estimate",
-                                                                   icon = icon("map-o"),
-                                                                   style = ctmmweb:::STYLES$page_action))
+                          column(2, offset = 2, help_button("home_range"))
                         )
                         )
 range_option_box <- box(title = "Home Range Options", status = "primary",
