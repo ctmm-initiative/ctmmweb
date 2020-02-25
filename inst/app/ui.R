@@ -19,7 +19,7 @@ main_icon <- function(icon_name) {
   icon_with_style(icon_name, "color:#92f596")
 }
 sub_icon <- function(icon_name) {
-  icon_with_style(icon_name, "color:#59a4de")
+  icon_with_style(icon_name, "color:#3177ad")
 }
 main_menu <- function(...) {
   item <- menuItem(...)
