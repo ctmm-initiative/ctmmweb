@@ -546,6 +546,8 @@ output:
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
+  callModule(click_help, "side_help", title = "Sidebar Usage", size = "l",
+             file = "help/0_side_help.md")
   # p1. import ----
   # 1.1.a import dialog ----
   # only some data are in movebank format (other only have x,y,t, without timestamp and coordinates, app will not work)
@@ -554,7 +556,12 @@ output:
     ]
   # [Dataset %in% c("buffalo", "coati")]
   output$data_set_table <- DT::renderDT({
-    DT::datatable(ctmm_dataset_info_dt, options = list(dom = 't'),
+    DT::datatable(ctmm_dataset_info_dt,
+                  options = list(dom = 't'
+                                 # ,
+                                 #   pageLength = 3,
+                                 #   lengthMenu = c(3, 10)
+                                 ),
                   rownames = FALSE, selection = list(mode = "single",
                                                      selected = 1,
                                                      target = 'row'))

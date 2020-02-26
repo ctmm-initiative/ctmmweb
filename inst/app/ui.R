@@ -53,7 +53,8 @@ sidebar <- dashboardSidebar(
              icon = sub_icon("exchange")),
     main_menu(ctmmweb:::PAGE_title$map, tabName = "map",
              icon = main_icon("globe")),
-    br(), br(),
+    br(),
+    br(),
     fluidRow(
       column(8, numericInput("plot_dpi",
                              label = div(icon("photo"), HTML('&nbsp;'),
@@ -69,6 +70,10 @@ sidebar <- dashboardSidebar(
     fluidRow(
       column(6, offset = 0, uiOutput("error_popup")),
     ),
+  fluidRow(
+    column(6, offset = 0, help_button("side_help",
+                                      style = "color: #ccfd93;background-color: #232d33;border: transparent;margin-left: 4%;"))
+  ),
     fluidRow(
       # browser button for debugging. disable this in released version. or not?
       column(6, offset = 0, actionButton("browser", "browser"),
@@ -123,7 +128,8 @@ upload_box <- box(title = "Upload Data",
     )
 # p1.d ctmm internal data ----
 ctmm_import_box <- box(title = "Import from ctmm package",
-                  collapsible = TRUE, collapsed = TRUE,
+                  collapsible = TRUE,
+                  # collapsed = TRUE,
                   status = "primary", solidHeader = TRUE, width = 12,
                   fluidRow(
                     column(12, h4(icon("database"), "Dataset in ctmm package")),
