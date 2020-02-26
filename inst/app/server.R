@@ -585,8 +585,10 @@ output:
     log_msg("Importing file", input$tele_file$name)
     import_tele_to_app(input$tele_file$datapath)
   })
-  callModule(click_help, "import", title = "Data Import Options", size = "l",
-             file = "help/1_import_options.md")
+  callModule(click_help, "upload_data", title = "Upload Data", size = "l",
+             file = "help/1_upload_data.md")
+  callModule(click_help, "ctmm_import", title = "Dataset in ctmm package", size = "l",
+             file = "help/1_ctmm_import.md")
   # 1.2 movebank login ----
   # look up user R environment for movebank login
   mb_env <- Sys.getenv(c("movebank_user", "movebank_pass"))

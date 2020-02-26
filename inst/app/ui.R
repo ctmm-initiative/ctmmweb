@@ -107,24 +107,12 @@ app_options_box <- box(title = "App Options",
     column(3, offset = 6, help_button("app_options"))
                                       ))
 # p1.b upload ----
-upload_box <- box(title = "Local Data Import",
-                  # height = ctmmweb:::STYLES$height_data_import_box,
+upload_box <- box(title = "Upload Data",
                   status = "info", solidHeader = TRUE, width = 12,
   fluidRow(
-    column(12, h4(icon("database"), "Dataset in ctmm package")),
-    column(4, checkboxInput("take_sample",
-                            div(icon("filter"),
-                                HTML('&nbsp;'),
-                                "Take a sample of"),
-                            value = TRUE)),
-    column(2, numericInput("sample_size", NULL,
-                         value = 100, step = 50)),
-    column(2, offset = 0, actionButton("load_ctmm_data", "Load",
-                           icon = icon("bolt"),
-                           style = ctmmweb:::STYLES$page_action)),
-    column(2, offset = 2, help_button("import")),
-    column(12, DT::DTOutput("data_set_table")),
-    column(12, hr(), h4(icon("upload"), "Upload")),
+    column(3, h4(icon("upload"), "Upload")),
+    column(2, offset = 7, help_button("upload_data"))),
+  fluidRow(
           column(6, fileInput('tele_file', label =
                          shiny::a("Move Bank Format Data",
                                   target = "_blank",
@@ -140,8 +128,28 @@ upload_box <- box(title = "Local Data Import",
                            ))
            )
     )
-# p1.c movebank studies ----
-movebank_studies_box <- box(title = "Movebank Studies", collapsible = TRUE,
+# p1.d ctmm internal data ----
+ctmm_import_box <- box(title = "Import from ctmm package",
+                  collapsible = TRUE, collapsed = TRUE,
+                  status = "primary", solidHeader = TRUE, width = 12,
+                  fluidRow(
+                    column(12, h4(icon("database"), "Dataset in ctmm package")),
+                    column(4, checkboxInput("take_sample",
+                                            div(icon("filter"),
+                                                HTML('&nbsp;'),
+                                                "Take a sample of"),
+                                            value = TRUE)),
+                    column(2, numericInput("sample_size", NULL,
+                                           value = 100, step = 50)),
+                    column(2, offset = 0, actionButton("load_ctmm_data", "Load",
+                                                       icon = icon("bolt"),
+                                                       style = ctmmweb:::STYLES$page_action)),
+                    column(2, offset = 2, help_button("ctmm_import")),
+                    column(12, DT::DTOutput("data_set_table"))
+                  )
+)
+# p1.d movebank studies ----
+movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
                             status = "warning", solidHeader = TRUE, width = 12,
       fluidRow(
         column(4, textInput("user", label = NULL, placeholder = "User Name")),
@@ -880,7 +888,8 @@ body <- dashboardBody(
     # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     tabItem(tabName = "import",
                             fluidRow(app_options_box,
-                                     upload_box),
+                                     upload_box,
+                                     ctmm_import_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,
                                      movebank_study_preview_box)),
