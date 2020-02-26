@@ -725,7 +725,13 @@ output:
       })
       res <- ctmmweb:::get_study_detail(mb_id(), input$user, input$pass)
       # It's easier to specify cols here to drop some cols and reorder cols at the same time
-      detail_cols <- c("id", "name", "study_objective", "license_terms", "principal_investigator_name", "principal_investigator_address", "principal_investigator_email", "bounding_box", "location_description", "main_location_lat", "main_location_long", "acknowledgements", "citation", "comments", "grants_used", "there_are_data_which_i_cannot_see")
+      detail_cols <- c("id", "name", "taxon_ids",
+                       "study_objective", "license_terms",
+        "main_location_lat", "main_location_long",
+        "timestamp_first_deployed_location", "timestamp_last_deployed_location",
+        "number_of_deployed_locations",  "sensor_type_ids",
+        "principal_investigator_name", "principal_investigator_address",
+        "principal_investigator_email", "citation", "there_are_data_which_i_cannot_see")
       detail_dt <- try(fread(res$res_cont, select = detail_cols))
       req(is.data.table(detail_dt))
       # need to check content in case something wrong and code below generate error on empty table
