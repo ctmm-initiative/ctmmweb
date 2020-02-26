@@ -700,6 +700,24 @@ output:
       log_msg("Logged in Movebank as", input$user)
     }
   })
+  # selected study detail box ----
+  # only show study detail and preview box when logged in and have data available
+  output$movebank_study_detail_box <- renderUI({
+    req(values$study_detail)
+    box(title = "Selected Study Detail",
+        width = 12,
+        collapsible = TRUE,
+        status = "primary", solidHeader = TRUE,
+        fluidRow(column(3, actionButton("download_movebank",
+                                        "Download",
+                                        icon = icon("cloud-download"),
+                                        style = ctmmweb:::STYLES$page_action)),
+                 column(4, offset = 1, uiOutput("open_study")),
+                 column(3, offset = 1, help_button("download_movebank")
+                 )),
+        hr(),
+        fluidRow(column(12, DT::DTOutput("study_detail"))))
+  })
   # 1.4 selected details ----
   # save file name need study name, so need to duplicate code here.
   mb_id <- reactive({
@@ -752,7 +770,24 @@ output:
       }
     }
   })
-  # 1.4 download data ----
+  # 1.4 download study data ----
+  output$movebank_downloaded_data_preview_box <- renderUI({
+    req(values$move_bank_dt)
+    box(title = "Downloaded Study Data",
+        width = 12,
+        status = "primary", solidHeader = TRUE,
+        collapsible = TRUE,
+        fluidRow(column(3, downloadButton("save_movebank", "Save",
+                                          icon = icon("floppy-o"),
+                                          style = ctmmweb:::STYLES$download_button)),
+                 column(3, offset = 6,
+                        actionButton("import_movebank", "Import",
+                                     icon = icon("arrow-right"),
+                                     style = ctmmweb:::STYLES$page_switch))),
+        hr(),
+        fluidRow(column(12, verbatimTextOutput("study_data_response"))),
+        fluidRow(column(12, DT::DTOutput('study_preview'))))
+  })
   observeEvent(input$download_movebank, {
     req(input$studies_rows_selected)
     # need to ensure here match the selected study mb_id. not too optimal, but may not worth a reactive expression too.

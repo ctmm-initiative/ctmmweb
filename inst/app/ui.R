@@ -1,11 +1,4 @@
-# help module ui ----
-help_button <- function(module_id) {
-  prefix <- NS(module_id)
-  actionButton(prefix("help"),
-               "Help",
-               icon = icon("question"),
-               style = ctmmweb:::STYLES$help_button)
-}
+
 # header ----
 header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
@@ -149,6 +142,7 @@ ctmm_import_box <- box(title = "Import from ctmm package",
                   )
 )
 # p1.d movebank studies ----
+
 movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
                             status = "warning", solidHeader = TRUE, width = 12,
       fluidRow(
@@ -163,33 +157,35 @@ movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
                column(3, checkboxInput("data_manager",
                                        "Only Show I'm Data Manager"))),
       fluidRow(column(12, DT::DTOutput('studies'))))
-movebank_study_detail_box <- box(title = "Selected Study Detail",
-                                                 width = 12,
-                                 collapsible = TRUE,
-                                 status = "primary", solidHeader = TRUE,
-     fluidRow(column(3, actionButton("download_movebank",
-                                     "Download",
-                                     icon = icon("cloud-download"),
-                                     style = ctmmweb:::STYLES$page_action)),
-              column(4, offset = 1, uiOutput("open_study")),
-              column(3, offset = 1, help_button("download_movebank")
-                     )),
-     hr(),
-     fluidRow(column(12, DT::DTOutput("study_detail"))))
-movebank_study_preview_box <- box(title = "Selected Study Data",
-                                                  width = 12,
-                                  status = "primary", solidHeader = TRUE,
-                                  collapsible = TRUE,
-      fluidRow(column(3, downloadButton("save_movebank", "Save",
-                                        icon = icon("floppy-o"),
-                                        style = ctmmweb:::STYLES$download_button)),
-               column(3, offset = 6,
-                      actionButton("import_movebank", "Import",
-                                   icon = icon("arrow-right"),
-                                   style = ctmmweb:::STYLES$page_switch))),
-      hr(),
-      fluidRow(column(12, verbatimTextOutput("study_data_response"))),
-      fluidRow(column(12, DT::DTOutput('study_preview'))))
+movebank_study_detail_box <- uiOutput("movebank_study_detail_box")
+# movebank_study_detail_box <- box(title = "Selected Study Detail",
+#                                                  width = 12,
+#                                  collapsible = TRUE,
+#                                  status = "primary", solidHeader = TRUE,
+#      fluidRow(column(3, actionButton("download_movebank",
+#                                      "Download",
+#                                      icon = icon("cloud-download"),
+#                                      style = ctmmweb:::STYLES$page_action)),
+#               column(4, offset = 1, uiOutput("open_study")),
+#               column(3, offset = 1, help_button("download_movebank")
+#                      )),
+#      hr(),
+#      fluidRow(column(12, DT::DTOutput("study_detail"))))
+movebank_downloaded_data_preview_box <- uiOutput("movebank_downloaded_data_preview_box")
+# movebank_study_preview_box <- box(title = "Selected Study Data",
+#                                                   width = 12,
+#                                   status = "primary", solidHeader = TRUE,
+#                                   collapsible = TRUE,
+#       fluidRow(column(3, downloadButton("save_movebank", "Save",
+#                                         icon = icon("floppy-o"),
+#                                         style = ctmmweb:::STYLES$download_button)),
+#                column(3, offset = 6,
+#                       actionButton("import_movebank", "Import",
+#                                    icon = icon("arrow-right"),
+#                                    style = ctmmweb:::STYLES$page_switch))),
+#       hr(),
+#       fluidRow(column(12, verbatimTextOutput("study_data_response"))),
+#       fluidRow(column(12, DT::DTOutput('study_preview'))))
 # p2. plots ----
 data_summary_box <- box(title = "1. Individuals",
                                         status = "info",
@@ -892,7 +888,7 @@ body <- dashboardBody(
                                      ctmm_import_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,
-                                     movebank_study_preview_box)),
+                                     movebank_downloaded_data_preview_box)),
     tabItem(tabName = "plots",
             fluidRow(data_summary_box,
                      location_plot_box,
