@@ -70,10 +70,6 @@ sidebar <- dashboardSidebar(
     fluidRow(
       column(6, offset = 0, uiOutput("error_popup")),
     ),
-  fluidRow(
-    column(6, offset = 0, help_button("side_help",
-                                      style = "color: #ccfd93;background-color: #232d33;border: transparent;margin-left: 4%;"))
-  ),
     fluidRow(
       # browser button for debugging. disable this in released version. or not?
       column(6, offset = 0, actionButton("browser", "browser"),
@@ -104,7 +100,30 @@ app_options_box <- box(title = "App Options",
     column(3, uiOutput("view_report")),
     column(3, offset = 6, help_button("app_options"))
                                       ))
-# p1.b upload ----
+# p1.b workflow ----
+workflow_box <- box(title = "Analysis Guide",
+                       status = "primary", solidHeader = TRUE,
+                       width = 12,
+                       fluidRow(
+                         # column(4, checkboxInput("record_on",
+                         #                         div(icon("video-camera"),
+                         #                             HTML('&nbsp;'),
+                         #                             "Record Actions")
+                         #                         , value = TRUE)),
+                         # column(4, offset = 0, checkboxInput("capture_error",
+                         #                                     div(icon("stethoscope"),
+                         #                                         HTML('&nbsp;'),
+                         #                                         "Collect Diagnostic Info"),
+                         #                                     value = FALSE)),
+                         # column(3, offset = 1, checkboxInput("parallel",
+                         #                                     div(icon("cogs"),
+                         #                                         HTML('&nbsp;'),
+                         #                                         "Parallel Mode"),
+                         #                                     value = TRUE)),
+                         # column(3, uiOutput("view_report")),
+                         column(3, offset = 6, help_button("workflow"))
+                       ))
+# p1.c upload ----
 upload_box <- box(title = "Upload Data",
                   status = "info", solidHeader = TRUE, width = 12,
   fluidRow(
@@ -147,8 +166,7 @@ ctmm_import_box <- box(title = "Import from ctmm package",
                     column(12, DT::DTOutput("data_set_table"))
                   )
 )
-# p1.d movebank studies ----
-
+# p1.e movebank studies ----
 movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
                             status = "warning", solidHeader = TRUE, width = 12,
       fluidRow(
@@ -890,6 +908,7 @@ body <- dashboardBody(
     # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
     tabItem(tabName = "import",
                             fluidRow(app_options_box,
+                                     workflow_box,
                                      upload_box,
                                      ctmm_import_box),
                             fluidRow(movebank_studies_box,

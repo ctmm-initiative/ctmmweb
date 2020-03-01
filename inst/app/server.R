@@ -546,8 +546,8 @@ output:
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
-  callModule(click_help, "side_help", title = "Sidebar Usage", size = "l",
-             file = "help/0_side_help.md")
+  callModule(click_help, "workflow", title = "Workflow", size = "l",
+             file = "help/1_workflow.md")
   # p1. import ----
   # 1.1.a import dialog ----
   # only some data are in movebank format (other only have x,y,t, without timestamp and coordinates, app will not work)
