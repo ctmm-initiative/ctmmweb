@@ -2,57 +2,42 @@
 # header ----
 header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
-icon_with_style <- function(icon_name, style) {
-  icon_tag <- icon(icon_name)
-  icon_tag[["attribs"]]$style <- style
-  return(icon_tag)
-}
-# icon_with_style("filter", "color:green")
-main_icon <- function(icon_name) {
-  icon_with_style(icon_name, "color:#92f596")
-}
-sub_icon <- function(icon_name) {
-  icon_with_style(icon_name, "color:#3177ad")
+customize_menu <- function(..., menu_style, icon_style) {
+  item <- menuItem(...)
+  item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_style
+  item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_style
+  return(item)
 }
 main_menu <- function(...) {
-  item <- menuItem(...)
-  item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- "font-weight:700"
-  return(item)
+  customize_menu(..., menu_style = "font-weight:700", icon_style = "color:#92f596")
 }
 sub_menu <- function(...) {
-  item <- menuItem(...)
-  item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- "font-style: italic;"
-  return(item)
+  customize_menu(..., menu_style = "font-style: italic;", icon_style = "color:#3177ad")
 }
 sidebar <- dashboardSidebar(
   sidebarMenu(
     id = "tabs",
     # match tabItem, page_title in server.R need to sync with this.
     main_menu(ctmmweb:::PAGE_title$import, tabName = "import",
-             icon = main_icon("folder-open-o"), selected = TRUE),
+             icon = icon("folder-open-o"), selected = TRUE),
     main_menu(ctmmweb:::PAGE_title$plots, tabName = "plots",
-             icon = main_icon("area-chart")),
-    # sub
+             icon = icon("area-chart")),
     sub_menu(ctmmweb:::PAGE_title$filter, tabName = "filter",
-             icon = sub_icon("filter")),
-    # sub
+             icon = icon("filter")),
     sub_menu(ctmmweb:::PAGE_title$subset, tabName = "subset",
-             icon = sub_icon("pie-chart")),
+             icon = icon("pie-chart")),
     main_menu(ctmmweb:::PAGE_title$model, tabName = "model",
-             icon = main_icon("hourglass-start")),
+             icon = icon("hourglass-start")),
     main_menu(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
-             icon = main_icon("map-o")),
-    # sub
+             icon = icon("map-o")),
     sub_menu(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
-             icon = sub_icon("clone")),
-    # sub
+             icon = icon("clone")),
     sub_menu(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
-             icon = sub_icon("paw")),
-    # sub
+             icon = icon("paw")),
     sub_menu(ctmmweb:::PAGE_title$speed, tabName = "speed",
-             icon = sub_icon("exchange")),
+             icon = icon("exchange")),
     main_menu(ctmmweb:::PAGE_title$map, tabName = "map",
-             icon = main_icon("globe")),
+             icon = icon("globe")),
     br(),
     br(),
     fluidRow(
