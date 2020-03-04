@@ -2,65 +2,55 @@
 # header ----
 header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
-customize_menu <- function(..., menu_style, icon_style) {
-  item <- menuItem(...)
-  item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_style
-  item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_style
-  return(item)
-}
-main_menu <- function(...) {
-  customize_menu(..., menu_style = "font-weight:700", icon_style = "color:#92f596")
-}
-sub_menu <- function(...) {
-  customize_menu(..., menu_style = "font-style: italic;", icon_style = "color:#3177ad")
-}
 sidebar <- dashboardSidebar(
-  sidebarMenu(
-    id = "tabs",
-    # match tabItem, page_title in server.R need to sync with this.
-    main_menu(ctmmweb:::PAGE_title$import, tabName = "import",
-             icon = icon("folder-open-o"), selected = TRUE),
-    main_menu(ctmmweb:::PAGE_title$plots, tabName = "plots",
-             icon = icon("area-chart")),
-    sub_menu(ctmmweb:::PAGE_title$filter, tabName = "filter",
-             icon = icon("filter")),
-    sub_menu(ctmmweb:::PAGE_title$subset, tabName = "subset",
-             icon = icon("pie-chart")),
-    main_menu(ctmmweb:::PAGE_title$model, tabName = "model",
-             icon = icon("hourglass-start")),
-    main_menu(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
-             icon = icon("map-o")),
-    sub_menu(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
-             icon = icon("clone")),
-    sub_menu(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
-             icon = icon("paw")),
-    sub_menu(ctmmweb:::PAGE_title$speed, tabName = "speed",
-             icon = icon("exchange")),
-    main_menu(ctmmweb:::PAGE_title$map, tabName = "map",
-             icon = icon("globe")),
-    br(),
-    br(),
-    fluidRow(
-      column(8, numericInput("plot_dpi",
-                             label = div(icon("photo"), HTML('&nbsp;'),
-                                         "Plot DPI"),
-                             value = 300, step = 50))),
-    fluidRow(
-      column(6, offset = 0,
-                      downloadButton("save_data",
-                                     "Save Progress",
-                                     style =
-  "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
-      )),
-    fluidRow(
-      column(6, offset = 0, uiOutput("error_popup")),
-    ),
-    fluidRow(
-      # browser button for debugging. disable this in released version. or not?
-      column(6, offset = 0, actionButton("browser", "browser"),
-             tags$script("$('#browser').hide();"))
-    )
-  )
+  # we need to use special function instead of uiOutput
+  sidebarMenuOutput("side_menus")
+  # sidebarMenu(
+  #   id = "tabs",
+  #   # match tabItem, page_title in server.R need to sync with this.
+  #   main_menu(ctmmweb:::PAGE_title$import, tabName = "import",
+  #            icon = icon("folder-open-o"), selected = TRUE),
+  #   main_menu(ctmmweb:::PAGE_title$plots, tabName = "plots",
+  #            icon = icon("area-chart")),
+  #   sub_menu(ctmmweb:::PAGE_title$filter, tabName = "filter",
+  #            icon = icon("filter")),
+  #   sub_menu(ctmmweb:::PAGE_title$subset, tabName = "subset",
+  #            icon = icon("pie-chart")),
+  #   main_menu(ctmmweb:::PAGE_title$model, tabName = "model",
+  #            icon = icon("hourglass-start")),
+  #   main_menu(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
+  #            icon = icon("map-o")),
+  #   sub_menu(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
+  #            icon = icon("clone")),
+  #   sub_menu(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
+  #            icon = icon("paw")),
+  #   sub_menu(ctmmweb:::PAGE_title$speed, tabName = "speed",
+  #            icon = icon("exchange")),
+  #   main_menu(ctmmweb:::PAGE_title$map, tabName = "map",
+  #            icon = icon("globe")),
+  #   br(),
+  #   br(),
+  #   fluidRow(
+  #     column(8, numericInput("plot_dpi",
+  #                            label = div(icon("photo"), HTML('&nbsp;'),
+  #                                        "Plot DPI"),
+  #                            value = 300, step = 50))),
+  #   fluidRow(
+  #     column(6, offset = 0,
+  #                     downloadButton("save_data",
+  #                                    "Save Progress",
+  #                                    style =
+  # "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
+  #     )),
+  #   fluidRow(
+  #     column(6, offset = 0, uiOutput("error_popup")),
+  #   ),
+  #   fluidRow(
+  #     # browser button for debugging. disable this in released version. or not?
+  #     column(6, offset = 0, actionButton("browser", "browser"),
+  #            tags$script("$('#browser').hide();"))
+  #   )
+  # )
 )
 # p1.a app options ----
 app_options_box <- box(title = "App Options",

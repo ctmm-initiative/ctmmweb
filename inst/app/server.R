@@ -13,6 +13,83 @@ server <- function(input, output, session) {
   observeEvent(input$browser,{
     browser()
   })
+  # side bar by mode ----
+  customize_menu <- function(..., menu_style, icon_style) {
+    item <- menuItem(...)
+    item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_style
+    item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_style
+    return(item)
+  }
+  main_menu <- function(...) {
+    customize_menu(..., menu_style = "font-weight:700", icon_style = "color:#92f596")
+  }
+  sub_menu <- function(...) {
+    customize_menu(..., menu_style = "font-style: italic;", icon_style = "color:#3177ad")
+  }
+  # the page title in report chapters need to sync with ui. save them in one list
+  PAGE_title <- list(import = "Import Data",
+                     plots = "Visualization",
+                     filter = "Filter Outliers",
+                     subset = "Time Subsetting",
+                     model = "Model Selection",
+                     homerange = "Home Range",
+                     overlap = "Overlap",
+                     occurrence = "Occurrence",
+                     speed = "Speed/Distance",
+                     map = "Map")
+  modes <- c("Plot Raw Data" = c("import", "plots", "map"),
+             "Home Range" = c("import", "plots", "model", "homerange", "map"),
+             "Occurrence" = c("import", "plots", "model", "occurrence"))
+  output$side_menus <- renderMenu({
+    sidebarMenu(
+      id = "tabs",
+      # uiOutput("side_menus"),
+      # match tabItem, page_title in server.R need to sync with this.
+      main_menu(PAGE_title$import, tabName = "import",
+                icon = icon("folder-open-o"), selected = TRUE),
+      main_menu(PAGE_title$plots, tabName = "plots",
+                icon = icon("area-chart")),
+      sub_menu(PAGE_title$filter, tabName = "filter",
+               icon = icon("filter")),
+      sub_menu(PAGE_title$subset, tabName = "subset",
+               icon = icon("pie-chart")),
+      main_menu(PAGE_title$model, tabName = "model",
+                icon = icon("hourglass-start")),
+      main_menu(PAGE_title$homerange, tabName = "homerange",
+                icon = icon("map-o")),
+      sub_menu(PAGE_title$overlap, tabName = "overlap",
+               icon = icon("clone")),
+      sub_menu(PAGE_title$occurrence, tabName = "occurrence",
+               icon = icon("paw")),
+      sub_menu(PAGE_title$speed, tabName = "speed",
+               icon = icon("exchange")),
+      main_menu(PAGE_title$map, tabName = "map",
+                icon = icon("globe")),
+      br(),
+      br(),
+      fluidRow(
+        column(8, numericInput("plot_dpi",
+                               label = div(icon("photo"), HTML('&nbsp;'),
+                                           "Plot DPI"),
+                               value = 300, step = 50))),
+      fluidRow(
+        column(6, offset = 0,
+               downloadButton("save_data",
+                              "Save Progress",
+                              style =
+                                "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
+        )),
+      fluidRow(
+        column(6, offset = 0, uiOutput("error_popup")),
+      ),
+      fluidRow(
+        # browser button for debugging. disable this in released version. or not?
+        column(6, offset = 0, actionButton("browser", "browser"),
+               tags$script("$('#browser').hide();"))
+      )
+    )
+  })
+  # message menu ----
   # rendering message menu dynamically to avoid call PKG_BUILD_INFO twice
   # force use github icon in v4.7
   icon_g <- icon("github")
@@ -204,7 +281,7 @@ output:
   observeEvent(input$tabs, {
     req(values$data)
     # it will not record pages without data because req data.
-    log_page(ctmmweb:::PAGE_title[[input$tabs]])
+    log_page(PAGE_title[[input$tabs]])
     # time subset page need single animal be selected
     if ((input$tabs == "subset") &&
         (length(input$individuals_rows_selected) != 1)) {
@@ -227,7 +304,7 @@ output:
   log_msg("App started", paste0("Package Build Info: ",
                                 ctmmweb:::print_build_info(PKG_BUILD_INFO)))
   # first page need to be added manually since no page switching event fired
-  log_page(ctmmweb:::PAGE_title$import)
+  log_page(PAGE_title$import)
   # log app options ----
   # just log option changes, the value is taken directly when needed.
   observeEvent(input$record_on, {

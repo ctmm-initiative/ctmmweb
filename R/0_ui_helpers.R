@@ -82,18 +82,6 @@ STYLES <- list(
   align_up_group = "margin-top: -12px;"
   # info box blue #00c0ef
 )
-# tab name and titles ----
-# the page title in report chapters need to sync with ui. save them in one list
-PAGE_title <- list(import = "Import Data",
-                   plots = "Visualization",
-                   filter = "Filter Outliers",
-                   subset = "Time Subsetting",
-                   model = "Model Selection",
-                   homerange = "Home Range",
-                   overlap = "Overlap",
-                   occurrence = "Occurrence",
-                   speed = "Speed/Distance",
-                   map = "Map")
 # variogram curve colors ----
 ## need this in curve checkbox (in ui) and server code, put it into package so it can be shared.
 # various curve colors in variogram, tuned color is brighter
