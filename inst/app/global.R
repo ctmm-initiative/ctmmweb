@@ -15,10 +15,10 @@ library(magrittr)
 # source("module_fine_tune.R")
 # help module ui ----
 # server also need it in dynamic UI
-help_button <- function(module_id, style = ctmmweb:::STYLES$help_button) {
+help_button <- function(module_id, style = ctmmweb:::STYLES$help_button, text = "Help") {
   prefix <- NS(module_id)
   actionButton(prefix("help"),
-               "Help",
+               text,
                icon = icon("question"),
                style = style)
 }
