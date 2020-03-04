@@ -14,57 +14,48 @@ server <- function(input, output, session) {
     browser()
   })
   # side bar by mode ----
-  customize_menu <- function(..., menu_style, icon_style) {
+  customize_menu <- function(..., menu_type) {
+    menu_styles <- c(main = "font-weight:700", sub = "font-style: italic;")
+    icon_styles <- c(main = "color:#92f596", sub = "color:#3177ad")
     item <- menuItem(...)
-    item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_style
-    item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_style
+    item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_styles[[menu_type]]
+    item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_styles[[menu_type]]
     return(item)
   }
-  main_menu <- function(...) {
-    customize_menu(..., menu_style = "font-weight:700", icon_style = "color:#92f596")
-  }
-  sub_menu <- function(...) {
-    customize_menu(..., menu_style = "font-style: italic;", icon_style = "color:#3177ad")
-  }
-  # the page title in report chapters need to sync with ui. save them in one list
-  PAGE_title <- list(import = "Import Data",
-                     plots = "Visualization",
-                     filter = "Filter Outliers",
-                     subset = "Time Subsetting",
-                     model = "Model Selection",
-                     homerange = "Home Range",
-                     overlap = "Overlap",
-                     occurrence = "Occurrence",
-                     speed = "Speed/Distance",
-                     map = "Map")
-  modes <- c("Plot Raw Data" = c("import", "plots", "map"),
-             "Home Range" = c("import", "plots", "model", "homerange", "map"),
-             "Occurrence" = c("import", "plots", "model", "occurrence"))
+  # main_menu <- function(...) {
+  #   customize_menu(..., menu_style = "font-weight:700", icon_style = "color:#92f596")
+  # }
+  # sub_menu <- function(...) {
+  #   customize_menu(..., menu_style = "font-style: italic;", icon_style = "color:#3177ad")
+  # }
   output$side_menus <- renderMenu({
+    selected_mode <- input$workflow_modes
+    main_menus <- side_bar_modes[[selected_mode]]
+    sub_menus <- setdiff(names(PAGE_title), main_menus)
     sidebarMenu(
       id = "tabs",
       # uiOutput("side_menus"),
       # match tabItem, page_title in server.R need to sync with this.
-      main_menu(PAGE_title$import, tabName = "import",
-                icon = icon("folder-open-o"), selected = TRUE),
-      main_menu(PAGE_title$plots, tabName = "plots",
-                icon = icon("area-chart")),
-      sub_menu(PAGE_title$filter, tabName = "filter",
-               icon = icon("filter")),
-      sub_menu(PAGE_title$subset, tabName = "subset",
-               icon = icon("pie-chart")),
-      main_menu(PAGE_title$model, tabName = "model",
-                icon = icon("hourglass-start")),
-      main_menu(PAGE_title$homerange, tabName = "homerange",
-                icon = icon("map-o")),
-      sub_menu(PAGE_title$overlap, tabName = "overlap",
-               icon = icon("clone")),
-      sub_menu(PAGE_title$occurrence, tabName = "occurrence",
-               icon = icon("paw")),
-      sub_menu(PAGE_title$speed, tabName = "speed",
-               icon = icon("exchange")),
-      main_menu(PAGE_title$map, tabName = "map",
-                icon = icon("globe")),
+      customize_menu(PAGE_title$import, tabName = "import",
+                icon = icon("folder-open-o"), selected = TRUE, menu_type = "main"),
+      customize_menu(PAGE_title$plots, tabName = "plots",
+                icon = icon("area-chart"), menu_type = "main"),
+      customize_menu(PAGE_title$filter, tabName = "filter",
+               icon = icon("filter"), menu_type = "sub"),
+      customize_menu(PAGE_title$subset, tabName = "subset",
+               icon = icon("pie-chart"), menu_type = "sub"),
+      customize_menu(PAGE_title$model, tabName = "model",
+                icon = icon("hourglass-start"), menu_type = "main"),
+      customize_menu(PAGE_title$homerange, tabName = "homerange",
+                icon = icon("map-o"), menu_type = "main"),
+      customize_menu(PAGE_title$overlap, tabName = "overlap",
+               icon = icon("clone"), menu_type = "sub"),
+      customize_menu(PAGE_title$occurrence, tabName = "occurrence",
+               icon = icon("paw"), menu_type = "sub"),
+      customize_menu(PAGE_title$speed, tabName = "speed",
+               icon = icon("exchange"), menu_type = "sub"),
+      customize_menu(PAGE_title$map, tabName = "map",
+                icon = icon("globe"), menu_type = "main"),
       br(),
       br(),
       fluidRow(

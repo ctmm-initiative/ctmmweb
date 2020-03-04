@@ -80,6 +80,9 @@ workflow_box <- box(title = "Analysis Guide",
                        status = "primary", solidHeader = TRUE,
                        width = 12,
                        fluidRow(
+                         column(9, radioButtons("workflow_modes", label = "Analysis Modes",
+                                                 choices = names(side_bar_modes),
+                                                 inline = TRUE)),
                          # column(4, checkboxInput("record_on",
                          #                         div(icon("video-camera"),
                          #                             HTML('&nbsp;'),
@@ -96,7 +99,7 @@ workflow_box <- box(title = "Analysis Guide",
                          #                                         "Parallel Mode"),
                          #                                     value = TRUE)),
                          # column(3, uiOutput("view_report")),
-                         column(3, offset = 6, help_button("workflow"))
+                         column(3, offset = 0, help_button("workflow"))
                        ))
 # p1.c upload ----
 upload_box <- box(title = "Upload Data",
