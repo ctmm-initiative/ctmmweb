@@ -17,16 +17,19 @@ server <- function(input, output, session) {
   customize_menu <- function(..., menu_id, menu_type) {
     menu_styles <- c(main = "font-weight:700", sub = "font-style: italic;")
     icon_styles <- c(main = "color:#92f596", sub = "color:#3177ad")
-    item <- menuItem(text = PAGE_title[[menu_id]], tabName = menu_id, ...)
+    item <- menuItem(text = ctmmweb:::PAGE_title[[menu_id]], tabName = menu_id, ...)
     item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_styles[[menu_type]]
     item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_styles[[menu_type]]
     return(item)
   }
   output$side_menus <- renderMenu({
     selected_mode <- input$workflow_modes
-    main_menus <- side_bar_modes[[selected_mode]]
-    sub_menus <- setdiff(names(PAGE_title), main_menus)
-    menu_vec <- names(PAGE_title)
+    # when no choice is selected, checkbox return NULL, which cannot be used in indexing. We can use NA to index and get NULL
+    if (is.null(selected_mode)) selected_mode <- NA
+    # when multi selected, we can use a vector in [] but not in [[]], thus use [] first
+    main_menus <- unique(unlist(ctmmweb:::side_bar_modes[selected_mode]))
+    sub_menus <- setdiff(names(ctmmweb:::PAGE_title), main_menus)
+    menu_vec <- names(ctmmweb:::PAGE_title)
     names(menu_vec) <- menu_vec
     menu_vec[main_menus] <- "main"
     menu_vec[sub_menus] <- "sub"
@@ -272,7 +275,7 @@ output:
   observeEvent(input$tabs, {
     req(values$data)
     # it will not record pages without data because req data.
-    log_page(PAGE_title[[input$tabs]])
+    log_page(ctmmweb:::PAGE_title[[input$tabs]])
     # time subset page need single animal be selected
     if ((input$tabs == "subset") &&
         (length(input$individuals_rows_selected) != 1)) {
@@ -295,7 +298,7 @@ output:
   log_msg("App started", paste0("Package Build Info: ",
                                 ctmmweb:::print_build_info(PKG_BUILD_INFO)))
   # first page need to be added manually since no page switching event fired
-  log_page(PAGE_title$import)
+  log_page(ctmmweb:::PAGE_title$import)
   # log app options ----
   # just log option changes, the value is taken directly when needed.
   observeEvent(input$record_on, {
@@ -788,7 +791,7 @@ output:
                                         icon = icon("cloud-download"),
                                         style = ctmmweb:::STYLES$page_action)),
                  column(4, offset = 1, uiOutput("open_study")),
-                 column(3, offset = 1, help_button("download_movebank")
+                 column(3, offset = 1, ctmmweb:::help_button("download_movebank")
                  )),
         hr(),
         fluidRow(column(12, DT::DTOutput("study_detail"))))

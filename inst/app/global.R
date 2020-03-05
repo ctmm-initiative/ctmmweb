@@ -13,28 +13,5 @@ library(magrittr)
 # DEBUG_BUTTON <- FALSE
 # have to source module here to make them both available to ui and server. tried to put ui in ui.R, source server in server.R, but server code need ui function (the simple help module don't need that) because it's renderUI which is not available.
 # source("module_fine_tune.R")
-# help module ui ----
-# server also need it in dynamic UI
-help_button <- function(module_id, style = ctmmweb:::STYLES$help_button, text = "Help") {
-  prefix <- NS(module_id)
-  actionButton(prefix("help"),
-               text,
-               icon = icon("question"),
-               style = style)
-}
-# sidebar menu ----
-# the page title in report chapters need to sync with ui. save them in one list
-PAGE_title <- list(import = "Import Data",
-                   plots = "Visualization",
-                   filter = "Filter Outliers",
-                   subset = "Time Subsetting",
-                   model = "Model Selection",
-                   homerange = "Home Range",
-                   overlap = "Overlap",
-                   occurrence = "Occurrence",
-                   speed = "Speed/Distance",
-                   map = "Map")
-side_bar_modes <- list("All Analysis" = names(PAGE_title),
-                       "Plot Raw Data" = c("import", "plots", "map"),
-                       "Home Range" = c("import", "plots", "model", "homerange", "map"),
-                       "Occurrence" = c("import", "plots", "model", "occurrence"))
+
+# let's not to put any global value here and move anything needed into package internal.

@@ -82,6 +82,30 @@ STYLES <- list(
   align_up_group = "margin-top: -12px;"
   # info box blue #00c0ef
 )
+# sidebar menu ----
+# the page title in report chapters need to sync with ui. save them in one list
+PAGE_title <- list(import = "Import Data",
+                   plots = "Visualization",
+                   filter = "Filter Outliers",
+                   subset = "Time Subsetting",
+                   model = "Model Selection",
+                   homerange = "Home Range",
+                   overlap = "Overlap",
+                   occurrence = "Occurrence",
+                   speed = "Speed/Distance",
+                   map = "Map")
+side_bar_modes <- list("Plot Raw Data" = c("import", "plots", "map"),
+                       "Home Range" = c("import", "plots", "model", "homerange", "map"),
+                       "Occurrence" = c("import", "plots", "model", "occurrence"))
+# help module ui ----
+# server also need it in dynamic UI
+help_button <- function(module_id, style = ctmmweb:::STYLES$help_button, text = "Help") {
+  prefix <- NS(module_id)
+  actionButton(prefix("help"),
+               text,
+               icon = icon("question"),
+               style = style)
+}
 # variogram curve colors ----
 ## need this in curve checkbox (in ui) and server code, put it into package so it can be shared.
 # various curve colors in variogram, tuned color is brighter

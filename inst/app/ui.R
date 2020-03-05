@@ -73,15 +73,15 @@ app_options_box <- box(title = "App Options",
                                 "Parallel Mode"),
                             value = TRUE)),
     column(3, uiOutput("view_report")),
-    column(3, offset = 6, help_button("app_options"))
+    column(3, offset = 6, ctmmweb:::help_button("app_options"))
                                       ))
 # p1.b workflow ----
 workflow_box <- box(title = "Analysis Guide",
                        status = "primary", solidHeader = TRUE,
                        width = 12,
                        fluidRow(
-                         column(8, radioButtons("workflow_modes", label = "Analysis Modes",
-                                                 choices = names(side_bar_modes),
+                         column(9, checkboxGroupInput("workflow_modes", label = "Analysis Modes",
+                                                 choices = names(ctmmweb:::side_bar_modes),
                                                  inline = TRUE)),
                          # column(4, checkboxInput("record_on",
                          #                         div(icon("video-camera"),
@@ -99,15 +99,14 @@ workflow_box <- box(title = "Analysis Guide",
                          #                                         "Parallel Mode"),
                          #                                     value = TRUE)),
                          # column(3, uiOutput("view_report")),
-                         column(4, offset = 0, help_button("workflow",
-                                                           text = "Workflow Overview"))
+                         column(3, offset = 0, ctmmweb:::help_button("workflow"))
                        ))
 # p1.c upload ----
 upload_box <- box(title = "Upload Data",
                   status = "info", solidHeader = TRUE, width = 12,
   fluidRow(
     column(3, h4(icon("upload"), "Upload")),
-    column(2, offset = 7, help_button("upload_data"))),
+    column(2, offset = 7, ctmmweb:::help_button("upload_data"))),
   fluidRow(
           column(6, fileInput('tele_file', label =
                          shiny::a("Move Bank Format Data",
@@ -141,7 +140,7 @@ ctmm_import_box <- box(title = "Import from ctmm package",
                     column(2, offset = 0, actionButton("load_ctmm_data", "Load",
                                                        icon = icon("bolt"),
                                                        style = ctmmweb:::STYLES$page_action)),
-                    column(2, offset = 2, help_button("ctmm_import")),
+                    column(2, offset = 2, ctmmweb:::help_button("ctmm_import")),
                     column(12, DT::DTOutput("data_set_table"))
                   )
 )
@@ -154,7 +153,7 @@ movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
         column(2, offset = 1, actionButton("login", "Login",
                                icon = icon("sign-in"),
                                style = ctmmweb:::STYLES$page_action)),
-        column(2, help_button("login"))
+        column(2, ctmmweb:::help_button("login"))
       ),
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                column(3, checkboxInput("data_manager",
@@ -199,7 +198,7 @@ data_summary_box <- box(title = "1. Individuals",
                                            icon = icon("trash-o"),
                                            style = ctmmweb:::STYLES$page_action)),
         column(6, offset = 0, uiOutput("outlier_report")),
-        column(3, offset = 0, help_button("visual"))),
+        column(3, offset = 0, ctmmweb:::help_button("visual"))),
       br(),
       fluidRow(column(12, DT::DTOutput('individuals'))),
       br(),
@@ -272,7 +271,7 @@ location_plot_box <- tabBox(title = "Animal Locations",
                                                  "Error Disc" = 2,
                                                  "Densities" = 3),
                                      selected = 2, inline = TRUE)),
-             column(4, br(), help_button("device_error")),
+             column(4, br(), ctmmweb:::help_button("device_error")),
              column(12, plotOutput("error_plot"))),
            fluidRow(
              column(12, hr(), h4("Calibrate Current Data Set")),
@@ -308,7 +307,7 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
              column(4, offset = 0, sliderInput("distance_his_y_limit",
                                    "Limit y axis",
                                    min = 10, max = 50, value = 20, step = 1)),
-             column(2, offset = 1, br(), help_button("outlier_distance"))),
+             column(2, offset = 1, br(), ctmmweb:::help_button("outlier_distance"))),
     fluidRow(column(12, plotOutput("distance_histogram",
                                    brush = brushOpts(
                                      id = "distance_his_brush",
@@ -347,7 +346,7 @@ outlier_filter_box <- tabBox(title = "Outlier Detection",
              column(4, offset = 0, sliderInput("speed_his_y_limit",
                                   "Limit y axis",
                                   min = 10, max = 50, value = 20, step = 1)),
-             column(2, offset = 1, br(), help_button("outlier_speed"))),
+             column(2, offset = 1, br(), ctmmweb:::help_button("outlier_speed"))),
     fluidRow(column(12, plotOutput("speed_histogram",
                               brush = brushOpts(
                                 id = "speed_his_brush",
@@ -401,7 +400,7 @@ histogram_subsetting_box <- box(title = "Select Time Range",
       fluidRow(column(6, offset = 0,
                       sliderInput("time_color_bins", "Histogram Bins",
                                   min = 2, max = 20, value = 7, step = 1)),
-               column(2, offset = 4, br(), help_button("time_subsetting"))),
+               column(2, offset = 4, br(), ctmmweb:::help_button("time_subsetting"))),
       fluidRow(column(12, plotOutput("histogram_subsetting",
                                      height =
                                        ctmmweb:::STYLES$height_hist_subset_output,
@@ -490,7 +489,7 @@ vario_control_box <- tabBox(title = "Plot Controls",
                                            "Columns",
                                            value = 2, min = 1, max = 6,
                                            step = 1)),
-        column(2, offset = 10, help_button("vario_control")))),
+        column(2, offset = 10, ctmmweb:::help_button("vario_control")))),
 # # p5.a.2 multiple schedules ----
 tabPanel("Schedule",
       fluidRow(
@@ -503,7 +502,7 @@ tabPanel("Schedule",
                                             div(style = "color:#f39c12;",
                                                 "Auto detect with kmeans"),
                                 value = FALSE, width = "100%")),
-        column(2, help_button("vario_schedule"))),
+        column(2, ctmmweb:::help_button("vario_schedule"))),
       fluidRow(column(12, uiOutput("kmeans_extra_ui")),
                column(12, hr())),
       # adding intervals --
@@ -571,7 +570,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
                 column(3, offset = 0, ctmmweb:::tuneSelectorUI("guess")),
                 column(3, div(style = ctmmweb:::STYLES$align_up,
                        checkboxInput("guess_error_on", "Turn on error"))),
-                column(2, offset = 0, help_button("variograms"))),
+                column(2, offset = 0, ctmmweb:::help_button("variograms"))),
               fluidRow(
                 column(12, br(), plotOutput("vario_plot_empirical",
                                              width = "99%", height = "98%"))
@@ -620,7 +619,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
              selected = names(ctmm_colors)[3:5]))
         ),
         column(5, offset = 1, br(), ctmmweb:::tuneSelectorUI("model")),
-        column(2, offset = 0, help_button("model_selection")),
+        column(2, offset = 0, ctmmweb:::help_button("model_selection")),
         column(12, plotOutput("vario_plot_modeled",
                               width = "99%", height = "98%"))
       )
@@ -649,7 +648,7 @@ range_action_box <- box(title = "Home Range Estimation",
                         fluidRow(
                           column(8, selectInput("hrange_weight", label = NULL,
                                                 choices = NULL, multiple = TRUE)),
-                          column(2, offset = 2, help_button("home_range"))
+                          column(2, offset = 2, ctmmweb:::help_button("home_range"))
                         )
                         )
 range_option_box <- box(title = "Home Range Options", status = "primary",
@@ -705,7 +704,7 @@ overlap_summary_box <- box(title = "Overlap of Home Ranges",
                                          status = "info",
                                          solidHeader = TRUE, width = 12,
          fluidRow(
-           column(2, offset = 10, help_button("overlap")),
+           column(2, offset = 10, ctmmweb:::help_button("overlap")),
            br(), br(),
            column(12, DT::DTOutput("overlap_summary"))
          )
@@ -787,7 +786,7 @@ occurrence_plot_box <- box(title = "Occurrence Distribution",
                            actionButton("export_occurrence_dialog", "Export",
                                         icon = icon("save"),
                                         style = ctmmweb:::STYLES$page_action)),
-                    column(2, offset = 0, br(), help_button("occurrence")),
+                    column(2, offset = 0, br(), ctmmweb:::help_button("occurrence")),
                     column(12, plotOutput("occurrence_plot",
                             width = "99%", height = "98%"))))
 # p9. estimate speed ----
@@ -819,7 +818,7 @@ speed_control_box <- box(title = "Estimate Speed", status = "info",
                                                value = 400,
                                                min = 200, max = 1200,
                                                step = 100)),
-            column(2, offset = 1, br(), help_button("estimate_speed")),
+            column(2, offset = 1, br(), ctmmweb:::help_button("estimate_speed")),
             column(5, offset = 0,
                    # if using group input, one value change trigger the whole input value, thus label change trigger speed calculations. use align_up to reduce gap between them.
                    checkboxInput("show_estimate_ci",
@@ -863,7 +862,7 @@ map_control_box <- box(title = "Map Controls", status = "primary",
            column(5, offset = 1, br(), checkboxInput("apply_heat_to_point",
                                    "Apply Heatmap Range to Point Map",
                                    value = TRUE)),
-           column(3, offset = 1, br(), help_button("map"))),
+           column(3, offset = 1, br(), ctmmweb:::help_button("map"))),
   fluidRow(
     column(3, actionButton("reset_map_view", "Reset Map View",
                            icon = icon("ban"),
