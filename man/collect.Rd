@@ -7,7 +7,7 @@
 collect(tele_obj_list)
 }
 \arguments{
-\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. Use \code{drop = FALSE} in
+\item{tele_obj_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list. Use \code{drop = FALSE} in
 \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to ensure a proper list.}
 }
 \value{

@@ -334,7 +334,7 @@ tele_list_to_dt <- function(tele_list) {
 #' also used in a lot of places in app, which works on any selected subset of
 #' full data in almost all steps.
 #'
-#' @param tele_list [ctmm::as.telemetry()] telemetry list. Use `drop = FALSE` in
+#' @param tele_obj_list [ctmm::as.telemetry()] telemetry list. Use `drop = FALSE` in
 #'   [ctmm::as.telemetry()] to ensure a proper list.
 #'
 #' @return list of - `data_dt`: all animals collected in one data.table -

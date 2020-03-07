@@ -33,14 +33,12 @@ the attempted models as sub items with model type as name.
 \code{par_fit_models}: list of models named by animal names.
 }
 \description{
-Parallel fitting models on telemetry list
+par_try_models run \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on each object of list on parallel.
+
+par_fit_models run \code{\link[ctmm:ctmm.fit]{ctmm::ctmm.fit()}} on each object of list on parallel.
 }
 \section{Functions}{
 \itemize{
-\item \code{par_try_models}: Run \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on each object of list
-on parallel.
-
-\item \code{par_fit_models}: Run \code{\link[ctmm:ctmm.fit]{ctmm::ctmm.fit()}} on each object of list on
-parallel.
+\item \code{par_fit_models}: 
 }}
 

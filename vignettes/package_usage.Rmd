@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(knitr)
 ```
 
 ## Introduction
@@ -128,9 +129,10 @@ plot_loc(loc_data_sub1, loc_data) +
   ctmmweb:::CENTER_TITLE
 # export plot
 g <- plot_loc(loc_data_sub1, loc_data)
-ggplot2::ggsave("test.png", g)
-# remove generated file to reduce clutter
-unlink("test.png")
+# use this to save as file if needed
+if (interactive()) {
+  ggplot2::ggsave("test.png", g)
+}
 ```
 
 
@@ -171,13 +173,23 @@ Note there could be [some known errors](https://github.com/Rdatatable/data.table
 model_fit_res <- par_fit_models(data_sample)
 # try multiple models in parallel with ctmm.select. parallel mode can be turned off with parallel = FALSE
 model_try_res <- par_try_models(data_sample)
+
+
+```
+
+```{r}
 # `model_try_res` holds a list of items named by animal names. Each item hold the attempted models for that animal as a sub list, named by model type.
-print(str(model_try_res, max.level = 2))
+print(str(model_try_res[1:3], max.level = 2))
 # a data.table of models information summary
+```
+
+
+```{r}
 model_summary <- summary_tried_models(model_try_res)
 # you can also open it with RStudio's data.frame viewer
-knitr::kable(model_summary)
+kable(model_summary)
 ```
+
 
 There could be multiple models attempted for each animal. In the webapp you can select a subset of models then check their variograms, home ranges and occurrences. You can also select a subset of fitted models via in a script as:
 
@@ -302,9 +314,9 @@ The map can be saved as a self contained html file.
 
 ```{r save map}
 # save map to single html file. file can only be a filename, not a relative path
-htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "point_map.html")
-# remove generated file to reduce clutter
-unlink("point_map.html")
+if(interactive()) {
+  htmlwidgets::saveWidget(point_map(loc_data_sub2), file = "point_map.html")
+}
 ```
 
 

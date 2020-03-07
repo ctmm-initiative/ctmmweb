@@ -7,7 +7,8 @@
 #' single parameter to a list. Thus function with multiple parameters need to be
 #' wrapped into a function with single parameter list.
 #'
-#' @param ...
+#' @param ... multiple lists with same length, to be combined into a master list
+#'   with item from each list aligned
 #'
 #' @return A list of same length of each input list, and each input parameter should have same length. Each item in result is a list of each `i`th item in input lists.
 #' @export
@@ -177,8 +178,8 @@ par_try_tele_guess <- function(tele_guess_list,
 
 #' Parallel fitting models on telemetry list
 #'
-#' @describeIn par_try_models Run [ctmm::ctmm.select()] on each object of list
-#'   on parallel.
+#' par_try_models run [ctmm::ctmm.select()] on each object of list on parallel.
+#'
 #' @param tele_list [ctmm::as.telemetry()] telemetry list
 #' @inheritParams par_lapply
 #'
@@ -201,9 +202,10 @@ par_try_models <- function(tele_list,
   return(model_try_res)
 }
 
-#' @describeIn par_try_models Run [ctmm::ctmm.fit()] on each object of list on
-#'   parallel.
-#' @inheritParams par_try_models
+#' Parallel fitting models on telemetry list
+#'
+#' par_fit_models run [ctmm::ctmm.fit()] on each object of list on parallel.
+#' @describeIn par_try_models
 #'
 #' @return `par_fit_models`: list of models named by animal names.
 #' @export
@@ -234,7 +236,7 @@ par_fit_models <- function(tele_list,
 #'
 #' @param weight_list List of True/False in same order of tele_list. Used for
 #'   optimal weighting parameter in [ctmm::akde()].
-#' @inheritParams par_occur
+#' @inheritParams par_lapply
 #'
 #' @return List of home ranges
 #' @export
@@ -285,16 +287,17 @@ par_speed <- function(para_list,
 #' waiting time in developing code that involved time consuming modeling
 #' processes. After code is tested and stablized, full size dataset can be used.
 #'
+#' @param object Either a list of telemetry object or single telemetry object
 #' @param m m even spaced points are taken from each object. If m > data size,
 #'   all points are taken.
 #'
 #' @export
 pick <- function(object, m) {UseMethod("pick")}
 
-#' @describeIn pick subset from [ctmm::as.telemetry()] telemetry object
+#' pick subset from [ctmm::as.telemetry()] telemetry object
 #'
 #' @param tele [ctmm::as.telemetry()] telemetry object
-#' @inheritParams pick
+#' @describeIn pick
 #'
 #' @return `pick.telemetry`: telemetry object with m data points
 #' @export
@@ -304,11 +307,11 @@ pick.telemetry <- pick_tele <- function(tele, m) {
   tele[floor(seq(from = 1, to = nrow(tele), length.out = min(nrow(tele), m))), ]
 }
 
-#' @describeIn pick pick subset from each [ctmm::as.telemetry()] telemetry object
+#' pick subset from each [ctmm::as.telemetry()] telemetry object
 #'   in list
 #'
 #' @param tele_list [ctmm::as.telemetry()] telemetry list
-#' @inheritParams pick
+#' @describeIn pick
 #'
 #' @return `pick.list`: telemetry list of subsets
 #' @export

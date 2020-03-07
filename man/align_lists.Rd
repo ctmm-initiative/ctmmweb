@@ -7,7 +7,8 @@
 align_lists(...)
 }
 \arguments{
-\item{...}{}
+\item{...}{multiple lists with same length, to be combined into a master list
+with item from each list aligned}
 }
 \value{
 A list of same length of each input list, and each input parameter should have same length. Each item in result is a list of each \code{i}th item in input lists.
