@@ -227,7 +227,7 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
     if (all(is.na(ci_values))) {
       NA_character_
     } else {
-      paste0("(", paste0(ci_values, collapse = " – "), ")")
+      paste0("(", paste0(ci_values, collapse = " - "), ")")
     }
   }
   # columns with (, i.e. with units, the column with CI. DOF columns don't have it. note run this function on already converted function will also include ci cols as target cols. no need to check that since no that usage for now.

@@ -39,7 +39,7 @@ speed_res_to_dt <- function(res, durations) {
                  unit_in_col_name = FALSE)
   # combined CI column
   dt[, (paste0("speed CI (", speed_unit_picked$name, ")")) :=
-       paste0("(", paste0(c(low, high), collapse = " – "), ")"),
+       paste0("(", paste0(c(low, high), collapse = " - "), ")"),
      by = 1:nrow(dt)]
   # keep the low high column for plot
   dt[, c("rn") := NULL]
@@ -51,7 +51,7 @@ speed_res_to_dt <- function(res, durations) {
                  distance_unit_picked, unit_in_col_name = FALSE)
   dt[, (paste0("distance_traveled CI (", distance_unit_picked$name, ")")) :=
        paste0("(", paste0(c(distance_traveled_low,
-                            distance_traveled_high), collapse = " – "), ")"),
+                            distance_traveled_high), collapse = " - "), ")"),
      by = 1:nrow(dt)]
   format_dt_cols(dt, "distance_traveled", distance_unit_picked)
 }
