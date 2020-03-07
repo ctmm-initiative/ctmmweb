@@ -13,6 +13,10 @@ par_hrange_each(
 )
 }
 \arguments{
+\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
+
+\item{model_list}{Corresponding \code{ctmm} model list for \code{tele_list}}
+
 \item{weight_list}{List of True/False in same order of tele_list. Used for
 optimal weighting parameter in \code{\link[ctmm:akde]{ctmm::akde()}}.}
 

@@ -234,9 +234,11 @@ par_fit_models <- function(tele_list,
 #' calculate them in same grid could take significant memory when individuals
 #' are spread out.
 #'
+#' @param tele_list [ctmm::as.telemetry()] telemetry list
+#' @param model_list Corresponding `ctmm` model list for `tele_list`
 #' @param weight_list List of True/False in same order of tele_list. Used for
 #'   optimal weighting parameter in [ctmm::akde()].
-#' @inheritParams par_lapply
+#' @inheritParams par_try_models
 #'
 #' @return List of home ranges
 #' @export

@@ -173,8 +173,6 @@ Note there could be [some known errors](https://github.com/Rdatatable/data.table
 model_fit_res <- par_fit_models(data_sample)
 # try multiple models in parallel with ctmm.select. parallel mode can be turned off with parallel = FALSE
 model_try_res <- par_try_models(data_sample)
-
-
 ```
 
 ```{r}
