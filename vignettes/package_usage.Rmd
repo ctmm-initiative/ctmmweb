@@ -172,7 +172,7 @@ model_fit_res <- par_fit_models(data_sample)
 # try multiple models in parallel with ctmm.select. parallel mode can be turned off with parallel = FALSE
 model_try_res <- par_try_models(data_sample)
 # `model_try_res` holds a list of items named by animal names. Each item hold the attempted models for that animal as a sub list, named by model type.
-str(model_try_res, max.level = 2)
+print(str(model_try_res, max.level = 2))
 # a data.table of models information summary
 model_summary <- summary_tried_models(model_try_res)
 # you can also open it with RStudio's data.frame viewer
