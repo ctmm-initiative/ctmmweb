@@ -1,12 +1,13 @@
 # ggplot ----
 # customize theme ----
 # BIGGER_THEME is used in main plots, where the legend is for id, title can be removed. outlier and time subsetting plot need legend, which didn't use this.
+# we use ctmmweb full qualification because don't want to load ctmmweb in app. but once we move the plot function inside package, they are not needed.
 
 #' Override some ggplot2 default theme settings
 #'
-#' - `ctmmweb:::BIGGER_THEME` increase the default ggplot2 legend, axis size
-#' - `ctmmweb:::BIGGER_KEY` increase default legend key size
-#' - `ctmmweb:::CENTER_TITLE` place title in center and bold
+#' - `BIGGER_THEME` increase the default ggplot2 legend, axis size
+#' - `BIGGER_KEY` increase default legend key size
+#' - `CENTER_TITLE` place title in center and bold
 #'
 #' @format A `ggplot2` function call of `ggplot2::theme` or `ggplot2::guides`
 #' @rdname ggplot_customization
@@ -82,14 +83,14 @@ plot_loc <- function(loc_data_subset, loc_data = NULL, point_size = 0.1) {
     coord_fixed_no_warning +
     # ggplot2::coord_fixed(xlim = location_plot_gg_range$x,
     #                      ylim = location_plot_gg_range$y) +
-    ctmmweb:::factor_color(loc_data_subset$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
+    factor_color(loc_data_subset$id) +  # the color is right because id is factor, its levels included all values from full dataset ids.
     ggplot2::scale_x_continuous(labels =
-                    ctmmweb:::format_distance_f(loc_data_subset$x)) +
+                    format_distance_f(loc_data_subset$x)) +
     ggplot2::scale_y_continuous(labels =
-                    ctmmweb:::format_distance_f(loc_data_subset$y)) +
+                    format_distance_f(loc_data_subset$y)) +
     ggplot2::theme(legend.position = "top",
                    legend.direction = "horizontal") +
-    ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
+    BIGGER_THEME + BIGGER_KEY
 }
 
 #' Plot animal locations in facet
@@ -105,14 +106,14 @@ plot_loc_facet <- function(loc_data_subset) {
   ggplot2::ggplot(data = loc_data_subset, ggplot2::aes(x, y)) +
     ggplot2::geom_point(size = 0.1, ggplot2::aes(colour = id)) +
     ggplot2::scale_x_continuous(labels =
-                    ctmmweb:::format_distance_f(loc_data_subset$x)) +
+                    format_distance_f(loc_data_subset$x)) +
     ggplot2::scale_y_continuous(labels =
-                    ctmmweb:::format_distance_f(loc_data_subset$y)) +
-    ctmmweb:::factor_color(loc_data_subset$id) +
+                    format_distance_f(loc_data_subset$y)) +
+    factor_color(loc_data_subset$id) +
     ggplot2::facet_grid(id ~ .) +
     coord_fixed_no_warning +
     ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
-    ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
+    BIGGER_THEME + BIGGER_KEY
 }
 
 #' Plot animal sampling time histogram in facet
@@ -125,8 +126,8 @@ plot_time <- function(loc_data_subset) {
   ggplot2::ggplot(data = loc_data_subset,
                   ggplot2::aes(x = timestamp, fill = id)) +
     ggplot2::geom_histogram(bins = 60) +
-    ctmmweb:::factor_fill(loc_data_subset$id) +
+    factor_fill(loc_data_subset$id) +
     ggplot2::facet_grid(id ~ .) +
     ggplot2::theme(strip.text.y = ggplot2::element_text(size = 12)) +
-    ctmmweb:::BIGGER_THEME + ctmmweb:::BIGGER_KEY
+    BIGGER_THEME + BIGGER_KEY
 }
