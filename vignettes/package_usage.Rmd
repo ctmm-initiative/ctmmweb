@@ -17,7 +17,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(knitr)
 ```
 
 ## Introduction
@@ -182,7 +181,7 @@ model_summary <- summary_tried_models(model_try_res)
 
 ```{r}
 # you can also open it with RStudio's data.frame viewer
-kable(model_summary)
+knitr::kable(model_summary)
 ```
 
 
