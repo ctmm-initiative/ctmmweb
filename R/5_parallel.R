@@ -192,10 +192,12 @@ par_try_models <- function(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
                                 }))
-  print(system.time(model_try_res <-
-                      par_try_tele_guess(tele_guess_list,
+  # printing this caused problem in cran check vignette, even there is no problem knitting the package_usage.rmd. removing it now as we have system.time call in app already.
+  # print(system.time(
+    model_try_res <- par_try_tele_guess(tele_guess_list,
                                          cores,
-                                         parallel)))
+                                         parallel)
+    # ))
   if (!inherits(model_try_res, "try-error")) {
     names(model_try_res) <- names(tele_list)
   }
@@ -220,10 +222,10 @@ par_fit_models <- function(tele_list,
   fit_model <- function(tele_guess) {
     ctmm::ctmm.fit(tele_guess[[1]], CTMM = tele_guess[[2]], trace = TRUE)
   }
-  print(system.time(model_fit_res <-
-                      par_lapply(tele_guess_list, fit_model,
+  # print(system.time(
+    model_fit_res <- par_lapply(tele_guess_list, fit_model,
                                  cores, parallel)
-                    ))
+                    # ))
   names(model_fit_res) <- names(tele_list)
   return(model_fit_res)
 }
@@ -289,12 +291,12 @@ par_speed <- function(para_list,
 #' waiting time in developing code that involved time consuming modeling
 #' processes. After code is tested and stablized, full size dataset can be used.
 #'
-#' @param object Either a list of telemetry object or single telemetry object
+#' @param tele Either a list of telemetry object or single telemetry object
 #' @param m m even spaced points are taken from each object. If m > data size,
 #'   all points are taken.
 #'
 #' @export
-pick <- function(object, m) {UseMethod("pick")}
+pick <- function(tele, m) {UseMethod("pick")}
 
 #' pick subset from [ctmm::as.telemetry()] telemetry object
 #'
@@ -308,17 +310,17 @@ pick.telemetry <- pick_tele <- function(tele, m) {
   # Rely on ctmm S3 method to treat telemetry object as a `data.frame`, thus ctmm need to be imported in NAMESPACE.
   tele[floor(seq(from = 1, to = nrow(tele), length.out = min(nrow(tele), m))), ]
 }
-
 #' pick subset from each [ctmm::as.telemetry()] telemetry object
 #'   in list
 #'
-#' @param tele_list [ctmm::as.telemetry()] telemetry list
+#' @param tele [ctmm::as.telemetry()] telemetry list
 #' @describeIn pick
 #'
 #' @return `pick.list`: telemetry list of subsets
 #' @export
-pick.list <- pick_tele_list <- function(tele_list, m) {
-  lapply(tele_list, function(x) {
+pick.list <- pick_tele_list <- function(tele, m) {
+  # R-CMD-Check require S3 method to use same argument
+  lapply(tele, function(x) {
     pick(x, m)
   })
 }

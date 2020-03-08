@@ -6,21 +6,17 @@
 \alias{pick.list}
 \title{Pick subset from telemetry object/list}
 \usage{
-pick(object, m)
+pick(tele, m)
 
 \method{pick}{telemetry}(tele, m)
 
-\method{pick}{list}(tele_list, m)
+\method{pick}{list}(tele, m)
 }
 \arguments{
-\item{object}{Either a list of telemetry object or single telemetry object}
+\item{tele}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
 
 \item{m}{m even spaced points are taken from each object. If m > data size,
 all points are taken.}
-
-\item{tele}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry object}
-
-\item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
 }
 \value{
 \code{pick.telemetry}: telemetry object with m data points
