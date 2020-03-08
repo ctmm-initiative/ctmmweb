@@ -16,9 +16,9 @@ CENTER_TITLE
 }
 \description{
 \itemize{
-\item \code{ctmmweb:::BIGGER_THEME} increase the default ggplot2 legend, axis size
-\item \code{ctmmweb:::BIGGER_KEY} increase default legend key size
-\item \code{ctmmweb:::CENTER_TITLE} place title in center and bold
+\item \code{BIGGER_THEME} increase the default ggplot2 legend, axis size
+\item \code{BIGGER_KEY} increase default legend key size
+\item \code{CENTER_TITLE} place title in center and bold
 }
 }
 \keyword{datasets}
