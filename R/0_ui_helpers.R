@@ -99,7 +99,7 @@ side_bar_modes <- list("Plot Raw Data" = c("import", "plots", "map"),
                        "Occurrence" = c("import", "plots", "model", "occurrence"))
 # help module ui ----
 # server also need it in dynamic UI
-help_button <- function(module_id, style = ctmmweb:::STYLES$help_button, text = "Help") {
+help_button <- function(module_id, style = STYLES$help_button, text = "Help") {
   prefix <- NS(module_id)
   actionButton(prefix("help"),
                text,

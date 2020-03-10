@@ -51,7 +51,7 @@ varioSlidersInput <- function(id, dialog_title) {
                 column(2, offset = 2,
                        actionButton(ns("tuned"), "Apply",
                                     icon = icon("check"),
-                                    style = ctmmweb:::STYLES$page_action)))
+                                    style = STYLES$page_action)))
   )
 }
 ## utility function to calculate slider parameters from data values(check its input and return value).
