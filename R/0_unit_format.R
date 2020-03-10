@@ -30,10 +30,10 @@ pick_unit <- function(vec, dimension){
       test_value <- stats::median(vec)
     }
   switch(dimension,
-         length = ctmm:::unit(test_value, dimension = "length", concise = TRUE),
-         time =   ctmm:::unit(test_value, dimension = "time", concise = FALSE),
-         speed =  ctmm:::unit(test_value, dimension = "speed", concise = TRUE),
-         area =   ctmm:::unit(test_value, dimension = "area", concise = TRUE)
+         length = unit(test_value, dimension = "length", concise = TRUE),
+         time =   unit(test_value, dimension = "time", concise = FALSE),
+         speed =  unit(test_value, dimension = "speed", concise = TRUE),
+         area =   unit(test_value, dimension = "area", concise = TRUE)
          )
 }
 # given a vector of values (or single value) and dimension, return a formatting function. many plot or render code need a function

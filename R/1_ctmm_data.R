@@ -66,13 +66,13 @@ import_tele_files <- function(files, remove_marked_outliers = TRUE) {
 # }
 is_calibrated <- function(tele_obj) {
   # integer will become index in switch, not working with 0
-  switch(as.character(ctmm:::is.calibrated(tele_obj)),
+  switch(as.character(is.calibrated(tele_obj)),
          "1" = "yes",
          "0" = "no",
          NA_character_)
 }
 # uere_calibrated <- function(tele_obj) {
-#   if (ctmm:::is.calibrated(tele_obj) != 1) {
+#   if (is.calibrated(tele_obj) != 1) {
 #     return(NA_real_)
 #   } else {
 #     round(ctmm::uere(tele_obj)@.Data[["all", "horizontal"]], 3)
@@ -169,15 +169,15 @@ assign_distance <- function(animals_dt, tele_list, device_error = 10) {
   animals_dt[, distance_center_raw := sqrt((x - median_x) ** 2 +
                                          (y - median_y) ** 2)]
   # calibrate error, see issue #5
-  # animals_dt[, distance_center := ctmm:::distanceMLE(distance_center,
+  # animals_dt[, distance_center := distanceMLE(distance_center,
   #                                                    device_error)]
   # unique: identity is a column in .SD, dt will take the whole column to index tele_list, create a copy for every row.
-  animals_dt[, error := ctmm:::get.error(
+  animals_dt[, error := get.error(
                           tele_list[[unique(identity)]][row_name,],
                           ctmm(error = device_error,axes = c("x","y")),
                           circle = TRUE),
              by = group_index]
-  animals_dt[, distance_center := ctmm:::distanceMLE(distance_center_raw,
+  animals_dt[, distance_center := distanceMLE(distance_center_raw,
                                                      error),
              by = group_index]
   return(animals_dt)
@@ -237,14 +237,14 @@ assign_speed_pmin <- function(animals_dt, tele_list, device_error) {
 # using ctmm util functions
 assign_speed_ctmm <- function(animals_dt, tele_list, device_error) {
   # assign_speeds expect telemetry obj and will use error info from it. Previously only data frame part is used. Now I need to get the telemetry obj for each animal. will use time_res by itself so no need for dt, also method default to max so no need for that. return a list, we need v.t since it match original row count. v.dt is for in-between.
-  # animals_dt[, speed := ctmm:::assign_speeds(.SD,
-  #                                            dt = ctmm:::time_res(.SD),
+  # animals_dt[, speed := assign_speeds(.SD,
+  #                                            dt = time_res(.SD),
   #                                            UERE = device_error, method = "max"),
   #            by = identity]
   # when using by = identity, each .SD don't have identity column, it's outside.
   # follow usage in ctmm::outlie, error is calculated in distance function
   # row_name is characters, and we are using data.frame row.names to index them.
-  animals_dt[, assigned_speed := ctmm:::assign_speeds(
+  animals_dt[, assigned_speed := assign_speeds(
                           tele_list[[identity]][row_name,],
                           UERE = error)$v.t,
              by = identity]

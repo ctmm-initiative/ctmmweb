@@ -61,7 +61,7 @@ get_tune_page_data <- function(vario, ctmm_obj_ref, ctmm_obj_current,
                                fraction_internal_value,
                                module_id) {
   fraction_face_value <- 10 ^ fraction_internal_value
-  STUFF <- ctmm:::variogram.fit.backend(vario, CTMM = ctmm_obj_current,
+  STUFF <- variogram.fit.backend(vario, CTMM = ctmm_obj_current,
                                         fraction = fraction_face_value, b = 10)
   dt <- data.table(STUFF$DF)
   dt[, name := row.names(STUFF$DF)]
