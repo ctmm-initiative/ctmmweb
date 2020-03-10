@@ -629,15 +629,15 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
 range_action_box <- box(title = "Home Range Estimation",
                         status = "info",
                         solidHeader = TRUE, width = 12,
-                        fluidRow(
-                          column(8, radioButtons("hrange_grid_option", "Estimate Home Range",
-                                                 choices = c("In Same Grid (to compare overlap)" = "same_grid",
-                                                             "Separately (save memory for spread out individuals)" = "separate"),
-                                                 inline = FALSE)),
-                          column(2, offset = 2, actionButton("calc_hrange", "Estimate",
-                                                             icon = icon("map-o"),
-                                                             style = ctmmweb:::STYLES$page_action))
-                          ),
+                        # fluidRow(
+                        #   # column(8, radioButtons("hrange_grid_option", "Estimate Home Range",
+                        #   #                        choices = c("In Same Grid (to compare overlap)" = "same_grid",
+                        #   #                                    "Separately (save memory for spread out individuals)" = "separate"),
+                        #   #                        inline = FALSE)),
+                        #   column(2, offset = 2, actionButton("calc_hrange", "Estimate",
+                        #                                      icon = icon("map-o"),
+                        #                                      style = ctmmweb:::STYLES$page_action))
+                        #   ),
                         fluidRow(
                           column(4, h5(icon("balance-scale"),
                                        shiny::a("Optimal Weighting",
