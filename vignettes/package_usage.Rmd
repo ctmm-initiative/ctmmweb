@@ -2,10 +2,7 @@
 title: "Package Usage"
 author: "Xianghui Dong"
 date: "`r Sys.Date()`"
-output: 
-  html_document: 
-    highlight: haddock
-    theme: flatly
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Package Usage}
   %\VignetteEncoding{UTF-8}
@@ -15,7 +12,9 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width=6, 
+  fig.height=6
 )
 ```
 
@@ -30,6 +29,8 @@ Note When importing your own data, `ctmm::as.telemetry` by default will return s
 ```{r libraries and data}
 library(ctmm)
 library(ctmmweb)
+library(magrittr)
+
 data(buffalo)
 
 # for importing data, use drop = FALSE to make sure it's a proper list.
@@ -80,7 +81,6 @@ knitr::kable(head(loc_data))
 assign_speed(loc_data, buffalo)
 knitr::kable(head(loc_data))
 # Or you can use pipe operator
-library(magrittr)
 loc_data %>% assign_distance(buffalo) %>% assign_speed(buffalo)
 knitr::kable(head(loc_data))
 ```
@@ -177,9 +177,6 @@ print(str(model_try_res[1:3], max.level = 2))
 ```{r}
 # a data.table of models information summary
 model_summary <- summary_tried_models(model_try_res)
-```
-
-```{r}
 # you can also open it with RStudio's data.frame viewer
 knitr::kable(model_summary)
 ```
