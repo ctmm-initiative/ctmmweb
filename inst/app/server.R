@@ -2660,7 +2660,8 @@ output:
   # home range summary ----
   output$range_summary <- DT::renderDT({
     req(select_models())
-    req(select_hrange_grid())
+    # this doesn't return value so cannot req on it. req on hrange result should be enough
+    select_hrange_grid()
     req(values$selected_models_hranges)
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
                                            values$selected_models_hranges)
