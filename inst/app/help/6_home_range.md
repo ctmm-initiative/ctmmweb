@@ -1,8 +1,9 @@
 
 - Home ranges are calculated for the selected models in model selection table. 
   + You can change the selection in that page if you want to change the targets.
+	+ You need to choose the grid for home range calculation first, because certain choice may reasult out of memory error.
 	+ They can be calculated in same grid so it's easier to calculate overlaps. However this will need much more memory for spread out individuals.
-	+ Alternatively you can calculate them individually with overlap feature disabled.
+	+ Alternatively you can calculate them individually to avoid memory error. In this case the overlap feature will be disabled as they are not no longer comparable.
 - Check [ctmm::plot.telemetry](https://ctmm-initiative.github.io/ctmm/reference/plot.telemetry.html) for details:
   - `Contour`: `level.UD`. You can input a series of comma separated values like `20, 50, 95` in contours input, note they are percentage values so the real value will be `0.20, 0.50, 0.95`. 
   - `Confidence Envelopes` : `level`.

@@ -2576,8 +2576,11 @@ output:
   })
   # home range popup ----
   # pop up with same condition of home range calculation. we should use model value change as main trigger, and page value as 2nd condition
-  observeEvent(select_models()$model_list, {
-    if (input$tabs == "homerange") {
+  # observeEvent(select_models()$model_list, {
+  select_hrange_grid <- reactive({
+    # not using page condition as the update is only triggered when home range summary is visible, the actual trigger condition is select_models
+    req(select_models())
+    # if (input$tabs == "homerange") {
       # turn off this to test the UI
       # need this to be available and updated
       # req(select_models())
@@ -2593,7 +2596,7 @@ output:
         ),
         easyClose = FALSE, fade = FALSE
       ))
-    }
+    # }
   })
   # selected_models_hranges ----
   # turn reactive expression into value, triggered by action. All the latter reference need to use req
@@ -2601,6 +2604,7 @@ output:
   observeEvent(input$calc_hrange, {
     # close with button, this trigger calculation. cannot use dismiss button as it doesn't do anything more
     removeModal()
+    # browser()
     req(select_models())
     tele_list <- select_models()$tele_list
     if (input$hrange_grid_option == "same_grid") {
@@ -2655,6 +2659,8 @@ output:
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range summary ----
   output$range_summary <- DT::renderDT({
+    req(select_models())
+    req(select_hrange_grid())
     req(values$selected_models_hranges)
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
                                            values$selected_models_hranges)
