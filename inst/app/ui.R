@@ -105,9 +105,8 @@ workflow_box <- box(title = "Analysis Guide",
 vigenette_box <- box(title = "Vignettes",
                      status = "primary", solidHeader = TRUE,
                      width = 12,
-                     fluidRow(
-                       # column(9, )
-                       ))
+                     fluidPage(includeMarkdown("help/0_vignette.md"))
+                       )
 # p1.a upload ----
 upload_box <- box(title = "Upload Data",
                   status = "info", solidHeader = TRUE, width = 12,
