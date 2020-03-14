@@ -1,3 +1,9 @@
+## version 0.2.6.9003, 2020/03/14, Misc Updates
+- Home range grid option will pop up automatically now.
+- Windows installer is updated with R 3.6.3.
+- Start page reorganized with more introduction and guides on workflow.
+- Preparing CRAN release.
+
 ## version 0.2.6.9000, 2019/11/11, Misc Updates
 - Home range estimation now has the option to select either calculate in same grid or individually, because sometimes the spread out individuals can cause out of memory error. The selection must happen before estimation so the page will need user to manual trigger the calculation.
 - Updated model summary code to follow changes in `ctmm` side on `ML`/`est` changes. Older version will break with the more recent `ctmm` version.
