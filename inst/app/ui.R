@@ -52,7 +52,7 @@ sidebar <- dashboardSidebar(
   #   )
   # )
 )
-# p1.a app options ----
+# p0.a app options ----
 app_options_box <- box(title = "App Options",
                                       status = "primary", solidHeader = TRUE,
                                       width = 12,
@@ -75,7 +75,7 @@ app_options_box <- box(title = "App Options",
     column(3, uiOutput("view_report")),
     column(3, offset = 6, ctmmweb:::help_button("app_options"))
                                       ))
-# p1.b workflow ----
+# p0.b workflow ----
 workflow_box <- box(title = "Analysis Guide",
                        status = "primary", solidHeader = TRUE,
                        width = 12,
@@ -101,7 +101,13 @@ workflow_box <- box(title = "Analysis Guide",
                          # column(3, uiOutput("view_report")),
                          column(3, offset = 0, ctmmweb:::help_button("workflow"))
                        ))
-# p1.c upload ----
+# p0.c vignette ----
+vigenette_box <- box(title = "Vignettes",
+                     status = "primary", solidHeader = TRUE,
+                     width = 12,
+                     fluidPage(includeMarkdown("help/0_vignette.md"))
+                       )
+# p1.a upload ----
 upload_box <- box(title = "Upload Data",
                   status = "info", solidHeader = TRUE, width = 12,
   fluidRow(
@@ -123,7 +129,7 @@ upload_box <- box(title = "Upload Data",
                            ))
            )
     )
-# p1.d ctmm internal data ----
+# p1.b ctmm internal data ----
 ctmm_import_box <- box(title = "Import from ctmm package",
                   collapsible = TRUE,
                   # collapsed = TRUE,
@@ -144,7 +150,7 @@ ctmm_import_box <- box(title = "Import from ctmm package",
                     column(12, DT::DTOutput("data_set_table"))
                   )
 )
-# p1.e movebank studies ----
+# p1.c movebank studies ----
 movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
                             status = "warning", solidHeader = TRUE, width = 12,
       fluidRow(
@@ -883,11 +889,11 @@ body <- dashboardBody(
   includeCSS("www/styles.css"),
   # match menuItem
   tabItems(
-    # tabItem(tabName = "intro", fluidPage(includeMarkdown("help/workflow1.md"))),
+    tabItem(tabName = "intro", fluidRow(app_options_box,
+                                        workflow_box,
+                                        vigenette_box)),
     tabItem(tabName = "import",
-                            fluidRow(app_options_box,
-                                     workflow_box,
-                                     upload_box,
+                            fluidRow(upload_box,
                                      ctmm_import_box),
                             fluidRow(movebank_studies_box,
                                      movebank_study_detail_box,

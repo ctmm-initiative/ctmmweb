@@ -16,7 +16,7 @@ server <- function(input, output, session) {
   # side bar by mode ----
   customize_menu <- function(..., menu_id, menu_type) {
     menu_styles <- c(main = "font-weight:700", sub = "font-style: italic;")
-    icon_styles <- c(main = "color:#92f596", sub = "color:#3177ad")
+    icon_styles <- c(main = "color:#92f596", sub = "color:#2196f3")
     item <- menuItem(text = ctmmweb:::PAGE_title[[menu_id]], tabName = menu_id, ...)
     item[["children"]][[1]][["children"]][[2]][["attribs"]]$style <- menu_styles[[menu_type]]
     item[["children"]][[1]][["children"]][[1]][["attribs"]][["style"]] <- icon_styles[[menu_type]]
@@ -37,8 +37,10 @@ server <- function(input, output, session) {
       id = "tabs",
       # uiOutput("side_menus"),
       # match tabItem, page_title in server.R need to sync with this.
-      customize_menu(menu_id = "import", icon = icon("folder-open-o"),
+      customize_menu(menu_id = "intro", icon = icon("question-circle-o"),
                      selected = TRUE,
+                     menu_type = menu_vec[["intro"]]),
+      customize_menu(menu_id = "import", icon = icon("folder-open-o"),
                      menu_type = menu_vec[["import"]]),
       customize_menu(menu_id = "plots", icon = icon("area-chart"),
                      menu_type = menu_vec[["plots"]]),
@@ -2660,7 +2662,8 @@ output:
   # home range summary ----
   output$range_summary <- DT::renderDT({
     req(select_models())
-    req(select_hrange_grid())
+    # this doesn't return value so cannot req on it. req on hrange result should be enough
+    select_hrange_grid()
     req(values$selected_models_hranges)
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
                                            values$selected_models_hranges)

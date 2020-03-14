@@ -84,7 +84,9 @@ STYLES <- list(
 )
 # sidebar menu ----
 # the page title in report chapters need to sync with ui. save them in one list
-PAGE_title <- list(import = "Import Data",
+# just change title is easy, changing actual id involves too many changes.
+PAGE_title <- list(intro = "Introduction",
+                   import = "Import",
                    plots = "Visualization",
                    filter = "Filter Outliers",
                    subset = "Time Subsetting",
