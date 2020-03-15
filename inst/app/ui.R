@@ -75,37 +75,21 @@ app_options_box <- box(title = "App Options",
     column(3, uiOutput("view_report")),
     column(2, offset = 7, ctmmweb:::help_button("app_options"))
                                       ))
-# p0.b workflow ----
-workflow_box <- box(title = "Analysis Guide",
+# p0.b guide ----
+guide_box <- box(title = "Analysis Guide",
                        status = "primary", solidHeader = TRUE,
                        width = 12,
                        fluidRow(
                          # column(9, checkboxGroupInput("workflow_modes", label = "Select goal(s) to see required steps highlighted",
                          #                         choices = names(ctmmweb:::side_bar_modes),
-                         #                         inline = FALSE)),
-                         # regular checkboxgroup doesn't align in wrapped 2nd row
+                         #                         inline = TRUE)),
+                         # regular checkboxgroup doesn't align in wrapped 2nd row. if we have to align each checkbox, we can use independent checkbox with columns to fix the layout. but that need manual write each option, and collect all values manually in server end, not like now I just edit a list.
                          column(10, prettyCheckboxGroup(
                            inputId = "workflow_modes", label = "Select goal(s) to see required steps highlighted",
                            choices = names(ctmmweb:::side_bar_modes),
                            # icon = icon("check-square-o"),
                            status = "success", outline = FALSE, inline = TRUE
                          )),
-                         # column(4, checkboxInput("record_on",
-                         #                         div(icon("video-camera"),
-                         #                             HTML('&nbsp;'),
-                         #                             "Record Actions")
-                         #                         , value = TRUE)),
-                         # column(4, offset = 0, checkboxInput("capture_error",
-                         #                                     div(icon("stethoscope"),
-                         #                                         HTML('&nbsp;'),
-                         #                                         "Collect Diagnostic Info"),
-                         #                                     value = FALSE)),
-                         # column(3, offset = 1, checkboxInput("parallel",
-                         #                                     div(icon("cogs"),
-                         #                                         HTML('&nbsp;'),
-                         #                                         "Parallel Mode"),
-                         #                                     value = TRUE)),
-                         # column(3, uiOutput("view_report")),
                          column(2, offset = 0, ctmmweb:::help_button("guide"))
                        ))
 # p0.c vignette ----
@@ -900,7 +884,7 @@ body <- dashboardBody(
   # match menuItem
   tabItems(
     tabItem(tabName = "intro", fluidRow(app_options_box,
-                                        workflow_box,
+                                        guide_box,
                                         vigenette_box)),
     tabItem(tabName = "import",
                             fluidRow(upload_box,
