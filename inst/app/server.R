@@ -322,7 +322,7 @@ output:
   }
   # the app option help is registered after help function is ready
   callModule(click_help, "app_options", title = "App Options",
-             size = "l", file = "help/1_app_options.md")
+             size = "l", file = "help/0_app_options.md")
   # capture error ----
   ## 1st version always capture in web mode, not capture in local mode. 2nd version capture by default, switch by checkbox, which require setup in beginning, each checkbox event need to clean up or setup. 3rd version not capture by default, capture in web mode. the initial run trigger event on uncheck so need to check if the temp file exist already (we could skip init event but that will lost the log msg of error direction)
   # the setup is run in beginning, also run with checkbox event. don't run twice if already exist. global switch variable need to detect status.
@@ -619,8 +619,10 @@ output:
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
-  callModule(click_help, "workflow", title = "Workflow", size = "l",
-             file = "help/1_workflow.md")
+  callModule(click_help, "guide", title = "How to use the analysis guide", size = "l",
+             file = "help/0_guide.md")
+  callModule(click_help, "vignettes", title = "Vignettes",
+             size = "l", file = "help/0_vignettes_help.md")
   # p1. import ----
   # 1.1.a import dialog ----
   # only some data are in movebank format (other only have x,y,t, without timestamp and coordinates, app will not work)
@@ -665,7 +667,7 @@ output:
     log_msg("Importing file", input$tele_file$name)
     import_tele_to_app(input$tele_file$datapath)
   })
-  callModule(click_help, "upload_data", title = "Upload Data", size = "l",
+  callModule(click_help, "upload_data", title = "Upload and Restore", size = "l",
              file = "help/1_upload_data.md")
   callModule(click_help, "ctmm_import", title = "Dataset in ctmm package", size = "l",
              file = "help/1_ctmm_import.md")

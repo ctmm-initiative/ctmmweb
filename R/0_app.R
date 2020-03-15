@@ -12,7 +12,7 @@
 #' - Default `NULL` will not load any data.
 #'
 #' @export
-#' @import data.table
+#' @import data.table shinyWidgets
 #'
 app <- function(shiny_app_data = NULL) {
   app_DIR <- system.file("app", package = "ctmmweb")

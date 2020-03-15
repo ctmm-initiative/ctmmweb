@@ -1,0 +1,2 @@
+- Here we included various vignettes from `ctmm` which provided detailed explanations on the theory, and some simple demo and usage vignettes for `ctmmweb` app.
+- The vignettes section is still working in progress. In the future we will have more beginner friendly vignettes specifically for ctmmweb.

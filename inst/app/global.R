@@ -4,6 +4,7 @@
 # still need to load these package because some are too frequently used to use qualifier, some need to be loaded to perform properly (ctmm, data.table)
 library(shiny)
 library(shinydashboard)
+library(shinyWidgets)
 library(ctmm)
 library(data.table)
 library(magrittr)

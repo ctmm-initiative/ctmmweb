@@ -10,4 +10,3 @@
 ### Report
 - If app is running locally, `Preview Report` will compile current recordings into a html report, and open it in a new browser window.
 - If app is running in hosted server, report cannot be opened automatically because of security limits. It has to be downloaded with `Download Report` then you can open it.
-

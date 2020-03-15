@@ -97,8 +97,11 @@ PAGE_title <- list(intro = "Introduction",
                    speed = "Speed/Distance",
                    map = "Map")
 side_bar_modes <- list("Plot Raw Data" = c("import", "plots", "map"),
+                       "Model Selection" = c("import", "plots", "model"),
                        "Home Range" = c("import", "plots", "model", "homerange", "map"),
-                       "Occurrence" = c("import", "plots", "model", "occurrence"))
+                       "Home Range Overlap" = c("import", "plots", "model", "homerange", "overlap", "map"),
+                       "Occurrence" = c("import", "plots", "model", "occurrence"),
+                       "Speed/Distance" = c("import", "plots", "model", "Speed"))
 # help module ui ----
 # server also need it in dynamic UI
 help_button <- function(module_id, style = STYLES$help_button, text = "Help") {

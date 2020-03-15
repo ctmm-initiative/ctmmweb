@@ -73,16 +73,23 @@ app_options_box <- box(title = "App Options",
                                 "Parallel Mode"),
                             value = TRUE)),
     column(3, uiOutput("view_report")),
-    column(3, offset = 6, ctmmweb:::help_button("app_options"))
+    column(2, offset = 7, ctmmweb:::help_button("app_options"))
                                       ))
 # p0.b workflow ----
 workflow_box <- box(title = "Analysis Guide",
                        status = "primary", solidHeader = TRUE,
                        width = 12,
                        fluidRow(
-                         column(9, checkboxGroupInput("workflow_modes", label = "Analysis Modes",
-                                                 choices = names(ctmmweb:::side_bar_modes),
-                                                 inline = TRUE)),
+                         # column(9, checkboxGroupInput("workflow_modes", label = "Select goal(s) to see required steps highlighted",
+                         #                         choices = names(ctmmweb:::side_bar_modes),
+                         #                         inline = FALSE)),
+                         # regular checkboxgroup doesn't align in wrapped 2nd row
+                         column(10, prettyCheckboxGroup(
+                           inputId = "workflow_modes", label = "Select goal(s) to see required steps highlighted",
+                           choices = names(ctmmweb:::side_bar_modes),
+                           # icon = icon("check-square-o"),
+                           status = "success", outline = FALSE, inline = TRUE
+                         )),
                          # column(4, checkboxInput("record_on",
                          #                         div(icon("video-camera"),
                          #                             HTML('&nbsp;'),
@@ -99,13 +106,16 @@ workflow_box <- box(title = "Analysis Guide",
                          #                                         "Parallel Mode"),
                          #                                     value = TRUE)),
                          # column(3, uiOutput("view_report")),
-                         column(3, offset = 0, ctmmweb:::help_button("workflow"))
+                         column(2, offset = 0, ctmmweb:::help_button("guide"))
                        ))
 # p0.c vignette ----
 vigenette_box <- box(title = "Vignettes",
                      status = "primary", solidHeader = TRUE,
                      width = 12,
-                     fluidPage(includeMarkdown("help/0_vignette.md"))
+                     fluidRow(column(10,
+                                     fluidPage(includeMarkdown("help/0_vignette.md"))),
+                              column(2, offset = 0, ctmmweb:::help_button("vignettes")))
+
                        )
 # p1.a upload ----
 upload_box <- box(title = "Upload Data",
@@ -824,7 +834,7 @@ speed_control_box <- box(title = "Estimate Speed", status = "info",
                                                value = 400,
                                                min = 200, max = 1200,
                                                step = 100)),
-            column(2, offset = 1, br(), ctmmweb:::help_button("estimate_speed")),
+            column(3, offset = 1, br(), ctmmweb:::help_button("estimate_speed")),
             column(5, offset = 0,
                    # if using group input, one value change trigger the whole input value, thus label change trigger speed calculations. use align_up to reduce gap between them.
                    checkboxInput("show_estimate_ci",
