@@ -1,2 +1,3 @@
-- Here we included various vignettes from `ctmm` which provided detailed explanations on the theory, and some simple demo and usage vignettes for `ctmmweb` app.
-- The vignettes section is still working in progress. In the future we will have more beginner friendly vignettes specifically for ctmmweb.
+- The vignettes section is currently a work in progress. In the future, we will develop a series of beginner friendly vignettes specifically for `ctmmweb`.
+- For the time being, we include the vignettes from the `ctmm` R package, which provide detailed explanations of concepts and theory behind the core analyses supported in `ctmmweb`.
+- We also provide a simple demo of `ctmmweb`, as well as a vignette for the more advanced user that demonstrates using `ctmmweb` from the command line, in combination with the `ctmm` package.
