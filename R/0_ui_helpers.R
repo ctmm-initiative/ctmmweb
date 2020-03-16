@@ -101,7 +101,7 @@ side_bar_modes <- list("Plot Raw Data" = c("import", "plots", "map"),
                        "Home Range" = c("import", "plots", "model", "homerange", "map"),
                        "Home Range Overlap" = c("import", "plots", "model", "homerange", "overlap", "map"),
                        "Occurrence" = c("import", "plots", "model", "occurrence"),
-                       "Speed/Distance" = c("import", "plots", "model", "Speed"))
+                       "Speed/Distance" = c("import", "plots", "model", "speed"))
 # help module ui ----
 # server also need it in dynamic UI
 help_button <- function(module_id, style = STYLES$help_button, text = "Help") {
