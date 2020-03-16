@@ -1,7 +1,7 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.2.6.9003
+Version: 0.2.6.9004
 Authors@R: as.person(c( "Xianghui Dong <xhdong@umd.edu> [aut, cre]", "C.H. Fleming [ctb]", "M.J. Noonan
             [ctb]", "J.M. Calabrese [ctb]" ))
 URL: https://github.com/ctmm-initiative/ctmmweb
@@ -13,10 +13,10 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.0.2
 Roxygen: list(markdown = TRUE)
-Imports: shiny (>= 1.1.0), shinydashboard, shinyWidgets, DT, crayon, rmarkdown, knitr, data.table (>= 1.11.4), ctmm,
-            magrittr, purrr, parallel, memoise, ggplot2 (>= 3.0.0), ggrepel, scales, grid, gridExtra,
-            lubridate, leaflet, sp, rgdal, leaflet.extras, htmlwidgets, rgeos, httr, stringr, XML, xml2,
-            zip, bit64
+Imports: shiny (>= 1.1.0), shinydashboard, shinyWidgets, DT, crayon, rmarkdown, knitr, data.table (>=
+            1.11.4), ctmm, magrittr, purrr, parallel, memoise, ggplot2 (>= 3.0.0), ggrepel, scales, grid,
+            gridExtra, lubridate, leaflet, sp, rgdal, leaflet.extras, htmlwidgets, rgeos, httr, stringr,
+            XML, xml2, zip, bit64
 Remotes: ctmm-initiative/ctmm
 VignetteBuilder: knitr
-LastCommit: [90aaf33] 2020-02-25: add help text
+LastCommit: [971ea21] 2020-03-16: update guide and help
