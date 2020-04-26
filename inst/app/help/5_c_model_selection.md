@@ -17,16 +17,15 @@
 - For more information see [vignette](https://ctmm-initiative.github.io/ctmm/articles/variogram.html#maximum-likelihood-fitting-the-easy-way), [`ctmm.select`](https://ctmm-initiative.github.io/ctmm/reference/ctmm.fit.html)
 - Reference table of models
 
-  |Movement Models     &nbsp; &nbsp;   |Position <br>Autocorrelation  &nbsp; &nbsp; |Velocity <br>Autocorrelation  &nbsp; &nbsp;|Home Range  &nbsp; &nbsp;|Parameterization |
-  |:--------------------------|:-------------------------|:------------------------|:----------|:----------------|
-  |Ind. Ident. Distr. (IID)   |No                        |No                       |Yes        |τ = NULL         |
-  |Brownian Motion (BM)       |Yes                       |No                       |No         |τ = ∞            |
-  |Ornstein–Uhlenbeck (OU)    |Yes                       |No                       |Yes        |τ = τr           |
-  |Integrated OU (IOU)        |Yes                       |Yes                      |No         |τ = {∞, τv}      |
-  |Ornstein-Uhlenbeck F (OUF) |Yes                       |Yes                      |Yes        |τ = {τr, τv}     |
-  |Special case of OUF (OUf) |Yes                       |Yes                      |Yes        |τ = {τ, τ}, τr = τv |
-  |Oscillatory (OUΩ) |Yes                       |Yes                      |Yes        |τ = {τ, τ}, Ω > 0|
-
+| Movement Models     &nbsp; &nbsp;        | Position <br>Autocorrelation  &nbsp; &nbsp; | Velocity <br>Autocorrelation  &nbsp; &nbsp; | Home Range  &nbsp; &nbsp; | Parameterization    |
+|:-----------------------------------------|:--------------------------------------------|:--------------------------------------------|:--------------------------|:--------------------|
+| Ind. Ident. Distr. (IID)                 | No                                          | No                                          | Yes                       | τ = NULL            |
+| Brownian Motion (BM)                     | Yes                                         | No                                          | No                        | τ = ∞               |
+| Ornstein–Uhlenbeck (OU)                  | Yes                                         | No                                          | Yes                       | τ = τr              |
+| Integrated OU (IOU)                      | Yes                                         | Yes                                         | No                        | τ = {∞, τv}         |
+| Ornstein-Uhlenbeck F (OUF) &nbsp; &nbsp; | Yes                                         | Yes                                         | Yes                       | τ = {τr, τv}        |
+| Special case of OUF (OUf)                | Yes                                         | Yes                                         | Yes                       | τ = {τ, τ}, τr = τv |
+| Oscillatory OU (OUΩ)                     | Yes                                         | Yes                                         | Yes                       | τ = {τ, τ}, ω > 0   |
 - [C. H. Fleming, J. M. Calabrese, T. Mueller, K.A. Olson, P. Leimgruber, W. F. Fagan. From fine-scale foraging to home ranges: A semi-variance approach to identifying movement modes across spatiotemporal scales. The American Naturalist, 183:5, E154-E167 (2014).](https://doi.org/10.1086/675504)
 
 - [C. H. Fleming, Y. Subasi, J. M. Calabrese. A maximum-entropy description of animal movement. Physical Review E, 91, 032107 (2015).](https://doi.org/10.1103/PhysRevE.91.032107)
