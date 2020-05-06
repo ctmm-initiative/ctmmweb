@@ -485,12 +485,19 @@ output:
     }
     tele_list <- tryCatch(
       withCallingHandlers(
-        # previously as.telemetry can work on single file or data.frame, but now we need special treatment for importing multiple files, so it need to be separated.
-        if (is.data.frame(as_telemetry_input)) {
-          ctmm::as.telemetry(as_telemetry_input, mark.rm = TRUE, drop = FALSE)
-        } else {
-          ctmmweb:::import_tele_files(as_telemetry_input)
-          },
+        {
+          # stopped, as it's kind of cumbersome to detect outlier column here again. unless really need this.
+          # if there is marked outliers, give a warning as they are going to be removed
+          # showNotification("Manually marked outliers detected and removed, see help on import",
+          #                  duration = 5, type = "warning")
+          # previously as.telemetry can work on single file or data.frame, but now we need special treatment for importing multiple files, so it need to be separated.
+          # always remove marked outliers. if they were marked, they were expected to be excluded. the only way to import and keep outliers in data is to restore progress zip. or export for movebank usage, which can keep the outliers.
+          if (is.data.frame(as_telemetry_input)) {
+            ctmm::as.telemetry(as_telemetry_input, mark.rm = TRUE, drop = FALSE)
+          } else {
+            ctmmweb:::import_tele_files(as_telemetry_input)
+          }
+        },
         warning = wHandler
         ),
       error = eHandler)
@@ -1094,10 +1101,16 @@ output:
       # LOG export current
       log_dt_md(select_data()$info, "Export current data")
       export_current_path <- file.path(session_tmpdir, "export.csv")
+      # https://github.com/ctmm-initiative/ctmmweb/issues/72
+      # In saved progress zip outlier is always restored. In export, it can be removed or kept which is supposed to be movebank import. Import a csv with outliers in webapp will remove them.
       # add outliers back with extra marked outlier column for movebank compability. values$data$all_removed_outliers have many extra columns for outlier calculation, need to pick columns(we have input_tele_list but not input dt). need to filter by selected identity.
-      dt <- ctmmweb:::add_outliers_back(select_data()$data_dt,
-                              select_data()$chosen_ids,
-                              values$data$all_removed_outliers)
+      if (input$keep_outliers) {
+        dt <- ctmmweb:::add_outliers_back(select_data()$data_dt,
+                                select_data()$chosen_ids,
+                                values$data$all_removed_outliers)
+      } else {
+        dt <- select_data()$data_dt
+      }
       fwrite(dt, file = export_current_path,
              dateTimeAs = "write.csv")
       file.copy(export_current_path, file)

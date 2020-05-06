@@ -11,7 +11,18 @@ vignette: >
 
 ## Installation
 
-*We have a [windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.6b/ctmmwebsetup_beta.exe) which will do everything below.* 
+### Windows Installer
+
+- You can run our [windows installer](https://github.com/ctmm-initiative/ctmmweb/releases/download/v0.2.6b/ctmmwebsetup_beta.exe) which will guide through these steps in a wizard style:
+  - Install R. This could be skipped if you already have R installed.
+    Note it's possible to have multiple versions of R installed, however that may require more knowledge and tweaks. For example if you had a R 3.6 version Rscript.exe in windows PATH but just installed R 4.0 without uninstall R 3.6, the installer will fail because a R 3.6 Rscript will be used to install the packages.
+    We suggest to always install and keep the latest R version to avoid possible problems.
+  - Install `ctmmweb` package from github.
+  - Start `ctmmweb` app.
+  - Shortcuts for the app and a self update script can be created in program menu too.
+
+
+### Install with R
 
 1. Install R
 
