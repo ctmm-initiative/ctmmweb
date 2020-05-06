@@ -10,7 +10,7 @@
 
 ### Individuals table
 - The color of rows match the colors in other plots. You can *customize rows per page*, *sort the rows by column*, or *use the search box to filter by name*.
-- Current subset can be exported as csv file with `Export Current` button.
+- Current subset can be exported as csv file with `Export Current` button. If `Keep Outliers` is selected, picked outliers will be saved as manually marked outliers in csv, which can be imported to Movebank website and be recognized. Otherwise the picked outliers will be removed.
 - The interval/duration are formated with human readable time units, see [this](https://ctmm-initiative.github.io/ctmm/reference/unit.html) for details.
 
 ### Plots

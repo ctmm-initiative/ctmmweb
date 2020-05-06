@@ -2,6 +2,7 @@
 ### Upload Data
 - Data must be (multiple) (compressed) csv file in [Movebank format](https://www.movebank.org/node/13).
 - The csv file can be compressed in `zip`, `gz`, `bzip` etc, but there can only be one file in a zip.
+    Manually marked outliers in csv will be removed in importing. 
 - You can drag and drop files into the file uploader. Multiple files upload is not supported by all browsers. Chrome is the recommended browser.
 
 ### Save Progress
@@ -22,7 +23,6 @@
 - `Plot DPI` control the dpi of saved plot pictures. You can resize the app to change the plot size.
 - The zip can be imported later by `Restore Progess` button in `import` page. Thus you can restore previoius data and cache. Note the app data format may evolve and old saved data may not work with newer version app. You can always use the exactly same version app if needed.
 - If you made some changes to the original input data like removed outliers, added time subsets, you can save the changes through `Save Progress`. Later you can restore the csv data through `combined_data_table.csv`, the more complete data through `data.rds`, or whole data zip through `Restore Progess`.
-
 
 ### Restore Progress
 - Uploading the saved zip from `Restore Progress` will restore the input data and previous caches.
