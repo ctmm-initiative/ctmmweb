@@ -1,3 +1,9 @@
+## version 0.2.10, 2020/05/06, Multiple polishes with R 4.0
+- Multiple updates and changes accompany with the recent ctmmweb paper. Including a new guide page for different workflow modes, many updates on help documents.
+- Changed the recomanded installation method to `remotes::install_github`. 
+- Tested with R 4.0 and the 0.5.10 version of ctmm. 
+- Updated the windows installer to R 4.0 and `remotes` installation method.
+
 ## version 0.2.6.9003, 2020/03/14, Misc Updates
 - Home range grid option will pop up automatically now.
 - Windows installer is updated with R 3.6.3.
