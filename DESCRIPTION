@@ -19,4 +19,4 @@ Imports: shiny (>= 1.1.0), shinydashboard, shinyWidgets, DT, crayon, rmarkdown, 
             XML, xml2, zip, bit64
 Remotes: ctmm-initiative/ctmm
 VignetteBuilder: knitr
-LastCommit: [3ffa3df] 2020-05-06: update text to 0.2.10
+LastCommit: [901ee1e] 2020-05-10: seemed fully fix error capture

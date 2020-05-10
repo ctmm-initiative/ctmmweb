@@ -102,7 +102,6 @@ server <- function(input, output, session) {
                  messageItem(
                    from = "Package Build Date",
                    message = PKG_BUILD_INFO$build_date,
-                   # message = "test",
                    icon = icon("calendar-o")),
                  messageItem(
                    from = "Issues",
