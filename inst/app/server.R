@@ -326,15 +326,21 @@ output:
   # capture error ----
   ## 1st version always capture in web mode, not capture in local mode. 2nd version capture by default, switch by checkbox, which require setup in beginning, each checkbox event need to clean up or setup. 3rd version not capture by default, capture in web mode. the initial run trigger event on uncheck so need to check if the temp file exist already (we could skip init event but that will lost the log msg of error direction)
   # the setup is run in beginning, also run with checkbox event. don't run twice if already exist. global switch variable need to detect status.
+  # it seeemed that, once we have something updated, the dialog cannot pop up normally. test in local mode, the console is still printing because we only sink the message stream. then clicking button didn't show anything because there is no error yet, we prevent it to show.
   ERROR_CAPTURED <- FALSE
+  # just generate error file here. it should be fixed for each session
+  ERROR_FILE <- tempfile()
   setup_error_capture <- function(){
     # only run when not already captured, otherwise will cause problem
     if (!ERROR_CAPTURED) {
       # each session have one error log file. different client will have different file in same server
-      values$error_file <- tempfile()
+      # values$error_file <<- tempfile()
       # the capturing code is not inside observer anymore, but it need to be inside a reactive context (there is no warning?), put it here
-      values$error_file_con <- file(values$error_file, open = "a")
+      # values$error_file_con <<- file(values$error_file, open = "a")
+      values$error_file_con <<- file(ERROR_FILE, open = "a")
+      # print(values$error_file_con)
       sink(values$error_file_con, type = "message")
+      # sink(values$error_file_con)
       ERROR_CAPTURED <<- TRUE
       # we may want to setup later without msg, put msg in formal call
       # log_msg("Error messages captured in App")
@@ -347,12 +353,19 @@ output:
   if (!APP_local) {
     updateCheckboxInput(session, "capture_error", value = TRUE)
     }
-  # clean up. needed in app exit and checking option off.
-  clean_up_error_capture <- function(error_con) {
-    # app default to not capture, app start trigger checkbox false mode which try to clean up, but not setup yet
+  # clean up. needed in app exit and checking option off. this is pure side effect, and always check the error connection, no need to use parameters.
+  clean_up_error_capture <- function() {
+    # app default to not capture, app start trigger checkbox false mode which try to clean up, but not setup yet. this should not be needed in startup, and we can ignore it by using ignore init for capture button, however checking this in startup can be helpful if some error happened before with connections.
+    error_con <- isolate(values$error_file_con)
+    # not sure why, somehow, turn on capture, record some message, turn it off, here will have error_con as null thus didn't really revert sink. try revert sink and close connection differently.
+    if (sink.number(type = "message") != 2) {
+      sink(type = "message")
+    }
+    # the connections may not be in right mode. check with showConnections(all=TRUE). we cannot just close all connections, as we need to write rmd.
     if (!is.null(error_con)) {
       # need to restore sink first, otherwise connection cannot be closed. if don't restore, other message got lost too.
-      sink(type = "message")
+      # in debug mode, if connection is not closed properly, sink once may not work as expected. check with sink.number(type = "message"), 2 if no diversion has been used.
+      # sink(type = "message")
       try(flush(error_con))
       try(close(error_con))
     }
@@ -363,7 +376,7 @@ output:
       setup_error_capture()
       log_msg("Diagnostic info collected in App")
     } else {
-      clean_up_error_capture(values$error_file_con)
+      clean_up_error_capture()
       ERROR_CAPTURED <<- FALSE
       log_msg("Diagnostic info printing to R Console")
     }
@@ -375,7 +388,7 @@ output:
   onStop(function() {
     # if option is off, clean up is done already
     if (isolate(input$capture_error)) {
-      clean_up_error_capture(isolate(values$error_file_con))
+      clean_up_error_capture()
     }
     # in app() mode it will be inside app() env so have warning
     suppressWarnings(
@@ -393,9 +406,12 @@ output:
   )
   # show error msg ----
   observeEvent(input$show_error, {
+    # we cannot just use req. when there is no error, the file is empty or nothing is written.
+    # interestingly, first turn on capture, then import, then here, values$error_file is NULL, even we used <<-. we don't have to use reactive value for error file, it should be fixed in one session, so always generate it, just sink or not depend on option.
     showModal(modalDialog(title = "Diagnostic Info",
                 fluidRow(
-                  column(12, pre(includeText(req(values$error_file)))),
+                  # column(12, pre(includeText(req(values$error_file)))),
+                  column(12, pre(includeText(ERROR_FILE))),
                   column(12, h4("App Build Info")),
                   column(12, verbatimTextOutput("app_info")),
                   column(12, h4("Session information")),
@@ -506,7 +522,8 @@ output:
       if (input$capture_error) {
         showModal(modalDialog(title = "Import Warning",
                     fluidRow(
-                      column(12, pre(includeText(req(values$error_file))))),
+                      # column(12, pre(includeText(req(values$error_file))))),
+                      column(12, pre(includeText(ERROR_FILE)))),
                     size = "l", easyClose = TRUE, fade = FALSE))
       } else {
         showNotification("Warning in import, check R console",
@@ -3445,13 +3462,13 @@ output:
         # unlink(file.path(session_tmpdir, files_to_save))
         file.copy(saved_zip_path, file, overwrite = TRUE)
         log_msg("Data zip generated")
-        # after saving progress, error log doesn't pop up, need to turn it off and on again
-        clean_up_error_capture(values$error_file_con)
-        if (ERROR_CAPTURED) {
-          # the switch means already capturing, setup only start when not already capturing, we need it since we clean up already
-          ERROR_CAPTURED <<- FALSE
-          setup_error_capture()
-        }
+        # after saving progress, error log doesn't pop up, need to turn it off and on again ~ this was probably a hack. Now with proper setup, don't need this extra reset.
+        # clean_up_error_capture()
+        # if (ERROR_CAPTURED) {
+        #   # the switch means already capturing, setup only start when not already capturing, we need it since we clean up already
+        #   ERROR_CAPTURED <<- FALSE
+        #   setup_error_capture()
+        # }
       }
     }
   )
