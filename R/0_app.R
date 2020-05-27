@@ -27,14 +27,14 @@ app <- function(shiny_app_data = NULL) {
   shiny::runApp(shiny_app, launch.browser = TRUE, display.mode = "normal")
 }
 # check new release version of package
-check_update <- function(installed_pkg_time) {
-  installed_pkg_date <- lubridate::date(installed_pkg_time)
+check_update <- function(installed_pkg_build_date) {
+  # installed_pkg_date <- lubridate::date(installed_pkg_time)
   # https://developer.github.com/v3/repos/commits/#get-a-single-commit
   base_url <- "https://api.github.com/repos/ctmm-initiative/ctmmweb/commits"
   # for test, use an older since_date otherwise no result found
   # url <- paste0(base_url, "?since=" , "2019-01-01")
-  url <- paste0(base_url, "?since=" , installed_pkg_date)
-  # 600 ms, max 3.3 s.
+  url <- paste0(base_url, "?since=" , installed_pkg_build_date)
+  # 600 ms, max 3.3 s. so there will be one time delay if there is no internet.
   res <- try(httr::GET(url, httr::timeout(3)))
   if (inherits(res, "try-error")) {
     # cat("Update check failed\n")
@@ -53,8 +53,8 @@ check_update <- function(installed_pkg_time) {
   if (length(content) != 0) {
     latest_commit_time <- lubridate::ymd_hms(
       content[[1]][["commit"]][["author"]][["date"]])
-    # reverse condition for test
-    if (installed_pkg_time < latest_commit_time) {
+    # reverse condition for test. Note in local development we could have local build newer than last commit in github. so nothing will happen.
+    if (lubridate::ymd(installed_pkg_build_date) < latest_commit_time) {
       shiny::showNotification("New release found, please update the app. Windows user can run the Update app link from start menu.",
                               duration = 9, type = "warning")
       return(TRUE)

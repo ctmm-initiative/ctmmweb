@@ -126,9 +126,10 @@ server <- function(input, output, session) {
     days_passed <- (lubridate::now() - last_check_time) / lubridate::ddays(1)
     # check update.
     if (days_passed > 60) {
-      installed_pkg_time <- file.mtime(system.file("app", package = "ctmmweb"))
-      # this only give notifications if needed, doesn't do anything
-      ctmmweb:::check_update(installed_pkg_time)
+      # ideally should use last commit date in description, not installation time. but this is only available after we started to put it in description, and need to update it from time to time.
+      # installed_pkg_time <- file.mtime(system.file("app", package = "ctmmweb"))
+      installed_pkg_build_date <- ctmmweb:::get_build_info()$build_date
+      ctmmweb:::check_update(installed_pkg_build_date)
     }
     # take current date, record as pkg data
     last_check_time <- lubridate::now()
