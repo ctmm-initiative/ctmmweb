@@ -30,7 +30,7 @@ app <- function(shiny_app_data = NULL) {
 check_update <- function(installed_pkg_time) {
   installed_pkg_date <- lubridate::date(installed_pkg_time)
   # https://developer.github.com/v3/repos/commits/#get-a-single-commit
-  base_url <- "https://api.github.com/repos/ctmm-initiative/ctmm_repo/commits"
+  base_url <- "https://api.github.com/repos/ctmm-initiative/ctmmweb/commits"
   # for test, use an older since_date otherwise no result found
   # url <- paste0(base_url, "?since=" , "2019-01-01")
   url <- paste0(base_url, "?since=" , installed_pkg_date)

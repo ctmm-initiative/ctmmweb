@@ -127,6 +127,7 @@ server <- function(input, output, session) {
     # check update.
     if (days_passed > 60) {
       installed_pkg_time <- file.mtime(system.file("app", package = "ctmmweb"))
+      # this only give notifications if needed, doesn't do anything
       ctmmweb:::check_update(installed_pkg_time)
     }
     # take current date, record as pkg data
