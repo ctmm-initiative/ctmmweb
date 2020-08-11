@@ -606,10 +606,11 @@ output:
   ## APP_wd: app loading directory could be package installation folder, or server.R folder depend on loading method.
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
   # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
+  # starting with R 4.0.2, need to be 3 levels parent be global? this kind of details only have impact on starting from server.R, no impact on regular users.
   # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
   calling_env <- parent.env(environment())
   # app launched from app()
-  if (!identical(parent.env(calling_env), globalenv())) {
+  if (!identical(calling_env %>% parent.env %>% parent.env, globalenv())) {
     # cat("running in app() mode\n")
     # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console. Since the console is definitely available in this mode, it's OK to use that as default. /this is by default now
     # updateCheckboxInput(session, "capture_error", value = FALSE)
@@ -2786,7 +2787,8 @@ output:
       fluidRow(
         column(12, radioButtons("homerange_export_format", "Format",
                     choiceNames = list(
-    div("Esri shapefile", pre("polygons of the low, est, and high home-range area estimates.")),
+    div("Esri shapefile", pre("polygons of the low, est, and high home-range area estimates.
+Contours are only available in this mode.")),
     # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
     div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
     # "Native raster package format .grd: pixel values corresponding to the density function.",
@@ -2841,7 +2843,8 @@ output:
                           fluidRow(
                             column(12, radioButtons("occur_export_format", "Format",
                                                     choiceNames = list(
-                                                      div("Esri shapefile", pre("polygons of the low, est, and high home-range area estimates.")),
+                                                      div("Esri shapefile", pre("polygons of the low, est, and high home-range area estimates.
+Contours are only available in this mode.")),
                                                       # "Esri shapefile: polygons corresponding to the low, ML, and high home-range area estimates.",
                                                       div("raster package native format .grd", pre("pixel values corresponding to the density function.")),
                                                       # "Native raster package format .grd: pixel values corresponding to the density function.",
