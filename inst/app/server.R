@@ -2879,7 +2879,7 @@ output:
     content = function(file) {
       switch(input$occur_export_format,
              shapefile = export_shapefiles(select_models_occurrences(), file,
-                                           0.95,
+                                           ctmmweb:::parse_levels.UD(input$oc_contour_text),
                                            "Occurrence_shapefile_"),
              grd = export_rasterfiles(select_models_occurrences(), file,
                                       "Occurrence_", "grd"),

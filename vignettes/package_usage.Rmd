@@ -259,7 +259,9 @@ library(data.table)
 # this read from a .rds from saved progress file. You can also import your data directly with as.telemetry
 tele_list <- readRDS("/Users/xhdong/Downloads/Saved_2019-11-15_11-37-41_models/input_telemetry.rds")
 # one line to try models. The result is a nested list of CTMM models
-model_try_res <- par_try_models(tele_list)
+system.time(
+  model_try_res <- par_try_models(tele_list)
+)
 save.image("test.RData")
 # summary models to find the best
 model_summary <- summary_tried_models(model_try_res)
