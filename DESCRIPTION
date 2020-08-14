@@ -19,4 +19,4 @@ Imports: shiny (>= 1.1.0), shinydashboard, shinyWidgets, DT, crayon, rmarkdown, 
             XML, xml2, zip, bit64
 Remotes: ctmm-initiative/ctmm
 VignetteBuilder: knitr
-LastCommit: [c44ba52] 2020-05-27: add sidebar guide mode, fix self update check repo url
+LastCommit: [c72e205] 2020-08-14: change app start up checking method
