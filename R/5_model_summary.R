@@ -207,9 +207,11 @@ format_model_summary_dt <- function(model_summary_dt) {
   #        c("\u0394AICc", "DOF mean", "DOF area") := NA_real_]
   # need a list to hold function as element, c have same effect but list is more verbose
   # CI columns will be combined and created later
+  # check model summary columns. there are new columns added with ctmm. need to check the model list first by animal, then by specific model.
   name_unit_list <- list("area" = pick_unit_area,
                          "\u03C4[position]" = pick_unit_seconds,
                          "\u03C4[velocity]" = pick_unit_seconds,
+                         "\u03C4" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
   format_dt_unit(dt, name_unit_list)
