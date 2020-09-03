@@ -55,7 +55,7 @@ print_build_info <- function(build_info) {
 }
 # check new release version of package
 check_update <- function(installed_pkg_time) {
-  installed_pkg_date <- lubridate::date(installed_pkg_time)
+  installed_pkg_build_date <- lubridate::date(installed_pkg_time)
   # https://developer.github.com/v3/repos/commits/#get-a-single-commit
   base_url <- "https://api.github.com/repos/ctmm-initiative/ctmmweb/commits"
   # for test, use an older since_date otherwise no result found
