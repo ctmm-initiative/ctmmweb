@@ -26,6 +26,24 @@ app <- function(shiny_app_data = NULL) {
   shiny_app <- shiny::shinyApp(ui = ui, server = server)
   shiny::runApp(shiny_app, launch.browser = TRUE, display.mode = "normal")
 }
+# check installed package version
+get_build_info <- function(pkg = "ctmmweb") {
+  desc_file <- system.file("DESCRIPTION", package = pkg)
+  desc_dt <- data.table(read.dcf(desc_file, all = TRUE))
+  # desc_dt[1, Built]
+  version <- desc_dt[1, Version]
+  build_info <- desc_dt[1, LastCommit]
+  # pattern is for 20xx-xx-xx
+  build_date <- stringr::str_extract(build_info, "20\\d\\d-\\d\\d-\\d\\d")
+  return(list(version = version, build_date = build_date,
+              commit_message = build_info))
+}
+# given a build info list, print it nicely
+print_build_info <- function(build_info) {
+  purrr::map(names(build_info), ~ {
+    stringr::str_c("\n\t- ", ., ": ", build_info[[.]])
+  }) %>% stringr::str_c(collapse = "")
+}
 # check new release version of package
 check_update <- function(installed_pkg_build_date) {
   # installed_pkg_date <- lubridate::date(installed_pkg_time)
