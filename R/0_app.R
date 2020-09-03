@@ -49,8 +49,8 @@ get_build_info <- function() {
 }
 # given a build info list, print it nicely in log message. each item have a name and value.
 print_build_info <- function(build_info) {
-  purrr::map(names(build_info), ~ {
-    stringr::str_c("- ", ., ": ", build_info[[.]])
+  items <- purrr::map(names(build_info), ~ {
+    stringr::str_c("\t- ", ., ": ", build_info[[.]])
   }) %>% stringr::str_c(collapse = "\n")
 }
 # check new release version of package
