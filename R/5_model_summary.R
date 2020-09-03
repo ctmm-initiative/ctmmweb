@@ -195,6 +195,22 @@ round_cols <- function(dt, digits = 2) {
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
+  # https://github.com/ctmm-initiative/ctmmweb/issues/86
+  # only OUf have a new column called tau, but it's just tau position and tau velocity, copy to them and remove tau.
+  # if (any(stringr::str_detect(names(dt), "^\u03C4$"))) {
+  #   browser()
+  # }
+  # we have to use write tau directly within data.table call.
+  if (any(stringr::str_detect(dt$model_type, "OUf"))) {
+    dt[stringr::str_detect(model_type, "OUf"), `:=`("\u03C4[position]" = τ,
+                                                    "\u03C4[velocity]" = τ)]
+    dt[, τ := NULL]
+  }
+  if (any(stringr::str_detect(dt$model_type, "OUO"))) {
+    dt[stringr::str_detect(model_type, "OUO"), `:=`("\u03C4[position]" = `τ[decay]`,
+                                                    "\u03C4[velocity]" = `τ[decay]`)]
+    dt[, `τ[decay]` := NULL]
+  }
   # should round all numeric values. there are new columns after ctmm update.
   # cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "\u0394AICc")
   # cols_roundup <- names(dt)[5:ncol(dt)]
@@ -209,11 +225,15 @@ format_model_summary_dt <- function(model_summary_dt) {
   # CI columns will be combined and created later
   # check model summary columns. there are new columns added with ctmm. need to check the model list first by animal, then by specific model. we only need to pick the main metric, CI columns will be added in the function.
   name_unit_list <- list("area" = pick_unit_area,
-                         "\u03C4[position]" = pick_unit_seconds,
-                         "\u03C4[velocity]" = pick_unit_seconds,
-                         "\u03C4" = pick_unit_seconds,
+                         # "\u03C4[position]" = pick_unit_seconds,
+                         # "\u03C4[velocity]" = pick_unit_seconds,
+                         # "\u03C4" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
+  # all tau columns are time
+  if (any(stringr::str_detect(names(dt), "\u03C4"))) {
+    name_unit_list[stringr::str_subset(names(dt), "\u03C4")] <- list(pick_unit_seconds)
+  }
   format_dt_unit(dt, name_unit_list)
 }
 # combine ci rows in formatted model summary table, get single row table
