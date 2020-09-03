@@ -4,7 +4,15 @@ header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
 sidebar <- dashboardSidebar(
   # we need to use special function instead of uiOutput
-  sidebarMenuOutput("side_menus"),
+  sidebarMenuOutput("side_menus")
+  # this part cannot be put in dynamic part where js will not work.
+  # https://www.r-bloggers.com/a-little-trick-for-debugging-shiny/
+  # ,
+  # fluidRow(
+  #   # browser button for debugging. somehow the hide js will not work in this server side, have to comment it out.
+  #   column(6, offset = 0, actionButton("browser", "browser"),
+  #          tags$script("$('#browser').hide();"))
+  # )
   # sidebarMenu(
   #   id = "tabs",
   #   # match tabItem, page_title in server.R need to sync with this.
@@ -45,12 +53,6 @@ sidebar <- dashboardSidebar(
   #   fluidRow(
   #     column(6, offset = 0, uiOutput("error_popup")),
   #   ),
-      # browser button for debugging. disable this in released version. or not?
-  # https://www.r-bloggers.com/a-little-trick-for-debugging-shiny/
-    fluidRow(
-      column(6, offset = 0, actionButton("browser", "browser"),
-             tags$script("$('#browser').hide();"))
-    )
   # )
 )
 # p0.a app options ----

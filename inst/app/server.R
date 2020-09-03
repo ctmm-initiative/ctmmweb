@@ -77,12 +77,6 @@ server <- function(input, output, session) {
       fluidRow(
         column(6, offset = 0, uiOutput("error_popup")),
       )
-      # ,
-      # fluidRow(
-      #   # browser button for debugging. somehow the hide js will not work in this server side, have to comment it out.
-      #   column(6, offset = 0, actionButton("browser", "browser"),
-      #          tags$script("$('#browser').hide();"))
-      # )
     )
   })
   # message menu ----
