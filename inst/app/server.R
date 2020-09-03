@@ -6,7 +6,7 @@ options(shiny.maxRequestSize = 2000*1024^2)
 VERIFY_DATA_SYNC <- FALSE
 # PKG_INSTALLATION_TIME <- format(file.mtime(system.file("app", package = "ctmmweb")), usetz = TRUE)
 # full build message is not suitable for app display? in length and escaped content?
-PKG_BUILD_INFO <- ctmmweb:::get_build_info()
+# PKG_BUILD_INFO <- ctmmweb:::get_build_info()
 
 server <- function(input, output, session) {
   # browser button for debugging
@@ -99,10 +99,11 @@ server <- function(input, output, session) {
                    # github icon have compatibility problem https://github.com/rstudio/shiny/issues/2260, shiny dashboard fixed 5.0 problem with sidebar switch but not this one. shiny support font 5.0 but this is dashboard problem. We can just change the icon to v4 by changing class from fab to fa.
                    icon = icon_g,
                    href = "https://github.com/ctmm-initiative/ctmmweb"),
-                 messageItem(
-                   from = "Package Build Date",
-                   message = PKG_BUILD_INFO$build_date,
-                   icon = icon("calendar-o")),
+                 # we always print in console so no need for this.
+                 # messageItem(
+                 #   from = "Package Build Date",
+                 #   message = PKG_BUILD_INFO$build_date,
+                 #   icon = icon("calendar-o")),
                  messageItem(
                    from = "Issues",
                    message = "Report Issues",
@@ -300,7 +301,7 @@ output:
   # app log start ----
   # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
   log_msg("App started", paste0("Package Build Info: ",
-                                ctmmweb:::print_build_info(PKG_BUILD_INFO)))
+                                ctmmweb:::print_build_info(ctmmweb:::get_build_info())))
   # first page need to be added manually since no page switching event fired
   # no longer true with new menu arrangement
   # log_page(ctmmweb:::PAGE_title$import)
@@ -394,9 +395,9 @@ output:
       clean_up_error_capture()
     }
     # in app() mode it will be inside app() env so have warning
-    suppressWarnings(
-      rm(PKG_BUILD_INFO, envir = globalenv())
-    )
+    # suppressWarnings(
+    #   rm(PKG_BUILD_INFO, envir = globalenv())
+    # )
   })
   # the button itself need to depend on option, cannot be inside the if call which doesn't remove in else branch
   # add side bar button
@@ -415,14 +416,15 @@ output:
                 fluidRow(
                   # column(12, pre(includeText(req(values$error_file)))),
                   column(12, pre(includeText(ERROR_FILE))),
-                  column(12, h4("App Build Info")),
-                  column(12, verbatimTextOutput("app_info")),
+                  # column(12, h4("App Build Info")),
+                  # column(12, verbatimTextOutput("app_info")),
                   column(12, h4("Session information")),
                   column(12, verbatimTextOutput("session_info"))),
                 size = "l", easyClose = TRUE, fade = FALSE))
-    output$app_info <- renderPrint(cat(
-      paste0("Package Build Info: ",
-             ctmmweb:::print_build_info(PKG_BUILD_INFO))))
+    # we have that in console log/report. no need to show twice
+    # output$app_info <- renderPrint(cat(
+    #   paste0("Package Build Info: ",
+    #          ctmmweb:::print_build_info(PKG_BUILD_INFO))))
     output$session_info <- renderPrint(sessionInfo())
   })
   # just log option changes, the value is taken directly when needed.
