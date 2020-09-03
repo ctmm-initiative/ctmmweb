@@ -49,9 +49,10 @@ get_build_info <- function() {
 }
 # given a build info list, print it nicely in log message. each item have a name and value.
 print_build_info <- function(build_info) {
+  # the 2nd part of log message have a leading \t. we need to make first item have one less \t, thus just add \t in end. collapse is the right way to add stuff in between but not in end.
   items <- purrr::map(names(build_info), ~ {
-    stringr::str_c("\t- ", ., ": ", build_info[[.]])
-  }) %>% stringr::str_c(collapse = "\n")
+    stringr::str_c("- ", ., ": ", build_info[[.]])
+  }) %>% stringr::str_c(collapse = "\n\t")
 }
 # check new release version of package
 check_update <- function(installed_pkg_time) {
