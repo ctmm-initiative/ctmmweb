@@ -4,7 +4,7 @@ header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
 # sidebar ----
 sidebar <- dashboardSidebar(
   # we need to use special function instead of uiOutput
-  sidebarMenuOutput("side_menus")
+  sidebarMenuOutput("side_menus"),
   # sidebarMenu(
   #   id = "tabs",
   #   # match tabItem, page_title in server.R need to sync with this.
@@ -45,11 +45,12 @@ sidebar <- dashboardSidebar(
   #   fluidRow(
   #     column(6, offset = 0, uiOutput("error_popup")),
   #   ),
-  #   fluidRow(
-  #     # browser button for debugging. disable this in released version. or not?
-  #     column(6, offset = 0, actionButton("browser", "browser"),
-  #            tags$script("$('#browser').hide();"))
-  #   )
+      # browser button for debugging. disable this in released version. or not?
+  # https://www.r-bloggers.com/a-little-trick-for-debugging-shiny/
+    fluidRow(
+      column(6, offset = 0, actionButton("browser", "browser"),
+             tags$script("$('#browser').hide();"))
+    )
   # )
 )
 # p0.a app options ----

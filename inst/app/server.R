@@ -276,7 +276,8 @@ output:
   }
   # log page, also notify the requirement of time subsetting. we want to show this everytime switched to this page. if put inside color_bin_animal it will only show once if switched back and forth.
   observeEvent(input$tabs, {
-    req(values$data)
+    # not sure why I req this before, to avoid error when clicking later page without data? need to remove this to show page properly.
+    # req(values$data)
     # it will not record pages without data because req data.
     log_page(ctmmweb:::PAGE_title[[input$tabs]])
     # time subset page need single animal be selected
@@ -301,7 +302,8 @@ output:
   log_msg("App started", paste0("Package Build Info: ",
                                 ctmmweb:::print_build_info(PKG_BUILD_INFO)))
   # first page need to be added manually since no page switching event fired
-  log_page(ctmmweb:::PAGE_title$import)
+  # no longer true with new menu arrangement
+  # log_page(ctmmweb:::PAGE_title$import)
   # log app options ----
   # just log option changes, the value is taken directly when needed.
   observeEvent(input$record_on, {
@@ -604,24 +606,20 @@ output:
   # 0 app(shiny_app_data) ----
   ## need to put this after import code as it will call import functions.
   ## APP_wd: app loading directory could be package installation folder, or server.R folder depend on loading method.
+  # we want to show package version by git hash. the app may start by app() or server.R in rstudio, but app always use installed package ctmmweb. we can check the version. if it was installed by devtools, there is some information. if installed by package building process, there is build date.
+  # plan to show app starting mode and package installed version.
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
-  # from run_app, should have working directory set by rstudio and can see server.R etc
   # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
   # starting with R 4.0.2, need to be 3 levels parent be global? this kind of details only have impact on starting from server.R, no impact on regular users.
   # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
   calling_env <- parent.env(environment())
   # app launched from app()
-  # if (!identical(calling_env %>% parent.env %>% parent.env, globalenv())) {
-  # instead of relying on calling env which is undocumented, let's assume if from rstudio run_app, current working directory is the app folder.
-  if (file.exists("help") && file.exists("server.R") && file.exists("ui.R")) {
-    # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
-    # cat("running in runShinydir mode\n")
-    APP_wd <- "."
-  } else {
+  if (!identical(calling_env %>% parent.env %>% parent.env, globalenv())) {
     # cat("running in app() mode\n")
     # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console. Since the console is definitely available in this mode, it's OK to use that as default. /this is by default now
     # updateCheckboxInput(session, "capture_error", value = FALSE)
     # set app directory to installed package app folder (from app()), which is needed by loading help documentations
+    log_msg("App launched from app() call")
     APP_wd <- get("app_DIR", envir = calling_env)
     # further check if data parameter is available. either a string refer to a file can be imported by as.telemetry, or a tele ojb/list can be taken directly.
     # input exist and not NULL, need to import data. otherwise just go ahead without data
@@ -645,8 +643,12 @@ output:
         isolate(import_tele_to_app(app_input_data))
       }
     }
+  } else {
+    # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
+    # cat("running in runShinydir mode\n")
+    APP_wd <- "."
+    log_msg("App launched from RStudio development mode")
   }
-
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
   callModule(click_help, "guide", title = "How to use the analysis guide", size = "l",

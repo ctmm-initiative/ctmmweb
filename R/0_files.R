@@ -3,7 +3,7 @@
 current_timestamp <- function() {
   # format(Sys.time(), "%Y-%m-%d_%H-%M-%S_UTC",
   #        tz = "UTC")
-  format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+  format(Sys.time(), "%Y-%m-%d_%H-%M-%OS3")
 }
 get_build_info <- function(pkg = "ctmmweb") {
   desc_file <- system.file("DESCRIPTION", package = pkg)
