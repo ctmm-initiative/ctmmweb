@@ -128,9 +128,11 @@ server <- function(input, output, session) {
     # check update.
     if (days_passed > 60) {
       # ideally should use last commit date in description, not installation time. but this is only available after we started to put it in description, and need to update it from time to time.
+      # now we are using desc info, at most we have a Built time, which is just package mtime
       # installed_pkg_time <- file.mtime(system.file("app", package = "ctmmweb"))
-      installed_pkg_build_date <- ctmmweb:::get_build_info()$build_date
-      ctmmweb:::check_update(installed_pkg_build_date)
+      # installed_pkg_build_date <- ctmmweb:::get_build_info()$build_date
+      installed_pkg_time <- file.mtime(system.file("DESCRIPTION", package = "ctmmweb"))
+      ctmmweb:::check_update(installed_pkg_time)
     }
     # take current date, record as pkg data
     last_check_time <- lubridate::now()
@@ -178,7 +180,8 @@ server <- function(input, output, session) {
   # rely on several global variables. have side effect on console msg, and write string to global vector.
   # usually console content is same with markdown, except the data frame table need to be plain in console, table in markdown. detail will be in 2nd line with code format
   log_msg_console <- function(msg, detail = "") {
-    time_stamp <- stringr::str_c("[", Sys.time(), "]")
+    # we have current timestamp to generate format suitable for file name. for easier reading, we need to use same value but regular time style
+    time_stamp <- stringr::str_c("[", format(Sys.time(), "%Y-%m-%d %H:%M:%OS3"), "]")
     # some detail are vec
     if (length(detail) > 1 || detail != "") {
       detail <- stringr::str_c("\n\t", detail)
@@ -299,9 +302,9 @@ output:
   })
   # call outside of reactive context need isolate, they are also one time call only run when app started.
   # app log start ----
-  # record pkg build date for easier issue report. it will also appear in work report. hosted app user can click the info button.
-  log_msg("App started", paste0("Package Build Info: ",
-                                ctmmweb:::print_build_info(ctmmweb:::get_build_info())))
+  # actual log started from app starting check. recording on appeared later.
+  # record pkg build date for easier issue report. it will also appear in work report. hosted app user can generate the report.
+  log_msg("Package Build Info", ctmmweb:::print_build_info(ctmmweb:::get_build_info()))
   # first page need to be added manually since no page switching event fired
   # no longer true with new menu arrangement
   # log_page(ctmmweb:::PAGE_title$import)
@@ -605,7 +608,7 @@ output:
     # importing should always move to visualization page.
     shinydashboard::updateTabItems(session, "tabs", "plots")
   }
-  # 0 app(shiny_app_data) ----
+  # 0 app start mode ----
   ## need to put this after import code as it will call import functions.
   ## APP_wd: app loading directory could be package installation folder, or server.R folder depend on loading method.
   # we want to show package version by git hash. the app may start by app() or server.R in rstudio, but app always use installed package ctmmweb. we can check the version. if it was installed by devtools, there is some information. if installed by package building process, there is build date.
@@ -649,7 +652,7 @@ output:
     # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
     # cat("running in runShinydir mode\n")
     APP_wd <- "."
-    log_msg("App launched from RStudio development mode")
+    log_msg("App launched in RStudio development mode")
   }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))

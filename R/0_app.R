@@ -30,7 +30,7 @@ app <- function(shiny_app_data = NULL) {
 get_build_info <- function() {
   desc_file <- system.file("DESCRIPTION", package = "ctmmweb")
   # desc_dt <- data.table(t(read.dcf(desc_file, all = TRUE)), keep.rownames = TRUE)
-  # if installed with devtools::install_github, will have RemoteType rows. Otherwise (with devtools install package in developtment mode, or remotes install github) always has Built time
+  # if installed with devtools/remotes install_github, will have RemoteType rows. Otherwise (with devtools install package in developtment mode) only has Built time
   # Remote section is a little bit verbose but it's better just use a pattern in case devtools changed their names
   # build_info <- desc_dt[stringr::str_detect(rn, "Remote") | rn == "Packaged"| rn == "Built"]
   # build_info_list <- list(build_info$V1)
@@ -50,12 +50,12 @@ get_build_info <- function() {
 # given a build info list, print it nicely in log message. each item have a name and value.
 print_build_info <- function(build_info) {
   purrr::map(names(build_info), ~ {
-    stringr::str_c("\n\t- ", ., ": ", build_info[[.]])
-  }) %>% stringr::str_c(collapse = "")
+    stringr::str_c("\t- ", ., ": ", build_info[[.]])
+  }) %>% stringr::str_c(collapse = "\n")
 }
 # check new release version of package
-check_update <- function(installed_pkg_build_date) {
-  # installed_pkg_date <- lubridate::date(installed_pkg_time)
+check_update <- function(installed_pkg_time) {
+  installed_pkg_date <- lubridate::date(installed_pkg_time)
   # https://developer.github.com/v3/repos/commits/#get-a-single-commit
   base_url <- "https://api.github.com/repos/ctmm-initiative/ctmmweb/commits"
   # for test, use an older since_date otherwise no result found
