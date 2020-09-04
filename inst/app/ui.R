@@ -885,6 +885,10 @@ map_box <- tabBox(title = "Maps", id = "map_tabs", width = 12,
 # body ----
 body <- dashboardBody(
   includeCSS("www/styles.css"),
+  tags$head(tags$script(HTML(
+    'data-goatcounter="https://ctmmwebtest.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"'
+  ))),
   # match menuItem
   tabItems(
     tabItem(tabName = "intro", fluidRow(app_options_box,
