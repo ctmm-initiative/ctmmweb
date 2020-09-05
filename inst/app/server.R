@@ -609,12 +609,24 @@ output:
   # we want to show package version by git hash. the app may start by app() or server.R in rstudio, but app always use installed package ctmmweb. we can check the version. if it was installed by devtools, there is some information. if installed by package building process, there is build date.
   # plan to show app starting mode and package installed version.
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
-  # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
-  # starting with R 4.0.2, need to be 3 levels parent be global? this kind of details only have impact on starting from server.R, no impact on regular users.
-  # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
-  calling_env <- parent.env(environment())
-  # app launched from app()
-  if (!identical(calling_env %>% parent.env %>% parent.env, globalenv())) {
+  # we need to get calling env to get possible parameter, but we don't need to use calling env - global env relationship to detect calling mode, which is unreliable and different for R 3.6 and 4.0
+  # if launched from server.R, will use inst/app folder. if launched from app() will use installed package/app folder. the folder pattern will be different.
+  working_folder <- getwd()
+  # parent folder is inst means server.r called in development mode, not from installed package
+  if ((working_folder %>% dirname %>% basename) == "inst") {
+    # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
+    # cat("running in runShinydir mode\n")
+    APP_wd <- working_folder
+    log_msg("App launched in RStudio development mode")
+  } else {
+    # when launched from app() call, we didn't modify current working directory (and should not, which may interfere with user usage), we don't really need to get it from env, but getting it is no harm either
+    # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
+    # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
+    # browser()
+    calling_env <- parent.env(environment())
+    # app launched from app()
+    # this check is not reliable, different in R 3.6 and 4.0
+  # if (!identical(calling_env %>% parent.env %>% parent.env, globalenv())) {
     # cat("running in app() mode\n")
     # redirect error to R console in app() mode, otherwise if there is error in data loading, the app will crash and error log not shown in console. Since the console is definitely available in this mode, it's OK to use that as default. /this is by default now
     # updateCheckboxInput(session, "capture_error", value = FALSE)
@@ -643,12 +655,13 @@ output:
         isolate(import_tele_to_app(app_input_data))
       }
     }
-  } else {
-    # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
-    # cat("running in runShinydir mode\n")
-    APP_wd <- "."
-    log_msg("App launched in RStudio development mode")
   }
+  # else {
+  #   # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
+  #   # cat("running in runShinydir mode\n")
+  #   APP_wd <- "."
+  #   log_msg("App launched in RStudio development mode")
+  # }
   # load sliders module, as APP_wd is needed. it's dynamic code in server side, so no need to load in global
   # source(file.path(APP_wd, "module_server_code.R"))
   callModule(click_help, "guide", title = "How to use the analysis guide", size = "l",

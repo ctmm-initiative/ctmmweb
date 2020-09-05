@@ -889,7 +889,7 @@ body <- dashboardBody(
   #   'data-goatcounter="https://ctmmwebtest.goatcounter.com/count"
   #       async src="//gc.zgo.at/count.js"'
   # ))),
-  tags$head(includeHTML(("goatcounter.html"))),
+  # tags$head(includeHTML(("analytics.html"))),
   # match menuItem
   tabItems(
     tabItem(tabName = "intro", fluidRow(app_options_box,
