@@ -26,7 +26,10 @@ app <- function(shiny_app_data = NULL) {
   shiny_app <- shiny::shinyApp(ui = ui, server = server)
   shiny::runApp(shiny_app, launch.browser = TRUE, display.mode = "normal")
 }
-# check installed package version
+# check installed package version.
+# with devtools/remotes installed from github, there are complete information
+# with devtools install button in RStudio, there is only built date
+# in the future if installed from CRAN, also only built date, but the version number should be specific.
 get_build_info <- function() {
   desc_file <- system.file("DESCRIPTION", package = "ctmmweb")
   # desc_dt <- data.table(t(read.dcf(desc_file, all = TRUE)), keep.rownames = TRUE)
@@ -36,7 +39,7 @@ get_build_info <- function() {
   # build_info_list <- list(build_info$V1)
   # names(build_info_list) <- build_info$rn
   desc_list <- as.list(read.dcf(desc_file, all = TRUE))
-  build_info_list <- desc_list[stringr::str_subset(names(desc_list), "Remote|Packaged|Built")]
+  build_info_list <- desc_list[stringr::str_subset(names(desc_list), "Version|Remote|Packaged|Built")]
   # note Remotes is the item added in description for specifying install dependency from github, not the other Remote_ items. thus we just remove it
   build_info_list$Remotes <- NULL
   return(build_info_list)

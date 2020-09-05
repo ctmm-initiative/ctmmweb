@@ -644,7 +644,7 @@ output:
            "telemetry" %in% class(app_input_data[[1]]))) {
         # tele obj/list already, update directly
         # LOG data loaded from app()
-        log_msg("Loading telemetry data directly to app")
+        log_msg("Loading telemetry data directly into app")
         # coerce to list first
         isolate(update_input_data(ctmmweb::as_tele_list(app_input_data)))
       } else {
