@@ -805,9 +805,11 @@ output:
                            # "number_of_deployments", "number_of_events",
                            # "number_of_individuals",
                            "i_am_owner", "i_can_see_data", "license_terms")
+      # browser()
       all_studies <- try(fread(res$res_cont, select = studies_cols,
-                               colClasses =
-              list(logical = c("i_am_owner", "i_can_see_data"))))
+                               # added on 2020.09.11 otherwise the table will give multibyte error in searching. https://github.com/rstudio/DT/issues/99#issuecomment-111255266
+                               encoding = "UTF-8",
+                               colClasses = list(logical = c("i_am_owner", "i_can_see_data"))))
       # fread now read true/false as logical, so no need for conversion below. specify colClass to avoid future error of type changes. previously did some missing rows bumped the column type to character?
       # using ifelse because we need vectorized conversion here.
       # all_studies[, i_can_see_data :=

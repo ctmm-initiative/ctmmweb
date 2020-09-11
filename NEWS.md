@@ -3,6 +3,7 @@
 - Changed the recomanded installation method to `remotes::install_github`. 
 - Tested with R 4.0 and the 0.5.10 version of ctmm. 
 - Fixed the bug with collecting diganostic info in app, which was very tricky with manipulating connections. 
+- Update to cooperate with recent changes in Movebank API, fixed the study table search problem.
 - Updated the windows installer to R 4.0.2 and `remotes` installation method. [Packages built in R 4.0.2 may not work in R 4.0.0](https://github.com/RcppCore/Rcpp/issues/1103#issuecomment-656688585), it's better to upgrade to R 4.0.2.
 
 ## version 0.2.6.9003, 2020/03/14, Misc Updates
