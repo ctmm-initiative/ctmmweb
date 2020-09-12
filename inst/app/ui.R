@@ -160,7 +160,7 @@ movebank_studies_box <- box(title = "Import from Movebank", collapsible = TRUE,
       ),
       fluidRow(column(9, verbatimTextOutput("all_studies_stat")),
                column(3, checkboxInput("data_manager",
-                                       "Show Studies Managed by me"))),
+                                       "Switch to Studies Managed by me"))),
       fluidRow(column(12, DT::DTOutput('studies'))))
 movebank_study_detail_box <- uiOutput("movebank_study_detail_box")
 # movebank_study_detail_box <- box(title = "Selected Study Detail",
