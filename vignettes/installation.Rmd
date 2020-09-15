@@ -17,6 +17,7 @@ vignette: >
   - Install R. This could be skipped if you already have R installed.
     Note it's possible to have multiple versions of R installed, however that may require more knowledge and tweaks. For example if you had a R 3.6 version Rscript.exe in windows PATH but just installed R 4.0 without uninstall R 3.6, the installer will fail because a R 3.6 Rscript will be used to install the packages.
     We suggest to always install and keep the latest R version to avoid possible problems.
+    Installing R to `Program Files` could cause further permission problems([see discussion](https://cran.r-project.org/bin/windows/base/rw-FAQ.html#Does-R-run-under-Windows-Vista_003f)), we suggest to install R to a user writable folder.
   - Install `ctmmweb` package from github.
   - Start `ctmmweb` app.
   - Shortcuts for the app and a self update script can be created in program menu too.
