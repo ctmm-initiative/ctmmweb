@@ -33,6 +33,8 @@ ctmm_summary_to_dt <- function(ctmm_summary) {
   dof_dt[, rn := NULL]
   setnames(dof_dt, names(dof_dt), stringr::str_c("DOF ", names(dof_dt)))
   setnames(ci_dt, "rn", "estimate")
+  # replace tau column name
+  names(ci_dt) <- stringr::str_replace_all(names(ci_dt), "\u03C4", "tau")
   ci_dt[estimate %in% c("low", "high"), estimate := stringr::str_c("CI ", estimate)]
   # with SI units, we only need to know which type of unit. the actual format need to happen after the whole table is built. so we only need a mapping from col name to proper unit function later.
   setnames(ci_dt, names(ci_dt), stringr::str_replace_all(names(ci_dt), "\\s\\(.*", ""))
@@ -94,15 +96,16 @@ compare_models <- function(model_list_dt) {
     # use fixed name to replace existing or non-existing name
     names(model_list) <- seq_along(model_list)
     res <- summary(model_list, units = FALSE)
-    # res is data.frame. the index need to be character, if using numbers will use row number which is not correct
+    # res is data.frame. the index need to be character(to use row names), if using numbers will use row number which is not correct
+    # need to use unicode here as the original summary has it.
     res[as.character(seq_along(model_list)), "\u0394AICc"]
   }
   # AICc come from the summary of a group models, always by animal, even models may came from different fit passes
-  model_list_dt[, "\u0394AICc" := get_aicc_vec(model), by = identity]
+  model_list_dt[, "dAICc" := get_aicc_vec(model), by = identity]
   # sort it, so model_list_dt and summary are always sorted by same criteria
   # setorder(model_list_dt, identity, "\u0394AICc")
   # need to take column name in quote. backtick doesn't work with unicode, need double quote.
-  setorderv(model_list_dt, c("identity", "\u0394AICc"))
+  setorderv(model_list_dt, c("identity", "dAICc"))
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt. the unformatted summary is only intermediate stage, not used in app.
 # it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and \u0394AICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
@@ -116,7 +119,7 @@ model_list_dt_compared_to_model_summary_dt <- function(model_list_dt) {
     summary_dt[, model_no := model_list_dt[i, model_no]]
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
-  export_cols <- c(model_dt_id_cols, "\u0394AICc")
+  export_cols <- c(model_dt_id_cols, "dAICc")
   # merge by common columns, keep the order. the summary table only has model_no
   model_summary_dt <- merge(model_list_dt[, ..export_cols],
                             ctmm_summary_dt, by = "model_no",
@@ -195,21 +198,22 @@ round_cols <- function(dt, digits = 2) {
 format_model_summary_dt <- function(model_summary_dt) {
   # data.table modify reference, use copy so we can rerun same line again
   dt <- copy(model_summary_dt)
+  # with Sys.setlocale("LC_CTYPE", "English_United States.1252"), it start to have problem here already, just print dt give warning, other symbol became ascii one, except tau don't have counterpart.
   # https://github.com/ctmm-initiative/ctmmweb/issues/86
   # only OUf have a new column called tau, but it's just tau position and tau velocity, copy to them and remove tau.
   # if (any(stringr::str_detect(names(dt), "^\u03C4$"))) {
   #   browser()
   # }
-  # we have to use write tau directly within data.table call.
+  # we have to use write tau directly within data.table call. we need to reference the column, not some value.
   if (any(stringr::str_detect(dt$model_type, "OUf"))) {
-    dt[stringr::str_detect(model_type, "OUf"), `:=`("\u03C4[position]" = τ,
-                                                    "\u03C4[velocity]" = τ)]
-    dt[, τ := NULL]
+    dt[stringr::str_detect(model_type, "OUf"), `:=`("tau[position]" = tau,
+                                                    "tau[velocity]" = tau)]
+    dt[, tau := NULL]
   }
   if (any(stringr::str_detect(dt$model_type, "OUO"))) {
-    dt[stringr::str_detect(model_type, "OUO"), `:=`("\u03C4[position]" = `τ[decay]`,
-                                                    "\u03C4[velocity]" = `τ[decay]`)]
-    dt[, `τ[decay]` := NULL]
+    dt[stringr::str_detect(model_type, "OUO"), `:=`("tau[position]" = tau[decay],
+                                                    "tau[velocity]" = tau[decay])]
+    dt[, tau[decay] := NULL]
   }
   # should round all numeric values. there are new columns after ctmm update.
   # cols_roundup <- c("DOF mean", "DOF area", "DOF speed", "\u0394AICc")
@@ -231,8 +235,8 @@ format_model_summary_dt <- function(model_summary_dt) {
                          "speed" = pick_unit_speed,
                          "error" = pick_unit_distance)
   # all tau columns are time
-  if (any(stringr::str_detect(names(dt), "\u03C4"))) {
-    name_unit_list[stringr::str_subset(names(dt), "\u03C4")] <- list(pick_unit_seconds)
+  if (any(stringr::str_detect(names(dt), "tau"))) {
+    name_unit_list[stringr::str_subset(names(dt), "tau")] <- list(pick_unit_seconds)
   }
   format_dt_unit(dt, name_unit_list)
 }
