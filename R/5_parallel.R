@@ -182,18 +182,20 @@ par_try_tele_guess_IC <- function(tele_guess_IC_list, cores = NULL, parallel = T
 #' par_try_models run [ctmm::ctmm.select()] on each object of list on parallel.
 #'
 #' @param tele_list [ctmm::as.telemetry()] telemetry list
+#' @param IC information criteria used in model selection, possible values are
+#'   "AICc", "AIC", "BIC", "LOOCV", and "HSCV"
 #' @inheritParams par_lapply
 #'
 #' @return `par_try_models`: list of items named by animal names, each item hold
 #'   the attempted models as sub items with model type as name.
 #' @export
-par_try_models <- function(tele_list,
+par_try_models <- function(tele_list, IC = "AICc",
                            cores = NULL, parallel = TRUE) {
   tele_guess_IC_list <- align_lists(tele_list,
                                 lapply(tele_list, function(x) {
                                   ctmm::ctmm.guess(x, interactive = FALSE)
                                 }),
-                                rep.int("AICc", length(tele_list)))
+                                rep.int(IC, length(tele_list)))
   # printing this caused problem in cran check vignette, even there is no problem knitting the package_usage.rmd. removing it now as we have system.time call in app already.
   # print(system.time(
     model_try_res <- par_try_tele_guess_IC(tele_guess_IC_list, cores, parallel)

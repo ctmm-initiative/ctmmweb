@@ -443,8 +443,8 @@ output:
     file.remove(cache_files)
   }
   cache_path <- create_cache()
-  par_try_tele_guess_mem <- memoise::memoise(
-    ctmmweb:::par_try_tele_guess,
+  par_try_tele_guess_IC_mem <- memoise::memoise(
+    ctmmweb:::par_try_tele_guess_IC,
     cache = memoise::cache_filesystem(cache_path))
   akde_mem <- memoise::memoise(
     ctmm::akde,
@@ -2222,7 +2222,7 @@ output:
   # the layers of id namespace marked with ID:
   # ID: selector called with guess/model, this is the first layer, in beginning, note ui and callModule using same value
   # selection is dynamic and need to be an unresolved reactive expression
-  callModule(ctmmweb:::tuneSelector, id = "guess", placeholder = "Fine-tune",
+  callModule(ctmmweb:::tuneSelector, id = "guess", placeholder = "Fine-tune Parameters",
              reactive(req(select_data()$info$identity)), log_msg)
   callModule(ctmmweb:::tuneSelector, id = "model", placeholder = "Fine-tune Model",
              reactive(req(select_models()$info_dt$model_name)), log_msg)
@@ -2309,13 +2309,14 @@ output:
     # not the best measure to detect data inconsistency but the simplest. rely on select_data to switch tab, make sure go through 1st tab first.
     req(length(select_data()$tele_list) ==
           length(values$selected_data_guess_list))
-    tele_guess_list <- ctmmweb::align_lists(select_data()$tele_list,
-                                           values$selected_data_guess_list)
+    tele_guess_IC_list <- ctmmweb::align_lists(select_data()$tele_list,
+                                            values$selected_data_guess_list,
+                                            rep.int(input$IC, length(select_data()$tele_list)))
     # LOG try models
     log_msg("Trying different models...")
     withProgress(print(system.time(
       res <-
-        par_try_tele_guess_mem(tele_guess_list,
+        par_try_tele_guess_IC_mem(tele_guess_IC_list,
                                parallel = input_value("parallel")))),
       message = "Trying different models to find the best ...")
     # if error occurred, stop next step. it could one error object or a list with some nodes as error object.
@@ -2335,7 +2336,7 @@ output:
       # initialize model_list_dt in auto fit
       model_list_dt <- ctmmweb:::model_try_res_to_model_list_dt(res)
       # always add dAICc columns after conversion, after merge list_dt
-      ctmmweb:::compare_models(model_list_dt)
+      ctmmweb:::compare_models(model_list_dt, input$IC)
     }, error = function(e) {
       cat(crayon::bgRed$white("Error in model selection, check error message. Try turning off parallel or fine tune varigram then try again. If still having problem, save progress and report issue in github\n"))
       print(e)
@@ -2364,8 +2365,8 @@ output:
     # we need to reference try_models in summary_models otherwise it will not be executed.
     try_models()
     # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values -- now become single row table
-    summary_dt <- ctmmweb:::model_list_dt_compared_to_summary_dt(
-      req(values$model_list_dt))
+    summary_dt <- ctmmweb:::compared_model_list_dt_to_model_summary_dt(
+      req(values$model_list_dt), input$IC)
     # summary(values$model_list_dt[4, model][[1]]) # not unit problem
     # hide ci now hide ci columns, not rows
     if (input$hide_ci_model) {
@@ -2547,13 +2548,14 @@ output:
     } else {
       tele_list <- select_models()$tele_list[refit_dt$to_refit]
       init_ctmm_list <- refit_dt[(to_refit), model_current]
-      tele_guess_list <- ctmmweb::align_lists(tele_list,
-                                             init_ctmm_list)
+      tele_guess_IC_list <- ctmmweb::align_lists(tele_list,
+                                             init_ctmm_list,
+                                             rep.int(input$IC, length(tele_list)))
       # LOG try models
       log_msg("Refitting models...")
       withProgress(print(system.time(
         res <-
-          par_try_tele_guess_mem(tele_guess_list,
+          par_try_tele_guess_IC_mem(tele_guess_IC_list,
                                  parallel = input_value("parallel")))),
         message = "Refitting models ...")
       # always use unique names in list, note these are base model full names

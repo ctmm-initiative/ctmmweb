@@ -118,8 +118,8 @@ compare_models <- function(model_list_dt, IC_chosen) {
 # it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and \u0394AICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
 # expect \u0394AICc column, always compare model before summary.
 # model_list_dt -> add compared columns -> to model_summary_dt
-model_list_dt_to_model_summary_dt <- function(model_list_dt, IC_chosen) {
-  compared_model_list_dt <- model_list_dt %>% compare_models(IC_chosen)
+# in app we added compared columns right after tried models, then do the remaining in other steps, better separate at same point.
+compared_model_list_dt_to_model_summary_dt <- function(compared_model_list_dt, IC_chosen) {
   # a list of converted summary on each model
   ctmm_summary_dt_list <- lapply(1:nrow(compared_model_list_dt), function(i) {
     summary_dt <- ctmm_summary_to_dt(summary(compared_model_list_dt$model[[i]],
@@ -312,7 +312,8 @@ summary_tried_models <- function(model_try_res, IC = "AICc") {
   # the pipe line change object: model_res -> model_list_dt -> compared_model_list_dt -> final summary
   res <- model_try_res %>%
     model_try_res_to_model_list_dt %>%
-    model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
+    compare_models(IC_chosen = IC) %>%
+    compared_model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
     format_model_summary_dt %>%
     combine_summary_ci
   res[]
