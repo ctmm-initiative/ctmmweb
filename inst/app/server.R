@@ -2222,9 +2222,9 @@ output:
   # the layers of id namespace marked with ID:
   # ID: selector called with guess/model, this is the first layer, in beginning, note ui and callModule using same value
   # selection is dynamic and need to be an unresolved reactive expression
-  callModule(ctmmweb:::tuneSelector, id = "guess", placeholder = "Fine-tune Parameters",
+  callModule(ctmmweb:::tuneSelector, id = "guess", placeholder = "Guesstimate",
              reactive(req(select_data()$info$identity)), log_msg)
-  callModule(ctmmweb:::tuneSelector, id = "model", placeholder = "Fine-tune Model",
+  callModule(ctmmweb:::tuneSelector, id = "model", placeholder = "Model",
              reactive(req(select_models()$info_dt$model_name)), log_msg)
   # guess_page_data() ----
   ## this reactive expression will be used as function parameter without (), so it's named like a noun.
@@ -2365,8 +2365,12 @@ output:
     # we need to reference try_models in summary_models otherwise it will not be executed.
     try_models()
     # the model summary table to be shown, so it's formated. note each model has 3 rows here for CI values -- now become single row table
-    summary_dt <- ctmmweb:::compared_model_list_dt_to_model_summary_dt(
+    summary_dt <- ctmmweb:::compared_model_list_dt_to_final_summary_dt(
       req(values$model_list_dt), input$IC)
+    # %>%
+    #   # ::: in pipe need to be in () or add the ending (), otherwise it was picked up wrong by pipe
+    #   ctmmweb:::format_model_summary_dt() %>%
+    #   ctmmweb:::combine_summary_ci()
     # summary(values$model_list_dt[4, model][[1]]) # not unit problem
     # hide ci now hide ci columns, not rows
     if (input$hide_ci_model) {
@@ -2564,7 +2568,7 @@ output:
       model_list_dt_2 <- ctmmweb:::model_try_res_to_model_list_dt(res,
                                   refit_dt[(to_refit), identity])
       # need to generate dAICc columns even that's not complete, otherwise merge will fail
-      ctmmweb:::compare_models(model_list_dt_2)
+      ctmmweb:::compare_models(model_list_dt_2, input$IC)
       # there could be multiple models from one base model
       model_list_dt_2[, init_ctmm_name := names(res)[res_list_index]]
       model_list_dt_2[, init_ctmm := list(list(
@@ -2572,7 +2576,7 @@ output:
       new_dt <- rbindlist(list(values$model_list_dt, model_list_dt_2))
       # update model_no, dAICc columns
       new_dt <- new_dt %>% ctmmweb:::update_model_no() %>%
-                           ctmmweb:::compare_models()
+                           ctmmweb:::compare_models(input$IC)
       # clear first to trigger changes
       values$model_list_dt <- NULL
       values$model_list_dt <- new_dt

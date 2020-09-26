@@ -18,7 +18,7 @@ tuneSelector <- function(input, output, session, placeholder, selections, log_ms
     # the first choice is empty, used as a placeholder. need to create that choice item from variable first
     init_choice <- list("")
     names(init_choice) <- placeholder
-    selectInput(ns("tune_selected"), NULL,
+    selectInput(ns("tune_selected"), "Fine Tune",
                 # c("Fine-tune" = "", selections()))
                 c(init_choice, selections()))
   })

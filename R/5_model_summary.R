@@ -290,13 +290,13 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
 # model_list_dt a `data.table` holding model information and models objects
 #   as list column
 #
-# return formated model summary table, with ci columns combined
-# compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt) {
-#   compared_model_list_dt %>%
-#     model_list_dt_to_model_summary_dt %>%
-#     format_model_summary_dt %>%
-#     combine_summary_ci
-# }
+# return final formated model summary table, with ci columns combined. need this because in app we put compare model right after try model, manipulate model summary table
+compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt, IC) {
+  compared_model_list_dt %>%
+    compared_model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
+    format_model_summary_dt %>%
+    combine_summary_ci
+}
 # exported functions ----
 # make the interface simpler. our internal version need intermediate steps because we need the intermediate data
 
@@ -313,9 +313,10 @@ summary_tried_models <- function(model_try_res, IC = "AICc") {
   res <- model_try_res %>%
     model_try_res_to_model_list_dt %>%
     compare_models(IC_chosen = IC) %>%
-    compared_model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
-    format_model_summary_dt %>%
-    combine_summary_ci
+    compared_model_list_dt_to_final_summary_dt(IC_chosen = IC)
+    # compared_model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
+    # format_model_summary_dt %>%
+    # combine_summary_ci
   res[]
   # model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
   # # use [] to make sure calling function directly will print in console.
