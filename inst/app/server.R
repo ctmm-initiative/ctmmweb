@@ -2539,7 +2539,8 @@ output:
                 ))
   })
   # refit ----
-  ## with current selected models, depend on option fine-tune only/all, refit
+  # current definition: init is the model starting parameter, could be guesstimate or fine tuned guesstimate, or tuned model as starting parameter. fitted is always last fitting result, thus renamed to original. current is the current fit, might be adjusted by fine tune. refit always start from current.
+  # with current selected models, depend on option fine-tune only/all, refit
   observeEvent(input$refit, {
     # option of fine-tune only/all selected. we have tele, data of selected rows in select_models(), it's easier to start from there. no need to keep order here, the result will be sorted
     refit_dt <- merge(select_models()$info_dt, req(values$model_list_dt),

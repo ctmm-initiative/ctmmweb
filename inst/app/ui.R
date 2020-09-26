@@ -588,7 +588,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
       fluidRow(
         # p5.b.1 model summary ----
         # refit tool row
-        column(3, offset = 0, actionButton("refit", "Refit",
+        column(3, offset = 0, actionButton("refit", "Refit Selected",
                                            icon = icon("undo"),
                                            style = ctmmweb:::STYLES$page_action)),
         # adjust radiobutton vertical alignment, only change this for now. if need to change for all radiobuttons, use styles.css
@@ -620,7 +620,7 @@ variograms_box <- tabBox(title = "Variograms", id = "vario_tabs", width = 12,
              choiceNames = list(div(style = paste0("color:", ctmm_colors[3]),
                                     "Initial Parameter"),
                                 div(style = paste0("color:", ctmm_colors[4]),
-                                    "Fitted Model Result"),
+                                    "Original Model Result"),
                                 div(style = paste0("color:", ctmm_colors[5]),
                                     "Current Model Result")),
              choiceValues = names(ctmm_colors)[3:5],
