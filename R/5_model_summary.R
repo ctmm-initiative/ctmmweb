@@ -20,6 +20,7 @@ move_last_col_after_ref <- function(dt, col_name) {
 model_dt_id_cols <- c("model_no", "identity", "model_type", "model_name")
 # each model object is a CTMM object, summary(ctmm_obj) give some information in a list, which is converted into a table. summary(ctmm_obj_list) give some comparison among models, dAIIc col.
 # only convert the summary list as we need more flexibility in summary call
+# summary on single model
 ctmm_summary_to_dt <- function(ctmm_summary) {
   # convert the named vectors into data table, keep relevant info
   model_summary_list <- lapply(ctmm_summary, function(item) {
@@ -89,7 +90,7 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
 }
 # aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added to input parameter). better to make this transition step obvious.
 # use this after try_res conversion, after merge of two model_list_dt. i.e. after auto fit and refit, each fit, merge result.
-# need to run this between model_list_dt - model_summary_dt.
+# add some comparison columns to model_list_dt
 compare_models <- function(model_list_dt) {
   # summary on model list always give results sorted, with row names of list item names. reorder result to be same order of input, and function call is simpler
   get_aicc_vec <- function(model_list) {
@@ -110,18 +111,19 @@ compare_models <- function(model_list_dt) {
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt. the unformatted summary is only intermediate stage, not used in app.
 # it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and \u0394AICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
 # expect \u0394AICc column, always compare model before summary.
-model_list_dt_compared_to_model_summary_dt <- function(model_list_dt) {
+# model_list_dt -> add compared columns -> to model_summary_dt
+compared_model_list_dt_to_model_summary_dt <- function(compared_model_list_dt) {
   # a list of converted summary on each model
-  ctmm_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
-    summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
+  ctmm_summary_dt_list <- lapply(1:nrow(compared_model_list_dt), function(i) {
+    summary_dt <- ctmm_summary_to_dt(summary(compared_model_list_dt$model[[i]],
                                              units = FALSE))
-    # model_no must be taken from model_list_dt. lots of assumption changed. need to assign here, because each model have 3 rows, share same model_no
-    summary_dt[, model_no := model_list_dt[i, model_no]]
+    # model_no must be taken from compared_model_list_dt. lots of assumption changed. need to assign here, because each model have 3 rows, share same model_no
+    summary_dt[, model_no := compared_model_list_dt[i, model_no]]
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
   export_cols <- c(model_dt_id_cols, "dAICc")
   # merge by common columns, keep the order. the summary table only has model_no
-  model_summary_dt <- merge(model_list_dt[, ..export_cols],
+  model_summary_dt <- merge(compared_model_list_dt[, ..export_cols],
                             ctmm_summary_dt, by = "model_no",
                             sort = FALSE)
 }
@@ -281,9 +283,9 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
 #   as list column
 #
 # return formated model summary table, with ci columns combined
-model_list_dt_compared_to_summary_dt <- function(model_list_dt) {
-  model_list_dt %>%
-    model_list_dt_compared_to_model_summary_dt %>%
+compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt) {
+  compared_model_list_dt %>%
+    compared_model_list_dt_to_model_summary_dt %>%
     format_model_summary_dt %>%
     combine_summary_ci
 }
@@ -293,18 +295,21 @@ model_list_dt_compared_to_summary_dt <- function(model_list_dt) {
 #' Generate formated model summary table from tried models results
 #'
 #' @param model_try_res list of applying `ctmm::ctmm.select` on telemetry objects
+#' @param IC information criteria used in model selection, possible values are
+#'   "AICc", "AIC", "BIC", "LOOCV", and "HSCV"
 #'
 #' @return A `data.table` of model summary
 #' @export
-summary_tried_models <- function(model_try_res) {
+summary_tried_models <- function(model_try_res, IC = "AICc") {
+  # the pipe line change object: model_res -> model_list_dt -> compared_model_list_dt -> final summary
   res <- model_try_res %>%
     model_try_res_to_model_list_dt %>%
     compare_models %>%
-    model_list_dt_compared_to_summary_dt
+    compared_model_list_dt_to_final_summary_dt
   res[]
   # model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
   # # use [] to make sure calling function directly will print in console.
-  # model_list_dt_compared_to_summary_dt(model_list_dt)[]
+  # compared_model_list_dt_to_final_summary_dt(model_list_dt)[]
 }
 #' Flatten model list
 #'
@@ -365,7 +370,7 @@ hrange_list_dt_to_formated_range_summary_dt <- function(hrange_list_dt,
 #   dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt)
 #   model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
 #   # use [] to make sure calling function directly will print in console.
-#   model_list_dt_compared_to_summary_dt(model_list_dt)[]
+#   compared_model_list_dt_to_final_summary_dt(model_list_dt)[]
 # }
 
 # convert ctmm::overlap result matrix into data.table ----
