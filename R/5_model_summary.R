@@ -90,29 +90,36 @@ model_try_res_to_model_list_dt <- function(model_try_res, animal_names = NULL) {
 }
 # aicc column can only generated for group of models of same animal. when multiple pass model results merged, need to generate this info again, also sort again. put it in separate function, so that we always compare and sort model_lisst_dt before summary. if we put this inside summary function, the modification to model_list_dt is not obvious(new column added to input parameter). better to make this transition step obvious.
 # use this after try_res conversion, after merge of two model_list_dt. i.e. after auto fit and refit, each fit, merge result.
-# add some comparison columns to model_list_dt
-compare_models <- function(model_list_dt) {
+# add some comparison columns to model_list_dt. this is only used once so put inside model_list -> modesl summary step
+compare_models <- function(model_list_dt, IC_chosen) {
   # summary on model list always give results sorted, with row names of list item names. reorder result to be same order of input, and function call is simpler
-  get_aicc_vec <- function(model_list) {
-    # use fixed name to replace existing or non-existing name
+  get_IC_vec <- function(model_list) {
+    # the model list is the list column of models for same animal, don't have names - model names in other column, we may not add names to list column
+    # after we assigned names, the result now have names (character format of numbers)
     names(model_list) <- seq_along(model_list)
-    res <- summary(model_list, units = FALSE)
+    res <- summary(model_list, IC = IC_chosen, units = FALSE)
     # res is data.frame. the index need to be character(to use row names), if using numbers will use row number which is not correct
     # need to use unicode here as the original summary has it.
-    res[as.character(seq_along(model_list)), "\u0394AICc"]
+    # just chose the first column as IC column is always the first
+    # res[as.character(seq_along(model_list)), "\u0394AICc"]
+    res[as.character(seq_along(model_list)), 1]
   }
   # AICc come from the summary of a group models, always by animal, even models may came from different fit passes
-  model_list_dt[, "dAICc" := get_aicc_vec(model), by = identity]
+  # model_list_dt[, "dAICc" := get_IC_vec(model), by = identity]
+  # column name need to add a "d" prefix, all later column name need to be in this pattern.
+  model_list_dt[, (paste0("d", IC_chosen)) := get_IC_vec(model), by = identity]
   # sort it, so model_list_dt and summary are always sorted by same criteria
   # setorder(model_list_dt, identity, "\u0394AICc")
   # need to take column name in quote. backtick doesn't work with unicode, need double quote.
-  setorderv(model_list_dt, c("identity", "dAICc"))
+  # setorderv(model_list_dt, c("identity", "dAICc"))
+  setorderv(model_list_dt, c("identity", paste0("d", IC_chosen)))
 }
 # generate summary table for models. too much difference between model table and home range table, make separate functions. use model_summary_dt for unformatted summary, summary_dt as formatted summary to match app usage of summary_dt. the unformatted summary is only intermediate stage, not used in app.
 # it's the summary on model that create CI columns, expand one model into 3 rows. we sort model_list_dt and summary_dt by identity and \u0394AICc through compare_models, and keep the order in merge, always use sort = false if merging different order tables.
 # expect \u0394AICc column, always compare model before summary.
 # model_list_dt -> add compared columns -> to model_summary_dt
-compared_model_list_dt_to_model_summary_dt <- function(compared_model_list_dt) {
+model_list_dt_to_model_summary_dt <- function(model_list_dt, IC_chosen) {
+  compared_model_list_dt <- model_list_dt %>% compare_models(IC_chosen)
   # a list of converted summary on each model
   ctmm_summary_dt_list <- lapply(1:nrow(compared_model_list_dt), function(i) {
     summary_dt <- ctmm_summary_to_dt(summary(compared_model_list_dt$model[[i]],
@@ -121,29 +128,30 @@ compared_model_list_dt_to_model_summary_dt <- function(compared_model_list_dt) {
     summary_dt[, model_no := compared_model_list_dt[i, model_no]]
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
-  export_cols <- c(model_dt_id_cols, "dAICc")
+  # export_cols <- c(model_dt_id_cols, "dAICc")
+  export_cols <- c(model_dt_id_cols, paste0("d", IC_chosen))
   # merge by common columns, keep the order. the summary table only has model_no
   model_summary_dt <- merge(compared_model_list_dt[, ..export_cols],
                             ctmm_summary_dt, by = "model_no",
                             sort = FALSE)
 }
-# home range don't have \u0394AICc column, need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
-hrange_list_dt_to_model_summary_dt <- function(model_list_dt, level.UD = 0.95) {
+# home range don't have \u0394AICc column, and no compare step. need level.UD for CI areas. with level vec, will return more rows. default usage use single input, then remove the ci number column
+hrange_list_dt_to_model_summary_dt <- function(hrange_list_dt, level.UD = 0.95) {
   # make copy first because we will remove column later
   # a list of converted summary on each model. now we have additional level by level, need to combine first
-  ctmm_summary_dt_list <- lapply(1:nrow(model_list_dt), function(i) {
+  ctmm_summary_dt_list <- lapply(1:nrow(hrange_list_dt), function(i) {
     dt_list <- lapply(level.UD, function(level_value) {
-      summary_dt <- ctmm_summary_to_dt(summary(model_list_dt$model[[i]],
+      summary_dt <- ctmm_summary_to_dt(summary(hrange_list_dt$model[[i]],
                                                units = FALSE,
                                                level.UD = level_value))
-      summary_dt[, model_no := model_list_dt[i, model_no]]
+      summary_dt[, model_no := hrange_list_dt[i, model_no]]
       summary_dt[, quantile := level_value * 100]
     })
     rbindlist(dt_list, fill = TRUE)
   })
   ctmm_summary_dt <- rbindlist(ctmm_summary_dt_list, fill = TRUE)
   # there is no \u0394AICc column from summary of list of home range.
-  res_dt <- merge(model_list_dt[, ..model_dt_id_cols],
+  res_dt <- merge(hrange_list_dt[, ..model_dt_id_cols],
                   ctmm_summary_dt,
                   by = "model_no", sort = FALSE)
   # move level.UD col to after estimate
@@ -283,12 +291,12 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
 #   as list column
 #
 # return formated model summary table, with ci columns combined
-compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt) {
-  compared_model_list_dt %>%
-    compared_model_list_dt_to_model_summary_dt %>%
-    format_model_summary_dt %>%
-    combine_summary_ci
-}
+# compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt) {
+#   compared_model_list_dt %>%
+#     model_list_dt_to_model_summary_dt %>%
+#     format_model_summary_dt %>%
+#     combine_summary_ci
+# }
 # exported functions ----
 # make the interface simpler. our internal version need intermediate steps because we need the intermediate data
 
@@ -304,8 +312,9 @@ summary_tried_models <- function(model_try_res, IC = "AICc") {
   # the pipe line change object: model_res -> model_list_dt -> compared_model_list_dt -> final summary
   res <- model_try_res %>%
     model_try_res_to_model_list_dt %>%
-    compare_models %>%
-    compared_model_list_dt_to_final_summary_dt
+    model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
+    format_model_summary_dt %>%
+    combine_summary_ci
   res[]
   # model_list_dt <- model_try_res_to_model_list_dt(model_try_res)
   # # use [] to make sure calling function directly will print in console.

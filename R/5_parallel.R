@@ -203,7 +203,7 @@ par_try_models <- function(tele_list,
   }
   return(model_try_res)
 }
-# ctmm.fit: return single best model for each
+# ctmm.fit: return single best model for each. less used so didn't implement the parallel for single model feature.
 
 #' Parallel fitting models on telemetry list
 #'
