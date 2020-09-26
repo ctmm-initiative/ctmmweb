@@ -291,9 +291,10 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
 #   as list column
 #
 # return final formated model summary table, with ci columns combined. need this because in app we put compare model right after try model, manipulate model summary table
-compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt, IC) {
+# exported parameter use IC, internal functions use IC_chosen
+compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt, IC_chosen) {
   compared_model_list_dt %>%
-    compared_model_list_dt_to_model_summary_dt(IC_chosen = IC) %>%
+    compared_model_list_dt_to_model_summary_dt(IC_chosen = IC_chosen) %>%
     format_model_summary_dt %>%
     combine_summary_ci
 }
