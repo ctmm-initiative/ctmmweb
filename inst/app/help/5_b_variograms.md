@@ -5,6 +5,7 @@
     - There will be a pop up window for fine-tune parameters.
     - `Center current values` will update sliders range to twice of current value, so it's easier to deal with very small or large values.
     - `Apply` butto will accept adjusted parameters and update the variogram.
+- Alternative information criteria can be selected before moving to next step of model fitting, which can be useful for certain case like small samples.
 - Moving to `Modeled` tab will try various models with current guesstimate parameters as initial condition.
 
 ### Reference
