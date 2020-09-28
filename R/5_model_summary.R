@@ -290,7 +290,7 @@ combine_summary_ci <- function(summary_dt, hrange = FALSE) {
 # model_list_dt a `data.table` holding model information and models objects
 #   as list column
 #
-# return final formated model summary table, with ci columns combined. need this because in app we put compare model right after try model, manipulate model summary table
+# return final formated model summary table, with ci columns combined. need this because in app we put compare model right after try model, manipulate model summary table. there are some operations after refit that need to update table, so maybe cannot move compare model into this and use single operation to generate table. no need to change.
 # exported parameter use IC, internal functions use IC_chosen
 compared_model_list_dt_to_final_summary_dt <- function(compared_model_list_dt, IC_chosen) {
   compared_model_list_dt %>%
