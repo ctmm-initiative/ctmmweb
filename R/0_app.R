@@ -84,7 +84,7 @@ check_update <- function(installed_pkg_time) {
   if (length(content) != 0) {
     latest_commit_time <- lubridate::ymd_hms(
       content[[1]][["commit"]][["author"]][["date"]])
-    # reverse condition for test. Note in local development we could have local build newer than last commit in github. so nothing will happen.
+    # local development build may have a newer/older time in same day compare to github commit, so we should only compare date? but it's rare and only happen to my local machine, no need to change.
     if (lubridate::ymd(installed_pkg_build_date) < latest_commit_time) {
       shiny::showNotification("New release found, please update the app. Windows user can run the Update app link from start menu.",
                               duration = 9, type = "warning")

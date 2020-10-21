@@ -64,6 +64,7 @@ import_tele_files <- function(files, remove_marked_outliers = TRUE) {
 #   # make sure it's logical otherwise it may return a numerical value
 #   isTRUE(ctmm::uere(tele_obj)["horizontal"])
 # }
+# using ctmm internal method is.calibrated. not using ctmm::: notation because of CRAN check warning, thus mapped to globals.
 is_calibrated <- function(tele_obj) {
   # integer will become index in switch, not working with 0
   switch(as.character(is.calibrated(tele_obj)),
