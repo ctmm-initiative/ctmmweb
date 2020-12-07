@@ -103,6 +103,7 @@ plot_vario <- function(vario_list, model_list = NULL, title_vec = NULL,
     xlim <- max.lag * fraction
     vario_zoomed_list <- lapply(vario_list,
                                 function(vario) vario[vario$lag <= xlim, ])
+    # there is extent update that now output x, y and lon/lat. as long as we didn't assume it only have x/y it's fine.
     extent_tele <- ctmm::extent(vario_zoomed_list)
     for (i in seq_along(vario_zoomed_list)) {
       plot(vario_zoomed_list[[i]], CTMM = model_list[[i]],

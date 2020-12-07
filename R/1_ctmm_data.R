@@ -360,6 +360,8 @@ match_tele_merged <- function(tele_list, merged) {
   cat(crayon::white$bgGreen("data consistency verified"))
 }
 # ctmm:::extent take telemetry objects. previously I just use the original object in input together with the data frame version. Because we may apply filter/subset (remove outliers) on the data frame, then the input version become outdated. maintaining a matching telemetry object become cubersome. Since the only dependency on telemetry obj is here, I just modify the extent.telemetry function to take the data frame. need to make sure it follow the changes in ctmm::extent. https://github.com/ctmm-initiative/ctmm/blob/master/R/extent.R#L22
+# No, now ctmm::extent is more complex, and I tested applying extent on combined dt is different from on tele list. The code seemed to apply on each animal first then combine together then apply level stats, this is different if we treat all locations are from same individual (as single data.frame it will be treated like this). Since we actually maintain the matching tele_list now, use tele list.
+# no, switching back. all the purpose here is to exclude outliers, this usage is correct and enough for our purpose, there is no need to match/follow ctmm code. The usage here is per individual, not whole list together.
 extent_dt <- function(animals_dt, level = 1, ...) {
   alpha <- (1-level)/2
   ranges <- animals_dt[, as.list(c(
@@ -369,6 +371,13 @@ extent_dt <- function(animals_dt, level = 1, ...) {
   setnames(ranges, c("identity", "min_x", "max_x", "min_y", "max_y"))
   return(ranges)
 }
+# we need to apply per individual, not on whole list which is different using ctmm::extent
+# extent_tele_list <- function(tele_list, level = 1) {
+#   extent_single <- function(tele_obj, level) {
+#     ex <- ctmm::extent(tele_obj, level)
+#     data.table(identity = tele_obj@info$identity, min_x = ex["min", "x"], max_x = )
+#   }
+# }
 get_ranges_quantile_dt <- function(animals_dt, level) {
   # no padding to avoid points already filtered by quantile appear in plot when the axes expanded, since we are only "filter" points by changing x y limit instead of removing points.
   ranges <- extent_dt(animals_dt, level)
