@@ -26,10 +26,10 @@ app <- function(shiny_app_data = NULL) {
   shiny_app <- shiny::shinyApp(ui = ui, server = server)
   shiny::runApp(shiny_app, launch.browser = TRUE, display.mode = "normal")
 }
-# check installed package version.
-# with devtools/remotes installed from github, there are complete information
-# with devtools install button in RStudio, there is only built date
-# in the future if installed from CRAN, also only built date, but the version number should be specific.
+# check installed package version. check notes in 021_release_jobs.rmd.
+# with devtools/remotes installed from github, there are complete information including SHA, should be current at that time unless user specified otherwise, so it should be same with package source date.
+# with devtools install button in RStudio, there is only built date, not enough information actually but doesn't matter for intended audience
+# in the future if installed from CRAN, also only built date, but the version number should be specific. and the build info should be different from local build
 get_build_info <- function() {
   desc_file <- system.file("DESCRIPTION", package = "ctmmweb")
   # desc_dt <- data.table(t(read.dcf(desc_file, all = TRUE)), keep.rownames = TRUE)
