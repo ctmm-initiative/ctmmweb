@@ -30,8 +30,8 @@ app <- function(shiny_app_data = NULL) {
 # with devtools/remotes installed from github, there are complete information including SHA, should be current at that time unless user specified otherwise, so it should be same with package source date.
 # with devtools install button in RStudio, there is only built date, not enough information actually but doesn't matter for intended audience
 # in the future if installed from CRAN, also only built date, but the version number should be specific. and the build info should be different from local build
-get_build_info <- function() {
-  desc_file <- system.file("DESCRIPTION", package = "ctmmweb")
+get_build_info <- function(pkg) {
+  desc_file <- system.file("DESCRIPTION", package = pkg)
   # desc_dt <- data.table(t(read.dcf(desc_file, all = TRUE)), keep.rownames = TRUE)
   # if installed with devtools/remotes install_github, will have RemoteType rows. Otherwise (with devtools install package in developtment mode) only has Built time
   # Remote section is a little bit verbose but it's better just use a pattern in case devtools changed their names
@@ -39,7 +39,7 @@ get_build_info <- function() {
   # build_info_list <- list(build_info$V1)
   # names(build_info_list) <- build_info$rn
   desc_list <- as.list(read.dcf(desc_file, all = TRUE))
-  build_info_list <- desc_list[stringr::str_subset(names(desc_list), "Version|Remote|Packaged|Built")]
+  build_info_list <- desc_list[stringr::str_subset(names(desc_list), "Version|Date|Remote|Packaged|Built")]
   # note Remotes is the item added in description for specifying install dependency from github, not the other Remote_ items. thus we just remove it
   build_info_list$Remotes <- NULL
   return(build_info_list)

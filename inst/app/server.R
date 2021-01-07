@@ -299,7 +299,8 @@ output:
   # actual log started from app starting check. recording on appeared later.
   # record pkg build date for easier issue report. it will also appear in work report. hosted app user can generate the report.
   # to test build info format, just edit print_build_info function and put into global env, then remove the ctmmweb::: part and test. this can avoid the build package - build info removed problem. Also we don't want to change the log console function format which is tested right, modifying that can break lots of things.
-  log_msg("Package Build Info", ctmmweb:::print_build_info(ctmmweb:::get_build_info()))
+  log_msg("Package Build Info: ctmmweb", ctmmweb:::print_build_info(ctmmweb:::get_build_info("ctmmweb")))
+  log_msg("Package Build Info: ctmm", ctmmweb:::print_build_info(ctmmweb:::get_build_info("ctmm")))
   # first page need to be added manually since no page switching event fired
   # no longer true with new menu arrangement
   # log_page(ctmmweb:::PAGE_title$import)
