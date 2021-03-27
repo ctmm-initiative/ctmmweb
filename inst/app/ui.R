@@ -659,7 +659,7 @@ range_action_box <- box(title = "Home Range Estimation",
                           column(2, offset = 2, ctmmweb:::help_button("home_range"))
                         )
                         )
-range_option_box <- box(title = "Home Range Options", status = "primary",
+range_plot_box <- box(title = "Home Range Plots", status = "primary",
                  solidHeader = TRUE, width = 12,
    fluidRow(
      # column(12, h4("Options")),
@@ -688,13 +688,6 @@ range_option_box <- box(title = "Home Range Options", status = "primary",
             actionButton("export_homerange_dialog", "Export",
                             icon = icon("save"),
                             style = ctmmweb:::STYLES$page_action))),
-
-    # fluidRow(
-    #
-    #  column(2, actionButton("apply_hrange_weight", "Apply",
-    #                         icon = icon("angle-double-down"),
-    #                         style = ctmmweb:::STYLES$page_action))),
-
    fluidRow(
      column(12, plotOutput("range_plot",
                                   # less than 100%, otherwise out of boundary
@@ -704,9 +697,32 @@ range_summary_box <- box(title = "Home Range Summary",
                       solidHeader = TRUE, width = 12,
                       fluidRow(
                         # column(2, offset = 10, help_button("home_range")),
-                        column(12, DT::DTOutput("range_summary"))
+                        # column(12, h5("Select rows, add to group")),
+                        column(12, DT::DTOutput("range_summary")),
+                        column(12, h4("By default the Meta-analysis treat all home ranges in table as same population. To create sub-population for meta-analysis, select rows in table, input group name, click button to group them.")),
+                        column(2, textInput("range_summary_group_input", label = NULL)),
+                        column(2, offset = 8, actionButton("group_range_summary_rows", "Make Group",
+                                                           icon = icon("pie-chart"),
+                                                           style = ctmmweb:::STYLES$page_action))
                         )
 )
+# meta analysis in tabbed box
+# range_meta_box <- tabBox(title = "Meta-analysis",
+#                             # id = "range_meta_tabs",
+#                             # height = ctmmweb:::STYLES$height_location_box,
+#                             width = 12,
+#                             tabPanel("On Population",
+#                                      fluidRow()))
+range_meta_box <- box(title = "Meta-analysis",
+                            # id = "range_meta_tabs",
+                            # height = ctmmweb:::STYLES$height_location_box,
+                      status = "primary",
+                      solidHeader = TRUE,
+                      width = 12,
+                      fluidRow(column(4, verbatimTextOutput("meta_print")),
+                               column(8, plotOutput("meta_plot")))
+                      )
+
 # p7. overlap ----
 overlap_summary_box <- box(title = "Overlap of Home Ranges",
                                          status = "info",
@@ -923,7 +939,8 @@ body <- dashboardBody(
                      # , model_selection_box
                      )),
     tabItem(tabName = "homerange",
-            fluidRow(range_action_box, range_option_box, range_summary_box)),
+            fluidRow(range_action_box, range_plot_box,
+                     range_summary_box, range_meta_box)),
     tabItem(tabName = "overlap",
             fluidRow(overlap_summary_box, overlap_plot_box)),
     tabItem(tabName = "occurrence",

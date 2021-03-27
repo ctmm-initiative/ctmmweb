@@ -82,6 +82,7 @@ is_calibrated <- function(tele_obj) {
 # get single animal info in one row data frame
 info_tele <- function(object) {
   # sometimes the data is anonymized and don't have timestamp column. It has happened several times so we need to have proper error message.
+  # browser()
   stopifnot("timestamp" %in% names(object))
   # some data have one record for some individual, diff will return numeric(0), then median got NULL
   diffs <- diff(object$t)
@@ -329,21 +330,24 @@ tele_list_to_dt <- function(tele_list) {
 #' together with `ggplot2` we need to collect all location data as a single
 #' `data.frame` with an animal id column.
 #'
-#' This function convert any input telemetry List into a list of 1. `data.table`
-#' of location data, and 2. animal information `data.table`. `data.table` is
-#' chosen over `data.frame` for much better performance. This data structure is
-#' also used in a lot of places in app, which works on any selected subset of
-#' full data in almost all steps.
+#' This function convert any input telemetry List into a list of
+#' 1. `data.table` of location data
+#' 2. animal information `data.table`.
+#' `data.table` is chosen over `data.frame` for much better performance. This
+#' data structure is also used in a lot of places in app, which works on any
+#' selected subset of full data in almost all steps.
 #'
 #' @param tele_obj_list [ctmm::as.telemetry()] telemetry list. Use `drop = FALSE` in
 #'   [ctmm::as.telemetry()] to ensure a proper list.
 #'
-#' @return list of - `data_dt`: all animals collected in one data.table -
-#'   `info`: animal information table
+#' @return list of
+#' - `data_dt`: all animals collected in one data.table
+#' - `info`: animal information table
 #' @export
+# why using two names, not just use collect directly? combine is more consistent with other functions here. though this kind of rename don't appear in RStudio outline. need to search. at least use internal names consistently, and it's easier to locate.
 collect <- combine_tele_list <- function(tele_obj_list) {
   return(list(data_dt = tele_list_to_dt(tele_obj_list),
-              info = report(tele_obj_list)))
+              info = info_tele_list(tele_obj_list)))
 }
 # to test if tele_list is in sync with merged data.
 # this will not work when there are NA cols introduced by merge with different cols. need to clean those cols first
