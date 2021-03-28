@@ -2440,7 +2440,7 @@ output:
     # dt[, model_no := NULL]
     dt[, model_name := NULL]
     # use shorter column names. this should only affect display table and log table, not internal structure
-    setnames(dt, "model_no", "no")
+    # setnames(dt, "model_no", "no")
     # LOG tried models
     log_dt_md(dt, "Tried Models")
     # need the full info table to keep the color mapping when only a subset is selected
@@ -2724,28 +2724,6 @@ output:
   # home range levels ----
   # function on input didn't update, need a reactive expression? also cannot create a function to generate reactive expression, didn't update. don't really need a function but it was referenced 3 times so this is easier to use. compare to occur which only was used once so no need for function
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
-  # home range summary ----
-  output$range_summary <- DT::renderDT({
-    req(select_models())
-    # this doesn't return value so cannot req on it. req on hrange result should be enough
-    select_hrange_grid()
-    req(values$selected_models_hranges)
-    hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
-                                           values$selected_models_hranges)
-
-    dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
-                                                                get_hr_levels())
-    # remove extra columns to save space
-    dt[, model_name := NULL]
-    setnames(dt, "model_no", "no")
-    # LOG home range summary
-    log_dt_md(dt, "Home Range Summary")
-    info_p <- values$data$merged$info
-    # still use the full model type table color mapping to make it consistent.
-    model_types <- stringr::str_sort(unique(
-      summary_models()$summary_dt$model_type))
-    render_model_summary_DT(dt, model_types, info_p, NULL)
-  })
   # home range plot ----
   output$range_plot <- renderPlot({
     hranges <- req(values$selected_models_hranges)
@@ -2764,6 +2742,94 @@ output:
     # always use model mode vario layout, different from vario plot which have 3 modes.
   }, height = function() { select_models()$vario_layout$height })
   # the actual export functions. multiple variables in environment are used. put them into functions so we can reorganize raster/shapefile in same dialog easier. they need to add log so difficult to extract to outside functions.
+  # home range summary ----
+  # previously in range summary. now put into reactive expression, since we need to add group column
+  values$range_summary_group_table <- NULL
+  get_range_summary <- reactive({
+    req(select_models())
+    # this doesn't return value so cannot req on it. req on hrange result should be enough
+    select_hrange_grid()
+    req(values$selected_models_hranges)
+    # should always have same order thus just add model as list column. note the home range list still named by animal name, could have duplicates, but we don't use it as index
+    hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
+                                           values$selected_models_hranges)
+    # browser()
+    # home range summary table just show animal name and model type, which are enough to separate them. to build meta list, we can use model no to id rows, then use id name if unique, model name if needed to build list.
+    dt <- ctmmweb:::hrange_list_dt_to_formated_range_summary_dt(hrange_list_dt,
+                                                                get_hr_levels())
+    # remove extra columns to save space
+    dt[, model_name := NULL]
+    # setnames(dt, "model_no", "no")
+    # LOG home range summary
+    log_dt_md(dt, "Home Range Summary")
+    info_p <- values$data$merged$info
+    # still use the full model type table color mapping to make it consistent.
+    model_types <- stringr::str_sort(unique(
+      summary_models()$summary_dt$model_type))
+    # render_model_summary_DT(dt, model_types, info_p, NULL)
+    # init value table with dt and no group
+    dt[, group := NA_character_]
+    setcolorder(dt, c("model_no", "group"))
+    values$range_summary_group_table <- copy(dt)
+    return(list(model_types = model_types, info_p = info_p))
+  })
+  output$range_summary <- DT::renderDT({
+    render_model_summary_DT(req(values$range_summary_group_table),
+                            get_range_summary()$model_types, get_range_summary()$info_p, NULL)
+  })
+  # group for meta ----
+  observeEvent(input$group_range_summary_rows, {
+    req(input$range_summary_group_input)
+    req(input$range_summary_rows_selected)
+    # browser()
+    values$range_summary_group_table[input$range_summary_rows_selected,
+                                     group := input$range_summary_group_input]
+    # clear group input. not working?
+    updateTextInput(session, "range_summary_group_input", value = NULL)
+    # have to set to NULL to trigger update
+    temp_table <- values$range_summary_group_table
+    values$range_summary_group_table <- NULL
+    values$range_summary_group_table <- temp_table
+  })
+  # clear grouping
+  observeEvent(input$clear_group_range_summary, {
+    values$range_summary_group_table[, group := NA_character_]
+    temp_table <- values$range_summary_group_table
+    values$range_summary_group_table <- NULL
+    values$range_summary_group_table <- temp_table
+  })
+  # home range meta ----
+  # selected home range is a list, named by display name. if single model per animal, named by individual name, otherwise will be model name. we can build meta on this selected list. to create list groups, need to operate on list names, then build list of list.
+  # we need to print table and plot, so put list in reactive expression to ensure they are using same input. actually it also depend on mode, so put table and plot in same expression. however, can we save it and print plot? maybe not. just get the list.
+  get_meta_list <- reactive({
+    req(values$selected_models_hranges)
+    group_vec <- values$range_summary_group_table$group
+    if (all(is.na(group_vec))) {
+      values$selected_models_hranges
+    } else if (!any(is.na(group_vec))) {
+      # browser()
+      groups <- unique(group_vec)
+      names(groups) <- groups
+      hrange_list <- values$selected_models_hranges
+      purrr::map(groups, ~ {
+        # get the row number of selected rows in table for current group
+        selected_indice <- which(group_vec == .)
+        # add items in hrange list with same row index as items
+        values$selected_models_hranges[selected_indice]
+      })
+    } else {
+      NULL
+    }
+  })
+  output$range_meta_print <- renderPrint({
+    meta(req(get_meta_list()), mean = input$range_summary_meta_mean)
+  })
+  output$range_meta_plot <- renderPlot({
+    # req(values$selected_models_hranges)
+    meta(req(get_meta_list()), mean = input$range_summary_meta_mean)
+  },
+  # need to have a value when meta list is not ready, thus req. also need a minimal value
+  height = function() { max(length(req(get_meta_list())) * 100, 450) })
   # export raster ----
   # file_extension doesn't include . so we can use it also in folder name.
   # this need to be a function so that we can use different file extension with raster, and the switch call is much simpler. to combine into shapefile function need a lot parameters. could refactor if have more usage.

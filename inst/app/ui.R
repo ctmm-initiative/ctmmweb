@@ -699,11 +699,28 @@ range_summary_box <- box(title = "Home Range Summary",
                         # column(2, offset = 10, help_button("home_range")),
                         # column(12, h5("Select rows, add to group")),
                         column(12, DT::DTOutput("range_summary")),
-                        column(12, h4("By default the Meta-analysis treat all home ranges in table as same population. To create sub-population for meta-analysis, select rows in table, input group name, click button to group them.")),
-                        column(2, textInput("range_summary_group_input", label = NULL)),
-                        column(2, offset = 8, actionButton("group_range_summary_rows", "Make Group",
-                                                           icon = icon("pie-chart"),
-                                                           style = ctmmweb:::STYLES$page_action))
+                        column(12, hr(), h3("Meta-analysis")),
+                        column(12, h4("By default the Meta-analysis treat all home ranges in table as same population. To create sub-population for meta-analysis, select rows in home range summary table, input group name, click button to group them.")),
+                        column(6,
+                               fluidRow(
+                                 column(6, textInput("range_summary_group_input", label = NULL)),
+                                 column(6, offset = 0, actionButton("group_range_summary_rows", "Make Group",
+                                                                    icon = icon("pie-chart"),
+                                                                    style = ctmmweb:::STYLES$page_action))
+                               ),
+                               fluidRow(
+                                 column(6, checkboxInput("range_summary_meta_mean",
+                                                         "Plot population mean estimate", value = TRUE)),
+                                 column(6, offset = 0, actionButton("clear_group_range_summary", "Clear Group",
+                                                                    icon = icon("ban"),
+                                                                    style = ctmmweb:::STYLES$page_action))
+                               ),
+                               fluidRow(
+                                column(12, verbatimTextOutput("range_meta_print", placeholder = TRUE))
+                               )
+                              ),
+                        column(6, plotOutput("range_meta_plot", width = "99%", height = "98%"))
+
                         )
 )
 # meta analysis in tabbed box
@@ -713,15 +730,18 @@ range_summary_box <- box(title = "Home Range Summary",
 #                             width = 12,
 #                             tabPanel("On Population",
 #                                      fluidRow()))
-range_meta_box <- box(title = "Meta-analysis",
-                            # id = "range_meta_tabs",
-                            # height = ctmmweb:::STYLES$height_location_box,
-                      status = "primary",
-                      solidHeader = TRUE,
-                      width = 12,
-                      fluidRow(column(4, verbatimTextOutput("meta_print")),
-                               column(8, plotOutput("meta_plot")))
-                      )
+# it's better not to change/update range summary table, which came from upstream result.  if changing that for group, we need to make table as reactive value and modify from two side (upstream home range and grouping actions). rather we can just select rows but group into a result table in meta box, put all text and button in meta box which is more relevant. exclude/override duplicate groups.
+# range_meta_box <- box(title = "Meta-analysis",
+#                             # id = "range_meta_tabs",
+#                             # height = ctmmweb:::STYLES$height_location_box,
+#                       status = "primary",
+#                       solidHeader = TRUE,
+#                       width = 12,
+#                       fluidRow(
+#                                column(4, verbatimTextOutput("range_meta_print", placeholder = TRUE))
+#                                # column(8, plotOutput("range_meta_plot")))
+#                       )
+#                       )
 
 # p7. overlap ----
 overlap_summary_box <- box(title = "Overlap of Home Ranges",
@@ -940,7 +960,9 @@ body <- dashboardBody(
                      )),
     tabItem(tabName = "homerange",
             fluidRow(range_action_box, range_plot_box,
-                     range_summary_box, range_meta_box)),
+                     range_summary_box
+                     # , range_meta_box
+                     )),
     tabItem(tabName = "overlap",
             fluidRow(overlap_summary_box, overlap_plot_box)),
     tabItem(tabName = "occurrence",
