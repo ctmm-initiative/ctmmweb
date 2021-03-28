@@ -2770,7 +2770,9 @@ output:
     # init value table with dt and no group
     dt[, group := NA_character_]
     setcolorder(dt, c("model_no", "group"))
+    # reset table without group, clear meta print out
     values$range_summary_group_table <- copy(dt)
+    # values$range_meta_printout <- NULL
     return(list(model_types = model_types, info_p = info_p))
   })
   output$range_summary <- DT::renderDT({
@@ -2821,15 +2823,19 @@ output:
       NULL
     }
   })
-  output$range_meta_print <- renderPrint({
-    meta(req(get_meta_list()), mean = input$range_summary_meta_mean)
-  })
+  values$range_meta_printout <- NULL
   output$range_meta_plot <- renderPlot({
     # req(values$selected_models_hranges)
-    meta(req(get_meta_list()), mean = input$range_summary_meta_mean)
+    # we need side effect to plot, call meta in plot rendering, then got print out saved, use that in print
+    values$range_meta_printout <- meta(req(get_meta_list()), mean = input$range_summary_meta_mean)
   },
   # need to have a value when meta list is not ready, thus req. also need a minimal value
   height = function() { max(length(req(get_meta_list())) * 100, 450) })
+  # print use saved value to avoid double print
+  output$range_meta_print <- renderPrint({
+    # meta(req(get_meta_list()), mean = input$range_summary_meta_mean)
+    req(values$range_meta_printout)
+  })
   # export raster ----
   # file_extension doesn't include . so we can use it also in folder name.
   # this need to be a function so that we can use different file extension with raster, and the switch call is much simpler. to combine into shapefile function need a lot parameters. could refactor if have more usage.

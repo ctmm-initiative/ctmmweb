@@ -81,3 +81,7 @@ label[for="plot_dpi"] {
   margin: 20px auto;
 }
 */
+/* verbamtext box font size */
+pre.shiny-text-output {
+    font-size: 16px;
+}
