@@ -2787,8 +2787,8 @@ output:
     # browser()
     values$range_summary_group_table[input$range_summary_rows_selected,
                                      group := input$range_summary_group_input]
-    # clear group input. not working?
-    updateTextInput(session, "range_summary_group_input", value = NULL)
+    # clear group input. look at textInput default value, need to use "" instead of NULL
+    updateTextInput(session, inputId = "range_summary_group_input", value = "")
     # have to set to NULL to trigger update
     temp_table <- values$range_summary_group_table
     values$range_summary_group_table <- NULL
