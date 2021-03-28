@@ -1,59 +1,15 @@
 
 # header ----
-header <- dashboardHeader(title = "ctmmweb", dropdownMenuOutput("messageMenu"))
+# https://www.r-bloggers.com/a-little-trick-for-debugging-shiny/ run `$('#browser').show();` in browser console to show button.
+# disabled because we genearate side bar dynamically, and in there js will not work to hide the button. it's possible we separate the dynamic part and static part and still add it here but need too much efforts. [add button to header](https://stackoverflow.com/questions/46231234/login-button-in-shinydashboard-dashboardheader)
+header <- dashboardHeader(title = "ctmmweb",
+                          tags$li(class = "dropdown", actionButton("browser", "browser"),
+                                  tags$script("$('#browser').hide();")),
+                          dropdownMenuOutput("messageMenu"))
 # sidebar ----
 sidebar <- dashboardSidebar(
   # we need to use special function instead of uiOutput
   sidebarMenuOutput("side_menus")
-  # this part cannot be put in dynamic part where js will not work.
-  # https://www.r-bloggers.com/a-little-trick-for-debugging-shiny/
-  # ,
-  # fluidRow(
-  #   # browser button for debugging. somehow the hide js will not work in this server side, have to comment it out.
-  #   column(6, offset = 0, actionButton("browser", "browser"),
-  #          tags$script("$('#browser').hide();"))
-  # )
-  # sidebarMenu(
-  #   id = "tabs",
-  #   # match tabItem, page_title in server.R need to sync with this.
-  #   main_menu(ctmmweb:::PAGE_title$import, tabName = "import",
-  #            icon = icon("folder-open-o"), selected = TRUE),
-  #   main_menu(ctmmweb:::PAGE_title$plots, tabName = "plots",
-  #            icon = icon("area-chart")),
-  #   sub_menu(ctmmweb:::PAGE_title$filter, tabName = "filter",
-  #            icon = icon("filter")),
-  #   sub_menu(ctmmweb:::PAGE_title$subset, tabName = "subset",
-  #            icon = icon("pie-chart")),
-  #   main_menu(ctmmweb:::PAGE_title$model, tabName = "model",
-  #            icon = icon("hourglass-start")),
-  #   main_menu(ctmmweb:::PAGE_title$homerange, tabName = "homerange",
-  #            icon = icon("map-o")),
-  #   sub_menu(ctmmweb:::PAGE_title$overlap, tabName = "overlap",
-  #            icon = icon("clone")),
-  #   sub_menu(ctmmweb:::PAGE_title$occurrence, tabName = "occurrence",
-  #            icon = icon("paw")),
-  #   sub_menu(ctmmweb:::PAGE_title$speed, tabName = "speed",
-  #            icon = icon("exchange")),
-  #   main_menu(ctmmweb:::PAGE_title$map, tabName = "map",
-  #            icon = icon("globe")),
-  #   br(),
-  #   br(),
-  #   fluidRow(
-  #     column(8, numericInput("plot_dpi",
-  #                            label = div(icon("photo"), HTML('&nbsp;'),
-  #                                        "Plot DPI"),
-  #                            value = 300, step = 50))),
-  #   fluidRow(
-  #     column(6, offset = 0,
-  #                     downloadButton("save_data",
-  #                                    "Save Progress",
-  #                                    style =
-  # "color: #02c1ef;background-color: #232d33;border: transparent;margin-left: 4%;")
-  #     )),
-  #   fluidRow(
-  #     column(6, offset = 0, uiOutput("error_popup")),
-  #   ),
-  # )
 )
 # p0.a app options ----
 app_options_box <- box(title = "App Options",

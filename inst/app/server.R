@@ -2677,6 +2677,7 @@ output:
     if (input$hrange_grid_option == "same_grid") {
       # LOG home range calculation
       log_msg("Calculating Home Range in Same Grid ...")
+      # browser()
       withProgress(print(system.time(
         values$selected_models_hranges <- ctmmweb:::fall_back(
           akde_mem, list(tele_list, CTMM = select_models()$model_list,
