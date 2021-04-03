@@ -2642,7 +2642,7 @@ output:
                 title_vec = unlist(title_list)))
   })
   # home range popup ----
-  # pop up with same condition of home range calculation. we should use model value change as main trigger, and page value as 2nd condition
+  # pop up with same condition of home range calculation. we should use model value change as main trigger, and page value as 2nd condition. need to put this reactive somewhere that will have display to trigger it. putting in table calculation is slow nested in another reactive, in plot it's faster.
   # observeEvent(select_models()$model_list, {
   select_hrange_grid <- reactive({
     # not using page condition as the update is only triggered when home range summary is visible, the actual trigger condition is select_models
@@ -2727,6 +2727,9 @@ output:
   get_hr_levels <- reactive({ctmmweb:::parse_levels.UD(input$hr_contour_text)})
   # home range plot ----
   output$range_plot <- renderPlot({
+    # this doesn't return value so cannot req on it. req on hrange result should be enough
+    # there is 0.4s delay since model plot saved till home range popup, feel slow. we just need to put this reactive somewhere that will be shown to trigger popup, the first thing to be rendered might be plot, even in logic order plot is generated after home range calculation, maybe putting this in plot is faster then putting in this reactive, on the other hand this is another layer of reactive so maybe it's slower.
+    select_hrange_grid()
     hranges <- req(values$selected_models_hranges)
     # change title in place to show weight parameter
     names(hranges) <- get_hrange_weight_para()$title_vec
@@ -2748,8 +2751,7 @@ output:
   values$range_summary_group_table <- NULL
   get_range_summary <- reactive({
     req(select_models())
-    # this doesn't return value so cannot req on it. req on hrange result should be enough
-    select_hrange_grid()
+    # select_hrange_grid()
     req(values$selected_models_hranges)
     # should always have same order thus just add model as list column. note the home range list still named by animal name, could have duplicates, but we don't use it as index
     hrange_list_dt <- ctmmweb:::build_hrange_list_dt(select_models()$info_dt,
@@ -2801,16 +2803,21 @@ output:
     values$range_summary_group_table <- NULL
     values$range_summary_group_table <- temp_table
   })
-  # home range meta ----
-  # selected home range is a list, named by display name. if single model per animal, named by individual name, otherwise will be model name. we can build meta on this selected list. to create list groups, need to operate on list names, then build list of list.
+  # meta on home range ----
+  # selected home range is a list, named by individual name. it maintain the right order and we usually show display name from other table. we can build meta on this selected list. to create list groups, need to operate on list names, then build list of list.
   # we need to print table and plot, so put list in reactive expression to ensure they are using same input. actually it also depend on mode, so put table and plot in same expression. however, can we save it and print plot? maybe not. just get the list.
   get_meta_list <- reactive({
     req(values$selected_models_hranges)
     group_vec <- values$range_summary_group_table$group
+    # browser()
     if (all(is.na(group_vec))) {
-      values$selected_models_hranges
+      meta_list <- values$selected_models_hranges
+      # there is no "home range" in display name, already shortest.
+      names(meta_list) <- select_models()$info_dt$display_name
+      meta_list
     } else if (!any(is.na(group_vec))) {
       # browser()
+      # with groups we don't need individual names
       groups <- unique(group_vec)
       names(groups) <- groups
       hrange_list <- values$selected_models_hranges
