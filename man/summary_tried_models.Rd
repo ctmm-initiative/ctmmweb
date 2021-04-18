@@ -4,10 +4,13 @@
 \alias{summary_tried_models}
 \title{Generate formated model summary table from tried models results}
 \usage{
-summary_tried_models(model_try_res)
+summary_tried_models(model_try_res, IC = "AICc")
 }
 \arguments{
 \item{model_try_res}{list of applying \code{ctmm::ctmm.select} on telemetry objects}
+
+\item{IC}{information criteria used in model selection, possible values are
+"AICc", "AIC", "BIC", "LOOCV", and "HSCV"}
 }
 \value{
 A \code{data.table} of model summary

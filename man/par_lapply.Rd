@@ -49,8 +49,8 @@ List of applied results
 This is a generic parallel lapply that work across all major platforms.
 }
 \details{
-In Windows \code{\link[parallel:parLapplyLB]{parallel::parLapplyLB()}} is used, which is a socket cluster and
+In Windows \code{\link[parallel:clusterApply]{parallel::parLapplyLB()}} is used, which is a socket cluster and
 need to initialize each session manually with \code{win_init} if needed. In
-Linux/Mac \code{\link[parallel:mclapply]{parallel::mclapply()}} is used, where each worker will inherit the
+Linux/Mac \code{\link[parallel:mcdummies]{parallel::mclapply()}} is used, where each worker will inherit the
 current environment through forking, so no additional setup is required.
 }

@@ -11,8 +11,11 @@ collect(tele_obj_list)
 \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} to ensure a proper list.}
 }
 \value{
-list of - \code{data_dt}: all animals collected in one data.table -
-\code{info}: animal information table
+list of
+\itemize{
+\item \code{data_dt}: all animals collected in one data.table
+\item \code{info}: animal information table
+}
 }
 \description{
 A \code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list hold mutiple animal data in separate
@@ -23,9 +26,12 @@ together with \code{ggplot2} we need to collect all location data as a single
 \code{data.frame} with an animal id column.
 }
 \details{
-This function convert any input telemetry List into a list of 1. \code{data.table}
-of location data, and 2. animal information \code{data.table}. \code{data.table} is
-chosen over \code{data.frame} for much better performance. This data structure is
-also used in a lot of places in app, which works on any selected subset of
-full data in almost all steps.
+This function convert any input telemetry List into a list of
+\enumerate{
+\item \code{data.table} of location data
+\item animal information \code{data.table}.
+\code{data.table} is chosen over \code{data.frame} for much better performance. This
+data structure is also used in a lot of places in app, which works on any
+selected subset of full data in almost all steps.
+}
 }

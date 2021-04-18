@@ -6,7 +6,13 @@
 \alias{BIGGER_KEY}
 \alias{CENTER_TITLE}
 \title{Override some ggplot2 default theme settings}
-\format{A \code{ggplot2} function call of \code{ggplot2::theme} or \code{ggplot2::guides}}
+\format{
+A \code{ggplot2} function call of \code{ggplot2::theme} or \code{ggplot2::guides}
+
+An object of class \code{guides} of length 1.
+
+An object of class \code{theme} (inherits from \code{gg}) of length 1.
+}
 \usage{
 BIGGER_THEME
 

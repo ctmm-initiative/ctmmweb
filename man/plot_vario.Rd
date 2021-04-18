@@ -28,9 +28,9 @@ Possible values:
 \item It can be skipped to use default value \code{NULL}, and only empirical
 variograms are drawn. \code{vario_list} names will be used as figure title.
 Better use named parameters for others in this case.
-\item list of guesstimated models from \code{\link[ctmm:ctmm.guess]{ctmm::ctmm.guess()}} on telemetry data,
+\item list of guesstimated models from \code{\link[ctmm:variogram.fit]{ctmm::ctmm.guess()}} on telemetry data,
 overlay guesstimate variogram.
-\item list of fitted models from \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on \code{vario_list}, overlay
+\item list of fitted models from \code{\link[ctmm:ctmm.fit]{ctmm::ctmm.select()}} on \code{vario_list}, overlay
 modeled variogram.
 \item It can be a list of list, with each item provide list of \code{CTMM} objects
 that to be plotted in each variogram. \code{model_color} can be a vector

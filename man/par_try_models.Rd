@@ -5,12 +5,15 @@
 \alias{par_fit_models}
 \title{Parallel fitting models on telemetry list}
 \usage{
-par_try_models(tele_list, cores = NULL, parallel = TRUE)
+par_try_models(tele_list, IC = "AICc", cores = NULL, parallel = TRUE)
 
 par_fit_models(tele_list, cores = NULL, parallel = TRUE)
 }
 \arguments{
 \item{tele_list}{\code{\link[ctmm:as.telemetry]{ctmm::as.telemetry()}} telemetry list}
+
+\item{IC}{information criteria used in model selection, possible values are
+"AICc", "AIC", "BIC", "LOOCV", and "HSCV"}
 
 \item{cores}{the core count to be used for cluster. Could be a positive
 integer or
@@ -33,7 +36,7 @@ the attempted models as sub items with model type as name.
 \code{par_fit_models}: list of models named by animal names.
 }
 \description{
-par_try_models run \code{\link[ctmm:ctmm.select]{ctmm::ctmm.select()}} on each object of list on parallel.
+par_try_models run \code{\link[ctmm:ctmm.fit]{ctmm::ctmm.select()}} on each object of list on parallel.
 
 par_fit_models run \code{\link[ctmm:ctmm.fit]{ctmm::ctmm.fit()}} on each object of list on parallel.
 }
