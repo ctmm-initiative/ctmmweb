@@ -23,6 +23,7 @@ Just open [https://tiny.cc/ctmmweb](https://tiny.cc/ctmmweb) (Chrome recommended
 ## References
 
 - Check the [videos](https://ctmm-initiative.github.io/ctmmwebdoc/articles/demo.html), release [History](https://ctmm-initiative.github.io/ctmmwebdoc/news/index.html), package reference [website](https://ctmm-initiative.github.io/ctmmwebdoc)
+- [ctmmweb: A Graphical User Interface for Autocorrelation‐Informed Home Range Estimation](https://doi.org/10.1002/wsb.1154)
 - Suggested citation for the app/package:
 
 ```
