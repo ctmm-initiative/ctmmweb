@@ -611,15 +611,24 @@ output:
   # plan to show app starting mode and package installed version.
   # app can be launched from rstudio on server.R directly(i.e. runshinydir for app folder, used to be the run.R method), or from package function app(). Need to detect launch mode first, then detect app() parameters if in app mode. By checking environment strictly, same name object in global env should not interfer with app.
   # we need to get calling env to get possible parameter, but we don't need to use calling env - global env relationship to detect calling mode, which is unreliable and different for R 3.6 and 4.0
-  # if launched from server.R, will use inst/app folder. if launched from app() will use installed package/app folder. the folder pattern will be different.
+  # if launched from server.R in rstudio, will use inst/app folder. if launched in hosted server, it should be /srv/connect/apps/ctmmweb, (this only apply to official site, so test site should use same app name) not sure why need to change here with R 4.1. if launched from app() will use installed package/app folder. the folder pattern will be different.
   working_folder <- getwd()
+  log_msg("Working folder", working_folder)
   # parent folder is inst means server.r called in development mode, not from installed package
-  if ((working_folder %>% dirname %>% basename) == "inst") {
+  # app_folder <- working_folder %>% dirname %>% basename
+  # log_msg(app_folder)
+  # browser()
+  if ((working_folder %>% dirname %>% basename) == "inst" &&
+      (working_folder %>% basename) == "app") {
     # if did launched from server.R, it should be current directory which is set to server.R directory by runshinydir
     # cat("running in runShinydir mode\n")
     APP_wd <- working_folder
     log_msg("App launched in RStudio development mode")
-  } else {
+  } else if ((working_folder %>% dirname %>% basename) == "apps" &&
+        (working_folder %>% basename) == "ctmmweb") {
+      APP_wd <- working_folder
+      log_msg("App launched in Hosted server")
+    } else {
     # when launched from app() call, we didn't modify current working directory (and should not, which may interfere with user usage), we don't really need to get it from env, but getting it is no harm either
     # if app started from starting server.R, current env 2 level parent is global, because 1 level parent is server function env. this is using parent.env which operating on env. parent.frame operating on function call stack, which could be very deep, sys.nframe() reported 37 in browser call, sys.calls give details, the complex shiny maintaince stack.
     # run() function env if called from ctmmweb::app(), one level down from global if run server.R in Rstudio
