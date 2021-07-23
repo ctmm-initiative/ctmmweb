@@ -1,5 +1,5 @@
 ## version 0.2.11, 2021/07/23, Misc Updates
-- Occurence can be exported with level now. 
+- Occurrence can be exported with level now. 
 - Improved build info so the app will report ctmmweb and ctmm version more properly, make it easier to report issues.
 - Updated Movebank interface to match updated Movebank API.
 - Removed Unicode symbols because it can only work in certain locale/system settings and could break in user's system. 
