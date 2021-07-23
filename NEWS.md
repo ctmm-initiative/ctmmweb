@@ -1,4 +1,13 @@
-## version 0.2.10, 2020/05/10, Multiple polishes with R 4.0
+## version 0.2.11, 2021/07/23, Misc Updates
+- Occurence can be exported with level now. 
+- Improved build info so the app will report ctmmweb and ctmm version more properly, make it easier to report issues.
+- Updated Movebank interface to match updated Movebank API.
+- Removed Unicode symbols because it can only work in certain locale/system settings and could break in user's system. 
+- Support IC (information criteria) in modeling step.
+- Added Meta-analysis for Home range.
+
+
+## version 0.2.10, 2020/05/10, Multiple Polishes with R 4.0
 - Multiple updates and changes accompany with the recent ctmmweb paper. Including a new guide page for different workflow modes, many updates on help documents.
 - Changed the recomanded installation method to `remotes::install_github`. 
 - Tested with R 4.0 and the 0.5.10 version of ctmm. 

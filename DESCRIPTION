@@ -1,7 +1,7 @@
 Package: ctmmweb
 Type: Package
 Title: Web App For ctmm
-Version: 0.2.10
+Version: 0.2.11
 Authors@R: as.person(c( "Xianghui Dong <xhdong@umd.edu> [aut, cre]", "C.H. Fleming [ctb]", "M.J. Noonan
             [ctb]", "J.M. Calabrese [ctb]" ))
 URL: https://github.com/ctmm-initiative/ctmmweb
