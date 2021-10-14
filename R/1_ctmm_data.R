@@ -111,6 +111,18 @@ info_tele <- function(object) {
 # sort tele list by identity, ggplot always sort by id. ctmm keep same order in csv, but this should not create problem. actually I found the table is sorted from ctmm for old buffalo data 1764627, which is unsorted in csv.
 # we should keep the list sorted, not the info table. info table order match original list because we need to use table index.
 sort_tele_list <- function(tele_list) {
+  # when some animal have empty id but still have data, this will cause the data to be empty.
+  # if an individual has empty name "", we cannot get that individual by "" as name. cannot do this in package function, need to do it in server.R
+  if (any(names(tele_list) == "")) {
+    # we only make one name because if several individual with same "" name we cannot separate them.
+    # however, just changing this may not be enough, the telemetry object may not be correct, need to change @info$identity, since we take name from this slot later for data.table info.
+    empty_index <- which(names(tele_list) == "")
+    assigned_name <- "No_name"
+    tele_list[[empty_index]]@info$identity <- assigned_name
+    names(tele_list) <- names(tele_list) %>% stringr::str_replace("^$", assigned_name)
+    # showNotification("Some data don't have name for individual, please fix name first",
+    #                  duration = 4, type = "error")
+  }
   tele_list[stringr::str_sort(names(tele_list))]
 }
 #' Report data summary on telemetry list
