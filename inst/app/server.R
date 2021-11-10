@@ -556,8 +556,10 @@ output:
     } else {
       ANONYMIZED_data <<- FALSE
     }
-    values$input_tele_list <- tele_list
-    update_augmented_data(tele_list)
+    # matching list name here, this should be single entry of all telemetry data come in.
+    tele_list_name_updated <- ctmmweb:::update_tele_list_ids(tele_list)
+    values$input_tele_list <- tele_list_name_updated
+    update_augmented_data(tele_list_name_updated)
   }
   # clear every item in augmented data(everything other than input. include other global values outside data, like id_pal etc). we need to reset state sometimes, and we cannot use NULL or initialize again. This is much better than manually cleaning up as we may add new sub values in different places in app later
   # [tricky to reset whole values](https://stackoverflow.com/questions/26803536/shiny-how-to-update-a-reactivevalues-object)

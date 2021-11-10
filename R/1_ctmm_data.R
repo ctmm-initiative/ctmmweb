@@ -31,12 +31,13 @@ as_tele_list <- function(tele){
     return(tele)
   }
 }
-# update a list of telemetry obj identity slot with new names, also update item name with new names
-update_tele_list_ids <- function(tele_list, new_name_vec){
+# two usage here, one is to make unique name if list item names have duplicates, another is to apply list item name to info/identity, which is often needed for some data, since identity is only concerned with object itself not the list context. thus we refactor this function to only overwrite identity with item names
+# update a list of telemetry obj identity slot with list item names
+update_tele_list_ids <- function(tele_list){
+  item_names <- names(tele_list)
   for (i in seq_along(tele_list)) {
-    tele_list[[i]]@info$identity <- new_name_vec[i]
+    tele_list[[i]]@info$identity <- item_names[i]
   }
-  names(tele_list) <- new_name_vec
   return(tele_list)
 }
 # import multiple files, also work with single file
@@ -55,7 +56,9 @@ import_tele_files <- function(files, remove_marked_outliers = TRUE) {
     )
     # change the identity slot in telemetry obj, and the item name in list
     # this applied to all names, not just dup names. however this is clear in concept, not likely to have error
-    tele_list <- update_tele_list_ids(tele_list, new_names)
+    # tele_list <- update_tele_list_ids(tele_list, new_names)
+    names(tele_list) <- new_names
+    tele_list <- update_tele_list_ids(tele_list)
   }
   ctmm::projection(tele_list) <- ctmm::median(tele_list, k = 2)
   return(tele_list)
