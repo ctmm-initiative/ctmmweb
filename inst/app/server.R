@@ -37,26 +37,26 @@ server <- function(input, output, session) {
       id = "tabs",
       # uiOutput("side_menus"),
       # match tabItem, page_title in server.R need to sync with this.
-      customize_menu(menu_id = "intro", icon = icon("question-circle-o"),
+      customize_menu(menu_id = "intro", icon = icon("question-circle"),
                      selected = TRUE,
                      menu_type = menu_vec[["intro"]]),
-      customize_menu(menu_id = "import", icon = icon("folder-open-o"),
+      customize_menu(menu_id = "import", icon = icon("folder-open"),
                      menu_type = menu_vec[["import"]]),
-      customize_menu(menu_id = "plots", icon = icon("area-chart"),
+      customize_menu(menu_id = "plots", icon = icon("chart-area"),
                      menu_type = menu_vec[["plots"]]),
       customize_menu(menu_id = "filter", icon = icon("filter"),
                      menu_type = menu_vec[["filter"]]),
-      customize_menu(menu_id = "subset", icon = icon("pie-chart"),
+      customize_menu(menu_id = "subset", icon = icon("chart-pie"),
                      menu_type = menu_vec[["subset"]]),
       customize_menu(menu_id = "model", icon = icon("hourglass-start"),
                      menu_type = menu_vec[["model"]]),
-      customize_menu(menu_id = "homerange", icon = icon("map-o"),
+      customize_menu(menu_id = "homerange", icon = icon("map"),
                      menu_type = menu_vec[["homerange"]]),
       customize_menu(menu_id = "overlap", icon = icon("clone"),
                      menu_type = menu_vec[["overlap"]]),
       customize_menu(menu_id = "occurrence", icon = icon("paw"),
                      menu_type = menu_vec[["occurrence"]]),
-      customize_menu(menu_id = "speed", icon = icon("exchange"),
+      customize_menu(menu_id = "speed", icon = icon("exchange-alt"),
                      menu_type = menu_vec[["speed"]]),
       customize_menu(menu_id = "map", icon = icon("globe"),
                      menu_type = menu_vec[["map"]]),
@@ -64,7 +64,7 @@ server <- function(input, output, session) {
       br(),
       fluidRow(
         column(8, numericInput("plot_dpi",
-                               label = div(icon("photo"), HTML('&nbsp;'),
+                               label = div(icon("image"), HTML('&nbsp;'),
                                            "Plot DPI"),
                                value = 300, step = 50))),
       fluidRow(
@@ -104,7 +104,8 @@ server <- function(input, output, session) {
                    icon = icon("exclamation-circle"),
                    href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
                  badgeStatus = NULL,
-                 icon = icon("info-circle fa-lg"),
+                 icon = icon("info-circle"),
+                 # icon = fontawesome::fa("info-circle"),
                  headerText = "App Information"
     )
   })
@@ -485,7 +486,7 @@ output:
   safe_import_tele <- function(as_telemetry_input) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
-      shiny::span(icon("spinner fa-spin"), "Importing data..."),
+      shiny::span(icon("spinner"), "Importing data..."),
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # warning need to be recorded and notify at last (not in every warning, ony notify once), error need to notify and stop
@@ -798,7 +799,7 @@ output:
   # login, download studies ----
   observeEvent(input$login, {
     note_studies <- showNotification(
-      shiny::span(icon("spinner fa-spin"), "Downloading studies..."),
+      shiny::span(icon("spinner"), "Downloading studies..."),
       type = "message", duration = NULL)
     # always take current form value
     res <- ctmmweb:::get_all_studies(input$user, input$pass)  # may generate error notification if failed
@@ -937,7 +938,7 @@ output:
     # mb_id <- values$studies[owner == input$data_manager][
     #   input$studies_rows_selected, id]
     note_data_download <- showNotification(
-      shiny::span(icon("spinner fa-spin"), "Downloading data..."),
+      shiny::span(icon("spinner"), "Downloading data..."),
       type = "message", duration = NULL)
     # always take current form value
     res <- ctmmweb:::get_study_data(mb_id(), input$user, input$pass)
@@ -955,7 +956,7 @@ output:
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
       note_parse <- showNotification(
-        shiny::span(icon("spinner fa-spin"), "Parsing csv..."),
+        shiny::span(icon("spinner"), "Parsing csv..."),
         type = "message", duration = NULL)
       move_bank_dt <- try(fread(res$res_cont, sep = ","))
       removeNotification(note_parse)
@@ -2669,7 +2670,7 @@ output:
                                  choices = c("In Same Grid (to compare overlap)" = "same_grid",
                                              "Separately (save memory for spread out individuals)" = "separate"),
                                  inline = FALSE, width = "100%")),
-          column(3, actionButton("calc_hrange", "Estimate", icon = icon("map-o"),
+          column(3, actionButton("calc_hrange", "Estimate", icon = icon("map"),
                                  style = ctmmweb:::STYLES$page_action))
         ),
         easyClose = FALSE, fade = FALSE
@@ -3637,7 +3638,7 @@ Contours are only available in this mode.")),
   output$view_report <- renderUI(
     if (APP_local) {
       actionButton("preview_report", "Preview Report",
-                   icon = icon("file-text-o"),
+                   icon = icon("file-alt"),
                    style = ctmmweb:::STYLES$page_action)
     } else {
       downloadButton("download_report", "Download Report",
