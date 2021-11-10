@@ -556,7 +556,7 @@ output:
     } else {
       ANONYMIZED_data <<- FALSE
     }
-    # matching list name here, this should be single entry of all telemetry data come in.
+    # matching list name here, this should be single entry of all telemetry data come in app and before any identity access. only exception is the loading calibration data, which is not to be used as app tele data.
     tele_list_name_updated <- ctmmweb:::update_tele_list_ids(tele_list)
     values$input_tele_list <- tele_list_name_updated
     update_augmented_data(tele_list_name_updated)
