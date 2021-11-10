@@ -5,6 +5,7 @@
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
+# library(fontawesome)
 library(ctmm)
 library(data.table)
 library(magrittr)

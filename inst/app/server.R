@@ -3021,6 +3021,8 @@ Contours are only available in this mode.")),
     # the whole page need to be disabled when home range is not in same grid
     req(input$hrange_grid_option == "same_grid")
     req(values$selected_models_hranges)
+    # need at least two selected ranges
+    req(length(values$selected_models_hranges) > 1)
     # home range overlap
     overlap_hrange <- ctmm::overlap(values$selected_models_hranges)
     # data.table of overlap matrix. round 4 digits because value is 0 ~ 1
