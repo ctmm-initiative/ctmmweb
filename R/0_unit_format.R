@@ -28,12 +28,14 @@ pick_unit <- function(vec, dimension){
     test_value <- 1
   } else {
       test_value <- stats::median(vec)
-    }
+  }
+  # using this because some dimension may need different treatment on concise.
   switch(dimension,
          length = unit(test_value, dimension = "length", concise = TRUE),
          time =   unit(test_value, dimension = "time", concise = FALSE),
          speed =  unit(test_value, dimension = "speed", concise = TRUE),
-         area =   unit(test_value, dimension = "area", concise = TRUE)
+         area =   unit(test_value, dimension = "area", concise = TRUE),
+         diffusion =   unit(test_value, dimension = "diffusion", concise = TRUE)
          )
 }
 # given a vector of values (or single value) and dimension, return a formatting function. many plot or render code need a function
@@ -41,17 +43,19 @@ format_unit_f <- function(vec, dimension) {
   best_unit <- pick_unit(vec, dimension)
   unit_format_round(unit = best_unit$name, scale = 1 / best_unit$scale)
 }
-# we have general functions now, but it's very cumbersome to replace all old usage with new function with additional parameter (simple replace will not work), and we sometimes need a specific function as parameter color_bin_break. so just write wrappers here. this is currying but we don't want additional dependency for functional for this simple usage
+# we have general functions now, but it's very cumbersome to replace all old usage with new function with additional parameter (simple replace will not work), and we sometimes need a specific function as parameter color_bin_break. so just write wrappers here. this is currying but we don't want additional dependency for functional for this simple usage. the defintion looks too simple but we need function in some places, just write pick_unit with a parameter is not enough, will need curry again.
 # when using pick unit do the convert in dt, need to round digits, this was taken care of by digits parameter in format functions
 # pick_unit calculate the name and scale. format function can convert values to strings.
 pick_unit_distance <- function(vec) { pick_unit(vec, "length") }
 pick_unit_seconds  <- function(vec) { pick_unit(vec, "time") }
 pick_unit_speed    <- function(vec) { pick_unit(vec, "speed") }
 pick_unit_area     <- function(vec) { pick_unit(vec, "area") }
+pick_unit_diffusion     <- function(vec) { pick_unit(vec, "diffusion") }
 format_distance_f <- function(vec) { format_unit_f(vec, "length")}
 format_seconds_f  <- function(vec) { format_unit_f(vec, "time") }
 format_speed_f    <- function(vec) { format_unit_f(vec, "speed") }
 format_area_f     <- function(vec) { format_unit_f(vec, "area") }
+format_diffusion_f     <- function(vec) { format_unit_f(vec, "diffusion") }
 # note we cannot use format_speed_f(vec)(vec) for value in data.table, which may call the function for single value and lost context in whole vector.
 # special formats for time ----
 # intended for single input

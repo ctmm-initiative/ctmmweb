@@ -243,7 +243,8 @@ format_model_summary_dt <- function(model_summary_dt) {
                          # "\u03C4[velocity]" = pick_unit_seconds,
                          # "\u03C4" = pick_unit_seconds,
                          "speed" = pick_unit_speed,
-                         "error" = pick_unit_distance)
+                         "error" = pick_unit_distance,
+                         "diffusion" = pick_unit_diffusion)
   # all tau columns are time
   if (any(stringr::str_detect(names(dt), "tau"))) {
     name_unit_list[stringr::str_subset(names(dt), "tau")] <- list(pick_unit_seconds)
