@@ -1433,7 +1433,7 @@ output:
        assigned_speed = assigned_speed
        )]
     name_unit_list <- list("distance_center" = ctmmweb:::pick_unit_distance,
-                           "assigned_speed" = ctmmweb:::pick_unit_speed_ms)
+                           "assigned_speed" = ctmmweb:::pick_unit_speed_kmh)
     ctmmweb:::format_dt_unit(dt, name_unit_list)
   }
   # brush selection function
