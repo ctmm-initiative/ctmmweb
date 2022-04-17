@@ -49,11 +49,17 @@ format_unit_f <- function(vec, dimension) {
 pick_unit_distance <- function(vec) { pick_unit(vec, "length") }
 pick_unit_seconds  <- function(vec) { pick_unit(vec, "time") }
 pick_unit_speed    <- function(vec) { pick_unit(vec, "speed") }
+pick_unit_speed_ms <- function(vec) { list(scale = 1, name = "m/s") }
 pick_unit_area     <- function(vec) { pick_unit(vec, "area") }
 pick_unit_diffusion     <- function(vec) { pick_unit(vec, "diffusion") }
 format_distance_f <- function(vec) { format_unit_f(vec, "length")}
 format_seconds_f  <- function(vec) { format_unit_f(vec, "time") }
 format_speed_f    <- function(vec) { format_unit_f(vec, "speed") }
+# speed outlier page need fixed unit for easier relating to reality. define a fixed unit speed funciton
+format_speed_ms   <- function(vec) {
+  # ctmm:::unit only defined distance per day, no m/s or km/hour. we replace it with unit name and scale
+  unit_format_round(unit = "m/s", scale = 1)
+}
 format_area_f     <- function(vec) { format_unit_f(vec, "area") }
 format_diffusion_f     <- function(vec) { format_unit_f(vec, "diffusion") }
 # note we cannot use format_speed_f(vec)(vec) for value in data.table, which may call the function for single value and lost context in whole vector.

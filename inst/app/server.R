@@ -9,7 +9,7 @@ VERIFY_DATA_SYNC <- FALSE
 # PKG_BUILD_INFO <- ctmmweb:::get_build_info()
 
 server <- function(input, output, session) {
-  # browser button for debugging
+  # browser button for debugging. type in js console to show it: $('#browser').show();
   observeEvent(input$browser,{
     browser()
   })
@@ -1424,8 +1424,8 @@ output:
   })
   # need the whole range to get proper unit selection
   format_outliers <- function(animal_selected_data, animals_dt) {
-    unit_distance <- ctmmweb:::pick_unit_distance(animals_dt$distance_center)
-    unit_speed <- ctmmweb:::pick_unit_speed(animals_dt$assigned_speed)
+    # unit_distance <- ctmmweb:::pick_unit_distance(animals_dt$distance_center)
+    # unit_speed <- ctmmweb:::pick_unit_speed(animals_dt$assigned_speed)
     # get this first otherwise the colname is changed
     dt <- animal_selected_data[, .(id, row_no,
        timestamp = ctmmweb:::format_datetime(timestamp),
@@ -1433,7 +1433,7 @@ output:
        assigned_speed = assigned_speed
        )]
     name_unit_list <- list("distance_center" = ctmmweb:::pick_unit_distance,
-                           "assigned_speed" = ctmmweb:::pick_unit_speed)
+                           "assigned_speed" = ctmmweb:::pick_unit_speed_ms)
     ctmmweb:::format_dt_unit(dt, name_unit_list)
   }
   # brush selection function
@@ -1450,7 +1450,7 @@ output:
              },
              speed = {
                col_name = quote(assigned_speed)
-               format_f <- ctmmweb:::format_speed_f
+               format_f <- ctmmweb:::format_speed_ms
                # unit_name <- " m/s"
                animals_dt <- req(bin_by_speed()$animals_dt)
              })
@@ -1595,7 +1595,7 @@ output:
     }
     req(!zero_speeds)
     return(ctmmweb:::color_break(input$speed_his_bins, animals_dt,
-                       "assigned_speed", ctmmweb:::format_speed_f))
+                       "assigned_speed", ctmmweb:::format_speed_ms))
   })
   output$speed_histogram <- renderPlot({
     speed_binned <- req(bin_by_speed())
