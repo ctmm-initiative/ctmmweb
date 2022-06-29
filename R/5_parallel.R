@@ -282,7 +282,7 @@ par_speed <- function(para_list,
   speed_calc <- function(para_list) {
     ctmm::speed(para_list[[1]], para_list[[2]],
                 level = para_list[[3]], robust = para_list[[4]],
-                units = FALSE)
+                units = FALSE)$CI
   }
   par_lapply(para_list, speed_calc, cores, parallel)
 }

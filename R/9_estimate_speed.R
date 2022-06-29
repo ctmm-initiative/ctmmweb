@@ -13,7 +13,7 @@ format_dt_cols <- function(dt, col_name_vec, unit_picked,
 # convert result list of speed calculation to dt, also calculate distance traveled. need to use the SI units, so calculate before unit conversion. since res is a list with different structure for error, it's easier to use separate vector input instead of a data.table.
 speed_res_to_dt <- function(res, durations) {
   res_cleaned <- lapply(res, function(x) {
-    if (class(x) == "try-error") {
+    if (class(x)[1] == "try-error") {
       data.frame(rn = "error", low = Inf, est = Inf, high = Inf)
     } else {
       data.table(x, keep.rownames = TRUE)
