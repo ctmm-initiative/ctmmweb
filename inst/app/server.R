@@ -3024,7 +3024,7 @@ Contours are only available in this mode.")),
     # need at least two selected ranges
     req(length(values$selected_models_hranges) > 1)
     # home range overlap
-    overlap_hrange <- ctmm::overlap(values$selected_models_hranges)
+    overlap_hrange <- ctmm::overlap(values$selected_models_hranges)$CI
     # data.table of overlap matrix. round 4 digits because value is 0 ~ 1
     overlap_hrange %>%
       ctmmweb::overlap_matrix_to_dt() %>%
