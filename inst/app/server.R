@@ -40,31 +40,31 @@ server <- function(input, output, session) {
       customize_menu(menu_id = "intro", icon = ctmmweb:::icon_skip_check("question-circle"),
                      selected = TRUE,
                      menu_type = menu_vec[["intro"]]),
-      customize_menu(menu_id = "import", icon = icon_skip_check("folder-open"),
+      customize_menu(menu_id = "import", icon = ctmmweb:::icon_skip_check("folder-open"),
                      menu_type = menu_vec[["import"]]),
-      customize_menu(menu_id = "plots", icon = icon_skip_check("chart-area"),
+      customize_menu(menu_id = "plots", icon = ctmmweb:::icon_skip_check("chart-area"),
                      menu_type = menu_vec[["plots"]]),
-      customize_menu(menu_id = "filter", icon = icon_skip_check("filter"),
+      customize_menu(menu_id = "filter", icon = ctmmweb:::icon_skip_check("filter"),
                      menu_type = menu_vec[["filter"]]),
-      customize_menu(menu_id = "subset", icon = icon_skip_check("chart-pie"),
+      customize_menu(menu_id = "subset", icon = ctmmweb:::icon_skip_check("chart-pie"),
                      menu_type = menu_vec[["subset"]]),
-      customize_menu(menu_id = "model", icon = icon_skip_check("hourglass-start"),
+      customize_menu(menu_id = "model", icon = ctmmweb:::icon_skip_check("hourglass-start"),
                      menu_type = menu_vec[["model"]]),
-      customize_menu(menu_id = "homerange", icon = icon_skip_check("map"),
+      customize_menu(menu_id = "homerange", icon = ctmmweb:::icon_skip_check("map"),
                      menu_type = menu_vec[["homerange"]]),
-      customize_menu(menu_id = "overlap", icon = icon_skip_check("clone"),
+      customize_menu(menu_id = "overlap", icon = ctmmweb:::icon_skip_check("clone"),
                      menu_type = menu_vec[["overlap"]]),
-      customize_menu(menu_id = "occurrence", icon = icon_skip_check("paw"),
+      customize_menu(menu_id = "occurrence", icon = ctmmweb:::icon_skip_check("paw"),
                      menu_type = menu_vec[["occurrence"]]),
-      customize_menu(menu_id = "speed", icon = icon_skip_check("exchange-alt"),
+      customize_menu(menu_id = "speed", icon = ctmmweb:::icon_skip_check("exchange-alt"),
                      menu_type = menu_vec[["speed"]]),
-      customize_menu(menu_id = "map", icon = icon_skip_check("globe"),
+      customize_menu(menu_id = "map", icon = ctmmweb:::icon_skip_check("globe"),
                      menu_type = menu_vec[["map"]]),
       br(),
       br(),
       fluidRow(
         column(8, numericInput("plot_dpi",
-                               label = div(icon_skip_check("image"), HTML('&nbsp;'),
+                               label = div(ctmmweb:::icon_skip_check("image"), HTML('&nbsp;'),
                                            "Plot DPI"),
                                value = 300, step = 50))),
       fluidRow(
@@ -82,7 +82,7 @@ server <- function(input, output, session) {
   # message menu ----
   # rendering message menu dynamically to avoid call PKG_BUILD_INFO twice
   # force use github icon in v4.7
-  icon_g <- icon_skip_check("github")
+  icon_g <- ctmmweb:::icon_skip_check("github")
   icon_g[["attribs"]][["class"]] <- "fa fa-github"
   output$messageMenu <- renderMenu({
     dropdownMenu(type = "messages",
@@ -97,14 +97,14 @@ server <- function(input, output, session) {
                  # messageItem(
                  #   from = "Package Build Date",
                  #   message = PKG_BUILD_INFO$build_date,
-                 #   icon = icon_skip_check("calendar-o")),
+                 #   icon = ctmmweb:::icon_skip_check("calendar-o")),
                  messageItem(
                    from = "Issues",
                    message = "Report Issues",
-                   icon = icon_skip_check("exclamation-circle"),
+                   icon = ctmmweb:::icon_skip_check("exclamation-circle"),
                    href = "https://github.com/ctmm-initiative/ctmmweb/issues"),
                  badgeStatus = NULL,
-                 icon = icon_skip_check("info-circle"),
+                 icon = ctmmweb:::icon_skip_check("info-circle"),
                  # icon = fontawesome::fa("info-circle"),
                  headerText = "App Information"
     )
@@ -404,7 +404,7 @@ output:
   output$error_popup <- renderUI(
     if (input$capture_error) {
       actionButton("show_error", "Diagnostic Info",
-                   icon = icon_skip_check("stethoscope"),
+                   icon = ctmmweb:::icon_skip_check("stethoscope"),
                    style = "color: #ffec3b;background-color: #232d33;border: transparent;margin-left: 4%;")
     }
   )
@@ -486,7 +486,7 @@ output:
   safe_import_tele <- function(as_telemetry_input) {
     # sometimes there is error: Error in <Anonymous>: unable to find an inherited method for function ‘span’ for signature ‘"shiny.tag"’. added tags$, not sure if it will fix it.
     note_import <- showNotification(
-      shiny::span(icon_skip_check("spinner"), "Importing data..."),
+      shiny::span(ctmmweb:::icon_skip_check("spinner"), "Importing data..."),
       type = "message", duration = NULL)
     on.exit(removeNotification(note_import))
     # warning need to be recorded and notify at last (not in every warning, ony notify once), error need to notify and stop
@@ -799,7 +799,7 @@ output:
   # login, download studies ----
   observeEvent(input$login, {
     note_studies <- showNotification(
-      shiny::span(icon_skip_check("spinner"), "Downloading studies..."),
+      shiny::span(ctmmweb:::icon_skip_check("spinner"), "Downloading studies..."),
       type = "message", duration = NULL)
     # always take current form value
     res <- ctmmweb:::get_all_studies(input$user, input$pass)  # may generate error notification if failed
@@ -854,7 +854,7 @@ output:
         status = "primary", solidHeader = TRUE,
         fluidRow(column(3, actionButton("download_movebank",
                                         "Download",
-                                        icon = icon_skip_check("cloud-download"),
+                                        icon = ctmmweb:::icon_skip_check("cloud-download"),
                                         style = ctmmweb:::STYLES$page_action)),
                  column(4, offset = 1, uiOutput("open_study")),
                  column(3, offset = 1, ctmmweb:::help_button("download_movebank")
@@ -879,7 +879,7 @@ output:
       # link to movebank
       output$open_study <- renderUI({
         req(input$studies_rows_selected)
-        shiny::a(tags$button(icon_skip_check("external-link"), "Open in Movebank",
+        shiny::a(tags$button(ctmmweb:::icon_skip_check("external-link"), "Open in Movebank",
                              class = "btn btn-default action-button",
                              style = ctmmweb:::STYLES$external_link),
                  target = "_blank", href =
@@ -922,11 +922,11 @@ output:
         status = "primary", solidHeader = TRUE,
         collapsible = TRUE,
         fluidRow(column(3, downloadButton("save_movebank", "Save",
-                                          icon = icon_skip_check("floppy-o"),
+                                          icon = ctmmweb:::icon_skip_check("floppy-o"),
                                           style = ctmmweb:::STYLES$download_button)),
                  column(3, offset = 6,
                         actionButton("import_movebank", "Import",
-                                     icon = icon_skip_check("arrow-right"),
+                                     icon = ctmmweb:::icon_skip_check("arrow-right"),
                                      style = ctmmweb:::STYLES$page_switch))),
         hr(),
         fluidRow(column(12, verbatimTextOutput("study_data_response"))),
@@ -938,7 +938,7 @@ output:
     # mb_id <- values$studies[owner == input$data_manager][
     #   input$studies_rows_selected, id]
     note_data_download <- showNotification(
-      shiny::span(icon_skip_check("spinner"), "Downloading data..."),
+      shiny::span(ctmmweb:::icon_skip_check("spinner"), "Downloading data..."),
       type = "message", duration = NULL)
     # always take current form value
     res <- ctmmweb:::get_study_data(mb_id(), input$user, input$pass)
@@ -956,7 +956,7 @@ output:
     } else {
       showNotification("Data downloaded", type = "message", duration = 2)
       note_parse <- showNotification(
-        shiny::span(icon_skip_check("spinner"), "Parsing csv..."),
+        shiny::span(ctmmweb:::icon_skip_check("spinner"), "Parsing csv..."),
         type = "message", duration = NULL)
       move_bank_dt <- try(fread(res$res_cont, sep = ","))
       removeNotification(note_parse)
@@ -2670,7 +2670,7 @@ output:
                                  choices = c("In Same Grid (to compare overlap)" = "same_grid",
                                              "Separately (save memory for spread out individuals)" = "separate"),
                                  inline = FALSE, width = "100%")),
-          column(3, actionButton("calc_hrange", "Estimate", icon = icon_skip_check("map"),
+          column(3, actionButton("calc_hrange", "Estimate", icon = ctmmweb:::icon_skip_check("map"),
                                  style = ctmmweb:::STYLES$page_action))
         ),
         easyClose = FALSE, fade = FALSE
@@ -2931,11 +2931,11 @@ Contours are only available in this mode.")),
       size = "m",
       footer = fluidRow(
         column(3, offset = 0,
-               modalButton("Cancel", icon = icon_skip_check("ban"))),
+               modalButton("Cancel", icon = ctmmweb:::icon_skip_check("ban"))),
         column(3, offset = 6,
                downloadButton("download_homerange",
                               "Save",
-                              icon = icon_skip_check("save"),
+                              icon = ctmmweb:::icon_skip_check("save"),
                               style = ctmmweb:::STYLES$download_button))
       )
     ))
@@ -2987,11 +2987,11 @@ Contours are only available in this mode.")),
                           size = "m",
                           footer = fluidRow(
                             column(3, offset = 0,
-                                   modalButton("Cancel", icon = icon_skip_check("ban"))),
+                                   modalButton("Cancel", icon = ctmmweb:::icon_skip_check("ban"))),
                             column(3, offset = 6,
                                    downloadButton("download_occur",
                                                   "Save",
-                                                  icon = icon_skip_check("save"),
+                                                  icon = ctmmweb:::icon_skip_check("save"),
                                                   style = ctmmweb:::STYLES$download_button))
                           )
     ))
@@ -3640,7 +3640,7 @@ Contours are only available in this mode.")),
   output$view_report <- renderUI(
     if (APP_local) {
       actionButton("preview_report", "Preview Report",
-                   icon = icon_skip_check("file-alt"),
+                   icon = ctmmweb:::icon_skip_check("file-alt"),
                    style = ctmmweb:::STYLES$page_action)
     } else {
       downloadButton("download_report", "Download Report",

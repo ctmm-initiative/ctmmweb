@@ -103,7 +103,7 @@ side_bar_modes <- list("Data Processing" = c("import", "filter", "subset"),
                        "Home Range Overlap" = c("import", "plots", "model", "homerange", "overlap", "map"),
                        "Occurrence" = c("import", "plots", "model", "occurrence"),
                        "Speed/Distance" = c("import", "plots", "model", "speed"))
-# ignore icon check
+# ignore icon check. need to load it explicitly in ui/server code as they are not package source. module_fine_tune also used this, will this function loaded before that code running?
 icon_skip_check <- function(...) {
   shiny::icon(..., verify_fa = FALSE)
 }
