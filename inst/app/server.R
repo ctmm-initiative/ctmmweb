@@ -37,7 +37,7 @@ server <- function(input, output, session) {
       id = "tabs",
       # uiOutput("side_menus"),
       # match tabItem, page_title in server.R need to sync with this.
-      customize_menu(menu_id = "intro", icon = icon_skip_check("question-circle"),
+      customize_menu(menu_id = "intro", icon = ctmmweb:::icon_skip_check("question-circle"),
                      selected = TRUE,
                      menu_type = menu_vec[["intro"]]),
       customize_menu(menu_id = "import", icon = icon_skip_check("folder-open"),
