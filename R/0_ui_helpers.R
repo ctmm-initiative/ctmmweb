@@ -103,13 +103,17 @@ side_bar_modes <- list("Data Processing" = c("import", "filter", "subset"),
                        "Home Range Overlap" = c("import", "plots", "model", "homerange", "overlap", "map"),
                        "Occurrence" = c("import", "plots", "model", "occurrence"),
                        "Speed/Distance" = c("import", "plots", "model", "speed"))
+# ignore icon check
+icon_skip_check <- function(...) {
+  shiny::icon(..., verify_fa = FALSE)
+}
 # help module ui ----
 # server also need it in dynamic UI
 help_button <- function(module_id, style = STYLES$help_button, text = "Help") {
   prefix <- NS(module_id)
   actionButton(prefix("help"),
                text,
-               icon = icon("question"),
+               icon = icon_skip_check("question"),
                style = style)
 }
 # variogram curve colors ----

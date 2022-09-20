@@ -45,12 +45,12 @@ varioSlidersInput <- function(id, dialog_title) {
               footer = fluidRow(
                 column(3, actionButton(ns("center_slider"),
                                        "Center current sliders",
-                                       icon = icon("align-center"))),
+                                       icon = icon_skip_check("align-center"))),
                 column(3, offset = 2,
-                       modalButton("Cancel", icon = icon("ban"))),
+                       modalButton("Cancel", icon = icon_skip_check("ban"))),
                 column(2, offset = 2,
                        actionButton(ns("tuned"), "Apply",
-                                    icon = icon("check"),
+                                    icon = icon_skip_check("check"),
                                     style = STYLES$page_action)))
   )
 }
