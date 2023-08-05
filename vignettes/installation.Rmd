@@ -63,8 +63,3 @@ vignette: >
   
         sudo apt-get install libcurl4-openssl-dev
         sudo apt-get install libssl-dev
-  
-  + `ctmm` need `rgdal`, which need another two libraries in linux:
-  
-        sudo apt-get update && sudo apt-get install libgdal-dev libproj-dev
-  

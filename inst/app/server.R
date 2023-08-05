@@ -2891,9 +2891,8 @@ output:
       write_f <- function(folder_path) {
         # hrange_list came from select_models(), so the order should be synced
         for (i in seq_along(hrange_list)) {
-          ctmm::writeShapefile(hrange_list[[i]], level.UD = ud_levels,
-                               folder = folder_path,
-                               file = select_models()$info_dt$model_name[i])
+          filename <- paste0(folder_path,'/',select_models()$info_dt$model_name[i])
+          ctmm::writeVector(hrange_list[[i]],filename=filename,level.UD = ud_levels)
         }
       }
       return(write_f)
